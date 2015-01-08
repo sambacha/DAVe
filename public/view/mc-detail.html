@@ -6,9 +6,13 @@
     </div>
 </nav>
 
-<canvas chart="Line" options="mcChartOptions" data="mcChartData" width="1000" height="400" style="margin: 10px;"></canvas>
+<div class="alert alert-danger" role="alert" ng-if="error != ''">Failed to update the data: {{error}}</div>
 
-<div class="table-responsive">
+<div class="alert alert-info" role="alert" ng-if="mcDetail.length == 0">No data available.</div>
+
+<canvas chart="Line" options="mcChartOptions" data="mcChartData" width="1000" height="400" style="margin: 10px;" ng-if="mcDetail.length > 0"></canvas>
+
+<div class="table-responsive" ng-if="mcDetail.length > 0">
     <table class="table table-striped">
         <thead>
         <tr>

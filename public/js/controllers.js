@@ -11,6 +11,7 @@ sandboxControllers.controller('MarginComponentOverview', ['$scope', '$routeParam
 
         $scope.mcOverview = [];
         $scope.existingRecords = [];
+        $scope.error = "";
         $scope.ordering= ["member", "account", "clss"];
 
         if ($routeParams.clearer) { $scope.clearer = $routeParams.clearer } else { $scope.clearer = "*" }
@@ -22,6 +23,9 @@ sandboxControllers.controller('MarginComponentOverview', ['$scope', '$routeParam
 
         $http.get($scope.url).success(function(data) {
             $scope.processMarginComponents(data);
+            $scope.error = "";
+        }).error(function(data, status, headers, config) {
+            $scope.error = "Server returned status " + status;
         });
 
         $scope.processMarginComponents = function(marginComponents) {
@@ -41,7 +45,10 @@ sandboxControllers.controller('MarginComponentOverview', ['$scope', '$routeParam
         $scope.refresh = $interval(function(){
             $http.get($scope.url).success(function(data) {
                 $scope.processMarginComponents(data);
-            })
+                $scope.error = "";
+            }).error(function(data, status, headers, config) {
+                $scope.error = "Server returned status " + status;
+            });
         },60000);
 
         $scope.$on("$destroy", function() {
@@ -57,6 +64,7 @@ sandboxControllers.controller('MarginComponentDetail', ['$scope', '$routeParams'
 
         $scope.mcDetail = [];
         $scope.existingRecords = [];
+        $scope.error = "";
         $scope.mcChartData = [];
         $scope.mcChartOptions = { legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<datasets.length; i++){%><li><span style=\"background-color:<%=datasets[i].lineColor%>\"></span><%if(datasets[i].label){%><%=datasets[i].label%><%}%></li><%}%></ul>" };
         $scope.ordering="-received";
@@ -70,8 +78,11 @@ sandboxControllers.controller('MarginComponentDetail', ['$scope', '$routeParams'
         $scope.url = 'http://localhost:9000/api/0.1/mc-detail/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class + '/' + $scope.ccy;
 
         $http.get($scope.url).success(function(data) {
+            $scope.error = "";
             $scope.mcDetail = data;
             $scope.prepareGraphData(data);
+        }).error(function(data, status, headers, config) {
+            $scope.error = "Server returned status " + status;
         });
 
         $scope.sortRecords = function(column) {
@@ -80,9 +91,12 @@ sandboxControllers.controller('MarginComponentDetail', ['$scope', '$routeParams'
 
         $scope.refresh = $interval(function(){
             $http.get($scope.url).success(function(data) {
+                $scope.error = "";
                 $scope.mcDetail = data;
                 $scope.prepareGraphData(data);
-            })
+            }).error(function(data, status, headers, config) {
+                $scope.error = "Server returned status " + status;
+            });
         },60000);
 
         $scope.$on("$destroy", function() {
