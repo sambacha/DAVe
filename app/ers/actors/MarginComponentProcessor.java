@@ -20,8 +20,8 @@ public class MarginComponentProcessor extends UntypedConsumerActor {
             CamelMessage camelMessage = (CamelMessage) message;
             MarginComponent mc = MarginComponent.parseFromFIXML((FIXML) camelMessage.body());
             mc.save();
-            getContext().actorFor("/user/mcOverviewPresenter").tell(mc, getSelf());
-            getContext().actorFor("/user/mcDetailPresenter").tell(mc, getSelf());
+            //getContext().actorFor("/user/mcOverviewPresenter").tell(mc, getSelf());
+            //getContext().actorFor("/user/mcDetailPresenter").tell(mc, getSelf());
         } else {
             unhandled(message);
         }
