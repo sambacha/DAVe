@@ -1,0 +1,46 @@
+<nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <span class="navbar-brand"><a href="#/tmr-overview">Total Margin Requirement</a><span ng-if="clearer != '*'">: <a href="#/tmr-overview/{{clearer}}">{{clearer}}</a></span><span ng-if="pool != '*'"> / <a href="#/tmr-overview/{{clearer}}/{{pool}}">{{pool}}</a></span><span ng-if="member != '*'"> / <a href="#/tmr-overview/{{clearer}}/{{pool}}/{{member}}">{{member}}</a></span><span ng-if="account != '*'"> / <a href="#/tmr-overview/{{clearer}}/{{pool}}/{{member}}/{{account}}">{{account}}</a></span></span>
+        </div>
+
+        <form class="navbar-form navbar-right" role="search">
+            <div class="form-group">
+                <input type="text" class="form-control" placeholder="Search" ng-model="recordQuery">
+            </div>
+        </form>
+    </div>
+</nav>
+
+<div class="alert alert-danger" role="alert" ng-if="error != ''">Failed to update the data: {{error}}.</div>
+
+<div class="alert alert-info" role="alert" ng-if="tmrOverview.length == 0">No data available.</div>
+
+<div class="table-responsive" ng-if="tmrOverview.length > 0">
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Pool <span class="glyphicon glyphicon-sort-by-order" aria-hidden="true" ng-click="sortRecords('pool')"></span><span class="glyphicon glyphicon-sort-by-order-alt" aria-hidden="true" ng-click="sortRecords('-pool')"></span></th>
+            <th>Member <span class="glyphicon glyphicon-sort-by-order" aria-hidden="true" ng-click="sortRecords('-member')"></span><span class="glyphicon glyphicon-sort-by-order-alt" aria-hidden="true" ng-click="sortRecords('-member')"></span></th>
+            <th>Account <span class="glyphicon glyphicon-sort-by-order" aria-hidden="true" ng-click="sortRecords('account')"></span><span class="glyphicon glyphicon-sort-by-order-alt" aria-hidden="true" ng-click="sortRecords('-account')"></span></th>
+            <th>Currency <span class="glyphicon glyphicon-sort-by-order" aria-hidden="true" ng-click="sortRecords('ccy')"></span><span class="glyphicon glyphicon-sort-by-order-alt" aria-hidden="true" ng-click="sortRecords('-ccy')"></span></th>
+            <th>Adjusted<span class="glyphicon glyphicon-sort-by-order" aria-hidden="true" ng-click="sortRecords('adjustedMargin')"></span><span class="glyphicon glyphicon-sort-by-order-alt" aria-hidden="true" ng-click="sortRecords('-adjustedMargin')"></span></th>
+            <th>Unadjusted<span class="glyphicon glyphicon-sort-by-order" aria-hidden="true" ng-click="sortRecords('unadjustedMargin')"></span><span class="glyphicon glyphicon-sort-by-order-alt" aria-hidden="true" ng-click="sortRecords('-unadjustedMargin')"></span></th>
+            <th>Last update<span class="glyphicon glyphicon-sort-by-order" aria-hidden="true" ng-click="sortRecords('received')"></span><span class="glyphicon glyphicon-sort-by-order-alt" aria-hidden="true" ng-click="sortRecords('-received')"></span></th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="tmr in tmrOverview | spacedFilter:recordQuery | orderBy:ordering track by tmr.functionalKey" row-highlighter="tmr.functionalKey">
+            <td highlighter="tmr.pool"><a href="#/tmr-overview/{{tmr.clearer}}/{{tmr.pool}}">{{tmr.pool}}</a></td>
+            <td highlighter="tmr.member"><a href="#/tmr-overview/{{tmr.clearer}}/{{tmr.pool}}/{{tmr.member}}">{{tmr.member}}</a></td>
+            <td highlighter="tmr.account"><a href="#/tmr-overview/{{tmr.clearer}}/{{tmr.pool}}/{{tmr.member}}/{{tmr.account}}">{{tmr.account}}</a></td>
+            <td highlighter="tmr.ccy">{{tmr.ccy}}</td>
+            <td highlighter="tmr.adjustedMargin">{{tmr.adjustedMargin}}</td>
+            <td highlighter="tmr.unadjustedMargin">{{tmr.unadjustedMargin}}</td>
+            <td highlighter="tmr.received">{{tmr.received | date:'HH:mm:ss.sss'}}</td>
+            <td><a href="#/tmr-detail/{{tmr.clearer}}/{{tmr.pool}}/{{tmr.member}}/{{tmr.account}}/{{tmr.ccy}}"><span class="glyphicon glyphicon-list-alt" aria-hidden="true" title="Detail"></span></a></td>
+        </tr>
+        </tbody>
+    </table>
+</div>

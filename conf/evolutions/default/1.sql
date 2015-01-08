@@ -24,6 +24,24 @@ create table margin_component (
   constraint pk_margin_component primary key (id))
 ;
 
+create table total_margin_requirement (
+  id                        bigint not null,
+  clearer                   varchar(255),
+  pool                      varchar(255),
+  member                    varchar(255),
+  account                   varchar(255),
+  ccy                       varchar(255),
+  txn_tm                    timestamp,
+  biz_dt                    timestamp,
+  req_id                    varchar(255),
+  rpt_id                    varchar(255),
+  ses_id                    varchar(255),
+  unadjusted_margin         decimal(38),
+  adjusted_margin           decimal(38),
+  received                  timestamp,
+  constraint pk_total_margin_requirement primary key (id))
+;
+
 create table trading_session_status (
   id                        bigint not null,
   req_id                    varchar(255),
@@ -36,6 +54,8 @@ create table trading_session_status (
 
 create sequence margin_component_seq;
 
+create sequence total_margin_requirement_seq;
+
 create sequence trading_session_status_seq;
 
 
@@ -47,11 +67,15 @@ SET REFERENTIAL_INTEGRITY FALSE;
 
 drop table if exists margin_component;
 
+drop table if exists total_margin_requirement;
+
 drop table if exists trading_session_status;
 
 SET REFERENTIAL_INTEGRITY TRUE;
 
 drop sequence if exists margin_component_seq;
+
+drop sequence if exists total_margin_requirement_seq;
 
 drop sequence if exists trading_session_status_seq;
 

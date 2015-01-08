@@ -11,7 +11,12 @@ GET        /api/0.1/mc-overview/:clearer/:member                          contro
 GET        /api/0.1/mc-overview/:clearer/:member/:account                 controllers.Application.mcOverviewWithClearerWithMemberWithAccount(clearer, member, account)
 GET        /api/0.1/mc-overview/:clearer/:member/:account/:clss           controllers.Application.mcOverviewWithClearerWithMemberWithAccountWithClass(clearer, member, account, clss)
 GET        /api/0.1/mc-detail/:clearer/:member/:account/:clss/:ccy        controllers.Application.mcDetail(clearer, member, account, clss, ccy)
-
+GET        /api/0.1/tmr-overview/                                         controllers.Application.tmrOverview()
+GET        /api/0.1/tmr-overview/:clearer                                 controllers.Application.tmrOverviewWithClearer(clearer)
+GET        /api/0.1/tmr-overview/:clearer/:pool                           controllers.Application.tmrOverviewWithClearerWithPool(clearer, pool)
+GET        /api/0.1/tmr-overview/:clearer/:pool/:member                   controllers.Application.tmrOverviewWithClearerWithPoolWithMember(clearer, pool, member)
+GET        /api/0.1/tmr-overview/:clearer/:pool/:member/:account          controllers.Application.tmrOverviewWithClearerWithPoolWithMemberWithAccount(clearer, pool, member, account)
+GET        /api/0.1/tmr-detail/:clearer/:pool/:member/:account/:ccy       controllers.Application.tmrDetail(clearer, pool, member, account, ccy)
 
 # Map static resources from the /public folder to the /assets URL path
 GET        /                                                              controllers.Assets.at(path="/public", file="index.html")
