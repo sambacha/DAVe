@@ -1,0 +1,40 @@
+<nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <span class="navbar-brand">Margin Shortfall Surplus: <a href="#/mss-overview/{{clearer}}">{{clearer}}</a> / <a href="#/mss-overview/{{clearer}}/{{pool}}">{{pool}}</a> / <a href="#/mss-overview/{{clearer}}/{{pool}}/{{member}}">{{member}}</a> / <a href="#/mss-overview/{{clearer}}/{{pool}}/{{member}}/{{clearingCcy}}">{{clearingCcy}}</a> / <a href="#/mss-detail/{{clearer}}/{{pool}}/{{member}}/{{clearingCcy}}/{{ccy}}">{{ccy}}</a></span>
+        </div>
+    </div>
+</nav>
+
+<div class="alert alert-danger" role="alert" ng-if="error != ''">Failed to update the data: {{error}}</div>
+
+<div class="alert alert-info" role="alert" ng-if="mssDetail.length == 0">No data available.</div>
+
+<canvas chart="Line" options="mssChartOptions" data="mssChartData" width="1000" height="400" style="margin: 10px;" ng-if="mssDetail.length > 0"></canvas>
+
+<div class="table-responsive" ng-if="mssDetail.length > 0">
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Pool Type<span class="glyphicon glyphicon-sort-by-order" aria-hidden="true" ng-click="sortRecords('poolType')"></span><span class="glyphicon glyphicon-sort-by-order-alt" aria-hidden="true" ng-click="sortRecords('-poolType')"></span></th>
+            <th>Requirement<span class="glyphicon glyphicon-sort-by-order" aria-hidden="true" ng-click="sortRecords('marginRequirement')"></span><span class="glyphicon glyphicon-sort-by-order-alt" aria-hidden="true" ng-click="sortRecords('-marginRequirement')"></span></th>
+            <th>Collateral<span class="glyphicon glyphicon-sort-by-order" aria-hidden="true" ng-click="sortRecords('securityCollateral')"></span><span class="glyphicon glyphicon-sort-by-order-alt" aria-hidden="true" ng-click="sortRecords('-securityCollateral')"></span></th>
+            <th>Cash Balance<span class="glyphicon glyphicon-sort-by-order" aria-hidden="true" ng-click="sortRecords('cashBalance')"></span><span class="glyphicon glyphicon-sort-by-order-alt" aria-hidden="true" ng-click="sortRecords('-cashBalance')"></span></th>
+            <th>Shortfall / Surplus<span class="glyphicon glyphicon-sort-by-order" aria-hidden="true" ng-click="sortRecords('shortfallSurplus')"></span><span class="glyphicon glyphicon-sort-by-order-alt" aria-hidden="true" ng-click="sortRecords('-shortfallSurplus')"></span></th>
+            <th>Margin Call<span class="glyphicon glyphicon-sort-by-order" aria-hidden="true" ng-click="sortRecords('marginCall')"></span><span class="glyphicon glyphicon-sort-by-order-alt" aria-hidden="true" ng-click="sortRecords('-marginCall')"></span></th>
+            <th>Last update<span class="glyphicon glyphicon-sort-by-order" aria-hidden="true" ng-click="sortRecords('received')"></span><span class="glyphicon glyphicon-sort-by-order-alt" aria-hidden="true" ng-click="sortRecords('-received')"></span></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="mss in mssDetail | filter:recordQuery | orderBy:ordering track by mss.id" row-highlighter="mss.id">
+            <td highlighter="mss.poolType"><a href="#/tmr-overview/{{mss.clearer}}/{{mss.pool}}">{{mss.poolType}}</a></td>
+            <td highlighter="mss.marginRequirement">{{mss.marginRequirement}}</td>
+            <td highlighter="mss.securityCollateral">{{mss.securityCollateral}}</td>
+            <td highlighter="mss.cashBalance">{{mss.cashBalance}}</td>
+            <td highlighter="mss.shortfallSurplus">{{mss.shortfallSurplus}}</td>
+            <td highlighter="mss.marginCall">{{mss.marginCall}}</td>
+            <td highlighter="mss.received">{{mss.received | date:'dd.MM.yyyy HH:mm:ss'}}</td>
+        </tr>
+        </tbody>
+    </table>
+</div>

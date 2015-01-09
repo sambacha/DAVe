@@ -15,7 +15,7 @@ public class TotalMarginRequirementDetailPresenter extends UntypedActor {
     private Map<String, TotalMarginRequirement> tmrMap = new HashMap();
 
     public void onReceive(Object message) {
-        System.out.println(String.format("==============> MC detail presenter received %s ", message.toString()));
+        System.out.println(String.format("==============> TMR detail presenter received %s ", message.toString()));
         if (message instanceof TotalMarginRequirement) {
             TotalMarginRequirement tmr = (TotalMarginRequirement)message;
             tmrMap.put(tmr.functionalKey(), tmr);

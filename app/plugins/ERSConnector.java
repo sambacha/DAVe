@@ -23,7 +23,6 @@ public class ERSConnector extends Plugin {
     public void onStart() {
         try {
             ActorSystem system = Akka.system();
-            //ActorRef tss = system.actorOf(Props.create(TradingSessionStatusHandler.class), "tss");
             ActorRef tssProcessor = system.actorOf(Props.create(TradingSessionStatusProcessor.class), "tss");
             ActorRef tssPresenter = system.actorOf(Props.create(TradingSessionStatusPresenter.class), "tssPresenter");
 
@@ -34,7 +33,10 @@ public class ERSConnector extends Plugin {
             ActorRef tmrProcessor = system.actorOf(Props.create(TotalMarginRequirementProcessor.class), "tmr");
             ActorRef tmrOverviewPresenter = system.actorOf(Props.create(TotalMarginRequirementOverviewPresenter.class), "tmrOverviewPresenter");
             ActorRef tmrDetailPresenter = system.actorOf(Props.create(TotalMarginRequirementDetailPresenter.class), "tmrDetailPresenter");
-            //ActorRef mc = system.actorOf(Props.create(MarginComponentHandler.class), "mc");
+
+            ActorRef mssProcessor = system.actorOf(Props.create(MarginShortfallSurplusProcessor.class), "mss");
+            ActorRef mssOverviewPresenter = system.actorOf(Props.create(MarginShortfallSurplusOverviewPresenter.class), "mssOverviewPresenter");
+            ActorRef mssDetailPresenter = system.actorOf(Props.create(MarginShortfallSurplusDetailPresenter.class), "mssDetailPresenter");
 
             Camel camel = CamelExtension.get(system);
             CamelContext camelContext = camel.context();
@@ -49,12 +51,12 @@ public class ERSConnector extends Plugin {
                     String tssBroadcastAddress = "eurex.tmp.CBKFR.broadcast_tss; { create: receiver, assert: never, node: { type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: { 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, 'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.broadcast', queue: 'eurex.tmp.CBKFR.broadcast_tss', key: 'public.MessageType.TradingSessionStatus.#' } ] } }";
                     String mcBroadcastAddress = "eurex.tmp.CBKFR.broadcast_mc; { create: receiver, assert: never, node: { type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: { 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, 'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.broadcast', queue: 'eurex.tmp.CBKFR.broadcast_mc', key: 'CBKFR.MessageType.MarginComponents.#' } ] } }";
                     String tmrBroadcastAddress = "eurex.tmp.CBKFR.broadcast_tmr; { create: receiver, assert: never, node: { type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: { 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, 'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.broadcast', queue: 'eurex.tmp.CBKFR.broadcast_tmr', key: 'CBKFR.MessageType.TotalMarginRequirement.#' } ] } }";
+                    String mssBroadcastAddress = "eurex.tmp.CBKFR.broadcast_mss; { create: receiver, assert: never, node: { type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: { 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, 'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.broadcast', queue: 'eurex.tmp.CBKFR.broadcast_mss', key: 'CBKFR.MessageType.MarginShortfallSurplus.#' } ] } }";
 
-                    //from("amqp:" + tssBroadcastAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcessor()).log(body().toString()).to("direct:tss");
                     from("amqp:" + tssBroadcastAddress).unmarshal(ersDataModel).to("direct:tss");
-                    //from("amqp:" + mcBroadcastAddress).unmarshal(ersDataModel).process(new MarginComponentProcessor()).log(body().toString()).to("direct:mc");
                     from("amqp:" + mcBroadcastAddress).unmarshal(ersDataModel).to("direct:mc");
                     from("amqp:" + tmrBroadcastAddress).unmarshal(ersDataModel).to("direct:tmr");
+                    from("amqp:" + mssBroadcastAddress).unmarshal(ersDataModel).to("direct:mss");
 
                 }
             });
@@ -63,11 +65,5 @@ public class ERSConnector extends Plugin {
         {
             // Handling exception
         }
-
-        //myActor = Akka.system().actorOf(MyActor.props(), "my-actor");
     }
-
-    /*public static ActorRef getMyActor() {
-        //return Play.application().plugin(Actors.class).myActor;
-    }*/
 }

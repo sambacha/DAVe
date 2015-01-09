@@ -61,6 +61,30 @@ sandbox.config(['$routeProvider',
                 templateUrl: 'view/tmr-detail.html',
                 controller: 'TotalMarginRequirementDetail'
             }).
+            when('/mss-overview', {
+                templateUrl: 'view/mss-overview.html',
+                controller: 'MarginShortfallSurplusOverview'
+            }).
+            when('/mss-overview/:clearer', {
+                templateUrl: 'view/mss-overview.html',
+                controller: 'MarginShortfallSurplusOverview'
+            }).
+            when('/mss-overview/:clearer/:pool', {
+                templateUrl: 'view/mss-overview.html',
+                controller: 'MarginShortfallSurplusOverview'
+            }).
+            when('/mss-overview/:clearer/:pool/:member', {
+                templateUrl: 'view/mss-overview.html',
+                controller: 'MarginShortfallSurplusOverview'
+            }).
+            when('/mss-overview/:clearer/:pool/:member/:clearingCyy', {
+                templateUrl: 'view/mss-overview.html',
+                controller: 'MarginShortfallSurplusOverview'
+            }).
+            when('/mss-detail/:clearer/:pool/:member/:clearingCcy/:ccy', {
+                templateUrl: 'view/mss-detail.html',
+                controller: 'MarginShortfallSurplusDetail'
+            }).
             otherwise({
                 redirectTo: '/mc-overview'
             });

@@ -315,6 +315,177 @@ sandboxControllers.controller('TotalMarginRequirementDetail', ['$scope', '$route
         }
     }]);
 
+sandboxControllers.controller('MarginShortfallSurplusOverview', ['$scope', '$routeParams', '$http', '$interval', '$filter',
+    function($scope, $routeParams, $http, $interval, $filter) {
+        $scope.refresh = null;
+        $scope.sorting = false;
+
+        $scope.mssOverview = [];
+        $scope.existingRecords = [];
+        $scope.error = "";
+        $scope.ordering= ["pool", "member", "clearingCcy", "ccy"];
+
+        if ($routeParams.clearer) { $scope.clearer = $routeParams.clearer } else { $scope.clearer = "*" }
+        if ($routeParams.pool) { $scope.pool = $routeParams.pool } else { $scope.pool = "*" }
+        if ($routeParams.member) { $scope.member = $routeParams.member } else { $scope.member = "*" }
+        if ($routeParams.clearingCcy) { $scope.clearingCcy = $routeParams.clearingCcy } else { $scope.clearingCcy = "*" }
+
+        $scope.url = 'http://localhost:9000/api/0.1/mss-overview/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.clearingCcy;
+
+        $http.get($scope.url).success(function(data) {
+            $scope.processMarginShortfallSurplus(data);
+            $scope.error = "";
+        }).error(function(data, status, headers, config) {
+            $scope.error = "Server returned status " + status;
+        });
+
+        $scope.processMarginShortfallSurplus = function(marginShortfallSurplus) {
+            var index;
+
+            for (index = 0; index < marginShortfallSurplus.length; ++index) {
+                marginShortfallSurplus[index].functionalKey = marginShortfallSurplus[index].clearer + '-' + marginShortfallSurplus[index].pool + '-' + marginShortfallSurplus[index].member + '-' + marginShortfallSurplus[index].clearingCcy + '-' + marginShortfallSurplus[index].ccy;
+            }
+
+            $scope.mssOverview = marginShortfallSurplus;
+        }
+
+        $scope.sortRecords = function(column) {
+            $scope.ordering = [column, "pool", "member", "account"];
+        };
+
+        $scope.refresh = $interval(function(){
+            $http.get($scope.url).success(function(data) {
+                $scope.processMarginShortfallSurplus(data);
+                $scope.error = "";
+            }).error(function(data, status, headers, config) {
+                $scope.error = "Server returned status " + status;
+            });
+        },60000);
+
+        $scope.$on("$destroy", function() {
+            if ($scope.refresh != null) {
+                $interval.cancel($scope.refresh);
+            }
+        });
+    }]);
+
+sandboxControllers.controller('MarginShortfallSurplusDetail', ['$scope', '$routeParams', '$http', '$interval', '$filter',
+    function($scope, $routeParams, $http, $interval, $filter) {
+        $scope.refresh = null;
+
+        $scope.mssDetail = [];
+        $scope.existingRecords = [];
+        $scope.error = "";
+        $scope.mssChartData = [];
+        $scope.mssChartOptions = { legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<datasets.length; i++){%><li><span style=\"background-color:<%=datasets[i].lineColor%>\"></span><%if(datasets[i].label){%><%=datasets[i].label%><%}%></li><%}%></ul>" };
+        $scope.ordering="-received";
+
+        $scope.clearer = $routeParams.clearer;
+        $scope.pool = $routeParams.pool;
+        $scope.member = $routeParams.member;
+        $scope.clearingCcy = $routeParams.clearingCcy;
+        $scope.ccy = $routeParams.ccy;
+
+        $scope.url = 'http://localhost:9000/api/0.1/mss-detail/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.clearingCcy + '/' + $scope.ccy;
+
+        $http.get($scope.url).success(function(data) {
+            $scope.error = "";
+            $scope.mssDetail = data;
+            $scope.prepareGraphData(data);
+        }).error(function(data, status, headers, config) {
+            $scope.error = "Server returned status " + status;
+        });
+
+        $scope.sortRecords = function(column) {
+            $scope.ordering = column;
+        };
+
+        $scope.refresh = $interval(function(){
+            $http.get($scope.url).success(function(data) {
+                $scope.error = "";
+                $scope.mssDetail = data;
+                $scope.prepareGraphData(data);
+            }).error(function(data, status, headers, config) {
+                $scope.error = "Server returned status " + status;
+            });
+        },60000);
+
+        $scope.$on("$destroy", function() {
+            if ($scope.refresh != null) {
+                $interval.cancel($scope.refresh);
+            }
+        });
+
+        $scope.prepareGraphData = function(data) {
+            $scope.mssChartData = {
+                labels: [],
+                datasets: [
+                    {
+                        label: "Margin Requirement",
+                        fillColor: "rgba(220,220,220,0.2)",
+                        strokeColor: "rgba(220,220,220,1)",
+                        pointColor: "rgba(220,220,220,1)",
+                        pointStrokeColor: "#fff",
+                        pointHighlightFill: "#fff",
+                        pointHighlightStroke: "rgba(220,220,220,1)",
+                        data: []
+                    },
+                    {
+                        label: "Security Collateral",
+                        fillColor: "rgba(151,187,205,0.2)",
+                        strokeColor: "rgba(151,187,205,1)",
+                        pointColor: "rgba(151,187,205,1)",
+                        pointStrokeColor: "#fff",
+                        pointHighlightFill: "#fff",
+                        pointHighlightStroke: "rgba(151,187,205,1)",
+                        data: []
+                    },
+                    {
+                        label: "Cash Balance",
+                        fillColor: "rgba(220,220,220,0.2)",
+                        strokeColor: "rgba(220,220,220,1)",
+                        pointColor: "rgba(220,220,220,1)",
+                        pointStrokeColor: "#fff",
+                        pointHighlightFill: "#fff",
+                        pointHighlightStroke: "rgba(220,220,220,1)",
+                        data: []
+                    },
+                    {
+                        label: "Shortfall / Surplus",
+                        fillColor: "rgba(151,187,205,0.2)",
+                        strokeColor: "rgba(151,187,205,1)",
+                        pointColor: "rgba(151,187,205,1)",
+                        pointStrokeColor: "#fff",
+                        pointHighlightFill: "#fff",
+                        pointHighlightStroke: "rgba(151,187,205,1)",
+                        data: []
+                    },
+                    {
+                        label: "Margin Call",
+                        fillColor: "rgba(151,187,205,0.2)",
+                        strokeColor: "rgba(151,187,205,1)",
+                        pointColor: "rgba(151,187,205,1)",
+                        pointStrokeColor: "#fff",
+                        pointHighlightFill: "#fff",
+                        pointHighlightStroke: "rgba(151,187,205,1)",
+                        data: []
+                    }
+                ]
+            };
+
+            var index;
+
+            for (index = 0; index < data.length; ++index) {
+                $scope.mssChartData.labels.push($filter('date')(data[index].received, "dd.MM.yyyy HH:mm:ss"));
+                $scope.mssChartData.datasets[0].data.push(data[index].marginRequirement);
+                $scope.mssChartData.datasets[1].data.push(data[index].securityCollateral);
+                $scope.mssChartData.datasets[2].data.push(data[index].cashBalance);
+                $scope.mssChartData.datasets[3].data.push(data[index].shortfallSurplus);
+                $scope.mssChartData.datasets[4].data.push(data[index].marginCall);
+            }
+        }
+    }]);
+
 sandboxControllers.controller('TssCtrl', ['$scope', '$http', '$interval',
     function($scope, $http, $interval) {
         $scope.refresh = null;
