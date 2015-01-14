@@ -36,10 +36,10 @@
         </thead>
         <tbody>
         <tr ng-repeat="mss in mssOverview | spacedFilter:recordQuery | orderBy:ordering track by mss.functionalKey" row-highlighter="mss.functionalKey">
-            <td highlighter="mss.pool"><a href="#/tmr-overview/{{mss.clearer}}/{{mss.pool}}">{{mss.pool}}</a></td>
-            <td highlighter="mss.poolType"><a href="#/tmr-overview/{{mss.clearer}}/{{mss.pool}}">{{mss.poolType}}</a></td>
-            <td highlighter="mss.member"><a href="#/tmr-overview/{{mss.clearer}}/{{mss.pool}}/{{mss.member}}">{{mss.member}}</a></td>
-            <td highlighter="mss.clearingCcy"><a href="#/tmr-overview/{{mss.clearer}}/{{mss.pool}}/{{mss.member}}/{{mss.clearingCcy}}">{{mss.clearingCcy}}</a></td>
+            <td highlighter="mss.pool"><a href="#/mss-overview/{{mss.clearer}}/{{mss.pool}}">{{mss.pool}}</a></td>
+            <td highlighter="mss.poolType"><a href="#/mss-overview/{{mss.clearer}}/{{mss.pool}}">{{mss.poolType}}</a></td>
+            <td highlighter="mss.member"><a href="#/mss-overview/{{mss.clearer}}/{{mss.pool}}/{{mss.member}}">{{mss.member}}</a></td>
+            <td highlighter="mss.clearingCcy"><a href="#/mss-overview/{{mss.clearer}}/{{mss.pool}}/{{mss.member}}/{{mss.clearingCcy}}">{{mss.clearingCcy}}</a></td>
             <td highlighter="mss.ccy">{{mss.ccy}}</td>
             <td highlighter="mss.marginRequirement">{{mss.marginRequirement}}</td>
             <td highlighter="mss.securityCollateral">{{mss.securityCollateral}}</td>
