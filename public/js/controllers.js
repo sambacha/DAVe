@@ -19,7 +19,7 @@ sandboxControllers.controller('MarginComponentOverview', ['$scope', '$routeParam
         if ($routeParams.account) { $scope.account = $routeParams.account } else { $scope.account = "*" }
         if ($routeParams.class) { $scope.class = $routeParams.class } else { $scope.class = "*" }
 
-        $scope.url = 'http://localhost:9000/api/0.1/mc-overview/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class;
+        $scope.url = 'http://172.23.39.44:9000/api/0.1/mc-overview/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class;
 
         $http.get($scope.url).success(function(data) {
             $scope.processMarginComponents(data);
@@ -75,7 +75,7 @@ sandboxControllers.controller('MarginComponentDetail', ['$scope', '$routeParams'
         $scope.class = $routeParams.class;
         $scope.ccy = $routeParams.ccy;
 
-        $scope.url = 'http://localhost:9000/api/0.1/mc-detail/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class + '/' + $scope.ccy;
+        $scope.url = 'http://172.23.39.44:9000/api/0.1/mc-detail/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class + '/' + $scope.ccy;
 
         $http.get($scope.url).success(function(data) {
             $scope.error = "";
@@ -191,7 +191,7 @@ sandboxControllers.controller('TotalMarginRequirementOverview', ['$scope', '$rou
         if ($routeParams.member) { $scope.member = $routeParams.member } else { $scope.member = "*" }
         if ($routeParams.account) { $scope.account = $routeParams.account } else { $scope.account = "*" }
 
-        $scope.url = 'http://localhost:9000/api/0.1/tmr-overview/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.account;
+        $scope.url = 'http://172.23.39.44:9000/api/0.1/tmr-overview/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.account;
 
         $http.get($scope.url).success(function(data) {
             $scope.processTotalMarginRequirements(data);
@@ -247,7 +247,7 @@ sandboxControllers.controller('TotalMarginRequirementDetail', ['$scope', '$route
         $scope.account = $routeParams.account;
         $scope.ccy = $routeParams.ccy;
 
-        $scope.url = 'http://localhost:9000/api/0.1/tmr-detail/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.account + '/' + $scope.ccy;
+        $scope.url = 'http://172.23.39.44:9000/api/0.1/tmr-detail/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.account + '/' + $scope.ccy;
 
         $http.get($scope.url).success(function(data) {
             $scope.error = "";
@@ -330,7 +330,7 @@ sandboxControllers.controller('MarginShortfallSurplusOverview', ['$scope', '$rou
         if ($routeParams.member) { $scope.member = $routeParams.member } else { $scope.member = "*" }
         if ($routeParams.clearingCcy) { $scope.clearingCcy = $routeParams.clearingCcy } else { $scope.clearingCcy = "*" }
 
-        $scope.url = 'http://localhost:9000/api/0.1/mss-overview/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.clearingCcy;
+        $scope.url = 'http://172.23.39.44:9000/api/0.1/mss-overview/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.clearingCcy;
 
         $http.get($scope.url).success(function(data) {
             $scope.processMarginShortfallSurplus(data);
@@ -386,7 +386,7 @@ sandboxControllers.controller('MarginShortfallSurplusDetail', ['$scope', '$route
         $scope.clearingCcy = $routeParams.clearingCcy;
         $scope.ccy = $routeParams.ccy;
 
-        $scope.url = 'http://localhost:9000/api/0.1/mss-detail/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.clearingCcy + '/' + $scope.ccy;
+        $scope.url = 'http://172.23.39.44:9000/api/0.1/mss-detail/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.clearingCcy + '/' + $scope.ccy;
 
         $http.get($scope.url).success(function(data) {
             $scope.error = "";
@@ -489,7 +489,7 @@ sandboxControllers.controller('MarginShortfallSurplusDetail', ['$scope', '$route
 sandboxControllers.controller('TssCtrl', ['$scope', '$http', '$interval',
     function($scope, $http, $interval) {
         $scope.refresh = null;
-        $scope.url = 'http://localhost:9000/api/0.1/tss';
+        $scope.url = 'http://172.23.39.44:9000/api/0.1/tss';
         $http.get($scope.url).success(function(data) {
             $scope.tss = data;
         });
