@@ -40,7 +40,7 @@ public class ERSConnector extends Plugin {
 
             Camel camel = CamelExtension.get(system);
             CamelContext camelContext = camel.context();
-            camelContext.addComponent("amqp", AMQPComponent.amqpComponentOld("amqp://:@MyCamelApp/?brokerlist='tcp://rgd001.xeop.de:15060?tcp_nodelay='true'&ssl='true'&ssl_cert_alias='cbkfr'&sasl_mechs='EXTERNAL'&trust_store='c:/opt/ers/truststore'&trust_store_password='123456'&key_store='c:/opt/ers/cbkfr.keystore'&key_store_password='123456'&ssl_verify_hostname='false''&sync_publish='all'"));
+            camelContext.addComponent("amqp", AMQPComponent.amqpComponentOld("amqp://:@MyCamelApp/?brokerlist='tcp://rgd003.xeop.de:15160?tcp_nodelay='true'&ssl='true'&ssl_cert_alias='cbkfr'&sasl_mechs='EXTERNAL'&trust_store='/home/schojak/amqp/idea-projects/Risk-Vertx-Camel/src/main/resources/truststore'&trust_store_password='123456'&key_store='/home/schojak/amqp/idea-projects/Risk-Vertx-Camel/src/main/resources/cbkfr.keystore'&key_store_password='123456'&ssl_verify_hostname='false''&sync_publish='all'"));
 
             final JaxbDataFormat ersDataModel = new JaxbDataFormat(true);
             ersDataModel.setContextPath("ers.jaxb");
