@@ -39,6 +39,30 @@ public class MainVerticle extends AbstractVerticle {
                 LOG.info("Deployment of ERSDebuggerVerticle failed!");
             }
         });
+
+        vertx.deployVerticle("com.opnfi.risk.DBPersistenceVerticle", res -> {
+            if (res.succeeded()) {
+                LOG.info("Deployed DBPersistenceVerticle");
+            } else {
+                LOG.info("Deployment of DBPersistenceVerticle failed!");
+            }
+        });
+
+        vertx.deployVerticle("com.opnfi.risk.RestApiVerticle", res -> {
+            if (res.succeeded()) {
+                LOG.info("Deployed RestApiVerticle");
+            } else {
+                LOG.info("Deployment of RestApiVerticle failed!");
+            }
+        });
+
+        vertx.deployVerticle("com.opnfi.risk.StaticWebVerticle", res -> {
+            if (res.succeeded()) {
+                LOG.info("Deployed StaticWebVerticle");
+            } else {
+                LOG.info("Deployment of StaticWebVerticle failed!");
+            }
+        });
     }
 
     @Override
@@ -56,6 +80,30 @@ public class MainVerticle extends AbstractVerticle {
                 LOG.info("Undeployed ERSDebuggerVerticle");
             } else {
                 LOG.info("Undeploy of ERSDebuggerVerticle failed!");
+            }
+        });
+
+        vertx.undeploy("com.opnfi.risk.DBPersistenceVerticle", res -> {
+            if (res.succeeded()) {
+                LOG.info("Undeployed DBPersistenceVerticle");
+            } else {
+                LOG.info("Undeploy of DBPersistenceVerticle failed!");
+            }
+        });
+
+        vertx.undeploy("com.opnfi.risk.RestApiVerticle", res -> {
+            if (res.succeeded()) {
+                LOG.info("Undeployed RestApiVerticle");
+            } else {
+                LOG.info("Undeploy of RestApiVerticle failed!");
+            }
+        });
+
+        vertx.undeploy("com.opnfi.risk.StaticWebVerticle", res -> {
+            if (res.succeeded()) {
+                LOG.info("Undeployed StaticWebVerticle");
+            } else {
+                LOG.info("Undeploy of StaticWebVerticle failed!");
             }
         });
     }
