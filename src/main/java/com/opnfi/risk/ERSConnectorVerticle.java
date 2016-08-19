@@ -1,14 +1,26 @@
 package com.opnfi.risk;
 
+import com.opnfi.risk.model.TradingSessionStatus;
+import com.opnfi.risk.model.jaxb.FIXML;
+import com.opnfi.risk.model.procesor.MarginComponentProcesor;
+import com.opnfi.risk.model.procesor.MarginShortfallSurplusProcesor;
+import com.opnfi.risk.model.procesor.TotalMarginRequirementProcessor;
+import com.opnfi.risk.model.procesor.TradingSessionStatusProcesor;
 import io.vertx.camel.CamelBridge;
 import io.vertx.camel.CamelBridgeOptions;
 import io.vertx.camel.InboundMapping;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.json.Json;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.apache.camel.CamelContext;
+import org.apache.camel.Exchange;
+import org.apache.camel.Message;
+import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.amqp.AMQPComponent;
 import org.apache.camel.impl.DefaultCamelContext;
@@ -29,6 +41,14 @@ public class ERSConnectorVerticle extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> fut) {
+        startCamel(
+                (nothing) -> startCamelBridge(fut),
+                fut
+        );
+    }
+
+    public void startCamel(Handler<AsyncResult<Void>> next, Future<Void> fut)
+    {
         camelCtx = new DefaultCamelContext();
 
         try {
@@ -48,15 +68,15 @@ public class ERSConnectorVerticle extends AbstractVerticle {
                     final JaxbDataFormat ersDataModel = new JaxbDataFormat(true);
                     ersDataModel.setContextPath("com.opnfi.risk.model.jaxb");
 
-                    String tssBroadcastAddress = "eurex.tmp.CBKFR.broadcast_tss; { create: receiver, assert: never, node: { type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: { 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, 'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.broadcast', queue: 'eurex.tmp.CBKFR.broadcast_tss', key: 'public.MessageType.TradingSessionStatus.#' } ] } }";
-                    String mcBroadcastAddress = "eurex.tmp.CBKFR.broadcast_mc; { create: receiver, assert: never, node: { type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: { 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, 'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.broadcast', queue: 'eurex.tmp.CBKFR.broadcast_mc', key: 'CBKFR.MessageType.MarginComponents.#' } ] } }";
-                    String tmrBroadcastAddress = "eurex.tmp.CBKFR.broadcast_tmr; { create: receiver, assert: never, node: { type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: { 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, 'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.broadcast', queue: 'eurex.tmp.CBKFR.broadcast_tmr', key: 'CBKFR.MessageType.TotalMarginRequirement.#' } ] } }";
-                    String mssBroadcastAddress = "eurex.tmp.CBKFR.broadcast_mss; { create: receiver, assert: never, node: { type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: { 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, 'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.broadcast', queue: 'eurex.tmp.CBKFR.broadcast_mss', key: 'CBKFR.MessageType.MarginShortfallSurplus.#' } ] } }";
+                    String tssBroadcastAddress = "eurex.tmp.CBKFR.opnfi_tss; { create: receiver, assert: never, node: { type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: { 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, 'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.broadcast', queue: 'eurex.tmp.CBKFR.opnfi_tss', key: 'public.MessageType.TradingSessionStatus.#' } ] } }";
+                    String mcBroadcastAddress = "eurex.tmp.CBKFR.opnfi__mc; { create: receiver, assert: never, node: { type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: { 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, 'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.broadcast', queue: 'eurex.tmp.CBKFR.opnfi__mc', key: 'CBKFR.MessageType.MarginComponents.#' } ] } }";
+                    String tmrBroadcastAddress = "eurex.tmp.CBKFR.opnfi__tmr; { create: receiver, assert: never, node: { type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: { 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, 'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.broadcast', queue: 'eurex.tmp.CBKFR.opnfi__tmr', key: 'CBKFR.MessageType.TotalMarginRequirement.#' } ] } }";
+                    String mssBroadcastAddress = "eurex.tmp.CBKFR.opnfi__mss; { create: receiver, assert: never, node: { type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: { 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, 'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.broadcast', queue: 'eurex.tmp.CBKFR.opnfi__mss', key: 'CBKFR.MessageType.MarginShortfallSurplus.#' } ] } }";
 
-                    from("amqp:" + tssBroadcastAddress).unmarshal(ersDataModel).to("direct:tss");
-                    from("amqp:" + mcBroadcastAddress).unmarshal(ersDataModel).to("direct:mc");
-                    from("amqp:" + tmrBroadcastAddress).unmarshal(ersDataModel).to("direct:tmr");
-                    from("amqp:" + mssBroadcastAddress).unmarshal(ersDataModel).to("direct:mss");
+                    from("amqp:" + tssBroadcastAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcesor()).to("direct:tss");
+                    from("amqp:" + mcBroadcastAddress).unmarshal(ersDataModel).process(new MarginComponentProcesor()).to("direct:mc");
+                    from("amqp:" + tmrBroadcastAddress).unmarshal(ersDataModel).process(new TotalMarginRequirementProcessor()).to("direct:tmr");
+                    from("amqp:" + mssBroadcastAddress).unmarshal(ersDataModel).process(new MarginShortfallSurplusProcesor()).to("direct:mss");
                 }
             });
         }
@@ -66,33 +86,29 @@ public class ERSConnectorVerticle extends AbstractVerticle {
             fut.fail(e);
         }
 
-        camelBridge = CamelBridge.create(vertx,
-                new CamelBridgeOptions(camelCtx)
-                        .addInboundMapping(InboundMapping.fromCamel("direct:tss").toVertx("ers-tss").usePublish().withBodyType(String.class))
-                        .addInboundMapping(InboundMapping.fromCamel("direct:mc").toVertx("ers-mc").usePublish().withBodyType(String.class))
-                        .addInboundMapping(InboundMapping.fromCamel("direct:tmr").toVertx("ers-tmr").usePublish().withBodyType(String.class))
-                        .addInboundMapping(InboundMapping.fromCamel("direct:mss").toVertx("ers-mss").usePublish().withBodyType(String.class))
-        );
-
         try {
             camelCtx.start();
+            next.handle(null);
         }
         catch (Exception e)
         {
             LOG.error("Failed to start Camel", e);
             fut.fail(e);
         }
+    }
+
+    public void startCamelBridge(Future<Void> fut)
+    {
+        camelBridge = CamelBridge.create(vertx,
+                new CamelBridgeOptions(camelCtx)
+                        .addInboundMapping(InboundMapping.fromCamel("direct:tss").toVertx("ers.TradingSessionStatus").usePublish())
+                        .addInboundMapping(InboundMapping.fromCamel("direct:mc").toVertx("ers.MarginComponent").usePublish())
+                        .addInboundMapping(InboundMapping.fromCamel("direct:tmr").toVertx("ers.TotalMarginRequirement").usePublish())
+                        .addInboundMapping(InboundMapping.fromCamel("direct:mss").toVertx("ers.MarginShortfallSurplus").usePublish())
+        );
 
         camelBridge.start();
-
-        // Create event bus consumer
-        EventBus eb = vertx.eventBus();
-        eb.consumer("ers-tss", message -> {
-            LOG.info("Received TSS message: " + message);
-            LOG.info("TSS message body: " + message.body().getClass().getCanonicalName());
-            LOG.info("TSS message body: " + message.body().getClass().getSimpleName());
-            LOG.info("TSS message body: " + message.body().toString());
-        });
+        fut.succeeded();
     }
 
     @Override
