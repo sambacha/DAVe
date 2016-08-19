@@ -102,4 +102,172 @@ public class MarginShortfallSurplus {
 
         return mss;
     }
+
+    public MarginShortfallSurplus(Long id, String clearer, String pool, String poolType, String member, String clearingCcy, String ccy, Date txnTm, Date bizDt, String reqId, String rptId, String sesId, BigDecimal marginRequirement, BigDecimal securityCollateral, BigDecimal cashBalance, BigDecimal shortfallSurplus, BigDecimal marginCall, Date received) {
+        this.id = id;
+        this.clearer = clearer;
+        this.pool = pool;
+        this.poolType = poolType;
+        this.member = member;
+        this.clearingCcy = clearingCcy;
+        this.ccy = ccy;
+        this.txnTm = txnTm;
+        this.bizDt = bizDt;
+        this.reqId = reqId;
+        this.rptId = rptId;
+        this.sesId = sesId;
+        this.marginRequirement = marginRequirement;
+        this.securityCollateral = securityCollateral;
+        this.cashBalance = cashBalance;
+        this.shortfallSurplus = shortfallSurplus;
+        this.marginCall = marginCall;
+        this.received = received;
+    }
+
+    public MarginShortfallSurplus() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getClearer() {
+        return clearer;
+    }
+
+    public void setClearer(String clearer) {
+        this.clearer = clearer;
+    }
+
+    public String getPool() {
+        return pool;
+    }
+
+    public void setPool(String pool) {
+        this.pool = pool;
+    }
+
+    public String getPoolType() {
+        return poolType;
+    }
+
+    public void setPoolType(String poolType) {
+        this.poolType = poolType;
+    }
+
+    public String getMember() {
+        return member;
+    }
+
+    public void setMember(String member) {
+        this.member = member;
+    }
+
+    public String getClearingCcy() {
+        return clearingCcy;
+    }
+
+    public void setClearingCcy(String clearingCcy) {
+        this.clearingCcy = clearingCcy;
+    }
+
+    public String getCcy() {
+        return ccy;
+    }
+
+    public void setCcy(String ccy) {
+        this.ccy = ccy;
+    }
+
+    public Date getTxnTm() {
+        return txnTm;
+    }
+
+    public void setTxnTm(Date txnTm) {
+        this.txnTm = txnTm;
+    }
+
+    public Date getBizDt() {
+        return bizDt;
+    }
+
+    public void setBizDt(Date bizDt) {
+        this.bizDt = bizDt;
+    }
+
+    public String getReqId() {
+        return reqId;
+    }
+
+    public void setReqId(String reqId) {
+        this.reqId = reqId;
+    }
+
+    public String getRptId() {
+        return rptId;
+    }
+
+    public void setRptId(String rptId) {
+        this.rptId = rptId;
+    }
+
+    public String getSesId() {
+        return sesId;
+    }
+
+    public void setSesId(String sesId) {
+        this.sesId = sesId;
+    }
+
+    public BigDecimal getMarginRequirement() {
+        return marginRequirement;
+    }
+
+    public void setMarginRequirement(BigDecimal marginRequirement) {
+        this.marginRequirement = marginRequirement;
+    }
+
+    public BigDecimal getSecurityCollateral() {
+        return securityCollateral;
+    }
+
+    public void setSecurityCollateral(BigDecimal securityCollateral) {
+        this.securityCollateral = securityCollateral;
+    }
+
+    public BigDecimal getCashBalance() {
+        return cashBalance;
+    }
+
+    public void setCashBalance(BigDecimal cashBalance) {
+        this.cashBalance = cashBalance;
+    }
+
+    public BigDecimal getShortfallSurplus() {
+        return shortfallSurplus;
+    }
+
+    public void setShortfallSurplus(BigDecimal shortfallSurplus) {
+        this.shortfallSurplus = shortfallSurplus;
+    }
+
+    public BigDecimal getMarginCall() {
+        return marginCall;
+    }
+
+    public void setMarginCall(BigDecimal marginCall) {
+        this.marginCall = marginCall;
+    }
+
+    public Date getReceived() {
+        return received;
+    }
+
+    public void setReceived(Date received) {
+        this.received = received;
+    }
 }

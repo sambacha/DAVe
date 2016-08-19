@@ -95,4 +95,163 @@ public class MarginComponent {
 
         return mc;
     }
+
+    public MarginComponent(Long id, String clearer, String member, String account, String clss, String ccy, Date txnTm, Date bizDt, String reqId, String rptId, String sesId, BigDecimal variationMargin, BigDecimal premiumMargin, BigDecimal liquiMargin, BigDecimal spreadMargin, BigDecimal additionalMargin, Date received) {
+        this.id = id;
+        this.clearer = clearer;
+        this.member = member;
+        this.account = account;
+        this.clss = clss;
+        this.ccy = ccy;
+        this.txnTm = txnTm;
+        this.bizDt = bizDt;
+        this.reqId = reqId;
+        this.rptId = rptId;
+        this.sesId = sesId;
+        this.variationMargin = variationMargin;
+        this.premiumMargin = premiumMargin;
+        this.liquiMargin = liquiMargin;
+        this.spreadMargin = spreadMargin;
+        this.additionalMargin = additionalMargin;
+        this.received = received;
+    }
+
+    public MarginComponent() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getClearer() {
+        return clearer;
+    }
+
+    public void setClearer(String clearer) {
+        this.clearer = clearer;
+    }
+
+    public String getMember() {
+        return member;
+    }
+
+    public void setMember(String member) {
+        this.member = member;
+    }
+
+    public String getAccount() {
+        return account;
+    }
+
+    public void setAccount(String account) {
+        this.account = account;
+    }
+
+    public String getClss() {
+        return clss;
+    }
+
+    public void setClss(String clss) {
+        this.clss = clss;
+    }
+
+    public String getCcy() {
+        return ccy;
+    }
+
+    public void setCcy(String ccy) {
+        this.ccy = ccy;
+    }
+
+    public Date getTxnTm() {
+        return txnTm;
+    }
+
+    public void setTxnTm(Date txnTm) {
+        this.txnTm = txnTm;
+    }
+
+    public Date getBizDt() {
+        return bizDt;
+    }
+
+    public void setBizDt(Date bizDt) {
+        this.bizDt = bizDt;
+    }
+
+    public String getReqId() {
+        return reqId;
+    }
+
+    public void setReqId(String reqId) {
+        this.reqId = reqId;
+    }
+
+    public String getRptId() {
+        return rptId;
+    }
+
+    public void setRptId(String rptId) {
+        this.rptId = rptId;
+    }
+
+    public String getSesId() {
+        return sesId;
+    }
+
+    public void setSesId(String sesId) {
+        this.sesId = sesId;
+    }
+
+    public BigDecimal getVariationMargin() {
+        return variationMargin;
+    }
+
+    public void setVariationMargin(BigDecimal variationMargin) {
+        this.variationMargin = variationMargin;
+    }
+
+    public BigDecimal getPremiumMargin() {
+        return premiumMargin;
+    }
+
+    public void setPremiumMargin(BigDecimal premiumMargin) {
+        this.premiumMargin = premiumMargin;
+    }
+
+    public BigDecimal getLiquiMargin() {
+        return liquiMargin;
+    }
+
+    public void setLiquiMargin(BigDecimal liquiMargin) {
+        this.liquiMargin = liquiMargin;
+    }
+
+    public BigDecimal getSpreadMargin() {
+        return spreadMargin;
+    }
+
+    public void setSpreadMargin(BigDecimal spreadMargin) {
+        this.spreadMargin = spreadMargin;
+    }
+
+    public BigDecimal getAdditionalMargin() {
+        return additionalMargin;
+    }
+
+    public void setAdditionalMargin(BigDecimal additionalMargin) {
+        this.additionalMargin = additionalMargin;
+    }
+
+    public Date getReceived() {
+        return received;
+    }
+
+    public void setReceived(Date received) {
+        this.received = received;
+    }
 }
