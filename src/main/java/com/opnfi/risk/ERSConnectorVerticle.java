@@ -108,7 +108,7 @@ public class ERSConnectorVerticle extends AbstractVerticle {
         );
 
         camelBridge.start();
-        fut.succeeded();
+        fut.complete();
     }
 
     @Override
