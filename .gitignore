@@ -14,3 +14,4 @@ tmp
 /RUNNING_PID
 /.settings
 /db/*
+/old-play-framework/db/*
