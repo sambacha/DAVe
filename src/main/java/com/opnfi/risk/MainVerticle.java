@@ -48,19 +48,11 @@ public class MainVerticle extends AbstractVerticle {
             }
         });
 
-        vertx.deployVerticle("com.opnfi.risk.RestApiVerticle", res -> {
+        vertx.deployVerticle("com.opnfi.risk.WebVerticle", res -> {
             if (res.succeeded()) {
-                LOG.info("Deployed RestApiVerticle");
+                LOG.info("Deployed WebVerticle");
             } else {
-                LOG.info("Deployment of RestApiVerticle failed!");
-            }
-        });
-
-        vertx.deployVerticle("com.opnfi.risk.StaticWebVerticle", res -> {
-            if (res.succeeded()) {
-                LOG.info("Deployed StaticWebVerticle");
-            } else {
-                LOG.info("Deployment of StaticWebVerticle failed!");
+                LOG.info("Deployment of WebVerticle failed!");
             }
         });
     }
@@ -91,20 +83,13 @@ public class MainVerticle extends AbstractVerticle {
             }
         });
 
-        vertx.undeploy("com.opnfi.risk.RestApiVerticle", res -> {
+        vertx.undeploy("com.opnfi.risk.WebVerticle", res -> {
             if (res.succeeded()) {
-                LOG.info("Undeployed RestApiVerticle");
+                LOG.info("Undeployed WebVerticle");
             } else {
-                LOG.info("Undeploy of RestApiVerticle failed!");
+                LOG.info("Undeploy of WebVerticle failed!");
             }
         });
 
-        vertx.undeploy("com.opnfi.risk.StaticWebVerticle", res -> {
-            if (res.succeeded()) {
-                LOG.info("Undeployed StaticWebVerticle");
-            } else {
-                LOG.info("Undeploy of StaticWebVerticle failed!");
-            }
-        });
     }
 }
