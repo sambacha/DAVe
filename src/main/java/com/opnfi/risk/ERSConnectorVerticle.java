@@ -36,8 +36,8 @@ import org.apache.qpid.url.URLSyntaxException;
 public class ERSConnectorVerticle extends AbstractVerticle {
     final static private Logger LOG = LoggerFactory.getLogger(ERSConnectorVerticle.class);
 
-    CamelContext camelCtx;
-    CamelBridge camelBridge;
+    private CamelContext camelCtx;
+    private CamelBridge camelBridge;
 
     @Override
     public void start(Future<Void> fut) {
