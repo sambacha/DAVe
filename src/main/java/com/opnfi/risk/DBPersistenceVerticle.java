@@ -1,5 +1,8 @@
 package com.opnfi.risk;
 
+import com.opnfi.risk.model.MarginComponent;
+import com.opnfi.risk.model.MarginShortfallSurplus;
+import com.opnfi.risk.model.TotalMarginRequirement;
 import com.opnfi.risk.model.TradingSessionStatus;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
@@ -89,11 +92,14 @@ public class DBPersistenceVerticle extends AbstractVerticle {
         EventBus eb = vertx.eventBus();
 
         eb.consumer("ers.TradingSessionStatus", message -> storeTradingSessionStatus(message));
+        eb.consumer("ers.MarginComponent", message -> storeMarginComponent(message));
+        eb.consumer("ers.TotalMarginRequirement", message -> storeTotalMarginRequirement(message));
+        eb.consumer("ers.MarginShortfallSurplus", message -> storeMarginShortfallSurplus(message));
     }
 
     private void storeTradingSessionStatus(Message msg)
     {
-        LOG.info("Stroing TSS message with body: " + msg.body().toString());
+        LOG.trace("Storing TSS message with body: " + msg.body().toString());
         TradingSessionStatus tss = Json.decodeValue(msg.body().toString(), TradingSessionStatus.class);
 
         String sql = "INSERT INTO trading_session_status (req_id, ses_id, stat, stat_rej_rsn, txt) VALUES (?, ?, ?, ?, ?)";
@@ -112,7 +118,116 @@ public class DBPersistenceVerticle extends AbstractVerticle {
                         if (ar2.failed()) {
                             LOG.error("Failed to store TradingSessionStatus into DB " + ar2.cause());
                         }
-                        LOG.info("Stored TradingSessionStatus into DB");
+                        LOG.trace("Stored TradingSessionStatus into DB");
+                    });
+        });
+    }
+
+    private void storeMarginComponent(Message msg)
+    {
+        LOG.trace("Storing MC message with body: " + msg.body().toString());
+        MarginComponent mc = Json.decodeValue(msg.body().toString(), MarginComponent.class);
+
+        String sql = "INSERT INTO margin_component (clearer, member, account, clss, ccy, txn_tm, biz_dt, req_id, rpt_id, ses_id, variation_margin, premium_margin, liqui_margin, spread_margin, additional_margin, received) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        JsonArray params = new JsonArray()
+                .add(mc.getClearer() != null ? mc.getClearer() : "null")
+                .add(mc.getMember() != null ? mc.getMember() : "null")
+                .add(mc.getAccount() != null ? mc.getAccount() : "null")
+                .add(mc.getClss() != null ? mc.getClss() : "null")
+                .add(mc.getCcy() != null ? mc.getCcy() : "null")
+                .add(mc.getTxnTm() != null ? mc.getTxnTm() : "null")
+                .add(mc.getBizDt() != null ? mc.getBizDt() : "null")
+                .add(mc.getReqId() != null ? mc.getReqId() : "null")
+                .add(mc.getRptId() != null ? mc.getRptId() : "null")
+                .add(mc.getSesId() != null ? mc.getSesId() : "null")
+                .add(mc.getVariationMargin() != null ? mc.getVariationMargin() : "null")
+                .add(mc.getPremiumMargin() != null ? mc.getPremiumMargin() : "null")
+                .add(mc.getLiquiMargin() != null ? mc.getLiquiMargin() : "null")
+                .add(mc.getSpreadMargin() != null ? mc.getSpreadMargin() : "null")
+                .add(mc.getVariationMargin() != null ? mc.getVariationMargin() : "null")
+                .add(mc.getReceived() != null ? mc.getReceived() : "null");
+
+        jdbc.getConnection(ar -> {
+            SQLConnection connection = ar.result();
+            connection.updateWithParams(sql,
+                    params,
+                    (ar2) -> {
+                        if (ar2.failed()) {
+                            LOG.error("Failed to store MarginComponent into DB " + ar2.cause());
+                        }
+                        LOG.trace("Stored MarginComponent into DB");
+                    });
+        });
+    }
+
+    private void storeTotalMarginRequirement(Message msg)
+    {
+        LOG.trace("Storing TMR message with body: " + msg.body().toString());
+        TotalMarginRequirement tmr = Json.decodeValue(msg.body().toString(), TotalMarginRequirement.class);
+
+        String sql = "INSERT INTO total_margin_requirement (clearer, pool, member, account, ccy, txn_tm, biz_dt, req_id, rpt_id, ses_id, unadjusted_margin, adjusted_margin, received) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        JsonArray params = new JsonArray()
+                .add(tmr.getClearer() != null ? tmr.getClearer() : "null")
+                .add(tmr.getPool() != null ? tmr.getPool() : "null")
+                .add(tmr.getMember() != null ? tmr.getMember() : "null")
+                .add(tmr.getAccount() != null ? tmr.getAccount() : "null")
+                .add(tmr.getCcy() != null ? tmr.getCcy() : "null")
+                .add(tmr.getTxnTm() != null ? tmr.getTxnTm() : "null")
+                .add(tmr.getBizDt() != null ? tmr.getBizDt() : "null")
+                .add(tmr.getReqId() != null ? tmr.getReqId() : "null")
+                .add(tmr.getRptId() != null ? tmr.getRptId() : "null")
+                .add(tmr.getSesId() != null ? tmr.getSesId() : "null")
+                .add(tmr.getUnadjustedMargin() != null ? tmr.getUnadjustedMargin() : "null")
+                .add(tmr.getAdjustedMargin() != null ? tmr.getAdjustedMargin() : "null")
+                .add(tmr.getReceived() != null ? tmr.getReceived() : "null");
+
+        jdbc.getConnection(ar -> {
+            SQLConnection connection = ar.result();
+            connection.updateWithParams(sql,
+                    params,
+                    (ar2) -> {
+                        if (ar2.failed()) {
+                            LOG.error("Failed to store TotalMarginRequirement into DB " + ar2.cause());
+                        }
+                        LOG.trace("Stored TotalMarginRequirement into DB");
+                    });
+        });
+    }
+
+    private void storeMarginShortfallSurplus(Message msg)
+    {
+        LOG.trace("Storing MSS message with body: " + msg.body().toString());
+        MarginShortfallSurplus mss = Json.decodeValue(msg.body().toString(), MarginShortfallSurplus.class);
+
+        String sql = "INSERT INTO margin_shortfall_surplus (clearer, pool, pool_type, member, clearing_ccy, ccy, txn_tm, biz_dt, req_id, rpt_id, ses_id, margin_requirement, security_collateral, cash_balance, shortfall_surplus, margin_call, received) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        JsonArray params = new JsonArray()
+                .add(mss.getClearer() != null ? mss.getClearer() : "null")
+                .add(mss.getPool() != null ? mss.getPool() : "null")
+                .add(mss.getPoolType() != null ? mss.getPoolType() : "null")
+                .add(mss.getMember() != null ? mss.getMember() : "null")
+                .add(mss.getClearingCcy() != null ? mss.getClearingCcy() : "null")
+                .add(mss.getCcy() != null ? mss.getCcy() : "null")
+                .add(mss.getTxnTm() != null ? mss.getTxnTm() : "null")
+                .add(mss.getBizDt() != null ? mss.getBizDt() : "null")
+                .add(mss.getReqId() != null ? mss.getReqId() : "null")
+                .add(mss.getRptId() != null ? mss.getRptId() : "null")
+                .add(mss.getSesId() != null ? mss.getSesId() : "null")
+                .add(mss.getMarginRequirement() != null ? mss.getMarginRequirement() : "null")
+                .add(mss.getSecurityCollateral() != null ? mss.getSecurityCollateral() : "null")
+                .add(mss.getCashBalance() != null ? mss.getCashBalance() : "null")
+                .add(mss.getShortfallSurplus() != null ? mss.getShortfallSurplus() : "null")
+                .add(mss.getMarginCall() != null ? mss.getMarginCall() : "null")
+                .add(mss.getReceived() != null ? mss.getReceived() : "null");
+
+        jdbc.getConnection(ar -> {
+            SQLConnection connection = ar.result();
+            connection.updateWithParams(sql,
+                    params,
+                    (ar2) -> {
+                        if (ar2.failed()) {
+                            LOG.error("Failed to store MarginShortfallSurplus into DB " + ar2.cause());
+                        }
+                        LOG.trace("Stored MarginShortfallSurplus into DB");
                     });
         });
     }
