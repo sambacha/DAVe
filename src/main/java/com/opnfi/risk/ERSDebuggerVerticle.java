@@ -20,19 +20,19 @@ public class ERSDebuggerVerticle extends AbstractVerticle {
             //LOG.debug("Received TSS message: " + message);
             //LOG.info("TSS message body: " + message.body().getClass().getCanonicalName());
             //LOG.info("TSS message body: " + message.body().getClass().getSimpleName());
-            LOG.info("Received TSS message with body: " + message.body().toString());
+            LOG.trace("Received TSS message with body: " + message.body().toString());
         });
 
         eb.consumer("ers.MarginShortfallSurplus", message -> {
-            LOG.info("Received MSS message with body: " + message.body().toString());
+            LOG.trace("Received MSS message with body: " + message.body().toString());
         });
 
         eb.consumer("ers.MarginComponent", message -> {
-            LOG.info("Received MC message with body: " + message.body().toString());
+            LOG.trace("Received MC message with body: " + message.body().toString());
         });
 
         eb.consumer("ers.TotalMarginRequirement", message -> {
-            LOG.info("Received TMR message with body: " + message.body().toString());
+            LOG.trace("Received TMR message with body: " + message.body().toString());
         });
     }
 }
