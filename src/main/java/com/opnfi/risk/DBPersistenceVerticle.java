@@ -18,6 +18,8 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.SQLConnection;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,6 +30,7 @@ public class DBPersistenceVerticle extends AbstractVerticle {
     final static private Logger LOG = LoggerFactory.getLogger(com.opnfi.risk.DBPersistenceVerticle.class);
 
     private JDBCClient jdbc;
+    final DateFormat timestampFormatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
     @Override
     public void start(Future<Void> fut) throws Exception {
@@ -135,17 +138,17 @@ public class DBPersistenceVerticle extends AbstractVerticle {
                 .add(mc.getAccount() != null ? mc.getAccount() : "null")
                 .add(mc.getClss() != null ? mc.getClss() : "null")
                 .add(mc.getCcy() != null ? mc.getCcy() : "null")
-                .add(mc.getTxnTm() != null ? mc.getTxnTm() : "null")
-                .add(mc.getBizDt() != null ? mc.getBizDt() : "null")
+                .add(mc.getTxnTm() != null ? timestampFormatter.format(mc.getTxnTm()) : "null")
+                .add(mc.getBizDt() != null ? timestampFormatter.format(mc.getBizDt()) : "null")
                 .add(mc.getReqId() != null ? mc.getReqId() : "null")
                 .add(mc.getRptId() != null ? mc.getRptId() : "null")
                 .add(mc.getSesId() != null ? mc.getSesId() : "null")
-                .add(mc.getVariationMargin() != null ? mc.getVariationMargin() : "null")
-                .add(mc.getPremiumMargin() != null ? mc.getPremiumMargin() : "null")
-                .add(mc.getLiquiMargin() != null ? mc.getLiquiMargin() : "null")
-                .add(mc.getSpreadMargin() != null ? mc.getSpreadMargin() : "null")
-                .add(mc.getVariationMargin() != null ? mc.getVariationMargin() : "null")
-                .add(mc.getReceived() != null ? mc.getReceived() : "null");
+                .add(mc.getVariationMargin() != null ? mc.getVariationMargin().toString() : "null")
+                .add(mc.getPremiumMargin() != null ? mc.getPremiumMargin().toString() : "null")
+                .add(mc.getLiquiMargin() != null ? mc.getLiquiMargin().toString() : "null")
+                .add(mc.getSpreadMargin() != null ? mc.getSpreadMargin().toString() : "null")
+                .add(mc.getVariationMargin() != null ? mc.getVariationMargin().toString() : "null")
+                .add(mc.getReceived() != null ? timestampFormatter.format(mc.getReceived()) : "null");
 
         jdbc.getConnection(ar -> {
             SQLConnection connection = ar.result();
@@ -172,14 +175,14 @@ public class DBPersistenceVerticle extends AbstractVerticle {
                 .add(tmr.getMember() != null ? tmr.getMember() : "null")
                 .add(tmr.getAccount() != null ? tmr.getAccount() : "null")
                 .add(tmr.getCcy() != null ? tmr.getCcy() : "null")
-                .add(tmr.getTxnTm() != null ? tmr.getTxnTm() : "null")
-                .add(tmr.getBizDt() != null ? tmr.getBizDt() : "null")
+                .add(tmr.getTxnTm() != null ? timestampFormatter.format(tmr.getTxnTm()) : "null")
+                .add(tmr.getBizDt() != null ? timestampFormatter.format(tmr.getBizDt()) : "null")
                 .add(tmr.getReqId() != null ? tmr.getReqId() : "null")
                 .add(tmr.getRptId() != null ? tmr.getRptId() : "null")
                 .add(tmr.getSesId() != null ? tmr.getSesId() : "null")
-                .add(tmr.getUnadjustedMargin() != null ? tmr.getUnadjustedMargin() : "null")
-                .add(tmr.getAdjustedMargin() != null ? tmr.getAdjustedMargin() : "null")
-                .add(tmr.getReceived() != null ? tmr.getReceived() : "null");
+                .add(tmr.getUnadjustedMargin() != null ? tmr.getUnadjustedMargin().toString() : "null")
+                .add(tmr.getAdjustedMargin() != null ? tmr.getAdjustedMargin().toString() : "null")
+                .add(tmr.getReceived() != null ? timestampFormatter.format(tmr.getReceived()) : "null");
 
         jdbc.getConnection(ar -> {
             SQLConnection connection = ar.result();
@@ -207,17 +210,17 @@ public class DBPersistenceVerticle extends AbstractVerticle {
                 .add(mss.getMember() != null ? mss.getMember() : "null")
                 .add(mss.getClearingCcy() != null ? mss.getClearingCcy() : "null")
                 .add(mss.getCcy() != null ? mss.getCcy() : "null")
-                .add(mss.getTxnTm() != null ? mss.getTxnTm() : "null")
-                .add(mss.getBizDt() != null ? mss.getBizDt() : "null")
+                .add(mss.getTxnTm() != null ? timestampFormatter.format(mss.getTxnTm()) : "null")
+                .add(mss.getBizDt() != null ? timestampFormatter.format(mss.getBizDt()) : "null")
                 .add(mss.getReqId() != null ? mss.getReqId() : "null")
                 .add(mss.getRptId() != null ? mss.getRptId() : "null")
                 .add(mss.getSesId() != null ? mss.getSesId() : "null")
-                .add(mss.getMarginRequirement() != null ? mss.getMarginRequirement() : "null")
-                .add(mss.getSecurityCollateral() != null ? mss.getSecurityCollateral() : "null")
-                .add(mss.getCashBalance() != null ? mss.getCashBalance() : "null")
-                .add(mss.getShortfallSurplus() != null ? mss.getShortfallSurplus() : "null")
-                .add(mss.getMarginCall() != null ? mss.getMarginCall() : "null")
-                .add(mss.getReceived() != null ? mss.getReceived() : "null");
+                .add(mss.getMarginRequirement() != null ? mss.getMarginRequirement().toString() : "null")
+                .add(mss.getSecurityCollateral() != null ? mss.getSecurityCollateral().toString() : "null")
+                .add(mss.getCashBalance() != null ? mss.getCashBalance().toString() : "null")
+                .add(mss.getShortfallSurplus() != null ? mss.getShortfallSurplus().toString() : "null")
+                .add(mss.getMarginCall() != null ? mss.getMarginCall().toString() : "null")
+                .add(mss.getReceived() != null ? timestampFormatter.format(mss.getReceived()) : "null");
 
         jdbc.getConnection(ar -> {
             SQLConnection connection = ar.result();
