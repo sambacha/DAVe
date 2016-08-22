@@ -1,11 +1,18 @@
 package com.opnfi.risk;
 
+import com.opnfi.risk.model.TradingSessionStatus;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -19,8 +26,18 @@ public class WebVerticle extends AbstractVerticle {
 
     private HttpServer server;
 
+    private TradingSessionStatus cacheTss = null;
+
     @Override
     public void start(Future<Void> fut) throws Exception {
+        startWebServer(
+                (nothing) -> startCache(
+                        fut),
+                fut);
+    }
+
+    private void startWebServer(Handler<AsyncResult<Void>> next, Future<Void> fut)
+    {
         Router router = Router.router(vertx);
 
         LOG.info("Adding route REST API");
@@ -40,7 +57,7 @@ public class WebVerticle extends AbstractVerticle {
                         res -> {
                             if (res.succeeded())
                             {
-                                fut.complete();
+                                next.handle(fut);
                             }
                             else
                             {
@@ -50,18 +67,32 @@ public class WebVerticle extends AbstractVerticle {
                 );
     }
 
+    private void startCache(Future<Void> fut)
+    {
+        EventBus eb = vertx.eventBus();
+
+        eb.consumer("ers.TradingSessionStatus", message -> cacheTradingSessionStatus(message));
+
+        fut.complete();
+    }
+
+    private void cacheTradingSessionStatus(Message msg)
+    {
+        LOG.trace("Caching TSS message with body: " + msg.body().toString());
+        cacheTss = Json.decodeValue(msg.body().toString(), TradingSessionStatus.class);
+    }
+
+    private void tss(RoutingContext routingContext) {
+        LOG.trace("Received tss request");
+
+        routingContext.response()
+                .putHeader("content-type", "application/json; charset=utf-8")
+                .end(Json.encodePrettily(cacheTss));
+    }
+
     @Override
     public void stop() throws Exception {
         LOG.info("Shutting down webserver");
         server.close();
-    }
-
-
-    private void tss(RoutingContext routingContext) {
-        LOG.info("Received tss request");
-
-        routingContext.response()
-                .putHeader("content-type", "application/json; charset=utf-8")
-                .end(Json.encodePrettily("Hello world"));
     }
 }
