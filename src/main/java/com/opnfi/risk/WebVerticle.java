@@ -10,8 +10,10 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -25,11 +27,14 @@ public class WebVerticle extends AbstractVerticle {
     final static private Logger LOG = LoggerFactory.getLogger(WebVerticle.class);
 
     private HttpServer server;
+    private EventBus eb;
 
     private TradingSessionStatus cacheTss = null;
 
     @Override
     public void start(Future<Void> fut) throws Exception {
+        eb = vertx.eventBus();
+
         startWebServer(
                 (nothing) -> startCache(
                         fut),
@@ -42,7 +47,13 @@ public class WebVerticle extends AbstractVerticle {
 
         LOG.info("Adding route REST API");
         router.route("/api/v1.0/*").handler(BodyHandler.create());
-        router.get("/api/v1.0/tss").handler(this::tss);
+        router.get("/api/v1.0/latest/tss").handler(this::latestTradingSessionStatus);
+        router.get("/api/v1.0/latest/mc").handler(this::latestMarginComponent);
+        router.get("/api/v1.0/latest/mc/:clearer").handler(this::latestMarginComponent);
+        router.get("/api/v1.0/latest/mc/:clearer/:member").handler(this::latestMarginComponent);
+        router.get("/api/v1.0/latest/mc/:clearer/:member/:account").handler(this::latestMarginComponent);
+        router.get("/api/v1.0/latest/mc/:clearer/:member/:account/:clss").handler(this::latestMarginComponent);
+        router.get("/api/v1.0/latest/mc/:clearer/:member/:account/:clss/:ccy").handler(this::latestMarginComponent);
         /*router.post("/api/request").handler(this::request);
         router.get("/api/messages").handler(this::messages);
         router.get("/api/messages/:queueName").handler(this::messagesByQueue);
@@ -69,8 +80,6 @@ public class WebVerticle extends AbstractVerticle {
 
     private void startCache(Future<Void> fut)
     {
-        EventBus eb = vertx.eventBus();
-
         eb.consumer("ers.TradingSessionStatus", message -> cacheTradingSessionStatus(message));
 
         fut.complete();
@@ -82,12 +91,29 @@ public class WebVerticle extends AbstractVerticle {
         cacheTss = Json.decodeValue(msg.body().toString(), TradingSessionStatus.class);
     }
 
-    private void tss(RoutingContext routingContext) {
-        LOG.trace("Received tss request");
+    private void latestTradingSessionStatus(RoutingContext routingContext) {
+        LOG.trace("Received latest/tss request");
 
         routingContext.response()
                 .putHeader("content-type", "application/json; charset=utf-8")
                 .end(Json.encodePrettily(cacheTss));
+    }
+
+    private void latestMarginComponent(RoutingContext routingContext) {
+        LOG.info("Received latest/mc request");
+
+        eb.send("db.query.MarginComponent", new JsonArray(), ar -> {
+            if (ar.succeeded()) {
+                LOG.info("Received response latest/mc request");
+                routingContext.response()
+                        .putHeader("content-type", "application/json; charset=utf-8")
+                        .end(Json.encodePrettily(ar.result().body()));
+            }
+            else
+            {
+                LOG.error("Failed to query the DB service", ar.cause());
+            }
+        });
     }
 
     @Override

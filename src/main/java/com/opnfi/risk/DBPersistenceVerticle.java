@@ -94,10 +94,16 @@ public class DBPersistenceVerticle extends AbstractVerticle {
     {
         EventBus eb = vertx.eventBus();
 
+        // Camel consumers
         eb.consumer("ers.TradingSessionStatus", message -> storeTradingSessionStatus(message));
         eb.consumer("ers.MarginComponent", message -> storeMarginComponent(message));
         eb.consumer("ers.TotalMarginRequirement", message -> storeTotalMarginRequirement(message));
         eb.consumer("ers.MarginShortfallSurplus", message -> storeMarginShortfallSurplus(message));
+
+        // Query endpoints
+        eb.consumer("db.query.MarginComponent", message -> queryMarginComponent(message));
+
+        fut.complete();
     }
 
     private void storeTradingSessionStatus(Message msg)
@@ -123,6 +129,7 @@ public class DBPersistenceVerticle extends AbstractVerticle {
                         }
                         LOG.trace("Stored TradingSessionStatus into DB");
                     });
+            connection.close();
         });
     }
 
@@ -158,8 +165,9 @@ public class DBPersistenceVerticle extends AbstractVerticle {
                         if (ar2.failed()) {
                             LOG.error("Failed to store MarginComponent into DB " + ar2.cause());
                         }
-                        LOG.trace("Stored MarginComponent into DB");
+                        LOG.info("Stored MarginComponent into DB");
                     });
+            connection.close();
         });
     }
 
@@ -194,6 +202,8 @@ public class DBPersistenceVerticle extends AbstractVerticle {
                         }
                         LOG.trace("Stored TotalMarginRequirement into DB");
                     });
+
+            connection.close();
         });
     }
 
@@ -232,6 +242,35 @@ public class DBPersistenceVerticle extends AbstractVerticle {
                         }
                         LOG.trace("Stored MarginShortfallSurplus into DB");
                     });
+
+            connection.close();
+        });
+    }
+
+    private void queryMarginComponent(Message msg)
+    {
+        LOG.info("Received latest/mc query");
+
+        String sql = "SELECT id, clearer, member, account, clss, ccy, txn_tm, biz_dt, req_id, rpt_id, ses_id, variation_margin, premium_margin, liqui_margin, spread_margin, additional_margin, received FROM margin_component_latest";
+
+        jdbc.getConnection(ar -> {
+            if (ar.succeeded()) {
+                LOG.info("Querying database for latest/mc");
+                SQLConnection connection = ar.result();
+                //connection.queryWithParams("SELECT * FROM Messages WHERE source=?", new JsonArray().add(routingContext.request().getParam("queueName")), result -> {
+                connection.query(sql, result -> {
+                    if (result.succeeded()) {
+                        LOG.info("Sending response for latest/mc query");
+                        msg.reply(Json.encodePrettily(result.result().getRows()));
+                    } else {
+                        LOG.error("latest/mc query failed", result.cause());
+                    }
+                });
+
+                connection.close();
+            } else {
+                LOG.error("Failed to obtain database connection", ar.cause());
+            }
         });
     }
 

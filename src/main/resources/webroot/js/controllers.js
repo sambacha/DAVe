@@ -19,7 +19,7 @@ sandboxControllers.controller('MarginComponentOverview', ['$scope', '$routeParam
         if ($routeParams.account) { $scope.account = $routeParams.account } else { $scope.account = "*" }
         if ($routeParams.class) { $scope.class = $routeParams.class } else { $scope.class = "*" }
 
-        $scope.url = 'http://172.23.39.44:8080/api/v1.0/mc-overview/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class;
+        $scope.url = 'http://172.23.39.44:8080/api/v1.0/latest/mc/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class;
 
         $http.get($scope.url).success(function(data) {
             $scope.processMarginComponents(data);
@@ -489,7 +489,7 @@ sandboxControllers.controller('MarginShortfallSurplusDetail', ['$scope', '$route
 sandboxControllers.controller('TssCtrl', ['$scope', '$http', '$interval',
     function($scope, $http, $interval) {
         $scope.refresh = null;
-        $scope.url = 'http://172.23.39.44:8080/api/v1.0/tss';
+        $scope.url = 'http://172.23.39.44:8080/api/v1.0/latest/tss';
         $http.get($scope.url).success(function(data) {
             $scope.tss = data;
         });
