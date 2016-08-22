@@ -71,6 +71,11 @@
       <artifactId>owner</artifactId>
       <version>1.0.9</version>
     </dependency>
+      <dependency>
+          <groupId>com.fasterxml.woodstox</groupId>
+          <artifactId>woodstox-core</artifactId>
+          <version>5.0.2</version>
+      </dependency>
   </dependencies>
 
   <build>
