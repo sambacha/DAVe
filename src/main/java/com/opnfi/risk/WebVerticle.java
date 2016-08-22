@@ -1,5 +1,6 @@
 package com.opnfi.risk;
 
+import com.opnfi.risk.common.OpnFiConfig;
 import com.opnfi.risk.model.TradingSessionStatus;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
@@ -13,18 +14,19 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.jdbc.JDBCClient;
-import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
+import org.aeonbits.owner.ConfigCache;
 
 /**
  * Created by schojak on 19.8.16.
  */
 public class WebVerticle extends AbstractVerticle {
     final static private Logger LOG = LoggerFactory.getLogger(WebVerticle.class);
+
+    final OpnFiConfig config = ConfigCache.getOrCreate(OpnFiConfig.class);
 
     private HttpServer server;
     private EventBus eb;
@@ -41,8 +43,7 @@ public class WebVerticle extends AbstractVerticle {
                 fut);
     }
 
-    private void startWebServer(Handler<AsyncResult<Void>> next, Future<Void> fut)
-    {
+    private void startWebServer(Handler<AsyncResult<Void>> next, Future<Void> fut) {
         Router router = Router.router(vertx);
 
         LOG.info("Adding route REST API");
@@ -60,18 +61,14 @@ public class WebVerticle extends AbstractVerticle {
         router.get("/api/messages/:queueName/:correlationId").handler(this::messagesByQueueWithCorrelationId);*/
         router.route("/*").handler(StaticHandler.create("webroot"));
 
-        LOG.info("Starting web server on port 8080");
+        LOG.info("Starting web server on port {}", config.httpPort());
         server = vertx.createHttpServer()
                 .requestHandler(router::accept)
-                .listen(
-                        8080,
+                .listen(config.httpPort(),
                         res -> {
-                            if (res.succeeded())
-                            {
+                            if (res.succeeded()) {
                                 next.handle(fut);
-                            }
-                            else
-                            {
+                            } else {
                                 fut.fail(res.cause());
                             }
                         }
@@ -80,13 +77,12 @@ public class WebVerticle extends AbstractVerticle {
 
     private void startCache(Future<Void> fut)
     {
+        EventBus eb = vertx.eventBus();
         eb.consumer("ers.TradingSessionStatus", message -> cacheTradingSessionStatus(message));
-
         fut.complete();
     }
 
-    private void cacheTradingSessionStatus(Message msg)
-    {
+    private void cacheTradingSessionStatus(Message msg) {
         LOG.trace("Caching TSS message with body: " + msg.body().toString());
         cacheTss = Json.decodeValue(msg.body().toString(), TradingSessionStatus.class);
     }

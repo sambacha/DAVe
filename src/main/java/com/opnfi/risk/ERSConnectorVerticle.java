@@ -1,7 +1,6 @@
 package com.opnfi.risk;
 
-import com.opnfi.risk.model.TradingSessionStatus;
-import com.opnfi.risk.model.jaxb.FIXML;
+import com.opnfi.risk.common.OpnFiConfig;
 import com.opnfi.risk.model.procesor.MarginComponentProcesor;
 import com.opnfi.risk.model.procesor.MarginShortfallSurplusProcesor;
 import com.opnfi.risk.model.procesor.TotalMarginRequirementProcessor;
@@ -13,19 +12,15 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.json.Json;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import java.util.UUID;
+import org.aeonbits.owner.ConfigCache;
 import org.apache.camel.CamelContext;
-import org.apache.camel.Exchange;
-import org.apache.camel.Message;
-import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.amqp.AMQPComponent;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.camel.model.dataformat.JaxbDataFormat;
-import org.apache.camel.model.dataformat.XmlJsonDataFormat;
 import org.apache.qpid.client.AMQConnectionFactory;
 import org.apache.qpid.url.URLSyntaxException;
 
@@ -35,6 +30,7 @@ import org.apache.qpid.url.URLSyntaxException;
  */
 public class ERSConnectorVerticle extends AbstractVerticle {
     final static private Logger LOG = LoggerFactory.getLogger(ERSConnectorVerticle.class);
+    final OpnFiConfig config = ConfigCache.getOrCreate(OpnFiConfig.class);
 
     private CamelContext camelCtx;
     private CamelBridge camelBridge;
@@ -52,11 +48,13 @@ public class ERSConnectorVerticle extends AbstractVerticle {
         camelCtx = new DefaultCamelContext();
 
         try {
-            AMQConnectionFactory amqpFact = new AMQConnectionFactory("amqp://:@MyCamelApp/?brokerlist='tcp://rgd003.xeop.de:15160?tcp_nodelay='true'&ssl='true'&ssl_cert_alias='cbkfr'&sasl_mechs='EXTERNAL'&trust_store='/home/schojak/amqp/idea-projects/Risk-Vertx-Camel/src/main/resources/truststore'&trust_store_password='123456'&key_store='/home/schojak/amqp/idea-projects/Risk-Vertx-Camel/src/main/resources/cbkfr.keystore'&key_store_password='123456'&ssl_verify_hostname='false''&sync_publish='all'");
+            String connectionAddress = String.format("amqp://:@MyCamelApp/?brokerlist='%s:%d?tcp_nodelay='true'&ssl='true'&ssl_cert_alias='%s'&sasl_mechs='EXTERNAL'&trust_store='%s'&trust_store_password='%s'&key_store='%s'&key_store_password='%s'&ssl_verify_hostname='false''&sync_publish='all'",
+                    config.ersBrokerHost(), config.ersBrokerPort(), config.sslCertAlias(),
+                    config.truststore(), config.truststorePassword(),
+                    config.keystore(), config.keystorePassword());
+            AMQConnectionFactory amqpFact = new AMQConnectionFactory(connectionAddress);
             camelCtx.addComponent("amqp", new AMQPComponent(amqpFact));
-        }
-        catch (URLSyntaxException e)
-        {
+        } catch (URLSyntaxException e) {
             LOG.error("Failed to create AMQP Connection Factory", e);
             fut.fail(e);
         }
@@ -66,12 +64,17 @@ public class ERSConnectorVerticle extends AbstractVerticle {
                 @Override
                 public void configure() {
                     final JaxbDataFormat ersDataModel = new JaxbDataFormat(true);
+                    final UUID addressSuffix = UUID.randomUUID();
                     ersDataModel.setContextPath("com.opnfi.risk.model.jaxb");
 
-                    String tssBroadcastAddress = "eurex.tmp.CBKFR.opnfi_tss; { create: receiver, assert: never, node: { type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: { 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, 'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.broadcast', queue: 'eurex.tmp.CBKFR.opnfi_tss', key: 'public.MessageType.TradingSessionStatus.#' } ] } }";
-                    String mcBroadcastAddress = "eurex.tmp.CBKFR.opnfi_mc; { create: receiver, assert: never, node: { type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: { 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, 'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.broadcast', queue: 'eurex.tmp.CBKFR.opnfi_mc', key: 'CBKFR.MessageType.MarginComponents.#' } ] } }";
-                    String tmrBroadcastAddress = "eurex.tmp.CBKFR.opnfi_tmr; { create: receiver, assert: never, node: { type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: { 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, 'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.broadcast', queue: 'eurex.tmp.CBKFR.opnfi_tmr', key: 'CBKFR.MessageType.TotalMarginRequirement.#' } ] } }";
-                    String mssBroadcastAddress = "eurex.tmp.CBKFR.opnfi_mss; { create: receiver, assert: never, node: { type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: { 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, 'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.broadcast', queue: 'eurex.tmp.CBKFR.opnfi_mss', key: 'CBKFR.MessageType.MarginShortfallSurplus.#' } ] } }";
+                    String tssBroadcastAddress = getBroadcastAddress("eurex.tmp.CBKFR.opnfi_tss_" + addressSuffix,
+                            "public.MessageType.TradingSessionStatus.#");
+                    String mcBroadcastAddress = getBroadcastAddress("eurex.tmp.CBKFR.opnfi_mc_" + addressSuffix,
+                            "CBKFR.MessageType.MarginComponents.#");
+                    String tmrBroadcastAddress = getBroadcastAddress("eurex.tmp.CBKFR.opnfi_tmr_" + addressSuffix,
+                            "CBKFR.MessageType.TotalMarginRequirement.#");
+                    String mssBroadcastAddress = getBroadcastAddress("eurex.tmp.CBKFR.opnfi_mss_" + addressSuffix,
+                            "CBKFR.MessageType.MarginShortfallSurplus.#");
 
                     from("amqp:" + tssBroadcastAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcesor()).to("direct:tss");
                     from("amqp:" + mcBroadcastAddress).unmarshal(ersDataModel).process(new MarginComponentProcesor()).to("direct:mc");
@@ -95,6 +98,14 @@ public class ERSConnectorVerticle extends AbstractVerticle {
             LOG.error("Failed to start Camel", e);
             fut.fail(e);
         }
+    }
+
+    private String getBroadcastAddress(String name, String routingKey) {
+        return String.format("%s; {create: receiver, assert: never, node: "
+                + "{ type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: "
+                + "{ 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, "
+                + "'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.broadcast',"
+                + "queue: '%s', key: '%s' } ] } }", name, name, routingKey);
     }
 
     public void startCamelBridge(Future<Void> fut)
