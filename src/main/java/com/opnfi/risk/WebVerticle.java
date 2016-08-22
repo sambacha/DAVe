@@ -100,13 +100,12 @@ public class WebVerticle extends AbstractVerticle {
 
         eb.send("db.query.MarginComponent", new JsonArray(), ar -> {
             if (ar.succeeded()) {
-                LOG.info("Received response latest/mc request");
-
-                LOG.info("Received response for latest/mc query " + ar.result().body());
+                LOG.trace("Received response latest/mc request");
 
                 routingContext.response()
                         .putHeader("content-type", "application/json; charset=utf-8")
-                        .end(Json.encodePrettily(ar.result().body()));
+                        //.end(ar.result().body());
+                        .end((String)ar.result().body());
             }
             else
             {
