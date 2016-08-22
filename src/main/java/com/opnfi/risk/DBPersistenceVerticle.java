@@ -260,8 +260,10 @@ public class DBPersistenceVerticle extends AbstractVerticle {
                 //connection.queryWithParams("SELECT * FROM Messages WHERE source=?", new JsonArray().add(routingContext.request().getParam("queueName")), result -> {
                 connection.query(sql, result -> {
                     if (result.succeeded()) {
-                        LOG.info("Sending response for latest/mc query");
-                        msg.reply(Json.encodePrettily(result.result().getRows()));
+                        LOG.info("Sending response for latest/mc query " + result.result().getOutput());
+                        LOG.info("Sending response for latest/mc query " + result.result().getResults());
+                        LOG.info("Sending response for latest/mc query " + result.result().getRows());
+                        msg.reply(Json.encodePrettily(result.result().getOutput()));
                     } else {
                         LOG.error("latest/mc query failed", result.cause());
                     }
