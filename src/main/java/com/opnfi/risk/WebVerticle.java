@@ -98,13 +98,39 @@ public class WebVerticle extends AbstractVerticle {
     private void latestMarginComponent(RoutingContext routingContext) {
         LOG.trace("Received latest/mc request");
 
-        eb.send("db.query.MarginComponent", new JsonArray(), ar -> {
+        JsonArray params = new JsonArray();
+
+        if (routingContext.request().getParam("clearer") != null && !"*".equals(routingContext.request().getParam("clearer")))
+        {
+            params.add("clearer").add(routingContext.request().getParam("clearer"));
+        }
+
+        if (routingContext.request().getParam("member") != null && !"*".equals(routingContext.request().getParam("member")))
+        {
+            params.add("member").add(routingContext.request().getParam("member"));
+        }
+
+        if (routingContext.request().getParam("account") != null && !"*".equals(routingContext.request().getParam("account")))
+        {
+            params.add("account").add(routingContext.request().getParam("account"));
+        }
+
+        if (routingContext.request().getParam("clss") != null && !"*".equals(routingContext.request().getParam("clss")))
+        {
+            params.add("clss").add(routingContext.request().getParam("clss"));
+        }
+
+        if (routingContext.request().getParam("ccy") != null && !"*".equals(routingContext.request().getParam("ccy")))
+        {
+            params.add("ccy").add(routingContext.request().getParam("ccy"));
+        }
+
+        eb.send("db.query.MarginComponent", params, ar -> {
             if (ar.succeeded()) {
                 LOG.trace("Received response latest/mc request");
 
                 routingContext.response()
                         .putHeader("content-type", "application/json; charset=utf-8")
-                        //.end(ar.result().body());
                         .end((String)ar.result().body());
             }
             else

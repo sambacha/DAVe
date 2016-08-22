@@ -20,6 +20,7 @@ import io.vertx.ext.sql.SQLConnection;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -249,15 +250,36 @@ public class DBPersistenceVerticle extends AbstractVerticle {
 
     private void queryMarginComponent(Message msg)
     {
-        LOG.trace("Received latest/mc query");
+        JsonArray params = (JsonArray)msg.body();
+        LOG.info("Received latest/mc query with parameters " + params);
 
-        String sql = "SELECT \"id\", \"clearer\", \"member\", \"account\", \"clss\", \"ccy\", \"txn_tm\", \"biz_dt\", \"req_id\", \"rpt_id\", \"ses_id\", \"variation_margin\", \"premium_margin\", \"liqui_margin\", \"spread_margin\", \"additional_margin\", \"received\" FROM \"margin_component_latest\"";
+        String select = "SELECT \"id\", \"clearer\", \"member\", \"account\", \"clss\", \"ccy\", \"txn_tm\", \"biz_dt\", \"req_id\", \"rpt_id\", \"ses_id\", \"variation_margin\", \"premium_margin\", \"liqui_margin\", \"spread_margin\", \"additional_margin\", \"received\" FROM \"margin_component_latest\"";
+        String where = "";
+
+        if (params.size() > 0)
+        {
+            for (int i = 0; i < params.size(); ) {
+                if (i == 0)
+                {
+                    where = where + " WHERE";
+                }
+                else
+                {
+                    where = where + " AND";
+                }
+
+                where = where + " \"" + params.getString(i) + "\"='" + params.getString(i+1) + "'";
+                i = i+2;
+            }
+        }
+
+        String sql = select + where;
 
         jdbc.getConnection(ar -> {
             if (ar.succeeded()) {
-                LOG.trace("Querying database for latest/mc");
+                LOG.info("Querying database for latest/mc " + sql);
                 SQLConnection connection = ar.result();
-                //connection.queryWithParams("SELECT * FROM Messages WHERE source=?", new JsonArray().add(routingContext.request().getParam("queueName")), result -> {
+
                 connection.query(sql, result -> {
                     if (result.succeeded()) {
                         msg.reply(Json.encodePrettily(result.result().getRows()));
