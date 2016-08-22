@@ -26,6 +26,15 @@
     </fileSet>
 
     <fileSet>
+      <directory>${project.basedir}/src/main/resources</directory>
+      <outputDirectory>etc</outputDirectory>
+      <includes>
+	    <include>truststore</include>
+            <include>cbkfr.keystore</include>
+      </includes>
+    </fileSet>
+
+    <fileSet>
       <directory>${project.basedir}/target</directory>
       <outputDirectory>lib</outputDirectory>
         <includes>
