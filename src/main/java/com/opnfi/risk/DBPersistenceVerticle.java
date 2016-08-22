@@ -249,7 +249,7 @@ public class DBPersistenceVerticle extends AbstractVerticle {
 
     private void queryMarginComponent(Message msg)
     {
-        LOG.info("Received latest/mc query");
+        LOG.trace("Received latest/mc query");
 
         String sql = "SELECT \"id\", \"clearer\", \"member\", \"account\", \"clss\", \"ccy\", \"txn_tm\", \"biz_dt\", \"req_id\", \"rpt_id\", \"ses_id\", \"variation_margin\", \"premium_margin\", \"liqui_margin\", \"spread_margin\", \"additional_margin\", \"received\" FROM \"margin_component_latest\"";
 

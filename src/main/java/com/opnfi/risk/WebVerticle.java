@@ -96,7 +96,7 @@ public class WebVerticle extends AbstractVerticle {
     }
 
     private void latestMarginComponent(RoutingContext routingContext) {
-        LOG.info("Received latest/mc request");
+        LOG.trace("Received latest/mc request");
 
         eb.send("db.query.MarginComponent", new JsonArray(), ar -> {
             if (ar.succeeded()) {
