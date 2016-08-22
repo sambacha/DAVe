@@ -75,7 +75,7 @@ sandboxControllers.controller('MarginComponentDetail', ['$scope', '$routeParams'
         $scope.class = $routeParams.class;
         $scope.ccy = $routeParams.ccy;
 
-        $scope.url = 'http://172.23.39.44:8080/api/v1.0/mc-detail/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class + '/' + $scope.ccy;
+        $scope.url = 'http://172.23.39.44:8080/api/v1.0/history/mc' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class + '/' + $scope.ccy;
 
         $http.get($scope.url).success(function(data) {
             $scope.error = "";
@@ -191,7 +191,7 @@ sandboxControllers.controller('TotalMarginRequirementOverview', ['$scope', '$rou
         if ($routeParams.member) { $scope.member = $routeParams.member } else { $scope.member = "*" }
         if ($routeParams.account) { $scope.account = $routeParams.account } else { $scope.account = "*" }
 
-        $scope.url = 'http://172.23.39.44:8080/api/v1.0/tmr-overview/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.account;
+        $scope.url = 'http://172.23.39.44:8080/api/v1.0/latest/tmr/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.account;
 
         $http.get($scope.url).success(function(data) {
             $scope.processTotalMarginRequirements(data);
@@ -330,7 +330,7 @@ sandboxControllers.controller('MarginShortfallSurplusOverview', ['$scope', '$rou
         if ($routeParams.member) { $scope.member = $routeParams.member } else { $scope.member = "*" }
         if ($routeParams.clearingCcy) { $scope.clearingCcy = $routeParams.clearingCcy } else { $scope.clearingCcy = "*" }
 
-        $scope.url = 'http://172.23.39.44:8080/api/v1.0/mss-overview/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.clearingCcy;
+        $scope.url = 'http://172.23.39.44:8080/api/v1.0/latest/mss/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.clearingCcy;
 
         $http.get($scope.url).success(function(data) {
             $scope.processMarginShortfallSurplus(data);

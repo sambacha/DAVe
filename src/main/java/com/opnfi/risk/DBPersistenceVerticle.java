@@ -20,7 +20,6 @@ import io.vertx.ext.sql.SQLConnection;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -38,7 +37,7 @@ public class DBPersistenceVerticle extends AbstractVerticle {
         startDb(
                 (connection) -> initDb(
                         connection,
-                        (nothing) -> startPersisting(fut),
+                        (nothing) -> startEventBus(fut),
                         fut),
                 fut);
     }
@@ -67,13 +66,13 @@ public class DBPersistenceVerticle extends AbstractVerticle {
             SQLConnection jdbcConnection = result.result();
 
             List<String> createTables = new LinkedList<String>();
-            createTables.add("CREATE TABLE \"margin_component\" ( \"id\" BIGINT AUTO_INCREMENT PRIMARY KEY, \"clearer\" VARCHAR(255), \"member\" VARCHAR(255), \"account\" VARCHAR(255), \"clss\" VARCHAR(255), \"ccy\" VARCHAR(255), \"txn_tm\" TIMESTAMP, \"biz_dt\" TIMESTAMP, \"req_id\" VARCHAR(255), \"rpt_id\" VARCHAR(255), \"ses_id\" VARCHAR(255), \"variation_margin\" DECIMAL(38), \"premium_margin\" DECIMAL(38), \"liqui_margin\" DECIMAL(38), \"spread_margin\" DECIMAL(38), \"additional_margin\" DECIMAL(38), \"received\" TIMESTAMP);");
-            createTables.add("CREATE TABLE \"margin_shortfall_surplus\" ( \"id\" BIGINT AUTO_INCREMENT PRIMARY KEY, \"clearer\" VARCHAR(255), \"pool\" VARCHAR(255), \"pool_type\" VARCHAR(255), \"member\" VARCHAR(255), \"clearing_ccy\" VARCHAR(255), \"ccy\" VARCHAR(255), \"txn_tm\" TIMESTAMP, \"biz_dt\" TIMESTAMP, \"req_id\" VARCHAR(255), \"rpt_id\" VARCHAR(255), \"ses_id\" VARCHAR(255), \"margin_requirement\" DECIMAL(38), \"security_collateral\" DECIMAL(38), \"cash_balance\" DECIMAL(38), \"shortfall_surplus\" DECIMAL(38), \"margin_call\" DECIMAL(38), \"received\" TIMESTAMP);");
-            createTables.add("CREATE TABLE \"total_margin_requirement\" ( \"id\" BIGINT AUTO_INCREMENT PRIMARY KEY, \"clearer\" VARCHAR(255), \"pool\" VARCHAR(255), \"member\" VARCHAR(255), \"account\" VARCHAR(255), \"ccy\" VARCHAR(255), \"txn_tm\" TIMESTAMP, \"biz_dt\" TIMESTAMP, \"req_id\" VARCHAR(255), \"rpt_id\" VARCHAR(255), \"ses_id\" VARCHAR(255), \"unadjusted_margin\" DECIMAL(38), \"adjusted_margin\" DECIMAL(38), \"received\" TIMESTAMP);");
-            createTables.add("CREATE TABLE \"trading_session_status\" ( \"id\" BIGINT AUTO_INCREMENT PRIMARY KEY, \"req_id\" VARCHAR(255), \"ses_id\" VARCHAR(255), \"stat\" VARCHAR(255), \"stat_rej_rsn\" VARCHAR(255), \"txt\" VARCHAR(255));");
+            createTables.add("CREATE TABLE \"margin_component\" ( \"id\" BIGINT AUTO_INCREMENT PRIMARY KEY, \"clearer\" VARCHAR(255), \"member\" VARCHAR(255), \"account\" VARCHAR(255), \"clss\" VARCHAR(255), \"ccy\" VARCHAR(255), \"txnTm\" TIMESTAMP, \"bizDt\" TIMESTAMP, \"reqId\" VARCHAR(255), \"rptId\" VARCHAR(255), \"sesId\" VARCHAR(255), \"variationMargin\" DECIMAL(38), \"premiumMargin\" DECIMAL(38), \"liquiMargin\" DECIMAL(38), \"spreadMargin\" DECIMAL(38), \"additionalMargin\" DECIMAL(38), \"received\" TIMESTAMP);");
+            createTables.add("CREATE TABLE \"margin_shortfall_surplus\" ( \"id\" BIGINT AUTO_INCREMENT PRIMARY KEY, \"clearer\" VARCHAR(255), \"pool\" VARCHAR(255), \"poolType\" VARCHAR(255), \"member\" VARCHAR(255), \"clearingCcy\" VARCHAR(255), \"ccy\" VARCHAR(255), \"txnTm\" TIMESTAMP, \"bizDt\" TIMESTAMP, \"reqId\" VARCHAR(255), \"rptId\" VARCHAR(255), \"sesId\" VARCHAR(255), \"marginRequirement\" DECIMAL(38), \"securityCollateral\" DECIMAL(38), \"cashBalance\" DECIMAL(38), \"shortfallSurplus\" DECIMAL(38), \"marginCall\" DECIMAL(38), \"received\" TIMESTAMP);");
+            createTables.add("CREATE TABLE \"total_margin_requirement\" ( \"id\" BIGINT AUTO_INCREMENT PRIMARY KEY, \"clearer\" VARCHAR(255), \"pool\" VARCHAR(255), \"member\" VARCHAR(255), \"account\" VARCHAR(255), \"ccy\" VARCHAR(255), \"txnTm\" TIMESTAMP, \"bizDt\" TIMESTAMP, \"reqId\" VARCHAR(255), \"rptId\" VARCHAR(255), \"sesId\" VARCHAR(255), \"unadjustedMargin\" DECIMAL(38), \"adjustedMargin\" DECIMAL(38), \"received\" TIMESTAMP);");
+            createTables.add("CREATE TABLE \"trading_session_status\" ( \"id\" BIGINT AUTO_INCREMENT PRIMARY KEY, \"reqId\" VARCHAR(255), \"sesId\" VARCHAR(255), \"stat\" VARCHAR(255), \"statRejRsn\" VARCHAR(255), \"txt\" VARCHAR(255));");
             createTables.add("CREATE VIEW \"margin_component_latest\" AS SELECT t.* FROM (SELECT \"clearer\", \"member\", \"account\", \"clss\", \"ccy\", MAX(\"received\") AS \"received\" FROM \"margin_component\" GROUP BY \"clearer\", \"member\", \"account\", \"clss\", \"ccy\") x JOIN \"margin_component\" t ON x.\"received\" =t.\"received\" AND t.\"clearer\" = x.\"clearer\" AND t.\"member\" = x.\"member\" AND t.\"account\" = x.\"account\" AND t.\"clss\" = x.\"clss\" AND x.\"ccy\" = t.\"ccy\";");
             createTables.add("CREATE VIEW \"total_margin_requirement_latest\" AS SELECT t.* FROM (SELECT \"clearer\", \"pool\", \"member\", \"account\", \"ccy\", MAX(\"received\") AS \"received\" FROM \"total_margin_requirement\" GROUP BY \"clearer\", \"pool\", \"member\", \"account\", \"ccy\") x JOIN \"total_margin_requirement\" t ON x.\"received\" =t.\"received\" AND t.\"clearer\" = x.\"clearer\" AND t.\"pool\" = x.\"pool\" AND t.\"member\" = x.\"member\" AND t.\"account\" = x.\"account\" AND x.\"ccy\" = t.\"ccy\";");
-            createTables.add("CREATE VIEW \"margin_shortfall_surplus_latest\" AS SELECT t.* FROM (SELECT \"clearer\", \"pool\", \"member\", \"clearing_ccy\", \"ccy\", MAX(\"received\") AS \"received\" FROM \"margin_shortfall_surplus\" GROUP BY \"clearer\", \"pool\", \"member\", \"clearing_ccy\", \"ccy\") x JOIN \"margin_shortfall_surplus\" t ON x.\"received\" =t.\"received\" AND t.\"clearer\" = x.\"clearer\" AND t.\"pool\" = x.\"pool\" AND t.\"member\" = x.\"member\" AND t.\"clearing_ccy\" = x.\"clearing_ccy\" AND x.\"ccy\" = t.\"ccy\";");
+            createTables.add("CREATE VIEW \"margin_shortfall_surplus_latest\" AS SELECT t.* FROM (SELECT \"clearer\", \"pool\", \"member\", \"clearingCcy\", \"ccy\", MAX(\"received\") AS \"received\" FROM \"margin_shortfall_surplus\" GROUP BY \"clearer\", \"pool\", \"member\", \"clearingCcy\", \"ccy\") x JOIN \"margin_shortfall_surplus\" t ON x.\"received\" =t.\"received\" AND t.\"clearer\" = x.\"clearer\" AND t.\"pool\" = x.\"pool\" AND t.\"member\" = x.\"member\" AND t.\"clearingCcy\" = x.\"clearingCcy\" AND x.\"ccy\" = t.\"ccy\";");
 
             jdbcConnection.batch(
                     createTables,
@@ -91,7 +90,7 @@ public class DBPersistenceVerticle extends AbstractVerticle {
         }
     }
 
-    private void startPersisting(Future<Void> fut)
+    private void startEventBus(Future<Void> fut)
     {
         EventBus eb = vertx.eventBus();
 
@@ -103,6 +102,8 @@ public class DBPersistenceVerticle extends AbstractVerticle {
 
         // Query endpoints
         eb.consumer("db.query.MarginComponent", message -> queryMarginComponent(message));
+        eb.consumer("db.query.TotalMarginRequirement", message -> queryTotalMarginRequirement(message));
+        eb.consumer("db.query.MarginShortfallSurplus", message -> queryMarginShortfallSurplus(message));
 
         fut.complete();
     }
@@ -112,7 +113,7 @@ public class DBPersistenceVerticle extends AbstractVerticle {
         LOG.trace("Storing TSS message with body: " + msg.body().toString());
         TradingSessionStatus tss = Json.decodeValue(msg.body().toString(), TradingSessionStatus.class);
 
-        String sql = "INSERT INTO \"trading_session_status\" (\"req_id\", \"ses_id\", \"stat\", \"stat_rej_rsn\", \"txt\") VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO \"trading_session_status\" (\"reqId\", \"sesId\", \"stat\", \"statRejRsn\", \"txt\") VALUES (?, ?, ?, ?, ?)";
         JsonArray params = new JsonArray()
                 .add(tss.getReqId() != null ? tss.getReqId() : "null")
                 .add(tss.getSesId() != null ? tss.getSesId() : "null")
@@ -139,7 +140,7 @@ public class DBPersistenceVerticle extends AbstractVerticle {
         LOG.trace("Storing MC message with body: " + msg.body().toString());
         MarginComponent mc = Json.decodeValue(msg.body().toString(), MarginComponent.class);
 
-        String sql = "INSERT INTO \"margin_component\" (\"clearer\", \"member\", \"account\", \"clss\", \"ccy\", \"txn_tm\", \"biz_dt\", \"req_id\", \"rpt_id\", \"ses_id\", \"variation_margin\", \"premium_margin\", \"liqui_margin\", \"spread_margin\", \"additional_margin\", \"received\") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO \"margin_component\" (\"clearer\", \"member\", \"account\", \"clss\", \"ccy\", \"txnTm\", \"bizDt\", \"reqId\", \"rptId\", \"sesId\", \"variationMargin\", \"premiumMargin\", \"liquiMargin\", \"spreadMargin\", \"additionalMargin\", \"received\") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         JsonArray params = new JsonArray()
                 .add(mc.getClearer() != null ? mc.getClearer() : "null")
                 .add(mc.getMember() != null ? mc.getMember() : "null")
@@ -177,7 +178,7 @@ public class DBPersistenceVerticle extends AbstractVerticle {
         LOG.trace("Storing TMR message with body: " + msg.body().toString());
         TotalMarginRequirement tmr = Json.decodeValue(msg.body().toString(), TotalMarginRequirement.class);
 
-        String sql = "INSERT INTO \"total_margin_requirement\" (\"clearer\", \"pool\", \"member\", \"account\", \"ccy\", \"txn_tm\", \"biz_dt\", \"req_id\", \"rpt_id\", \"ses_id\", \"unadjusted_margin\", \"adjusted_margin\", \"received\") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO \"total_margin_requirement\" (\"clearer\", \"pool\", \"member\", \"account\", \"ccy\", \"txnTm\", \"bizDt\", \"reqId\", \"rptId\", \"sesId\", \"unadjustedMargin\", \"adjustedMargin\", \"received\") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         JsonArray params = new JsonArray()
                 .add(tmr.getClearer() != null ? tmr.getClearer() : "null")
                 .add(tmr.getPool() != null ? tmr.getPool() : "null")
@@ -213,7 +214,7 @@ public class DBPersistenceVerticle extends AbstractVerticle {
         LOG.trace("Storing MSS message with body: " + msg.body().toString());
         MarginShortfallSurplus mss = Json.decodeValue(msg.body().toString(), MarginShortfallSurplus.class);
 
-        String sql = "INSERT INTO \"margin_shortfall_surplus\" (\"clearer\", \"pool\", \"pool_type\", \"member\", \"clearing_ccy\", \"ccy\", \"txn_tm\", \"biz_dt\", \"req_id\", \"rpt_id\", \"ses_id\", \"margin_requirement\", \"security_collateral\", \"cash_balance\", \"shortfall_surplus\", \"margin_call\", \"received\") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO \"margin_shortfall_surplus\" (\"clearer\", \"pool\", \"poolType\", \"member\", \"clearingCcy\", \"ccy\", \"txnTm\", \"bizDt\", \"reqId\", \"rptId\", \"sesId\", \"marginRequirement\", \"securityCollateral\", \"cashBalance\", \"shortfallSurplus\", \"marginCall\", \"received\") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         JsonArray params = new JsonArray()
                 .add(mss.getClearer() != null ? mss.getClearer() : "null")
                 .add(mss.getPool() != null ? mss.getPool() : "null")
@@ -251,9 +252,9 @@ public class DBPersistenceVerticle extends AbstractVerticle {
     private void queryMarginComponent(Message msg)
     {
         JsonArray params = (JsonArray)msg.body();
-        LOG.info("Received latest/mc query with parameters " + params);
+        LOG.trace("Received latest/mc query with parameters " + params);
 
-        String select = "SELECT \"id\", \"clearer\", \"member\", \"account\", \"clss\", \"ccy\", \"txn_tm\", \"biz_dt\", \"req_id\", \"rpt_id\", \"ses_id\", \"variation_margin\", \"premium_margin\", \"liqui_margin\", \"spread_margin\", \"additional_margin\", \"received\" FROM \"margin_component_latest\"";
+        String select = "SELECT \"id\", \"clearer\", \"member\", \"account\", \"clss\", \"ccy\", \"txnTm\", \"bizDt\", \"reqId\", \"rptId\", \"sesId\", \"variationMargin\", \"premiumMargin\", \"liquiMargin\", \"spreadMargin\", \"additionalMargin\", \"received\" FROM \"margin_component_latest\"";
         String where = "";
 
         if (params.size() > 0)
@@ -277,7 +278,7 @@ public class DBPersistenceVerticle extends AbstractVerticle {
 
         jdbc.getConnection(ar -> {
             if (ar.succeeded()) {
-                LOG.info("Querying database for latest/mc " + sql);
+                LOG.trace("Querying database for latest/mc " + sql);
                 SQLConnection connection = ar.result();
 
                 connection.query(sql, result -> {
@@ -285,6 +286,100 @@ public class DBPersistenceVerticle extends AbstractVerticle {
                         msg.reply(Json.encodePrettily(result.result().getRows()));
                     } else {
                         LOG.error("latest/mc query failed", result.cause());
+                    }
+                });
+
+                connection.close();
+            } else {
+                LOG.error("Failed to obtain database connection", ar.cause());
+            }
+        });
+    }
+
+    private void queryTotalMarginRequirement(Message msg)
+    {
+        JsonArray params = (JsonArray)msg.body();
+        LOG.trace("Received latest/tmr query with parameters " + params);
+
+        String select = "SELECT \"id\", \"clearer\", \"pool\", \"member\", \"account\", \"ccy\", \"txnTm\", \"bizDt\", \"reqId\", \"rptId\", \"sesId\", \"unadjustedMargin\", \"adjustedMargin\", \"received\" FROM \"total_margin_requirement_latest\"";
+        String where = "";
+
+        if (params.size() > 0)
+        {
+            for (int i = 0; i < params.size(); ) {
+                if (i == 0)
+                {
+                    where = where + " WHERE";
+                }
+                else
+                {
+                    where = where + " AND";
+                }
+
+                where = where + " \"" + params.getString(i) + "\"='" + params.getString(i+1) + "'";
+                i = i+2;
+            }
+        }
+
+        String sql = select + where;
+
+        jdbc.getConnection(ar -> {
+            if (ar.succeeded()) {
+                LOG.trace("Querying database for latest/tmr " + sql);
+                SQLConnection connection = ar.result();
+
+                connection.query(sql, result -> {
+                    if (result.succeeded()) {
+                        msg.reply(Json.encodePrettily(result.result().getRows()));
+                    } else {
+                        LOG.error("latest/tmr query failed", result.cause());
+                    }
+                });
+
+                connection.close();
+            } else {
+                LOG.error("Failed to obtain database connection", ar.cause());
+            }
+        });
+    }
+
+    private void queryMarginShortfallSurplus(Message msg)
+    {
+        JsonArray params = (JsonArray)msg.body();
+        LOG.trace("Received latest/mss query with parameters " + params);
+
+        String select = "SELECT \"id\", \"clearer\", \"pool\", \"poolType\", \"member\", \"clearingCcy\", \"ccy\", \"txnTm\", \"bizDt\", \"reqId\", \"rptId\", \"sesId\", \"marginRequirement\", \"securityCollateral\", \"cashBalance\", \"shortfallSurplus\", \"marginCall\", \"received\" FROM \"margin_shortfall_surplus_latest\"";
+        String where = "";
+
+        if (params.size() > 0)
+        {
+            for (int i = 0; i < params.size(); ) {
+                if (i == 0)
+                {
+                    where = where + " WHERE";
+                }
+                else
+                {
+                    where = where + " AND";
+                }
+
+                where = where + " \"" + params.getString(i) + "\"='" + params.getString(i+1) + "'";
+                i = i+2;
+            }
+        }
+
+        String sql = select + where;
+
+        jdbc.getConnection(ar -> {
+            if (ar.succeeded()) {
+                LOG.trace("Querying database for latest/mss " + sql);
+                SQLConnection connection = ar.result();
+
+                connection.query(sql, result -> {
+                    if (result.succeeded()) {
+                        msg.reply(Json.encodePrettily(result.result().getRows()));
+                    } else {
+                        LOG.error("latest/mss query failed", result.cause());
                     }
                 });
 

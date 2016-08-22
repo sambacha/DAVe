@@ -55,10 +55,19 @@ public class WebVerticle extends AbstractVerticle {
         router.get("/api/v1.0/latest/mc/:clearer/:member/:account").handler(this::latestMarginComponent);
         router.get("/api/v1.0/latest/mc/:clearer/:member/:account/:clss").handler(this::latestMarginComponent);
         router.get("/api/v1.0/latest/mc/:clearer/:member/:account/:clss/:ccy").handler(this::latestMarginComponent);
-        /*router.post("/api/request").handler(this::request);
-        router.get("/api/messages").handler(this::messages);
-        router.get("/api/messages/:queueName").handler(this::messagesByQueue);
-        router.get("/api/messages/:queueName/:correlationId").handler(this::messagesByQueueWithCorrelationId);*/
+        router.get("/api/v1.0/latest/tmr").handler(this::latestTotalMarginRequirement);
+        router.get("/api/v1.0/latest/tmr/:clearer").handler(this::latestTotalMarginRequirement);
+        router.get("/api/v1.0/latest/tmr/:clearer/:pool").handler(this::latestTotalMarginRequirement);
+        router.get("/api/v1.0/latest/tmr/:clearer/:pool/:member").handler(this::latestTotalMarginRequirement);
+        router.get("/api/v1.0/latest/tmr/:clearer/:pool/:member/:account").handler(this::latestTotalMarginRequirement);
+        router.get("/api/v1.0/latest/tmr/:clearer/:pool/:member/:account/:ccy").handler(this::latestTotalMarginRequirement);
+        router.get("/api/v1.0/latest/mss").handler(this::latestMarginShortfallSurplus);
+        router.get("/api/v1.0/latest/mss/:clearer").handler(this::latestMarginShortfallSurplus);
+        router.get("/api/v1.0/latest/mss/:clearer/:pool").handler(this::latestMarginShortfallSurplus);
+        router.get("/api/v1.0/latest/mss/:clearer/:pool/:member").handler(this::latestMarginShortfallSurplus);
+        router.get("/api/v1.0/latest/mss/:clearer/:pool/:member/:clearingCcy").handler(this::latestMarginShortfallSurplus);
+        router.get("/api/v1.0/latest/mss/:clearer/:pool/:member/:clearingCcy/:ccy").handler(this::latestMarginShortfallSurplus);
+
         router.route("/*").handler(StaticHandler.create("webroot"));
 
         LOG.info("Starting web server on port {}", config.httpPort());
@@ -128,6 +137,96 @@ public class WebVerticle extends AbstractVerticle {
         eb.send("db.query.MarginComponent", params, ar -> {
             if (ar.succeeded()) {
                 LOG.trace("Received response latest/mc request");
+
+                routingContext.response()
+                        .putHeader("content-type", "application/json; charset=utf-8")
+                        .end((String)ar.result().body());
+            }
+            else
+            {
+                LOG.error("Failed to query the DB service", ar.cause());
+            }
+        });
+    }
+
+    private void latestTotalMarginRequirement(RoutingContext routingContext) {
+        LOG.trace("Received latest/tmr request");
+
+        JsonArray params = new JsonArray();
+
+        if (routingContext.request().getParam("clearer") != null && !"*".equals(routingContext.request().getParam("clearer")))
+        {
+            params.add("clearer").add(routingContext.request().getParam("clearer"));
+        }
+
+        if (routingContext.request().getParam("pool") != null && !"*".equals(routingContext.request().getParam("pool")))
+        {
+            params.add("pool").add(routingContext.request().getParam("pool"));
+        }
+
+        if (routingContext.request().getParam("member") != null && !"*".equals(routingContext.request().getParam("member")))
+        {
+            params.add("member").add(routingContext.request().getParam("member"));
+        }
+
+        if (routingContext.request().getParam("account") != null && !"*".equals(routingContext.request().getParam("account")))
+        {
+            params.add("account").add(routingContext.request().getParam("account"));
+        }
+
+        if (routingContext.request().getParam("ccy") != null && !"*".equals(routingContext.request().getParam("ccy")))
+        {
+            params.add("ccy").add(routingContext.request().getParam("ccy"));
+        }
+
+        eb.send("db.query.TotalMarginRequirement", params, ar -> {
+            if (ar.succeeded()) {
+                LOG.trace("Received response latest/tmr request");
+
+                routingContext.response()
+                        .putHeader("content-type", "application/json; charset=utf-8")
+                        .end((String)ar.result().body());
+            }
+            else
+            {
+                LOG.error("Failed to query the DB service", ar.cause());
+            }
+        });
+    }
+
+    private void latestMarginShortfallSurplus(RoutingContext routingContext) {
+        LOG.trace("Received latest/mss request");
+
+        JsonArray params = new JsonArray();
+
+        if (routingContext.request().getParam("clearer") != null && !"*".equals(routingContext.request().getParam("clearer")))
+        {
+            params.add("clearer").add(routingContext.request().getParam("clearer"));
+        }
+
+        if (routingContext.request().getParam("pool") != null && !"*".equals(routingContext.request().getParam("pool")))
+        {
+            params.add("pool").add(routingContext.request().getParam("pool"));
+        }
+
+        if (routingContext.request().getParam("member") != null && !"*".equals(routingContext.request().getParam("member")))
+        {
+            params.add("member").add(routingContext.request().getParam("member"));
+        }
+
+        if (routingContext.request().getParam("clearingCcy") != null && !"*".equals(routingContext.request().getParam("clearingCcy")))
+        {
+            params.add("clearingCcy").add(routingContext.request().getParam("clearingCcy"));
+        }
+
+        if (routingContext.request().getParam("ccy") != null && !"*".equals(routingContext.request().getParam("ccy")))
+        {
+            params.add("ccy").add(routingContext.request().getParam("ccy"));
+        }
+
+        eb.send("db.query.MarginShortfallSurplus", params, ar -> {
+            if (ar.succeeded()) {
+                LOG.trace("Received response latest/mss request");
 
                 routingContext.response()
                         .putHeader("content-type", "application/json; charset=utf-8")
