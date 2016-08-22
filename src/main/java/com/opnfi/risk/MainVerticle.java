@@ -1,20 +1,9 @@
 package com.opnfi.risk;
 
-import com.opnfi.risk.model.procesor.TradingSessionStatusProcesor;
-import io.vertx.camel.CamelBridge;
-import io.vertx.camel.CamelBridgeOptions;
-import io.vertx.camel.InboundMapping;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
-import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.amqp.AMQPComponent;
-import org.apache.camel.impl.DefaultCamelContext;
-import org.apache.camel.model.dataformat.JaxbDataFormat;
-import org.apache.qpid.client.AMQConnectionFactory;
-import org.apache.qpid.url.URLSyntaxException;
 
 /**
  * Created by schojak on 19.8.16.
