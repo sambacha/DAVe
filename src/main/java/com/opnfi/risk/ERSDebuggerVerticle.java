@@ -34,5 +34,7 @@ public class ERSDebuggerVerticle extends AbstractVerticle {
         eb.consumer("ers.TotalMarginRequirement", message -> {
             LOG.trace("Received TMR message with body: " + message.body().toString());
         });
+
+        fut.complete();
     }
 }
