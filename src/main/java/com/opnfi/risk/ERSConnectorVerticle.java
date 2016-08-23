@@ -8,9 +8,7 @@ import io.vertx.camel.CamelBridge;
 import io.vertx.camel.CamelBridgeOptions;
 import io.vertx.camel.InboundMapping;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import java.util.UUID;
@@ -40,16 +38,28 @@ public class ERSConnectorVerticle extends AbstractVerticle {
     private CamelBridge camelBridge;
 
     @Override
-    public void start(Future<Void> fut) {
+    public void start(Future<Void> startFuture) {
         LOG.info("Starting {} with configuration: {}", ERSConnectorVerticle.class.getSimpleName(), config().encodePrettily());
-        startCamel(
-                (nothing) -> startCamelBridge(fut),
-                fut
-        );
+        Future<Void> chainFuture = Future.future();
+        Future<Void> startCamelFuture = startCamel();
+        startCamelFuture.compose(v -> {
+            return startCamelBridge();
+        }).compose(v -> {
+            chainFuture.complete();
+        }, chainFuture);
+
+        chainFuture.setHandler(ar -> {
+            if (ar.succeeded()) {
+                startFuture.complete();
+            } else {
+                startFuture.fail(chainFuture.cause());
+            }
+        });
     }
 
-    public void startCamel(Handler<AsyncResult<Void>> next, Future<Void> fut)
+    public Future<Void> startCamel()
     {
+        Future<Void> startCamelFuture = Future.future();
         camelCtx = new DefaultCamelContext();
 
         try {
@@ -65,7 +75,7 @@ public class ERSConnectorVerticle extends AbstractVerticle {
             camelCtx.addComponent("amqp", new AMQPComponent(amqpFact));
         } catch (URLSyntaxException e) {
             LOG.error("Failed to create AMQP Connection Factory", e);
-            fut.fail(e);
+            startCamelFuture.failed();
         }
 
         try {
@@ -95,18 +105,19 @@ public class ERSConnectorVerticle extends AbstractVerticle {
         catch (Exception e)
         {
             LOG.error("Failed to add Camel routes", e);
-            fut.fail(e);
+            startCamelFuture.failed();
         }
 
         try {
             camelCtx.start();
-            next.handle(null);
+            startCamelFuture.complete();
         }
         catch (Exception e)
         {
             LOG.error("Failed to start Camel", e);
-            fut.fail(e);
+            startCamelFuture.failed();
         }
+        return startCamelFuture;
     }
 
     private String getBroadcastAddress(String name, String routingKey) {
@@ -117,7 +128,7 @@ public class ERSConnectorVerticle extends AbstractVerticle {
                 + "queue: '%s', key: '%s' } ] } }", name, name, routingKey);
     }
 
-    public void startCamelBridge(Future<Void> fut)
+    public Future<Void> startCamelBridge()
     {
         camelBridge = CamelBridge.create(vertx,
                 new CamelBridgeOptions(camelCtx)
@@ -128,7 +139,7 @@ public class ERSConnectorVerticle extends AbstractVerticle {
         );
 
         camelBridge.start();
-        fut.complete();
+        return Future.succeededFuture();
     }
 
     @Override
