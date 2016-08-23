@@ -28,9 +28,9 @@ public class MainVerticle extends AbstractVerticle {
         Future<String> chainFuture = Future.future();
         DeploymentOptions dbPersistenceOptions = new DeploymentOptions().setConfig(config().getJsonObject("db"));
         Future<String> dbVerticleFuture = Future.future();
-        vertx.deployVerticle(DBPersistenceVerticle.class.getName(), dbPersistenceOptions, dbVerticleFuture.completer());
+        vertx.deployVerticle(MongoDBPersistenceVerticle.class.getName(), dbPersistenceOptions, dbVerticleFuture.completer());
         dbVerticleFuture.compose(v -> {
-            LOG.info("Deployed DBPersistenceVerticle with ID {}", v);
+            LOG.info("Deployed MongoDBPersistenceVerticle with ID {}", v);
             dbDeployment = v;
             DeploymentOptions ersDebuggerOptions = new DeploymentOptions().setConfig(config().getJsonObject("debug"));
             Future<String> ersDebuggerVerticleFuture = Future.future();
