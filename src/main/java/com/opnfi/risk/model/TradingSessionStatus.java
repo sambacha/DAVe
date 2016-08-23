@@ -4,6 +4,7 @@ import com.opnfi.risk.model.jaxb.AbstractMessageT;
 import com.opnfi.risk.model.jaxb.FIXML;
 import com.opnfi.risk.model.jaxb.TradingSessionStatusMessageT;
 import javax.xml.bind.JAXBElement;
+import java.util.Date;
 
 public class TradingSessionStatus {
     public Long id;
@@ -12,12 +13,14 @@ public class TradingSessionStatus {
     public String stat;
     public String statRejRsn;
     public String txt;
+    public Date received;
 
     public static TradingSessionStatus parseFromFIXML(FIXML fixml) {
         JAXBElement<? extends AbstractMessageT> msg = fixml.getMessage();
         TradingSessionStatusMessageT tssMessage = (TradingSessionStatusMessageT) msg.getValue();
 
         TradingSessionStatus tss = new TradingSessionStatus();
+        tss.received = new Date();
         tss.reqId = tssMessage.getReqID();
         tss.sesId = tssMessage.getSesID();
         tss.stat = tssMessage.getStat();
@@ -27,7 +30,7 @@ public class TradingSessionStatus {
         return tss;
     }
 
-    public TradingSessionStatus(Long id, String reqId, String sesId, String stat, String statRejRsn, String txt) {
+    public TradingSessionStatus(Long id, String reqId, String sesId, String stat, String statRejRsn, String txt, Date received) {
         this.id = id;
         this.reqId = reqId;
         this.sesId = sesId;
@@ -85,5 +88,13 @@ public class TradingSessionStatus {
 
     public void setTxt(String txt) {
         this.txt = txt;
+    }
+
+    public Date getReceived() {
+        return received;
+    }
+
+    public void setReceived(Date received) {
+        this.received = received;
     }
 }
