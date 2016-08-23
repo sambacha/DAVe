@@ -12,15 +12,12 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.mongo.MongoClient;
-import io.vertx.ext.sql.SQLConnection;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -29,11 +26,16 @@ import java.util.List;
 public class MongoDBPersistenceVerticle extends AbstractVerticle {
     final static private Logger LOG = LoggerFactory.getLogger(MongoDBPersistenceVerticle.class);
 
+    private static final String DEFAULT_DB_NAME = "OpnFi-Risk";
+    private static final String DEFAULT_CONNECTION_STRING = "mongodb://localhost:27017";
+
     private MongoClient mongo;
     final DateFormat timestampFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
     @Override
     public void start(Future<Void> fut) throws Exception {
+        LOG.info("Starting {} with configuration: {}", MongoDBPersistenceVerticle.class.getSimpleName(), config().encodePrettily());
+
         Future<String> chainFuture = Future.future();
 
         Future<Void> connectDbFuture = Future.future();
@@ -67,9 +69,9 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
 
     private void connectDb(Handler<AsyncResult<Void>> completer) {
         JsonObject config = new JsonObject();
-        config.put("db_name", "OpnFi-Risk");
+        config.put("db_name", config().getString("db_name", MongoDBPersistenceVerticle.DEFAULT_DB_NAME));
         config.put("useObjectId", true);
-        config.put("connection_string", "mongodb://localhost:27017");
+        config.put("connection_string", config().getString("connection_string", MongoDBPersistenceVerticle.DEFAULT_CONNECTION_STRING));
 
         mongo = MongoClient.createShared(vertx, config);
         completer.handle(Future.succeededFuture());

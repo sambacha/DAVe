@@ -18,7 +18,7 @@ import java.util.Map;
 public class MainVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(MainVerticle.class);
 
-    private String dbDeployment;
+    private String mongoDbPersistenceDeployment;
     private String ersConnectorDeployment;
     private String ersDebbugerDeployment;
     private String webInterfaceDeployment;
@@ -26,12 +26,12 @@ public class MainVerticle extends AbstractVerticle {
     @Override
     public void start(Future<Void> startFuture) {
         Future<String> chainFuture = Future.future();
-        DeploymentOptions dbPersistenceOptions = new DeploymentOptions().setConfig(config().getJsonObject("db"));
-        Future<String> dbVerticleFuture = Future.future();
-        vertx.deployVerticle(MongoDBPersistenceVerticle.class.getName(), dbPersistenceOptions, dbVerticleFuture.completer());
-        dbVerticleFuture.compose(v -> {
+        DeploymentOptions mongoDbPersistenceOptions = new DeploymentOptions().setConfig(config().getJsonObject("mongodb"));
+        Future<String> mongoDbVerticleFuture = Future.future();
+        vertx.deployVerticle(MongoDBPersistenceVerticle.class.getName(), mongoDbPersistenceOptions, mongoDbVerticleFuture.completer());
+        mongoDbVerticleFuture.compose(v -> {
             LOG.info("Deployed MongoDBPersistenceVerticle with ID {}", v);
-            dbDeployment = v;
+            mongoDbPersistenceDeployment = v;
             DeploymentOptions ersDebuggerOptions = new DeploymentOptions().setConfig(config().getJsonObject("debug"));
             Future<String> ersDebuggerVerticleFuture = Future.future();
             vertx.deployVerticle(ERSDebuggerVerticle.class.getName(), ersDebuggerOptions, ersDebuggerVerticleFuture.completer());
@@ -91,9 +91,9 @@ public class MainVerticle extends AbstractVerticle {
             } else {
                 LOG.error("Failed to undeploy some verticles", ar.cause());
             }
-            if (dbDeployment != null) {
-                LOG.info("Undeploying Database " + dbDeployment);
-                vertx.undeploy(dbDeployment);
+            if (mongoDbPersistenceDeployment != null) {
+                LOG.info("Undeploying Database " + mongoDbPersistenceDeployment);
+                vertx.undeploy(mongoDbPersistenceDeployment);
             }
         });
     }
