@@ -1,9 +1,14 @@
 package com.opnfi.risk;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created by schojak on 19.8.16.
@@ -11,74 +16,130 @@ import io.vertx.core.logging.LoggerFactory;
 public class MainVerticle extends AbstractVerticle {
     final static private Logger LOG = LoggerFactory.getLogger(MainVerticle.class);
 
+    private String dbDeployment;
+    private String ersConnectorDeployment;
+    private String ersDebbugerDeployment;
+    private String webInterfaceDeployment;
+
     @Override
     public void start(Future<Void> fut) {
-        vertx.deployVerticle("com.opnfi.risk.ERSConnectorVerticle", res -> {
-            if (res.succeeded()) {
-                LOG.info("Deployed ERSConnectorVerticle");
-            } else {
-                LOG.info("Deployment of ERSConnectorVerticle failed!");
-            }
-        });
-
-        vertx.deployVerticle("com.opnfi.risk.ERSDebuggerVerticle", res -> {
-            if (res.succeeded()) {
-                LOG.info("Deployed ERSDebuggerVerticle");
-            } else {
-                LOG.info("Deployment of ERSDebuggerVerticle failed!");
-            }
-        });
-
-        vertx.deployVerticle("com.opnfi.risk.DBPersistenceVerticle", res -> {
-            if (res.succeeded()) {
+        vertx.deployVerticle(DBPersistenceVerticle.class.getName(), r1 -> {
+            if (r1.succeeded()) {
                 LOG.info("Deployed DBPersistenceVerticle");
-            } else {
-                LOG.info("Deployment of DBPersistenceVerticle failed!");
-            }
-        });
+                dbDeployment = r1.result();
 
-        vertx.deployVerticle("com.opnfi.risk.WebVerticle", res -> {
-            if (res.succeeded()) {
-                LOG.info("Deployed WebVerticle");
+                vertx.deployVerticle(ERSDebuggerVerticle.class.getName(), r2 -> {
+                    if (r2.succeeded())
+                    {
+                        LOG.info("Deployed ERSDebuggerVerticle");
+                        ersDebbugerDeployment = r2.result();
+
+                        vertx.deployVerticle(WebVerticle.class.getName(), r3 -> {
+                            if (r3.succeeded())
+                            {
+                                LOG.info("Deployed WebVerticle");
+                                webInterfaceDeployment = r3.result();
+
+                                vertx.deployVerticle(ERSConnectorVerticle.class.getName(), r4 -> {
+                                    if (r4.succeeded())
+                                    {
+                                        LOG.info("Deployed ERSConnectorVerticle");
+                                        ersConnectorDeployment = r4.result();
+
+                                        LOG.info("All verticles successfully deployed, application is ready");
+                                        fut.complete();
+                                    }
+                                    else
+                                    {
+                                        LOG.error("Failed to deploy ERSConnectorVerticle verticle", r4.cause());
+                                        fut.fail(r4.cause());
+                                        closeAllDeployments();
+                                    }
+                                });
+                            }
+                            else
+                            {
+                                LOG.error("Failed to deploy WebVerticle verticle", r3.cause());
+                                fut.fail(r3.cause());
+                                closeAllDeployments();
+                            }
+                        });
+                    }
+                    else
+                    {
+                        LOG.error("Failed to deploy ERSDebuggerVerticle verticle", r2.cause());
+                        fut.fail(r2.cause());
+                        closeAllDeployments();
+                    }
+                });
             } else {
-                LOG.info("Deployment of WebVerticle failed!");
+                LOG.error("Deployment of DBPersistenceVerticle failed!", r1.cause());
+                fut.fail(r1.cause());
+                closeAllDeployments();
             }
         });
     }
 
+    private void closeAllDeployments()
+    {
+        Set<String> depIds = vertx.deploymentIDs();
+
+        for (String id : depIds)
+        {
+            vertx.undeploy(id);
+        }
+    }
+
+
     @Override
     public void stop() throws Exception {
-        vertx.undeploy("com.opnfi.risk.ERSConnectorVerticle", res -> {
-            if (res.succeeded()) {
-                LOG.info("Undeployed ERSConnectorVerticle");
-            } else {
-                LOG.info("Undeploy of ERSConnectorVerticle failed!");
+        LOG.info("Stopping main verticle");
+
+        List<Future> futures = new LinkedList<>();
+
+        if (ersConnectorDeployment != null)
+        {
+            LOG.info("Undeploying ERSConnector " + ersConnectorDeployment);
+            Future<Void> fut1 = Future.future();
+            vertx.undeploy(ersConnectorDeployment, fut1.completer());
+            futures.add(fut1);
+        }
+
+        if (ersDebbugerDeployment != null)
+        {
+            LOG.info("Undeploying ERSDebbuger " + ersDebbugerDeployment);
+            Future<Void> fut2 = Future.future();
+            vertx.undeploy(ersDebbugerDeployment, fut2.completer());
+            futures.add(fut2);
+        }
+
+        if (webInterfaceDeployment != null)
+        {
+            LOG.info("Undeploying WebInterface " + webInterfaceDeployment);
+            Future<Void> fut3 = Future.future();
+            vertx.undeploy(webInterfaceDeployment, fut3.completer());
+            futures.add(fut3);
+        }
+
+        CompositeFuture.all(futures).setHandler(ar -> {
+            if (ar.succeeded())
+            {
+                LOG.info("Undeployed most verticles ... ready to undeploy database");
+
+                if (dbDeployment != null) {
+                    LOG.info("Undeploying Database " + dbDeployment);
+                    vertx.undeploy(dbDeployment);
+                }
+            }
+            else
+            {
+                LOG.error("Failed to undeploy some verticles", ar.cause());
+
+                if (dbDeployment != null) {
+                    LOG.info("Undeploying Database " + dbDeployment);
+                    vertx.undeploy(dbDeployment);
+                }
             }
         });
-
-        vertx.undeploy("com.opnfi.risk.ERSDebuggerVerticle", res -> {
-            if (res.succeeded()) {
-                LOG.info("Undeployed ERSDebuggerVerticle");
-            } else {
-                LOG.info("Undeploy of ERSDebuggerVerticle failed!");
-            }
-        });
-
-        vertx.undeploy("com.opnfi.risk.DBPersistenceVerticle", res -> {
-            if (res.succeeded()) {
-                LOG.info("Undeployed DBPersistenceVerticle");
-            } else {
-                LOG.info("Undeploy of DBPersistenceVerticle failed!");
-            }
-        });
-
-        vertx.undeploy("com.opnfi.risk.WebVerticle", res -> {
-            if (res.succeeded()) {
-                LOG.info("Undeployed WebVerticle");
-            } else {
-                LOG.info("Undeploy of WebVerticle failed!");
-            }
-        });
-
     }
 }

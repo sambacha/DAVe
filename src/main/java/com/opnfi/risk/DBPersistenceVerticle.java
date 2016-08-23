@@ -392,6 +392,7 @@ public class DBPersistenceVerticle extends AbstractVerticle {
 
     @Override
     public void stop() throws Exception {
+        LOG.info("DBPersistenceVerticle is being stopped");
         jdbc.close();
     }
 }
