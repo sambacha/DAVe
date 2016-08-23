@@ -77,7 +77,7 @@ public class MainVerticle extends AbstractVerticle {
 
         List<Future> futures = new LinkedList<>();
         deployments.forEach((verticleName, deploymentID) -> {
-            if (deploymentID != null) {
+            if (deploymentID != null && vertx.deploymentIDs().contains(deploymentID)) {
                 LOG.info("Undeploying {} with ID: {}", verticleName, deploymentID);
                 Future<Void> future = Future.future();
                 vertx.undeploy(deploymentID, future.completer());
