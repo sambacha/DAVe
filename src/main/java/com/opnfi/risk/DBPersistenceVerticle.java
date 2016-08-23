@@ -5,9 +5,7 @@ import com.opnfi.risk.model.MarginShortfallSurplus;
 import com.opnfi.risk.model.TotalMarginRequirement;
 import com.opnfi.risk.model.TradingSessionStatus;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.Json;
@@ -27,70 +25,79 @@ import java.util.List;
  * Created by schojak on 19.8.16.
  */
 public class DBPersistenceVerticle extends AbstractVerticle {
-    final static private Logger LOG = LoggerFactory.getLogger(com.opnfi.risk.DBPersistenceVerticle.class);
+    private static final Logger LOG = LoggerFactory.getLogger(com.opnfi.risk.DBPersistenceVerticle.class);
 
     private JDBCClient jdbc;
     final DateFormat timestampFormatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.S");
 
     @Override
-    public void start(Future<Void> fut) throws Exception {
-        startDb(
-                (connection) -> initDb(
-                        connection,
-                        (nothing) -> startEventBus(fut),
-                        fut),
-                fut);
+    public void start(Future<Void> startFuture) throws Exception {
+        Future<String> chainFuture = Future.future();
+        Future<SQLConnection> startDbFuture = this.startDb();
+        startDbFuture.compose(sqlConnection -> {
+            return this.initDb(sqlConnection);
+        }).compose(v -> {
+            return this.startEventBus();
+        }).compose(v -> {
+            chainFuture.complete();
+        }, chainFuture);
+
+        chainFuture.setHandler(ar -> {
+            if (ar.succeeded()) {
+                startFuture.complete();
+            } else {
+                startFuture.fail(chainFuture.cause());
+            }
+        });
     }
 
-    private void startDb(Handler<AsyncResult<SQLConnection>> next, Future<Void> fut) {
+    private Future<SQLConnection> startDb() {
         LOG.info("Connecting to JDBC database");
+        Future<SQLConnection> startDbFuture = Future.future();
         jdbc = JDBCClient.createShared(vertx, new JsonObject().put("url", "jdbc:h2:mem:opnfi-risk").put("driver_class", "org.h2.Driver"), "OpnFi-Risk");
 
         jdbc.getConnection(ar -> {
             if (ar.failed()) {
-                fut.fail(ar.cause());
+                startDbFuture.fail(ar.cause());
             } else {
                 LOG.info("Connected to JDBC database");
-                next.handle(Future.succeededFuture(ar.result()));
+                startDbFuture.complete(ar.result());
             }
         });
+        return startDbFuture;
     }
 
     /*
     Initialize the database - create the table for messages using SQL
      */
-    private void initDb(AsyncResult<SQLConnection> result, Handler<AsyncResult<Void>> next, Future<Void> fut) {
-        if (result.failed()) {
-            fut.fail(result.cause());
-        } else {
-            SQLConnection jdbcConnection = result.result();
+    private Future<Void> initDb(SQLConnection jdbcConnection) {
+        Future<Void> initDbFuture = Future.future();
+        List<String> createTables = new LinkedList<>();
+        createTables.add("CREATE TABLE \"margin_component\" ( \"id\" BIGINT AUTO_INCREMENT PRIMARY KEY, \"clearer\" VARCHAR(255), \"member\" VARCHAR(255), \"account\" VARCHAR(255), \"clss\" VARCHAR(255), \"ccy\" VARCHAR(255), \"txnTm\" TIMESTAMP, \"bizDt\" TIMESTAMP, \"reqId\" VARCHAR(255), \"rptId\" VARCHAR(255), \"sesId\" VARCHAR(255), \"variationMargin\" DECIMAL(38), \"premiumMargin\" DECIMAL(38), \"liquiMargin\" DECIMAL(38), \"spreadMargin\" DECIMAL(38), \"additionalMargin\" DECIMAL(38), \"received\" TIMESTAMP);");
+        createTables.add("CREATE TABLE \"margin_shortfall_surplus\" ( \"id\" BIGINT AUTO_INCREMENT PRIMARY KEY, \"clearer\" VARCHAR(255), \"pool\" VARCHAR(255), \"poolType\" VARCHAR(255), \"member\" VARCHAR(255), \"clearingCcy\" VARCHAR(255), \"ccy\" VARCHAR(255), \"txnTm\" TIMESTAMP, \"bizDt\" TIMESTAMP, \"reqId\" VARCHAR(255), \"rptId\" VARCHAR(255), \"sesId\" VARCHAR(255), \"marginRequirement\" DECIMAL(38), \"securityCollateral\" DECIMAL(38), \"cashBalance\" DECIMAL(38), \"shortfallSurplus\" DECIMAL(38), \"marginCall\" DECIMAL(38), \"received\" TIMESTAMP);");
+        createTables.add("CREATE TABLE \"total_margin_requirement\" ( \"id\" BIGINT AUTO_INCREMENT PRIMARY KEY, \"clearer\" VARCHAR(255), \"pool\" VARCHAR(255), \"member\" VARCHAR(255), \"account\" VARCHAR(255), \"ccy\" VARCHAR(255), \"txnTm\" TIMESTAMP, \"bizDt\" TIMESTAMP, \"reqId\" VARCHAR(255), \"rptId\" VARCHAR(255), \"sesId\" VARCHAR(255), \"unadjustedMargin\" DECIMAL(38), \"adjustedMargin\" DECIMAL(38), \"received\" TIMESTAMP);");
+        createTables.add("CREATE TABLE \"trading_session_status\" ( \"id\" BIGINT AUTO_INCREMENT PRIMARY KEY, \"reqId\" VARCHAR(255), \"sesId\" VARCHAR(255), \"stat\" VARCHAR(255), \"statRejRsn\" VARCHAR(255), \"txt\" VARCHAR(255));");
+        createTables.add("CREATE VIEW \"margin_component_latest\" AS SELECT t.* FROM (SELECT \"clearer\", \"member\", \"account\", \"clss\", \"ccy\", MAX(\"received\") AS \"received\" FROM \"margin_component\" GROUP BY \"clearer\", \"member\", \"account\", \"clss\", \"ccy\") x JOIN \"margin_component\" t ON x.\"received\" =t.\"received\" AND t.\"clearer\" = x.\"clearer\" AND t.\"member\" = x.\"member\" AND t.\"account\" = x.\"account\" AND t.\"clss\" = x.\"clss\" AND x.\"ccy\" = t.\"ccy\";");
+        createTables.add("CREATE VIEW \"total_margin_requirement_latest\" AS SELECT t.* FROM (SELECT \"clearer\", \"pool\", \"member\", \"account\", \"ccy\", MAX(\"received\") AS \"received\" FROM \"total_margin_requirement\" GROUP BY \"clearer\", \"pool\", \"member\", \"account\", \"ccy\") x JOIN \"total_margin_requirement\" t ON x.\"received\" =t.\"received\" AND t.\"clearer\" = x.\"clearer\" AND t.\"pool\" = x.\"pool\" AND t.\"member\" = x.\"member\" AND t.\"account\" = x.\"account\" AND x.\"ccy\" = t.\"ccy\";");
+        createTables.add("CREATE VIEW \"margin_shortfall_surplus_latest\" AS SELECT t.* FROM (SELECT \"clearer\", \"pool\", \"member\", \"clearingCcy\", \"ccy\", MAX(\"received\") AS \"received\" FROM \"margin_shortfall_surplus\" GROUP BY \"clearer\", \"pool\", \"member\", \"clearingCcy\", \"ccy\") x JOIN \"margin_shortfall_surplus\" t ON x.\"received\" =t.\"received\" AND t.\"clearer\" = x.\"clearer\" AND t.\"pool\" = x.\"pool\" AND t.\"member\" = x.\"member\" AND t.\"clearingCcy\" = x.\"clearingCcy\" AND x.\"ccy\" = t.\"ccy\";");
 
-            List<String> createTables = new LinkedList<String>();
-            createTables.add("CREATE TABLE \"margin_component\" ( \"id\" BIGINT AUTO_INCREMENT PRIMARY KEY, \"clearer\" VARCHAR(255), \"member\" VARCHAR(255), \"account\" VARCHAR(255), \"clss\" VARCHAR(255), \"ccy\" VARCHAR(255), \"txnTm\" TIMESTAMP, \"bizDt\" TIMESTAMP, \"reqId\" VARCHAR(255), \"rptId\" VARCHAR(255), \"sesId\" VARCHAR(255), \"variationMargin\" DECIMAL(38), \"premiumMargin\" DECIMAL(38), \"liquiMargin\" DECIMAL(38), \"spreadMargin\" DECIMAL(38), \"additionalMargin\" DECIMAL(38), \"received\" TIMESTAMP);");
-            createTables.add("CREATE TABLE \"margin_shortfall_surplus\" ( \"id\" BIGINT AUTO_INCREMENT PRIMARY KEY, \"clearer\" VARCHAR(255), \"pool\" VARCHAR(255), \"poolType\" VARCHAR(255), \"member\" VARCHAR(255), \"clearingCcy\" VARCHAR(255), \"ccy\" VARCHAR(255), \"txnTm\" TIMESTAMP, \"bizDt\" TIMESTAMP, \"reqId\" VARCHAR(255), \"rptId\" VARCHAR(255), \"sesId\" VARCHAR(255), \"marginRequirement\" DECIMAL(38), \"securityCollateral\" DECIMAL(38), \"cashBalance\" DECIMAL(38), \"shortfallSurplus\" DECIMAL(38), \"marginCall\" DECIMAL(38), \"received\" TIMESTAMP);");
-            createTables.add("CREATE TABLE \"total_margin_requirement\" ( \"id\" BIGINT AUTO_INCREMENT PRIMARY KEY, \"clearer\" VARCHAR(255), \"pool\" VARCHAR(255), \"member\" VARCHAR(255), \"account\" VARCHAR(255), \"ccy\" VARCHAR(255), \"txnTm\" TIMESTAMP, \"bizDt\" TIMESTAMP, \"reqId\" VARCHAR(255), \"rptId\" VARCHAR(255), \"sesId\" VARCHAR(255), \"unadjustedMargin\" DECIMAL(38), \"adjustedMargin\" DECIMAL(38), \"received\" TIMESTAMP);");
-            createTables.add("CREATE TABLE \"trading_session_status\" ( \"id\" BIGINT AUTO_INCREMENT PRIMARY KEY, \"reqId\" VARCHAR(255), \"sesId\" VARCHAR(255), \"stat\" VARCHAR(255), \"statRejRsn\" VARCHAR(255), \"txt\" VARCHAR(255));");
-            createTables.add("CREATE VIEW \"margin_component_latest\" AS SELECT t.* FROM (SELECT \"clearer\", \"member\", \"account\", \"clss\", \"ccy\", MAX(\"received\") AS \"received\" FROM \"margin_component\" GROUP BY \"clearer\", \"member\", \"account\", \"clss\", \"ccy\") x JOIN \"margin_component\" t ON x.\"received\" =t.\"received\" AND t.\"clearer\" = x.\"clearer\" AND t.\"member\" = x.\"member\" AND t.\"account\" = x.\"account\" AND t.\"clss\" = x.\"clss\" AND x.\"ccy\" = t.\"ccy\";");
-            createTables.add("CREATE VIEW \"total_margin_requirement_latest\" AS SELECT t.* FROM (SELECT \"clearer\", \"pool\", \"member\", \"account\", \"ccy\", MAX(\"received\") AS \"received\" FROM \"total_margin_requirement\" GROUP BY \"clearer\", \"pool\", \"member\", \"account\", \"ccy\") x JOIN \"total_margin_requirement\" t ON x.\"received\" =t.\"received\" AND t.\"clearer\" = x.\"clearer\" AND t.\"pool\" = x.\"pool\" AND t.\"member\" = x.\"member\" AND t.\"account\" = x.\"account\" AND x.\"ccy\" = t.\"ccy\";");
-            createTables.add("CREATE VIEW \"margin_shortfall_surplus_latest\" AS SELECT t.* FROM (SELECT \"clearer\", \"pool\", \"member\", \"clearingCcy\", \"ccy\", MAX(\"received\") AS \"received\" FROM \"margin_shortfall_surplus\" GROUP BY \"clearer\", \"pool\", \"member\", \"clearingCcy\", \"ccy\") x JOIN \"margin_shortfall_surplus\" t ON x.\"received\" =t.\"received\" AND t.\"clearer\" = x.\"clearer\" AND t.\"pool\" = x.\"pool\" AND t.\"member\" = x.\"member\" AND t.\"clearingCcy\" = x.\"clearingCcy\" AND x.\"ccy\" = t.\"ccy\";");
-
-            jdbcConnection.batch(
-                    createTables,
-                    ar -> {
-                        if (ar.failed()) {
-                            LOG.error("Failed to create DB structure", ar.cause());
-                            fut.fail(ar.cause());
-                            jdbcConnection.close();
-                        }
-                        else {
-                            LOG.info("DB structure created");
-                            next.handle(fut);
-                        }
-                    });
-        }
+        jdbcConnection.batch(
+                createTables,
+                ar -> {
+                    if (ar.failed()) {
+                        LOG.error("Failed to create DB structure", ar.cause());
+                        initDbFuture.fail(ar.cause());
+                        jdbcConnection.close();
+                    }
+                    else {
+                        LOG.info("DB structure created");
+                        initDbFuture.complete();
+                    }
+                });
+        return initDbFuture;
     }
 
-    private void startEventBus(Future<Void> fut)
+    private Future<Void> startEventBus()
     {
         EventBus eb = vertx.eventBus();
 
@@ -105,7 +112,7 @@ public class DBPersistenceVerticle extends AbstractVerticle {
         eb.consumer("db.query.TotalMarginRequirement", message -> queryTotalMarginRequirement(message));
         eb.consumer("db.query.MarginShortfallSurplus", message -> queryMarginShortfallSurplus(message));
 
-        fut.complete();
+        return Future.succeededFuture();
     }
 
     private void storeTradingSessionStatus(Message msg)
