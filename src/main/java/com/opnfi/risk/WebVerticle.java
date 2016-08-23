@@ -2,9 +2,8 @@ package com.opnfi.risk;
 
 import com.opnfi.risk.model.TradingSessionStatus;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.AsyncResult;
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpServer;
@@ -30,17 +29,21 @@ public class WebVerticle extends AbstractVerticle {
     private TradingSessionStatus cacheTss = null;
 
     @Override
-    public void start(Future<Void> fut) throws Exception {
+    public void start(Future<Void> startFuture) throws Exception {
         LOG.info("Starting {} with configuration: {}", WebVerticle.class.getSimpleName(), config().encodePrettily());
         eb = vertx.eventBus();
 
-        startWebServer(
-                (nothing) -> startCache(
-                        fut),
-                fut);
+        CompositeFuture.all(startWebServer(), startCache()).setHandler(ar -> {
+            if (ar.succeeded()) {
+                startFuture.complete();
+            } else {
+                startFuture.fail(ar.cause());
+            }
+        });
     }
 
-    private void startWebServer(Handler<AsyncResult<Void>> next, Future<Void> fut) {
+    private Future<HttpServer> startWebServer() {
+        Future<HttpServer> webServerFuture = Future.future();
         Router router = Router.router(vertx);
 
         LOG.info("Adding route REST API");
@@ -70,22 +73,15 @@ public class WebVerticle extends AbstractVerticle {
         LOG.info("Starting web server on port {}", config().getInteger("httpPort", WebVerticle.DEFAULT_HTTP_PORT));
         server = vertx.createHttpServer()
                 .requestHandler(router::accept)
-                .listen(config().getInteger("httpPort", WebVerticle.DEFAULT_HTTP_PORT),
-                        res -> {
-                            if (res.succeeded()) {
-                                next.handle(fut);
-                            } else {
-                                fut.fail(res.cause());
-                            }
-                        }
-                );
+                .listen(config().getInteger("httpPort", WebVerticle.DEFAULT_HTTP_PORT), webServerFuture.completer());
+        return webServerFuture;
     }
 
-    private void startCache(Future<Void> fut)
+    private Future<Void> startCache()
     {
         EventBus eb = vertx.eventBus();
         eb.consumer("ers.TradingSessionStatus", message -> cacheTradingSessionStatus(message));
-        fut.complete();
+        return Future.succeededFuture();
     }
 
     private void cacheTradingSessionStatus(Message msg) {
