@@ -30,7 +30,7 @@ public class DBPersistenceVerticle extends AbstractVerticle {
     final static private Logger LOG = LoggerFactory.getLogger(com.opnfi.risk.DBPersistenceVerticle.class);
 
     private JDBCClient jdbc;
-    final DateFormat timestampFormatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+    final DateFormat timestampFormatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.S");
 
     @Override
     public void start(Future<Void> fut) throws Exception {
