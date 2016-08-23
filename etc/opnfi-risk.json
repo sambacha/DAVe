@@ -1,0 +1,17 @@
+{
+  "web": {
+    "httpPort": 8080
+  },
+  "ers": {
+    "brokerHost": "tcp://rgd003.xeop.de",
+    "brokerPort": 15160,
+    "sslCertAlias": "cbkfr",
+    "truststore": "truststore",
+    "truststorePassword": "123456",
+    "keystore": "cbkfr.keystore",
+    "keystorePassword": "123456"
+  },
+  "db": {
+  }
+}
+

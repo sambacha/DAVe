@@ -1,31 +1,44 @@
 package com.opnfi.risk.common;
 
-import org.aeonbits.owner.Config;
+import io.vertx.core.json.JsonObject;
 
-@Config.Sources({"file:${config}"})
-public interface OpnFiConfig extends Config {
+public class OpnFiConfig {
 
-    @DefaultValue("8080")
-    public int httpPort();
+    private final JsonObject config;
 
-    @DefaultValue("localhost")
-    public String ersBrokerHost();
+    public OpnFiConfig(JsonObject config) {
+        this.config = config;
+    }
 
-    @DefaultValue("5762")
-    public int ersBrokerPort();
+    public int httpPort() {
+        return this.config.getJsonObject("web").getInteger("httpPort", 8080);
+    };
 
-    @DefaultValue("alias")
-    public String sslCertAlias();
+    public String ersBrokerHost() {
+        return this.config.getJsonObject("ers").getString("brokerHost", "localhost");
+    };
 
-    @DefaultValue("truststore")
-    public String truststore();
+    public int ersBrokerPort() {
+        return this.config.getJsonObject("ers").getInteger("brokerPort", 5672);
+    };
 
-    @DefaultValue("123456")
-    public String truststorePassword();
+    public String sslCertAlias() {
+        return this.config.getJsonObject("ers").getString("sslCertAlias", "alias");
+    };
 
-    @DefaultValue("keystore")
-    public String keystore();
+    public String truststore() {
+        return this.config.getJsonObject("ers").getString("truststore", "truststore");
+    };
 
-    @DefaultValue("123456")
-    public String keystorePassword();
+    public String truststorePassword() {
+        return this.config.getJsonObject("ers").getString("truststorePassword", "123456");
+    };
+
+    public String keystore() {
+        return this.config.getJsonObject("ers").getString("keystore", "keystore");
+    };
+
+    public String keystorePassword() {
+        return this.config.getJsonObject("ers").getString("keystorePassword", "123456");
+    };
 }

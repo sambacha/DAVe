@@ -1,6 +1,5 @@
 package com.opnfi.risk;
 
-import com.opnfi.risk.common.OpnFiConfig;
 import com.opnfi.risk.model.procesor.MarginComponentProcesor;
 import com.opnfi.risk.model.procesor.MarginShortfallSurplusProcesor;
 import com.opnfi.risk.model.procesor.TotalMarginRequirementProcessor;
@@ -15,7 +14,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import java.util.UUID;
-import org.aeonbits.owner.ConfigCache;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.amqp.AMQPComponent;
@@ -29,14 +27,21 @@ import org.apache.qpid.url.URLSyntaxException;
  * Created by schojak on 17.8.16.
  */
 public class ERSConnectorVerticle extends AbstractVerticle {
-    final static private Logger LOG = LoggerFactory.getLogger(ERSConnectorVerticle.class);
-    final OpnFiConfig config = ConfigCache.getOrCreate(OpnFiConfig.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ERSConnectorVerticle.class);
+    private static final String DEFAULT_BROKER_HOST = "localhost";
+    private static final Integer DEFAULT_BROKER_PORT = 5672;
+    private static final String DEFAULT_SSL_CERT_ALIAS = "alias";
+    private static final String DEFAULT_TRUSTSTORE = "truststore";
+    private static final String DEFAULT_TRUSTSTORE_PASSWORD = "123456";
+    private static final String DEFAULT_KEYSTORE = "keystore";
+    private static final String DEFAULT_KEYSTORE_PASSWORD = "123456";
 
     private CamelContext camelCtx;
     private CamelBridge camelBridge;
 
     @Override
     public void start(Future<Void> fut) {
+        LOG.info("Starting {} with configuration: {}", ERSConnectorVerticle.class.getSimpleName(), config().encodePrettily());
         startCamel(
                 (nothing) -> startCamelBridge(fut),
                 fut
@@ -49,9 +54,13 @@ public class ERSConnectorVerticle extends AbstractVerticle {
 
         try {
             String connectionAddress = String.format("amqp://:@MyCamelApp/?brokerlist='%s:%d?tcp_nodelay='true'&ssl='true'&ssl_cert_alias='%s'&sasl_mechs='EXTERNAL'&trust_store='%s'&trust_store_password='%s'&key_store='%s'&key_store_password='%s'&ssl_verify_hostname='false''&sync_publish='all'",
-                    config.ersBrokerHost(), config.ersBrokerPort(), config.sslCertAlias(),
-                    config.truststore(), config.truststorePassword(),
-                    config.keystore(), config.keystorePassword());
+                    config().getString("brokerHost", ERSConnectorVerticle.DEFAULT_BROKER_HOST),
+                    config().getInteger("brokerPort", ERSConnectorVerticle.DEFAULT_BROKER_PORT),
+                    config().getString("sslCertAlias", ERSConnectorVerticle.DEFAULT_SSL_CERT_ALIAS),
+                    config().getString("truststore", ERSConnectorVerticle.DEFAULT_TRUSTSTORE),
+                    config().getString("truststorePassword", ERSConnectorVerticle.DEFAULT_TRUSTSTORE_PASSWORD),
+                    config().getString("keystore", ERSConnectorVerticle.DEFAULT_KEYSTORE),
+                    config().getString("keystorePassword", ERSConnectorVerticle.DEFAULT_KEYSTORE_PASSWORD));
             AMQConnectionFactory amqpFact = new AMQConnectionFactory(connectionAddress);
             camelCtx.addComponent("amqp", new AMQPComponent(amqpFact));
         } catch (URLSyntaxException e) {

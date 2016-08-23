@@ -2,6 +2,7 @@ package com.opnfi.risk;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -23,24 +24,28 @@ public class MainVerticle extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> fut) {
-        vertx.deployVerticle(DBPersistenceVerticle.class.getName(), r1 -> {
+        DeploymentOptions dbPersistenceOptions = new DeploymentOptions().setConfig(config().getJsonObject("db"));
+        vertx.deployVerticle(DBPersistenceVerticle.class.getName(), dbPersistenceOptions, r1 -> {
             if (r1.succeeded()) {
                 LOG.info("Deployed DBPersistenceVerticle");
                 dbDeployment = r1.result();
 
-                vertx.deployVerticle(ERSDebuggerVerticle.class.getName(), r2 -> {
+                DeploymentOptions ersDebuggerOptions = new DeploymentOptions().setConfig(config().getJsonObject("debug"));
+                vertx.deployVerticle(ERSDebuggerVerticle.class.getName(), ersDebuggerOptions, r2 -> {
                     if (r2.succeeded())
                     {
                         LOG.info("Deployed ERSDebuggerVerticle");
                         ersDebbugerDeployment = r2.result();
 
-                        vertx.deployVerticle(WebVerticle.class.getName(), r3 -> {
+                        DeploymentOptions webOptions = new DeploymentOptions().setConfig(config().getJsonObject("web"));
+                        vertx.deployVerticle(WebVerticle.class.getName(), webOptions, r3 -> {
                             if (r3.succeeded())
                             {
                                 LOG.info("Deployed WebVerticle");
                                 webInterfaceDeployment = r3.result();
 
-                                vertx.deployVerticle(ERSConnectorVerticle.class.getName(), r4 -> {
+                                DeploymentOptions ersConnectorOptions = new DeploymentOptions().setConfig(config().getJsonObject("ers"));
+                                vertx.deployVerticle(ERSConnectorVerticle.class.getName(), ersConnectorOptions, r4 -> {
                                     if (r4.succeeded())
                                     {
                                         LOG.info("Deployed ERSConnectorVerticle");

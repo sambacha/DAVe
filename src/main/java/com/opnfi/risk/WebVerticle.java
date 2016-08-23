@@ -1,6 +1,5 @@
 package com.opnfi.risk;
 
-import com.opnfi.risk.common.OpnFiConfig;
 import com.opnfi.risk.model.TradingSessionStatus;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
@@ -11,22 +10,19 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
-import org.aeonbits.owner.ConfigCache;
 
 /**
  * Created by schojak on 19.8.16.
  */
 public class WebVerticle extends AbstractVerticle {
-    final static private Logger LOG = LoggerFactory.getLogger(WebVerticle.class);
-
-    final OpnFiConfig config = ConfigCache.getOrCreate(OpnFiConfig.class);
+    private static final Logger LOG = LoggerFactory.getLogger(WebVerticle.class);
+    private static final Integer DEFAULT_HTTP_PORT = 8080;
 
     private HttpServer server;
     private EventBus eb;
@@ -35,6 +31,7 @@ public class WebVerticle extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> fut) throws Exception {
+        LOG.info("Starting {} with configuration: {}", WebVerticle.class.getSimpleName(), config().encodePrettily());
         eb = vertx.eventBus();
 
         startWebServer(
@@ -70,10 +67,10 @@ public class WebVerticle extends AbstractVerticle {
 
         router.route("/*").handler(StaticHandler.create("webroot"));
 
-        LOG.info("Starting web server on port {}", config.httpPort());
+        LOG.info("Starting web server on port {}", config().getInteger("httpPort", WebVerticle.DEFAULT_HTTP_PORT));
         server = vertx.createHttpServer()
                 .requestHandler(router::accept)
-                .listen(config.httpPort(),
+                .listen(config().getInteger("httpPort", WebVerticle.DEFAULT_HTTP_PORT),
                         res -> {
                             if (res.succeeded()) {
                                 next.handle(fut);
