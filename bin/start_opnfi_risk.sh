@@ -1,9 +1,10 @@
 #!/bin/bash
 
-MY_FILE=$(readlink -f ${BASH_SOURCE[0]})
-MY_PATH=$(dirname ${MY_FILE})
+WHEREAMI=`dirname "${0}"`
+if [ -z "${OPNFI_RISK_ROOT}" ]; then
+    export OPNFI_RISK_ROOT=`cd "${WHEREAMI}/../" && pwd`
+fi
 
-OPNFI_RISK_ROOT=$(dirname ${MY_PATH})
 OPNFI_RISK_LIB=${OPNFI_RISK_ROOT}/lib
 OPNFI_RISK_ETC=${OPNFI_RISK_ROOT}/etc
 
