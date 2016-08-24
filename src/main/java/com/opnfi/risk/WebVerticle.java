@@ -17,6 +17,9 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by schojak on 19.8.16.
  */
@@ -27,14 +30,15 @@ public class WebVerticle extends AbstractVerticle {
     private HttpServer server;
     private EventBus eb;
 
-    private TradingSessionStatus cacheTss = null;
-
     @Override
     public void start(Future<Void> startFuture) throws Exception {
         LOG.info("Starting {} with configuration: {}", WebVerticle.class.getSimpleName(), config().encodePrettily());
         eb = vertx.eventBus();
 
-        CompositeFuture.all(startWebServer(), startCache()).setHandler(ar -> {
+        List<Future> futures = new ArrayList<>();
+        futures.add(startWebServer());
+
+        CompositeFuture.all(futures).setHandler(ar -> {
             if (ar.succeeded()) {
                 startFuture.complete();
             } else {
@@ -76,18 +80,6 @@ public class WebVerticle extends AbstractVerticle {
                 .requestHandler(router::accept)
                 .listen(config().getInteger("httpPort", WebVerticle.DEFAULT_HTTP_PORT), webServerFuture.completer());
         return webServerFuture;
-    }
-
-    private Future<Void> startCache()
-    {
-        EventBus eb = vertx.eventBus();
-        eb.consumer("ers.TradingSessionStatus", message -> cacheTradingSessionStatus(message));
-        return Future.succeededFuture();
-    }
-
-    private void cacheTradingSessionStatus(Message msg) {
-        LOG.trace("Caching TSS message with body: " + msg.body().toString());
-        cacheTss = Json.decodeValue(msg.body().toString(), TradingSessionStatus.class);
     }
 
     private void latestTradingSessionStatus(RoutingContext routingContext) {
