@@ -33,6 +33,7 @@ public class ERSConnectorVerticle extends AbstractVerticle {
     private static final String DEFAULT_TRUSTSTORE_PASSWORD = "123456";
     private static final String DEFAULT_KEYSTORE = "keystore";
     private static final String DEFAULT_KEYSTORE_PASSWORD = "123456";
+    private static final String DEFAULT_MEMBER = "ABCFR";
 
     private CamelContext camelCtx;
     private CamelBridge camelBridge;
@@ -84,16 +85,17 @@ public class ERSConnectorVerticle extends AbstractVerticle {
                 public void configure() {
                     final JaxbDataFormat ersDataModel = new JaxbDataFormat(true);
                     final UUID addressSuffix = UUID.randomUUID();
+                    final String member = config().getString("member", ERSConnectorVerticle.DEFAULT_MEMBER);
                     ersDataModel.setContextPath("com.opnfi.risk.model.jaxb");
 
-                    String tssBroadcastAddress = getBroadcastAddress("eurex.tmp.CBKFR.opnfi_tss_" + addressSuffix,
+                    String tssBroadcastAddress = getBroadcastAddress("eurex.tmp." + member + ".opnfi_tss_" + addressSuffix,
                             "public.MessageType.TradingSessionStatus.#");
-                    String mcBroadcastAddress = getBroadcastAddress("eurex.tmp.CBKFR.opnfi_mc_" + addressSuffix,
-                            "CBKFR.MessageType.MarginComponents.#");
-                    String tmrBroadcastAddress = getBroadcastAddress("eurex.tmp.CBKFR.opnfi_tmr_" + addressSuffix,
-                            "CBKFR.MessageType.TotalMarginRequirement.#");
-                    String mssBroadcastAddress = getBroadcastAddress("eurex.tmp.CBKFR.opnfi_mss_" + addressSuffix,
-                            "CBKFR.MessageType.MarginShortfallSurplus.#");
+                    String mcBroadcastAddress = getBroadcastAddress("eurex.tmp." + member + ".opnfi_mc_" + addressSuffix,
+                            member + ".MessageType.MarginComponents.#");
+                    String tmrBroadcastAddress = getBroadcastAddress("eurex.tmp." + member + ".opnfi_tmr_" + addressSuffix,
+                            member + ".MessageType.TotalMarginRequirement.#");
+                    String mssBroadcastAddress = getBroadcastAddress("eurex.tmp." + member + ".opnfi_mss_" + addressSuffix,
+                            member + ".MessageType.MarginShortfallSurplus.#");
 
                     from("amqp:" + tssBroadcastAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcesor()).to("direct:tss");
                     from("amqp:" + mcBroadcastAddress).unmarshal(ersDataModel).process(new MarginComponentProcesor()).to("direct:mc");

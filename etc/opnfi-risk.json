@@ -8,6 +8,7 @@
   "ers": {
     "brokerHost": "tcp://rgd003.xeop.de",
     "brokerPort": 15160,
+    "member": "CBKFR",
     "sslCertAlias": "cbkfr",
     "truststore": "truststore",
     "truststorePassword": "123456",
