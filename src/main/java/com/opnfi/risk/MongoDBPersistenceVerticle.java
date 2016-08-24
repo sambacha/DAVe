@@ -130,6 +130,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
 
         // Query endpoints
         eb.consumer("query.latestTradingSessionStatus", message -> queryLatestTradingSessionStatus(message));
+        eb.consumer("query.historyTradingSessionStatus", message -> queryHistoryTradingSessionStatus(message));
         eb.consumer("query.latestMarginComponent", message -> queryLatestMarginComponent(message));
         eb.consumer("query.historyMarginComponent", message -> queryHistoryMarginComponent(message));
         eb.consumer("query.latestTotalMarginRequirement", message -> queryLatestTotalMarginRequirement(message));
@@ -292,6 +293,40 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
                 }
             } else {
                 LOG.error("latest/tss query failed", res.cause());
+            }
+        });
+    }
+
+    private void queryHistoryTradingSessionStatus(Message msg)
+    {
+        LOG.trace("Received history/tss query");
+
+        JsonObject sort = new JsonObject();
+        sort.put("received", 1);
+
+        JsonObject project = new JsonObject();
+        project.put("_id", 0);
+        project.put("id", "$_id");
+        project.put("reqId", 1);
+        project.put("sesId", 1);
+        project.put("stat", 1);
+        project.put("statRejRsn", 1);
+        project.put("txt", 1);
+        project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$received")));
+
+        JsonArray pipeline = new JsonArray();
+        pipeline.add(new JsonObject().put("$sort", sort));
+        pipeline.add(new JsonObject().put("$project", project));
+
+        JsonObject command = new JsonObject()
+                .put("aggregate", "ers.TradingSessionStatus")
+                .put("pipeline", pipeline);
+
+        mongo.runCommand("aggregate", command, res -> {
+            if (res.succeeded()) {
+                msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
+            } else {
+                LOG.error("history/tss query failed", res.cause());
             }
         });
     }

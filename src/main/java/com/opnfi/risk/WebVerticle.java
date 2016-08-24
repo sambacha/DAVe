@@ -54,12 +54,17 @@ public class WebVerticle extends AbstractVerticle {
         LOG.info("Adding route REST API");
         router.route("/api/v1.0/*").handler(BodyHandler.create());
         router.get("/api/v1.0/latest/tss").handler(this::latestTradingSessionStatus);
+        router.get("/api/v1.0/history/tss").handler(this::historyTradingSessionStatus);
         router.get("/api/v1.0/latest/mc").handler(this::latestMarginComponent);
         router.get("/api/v1.0/latest/mc/:clearer").handler(this::latestMarginComponent);
         router.get("/api/v1.0/latest/mc/:clearer/:member").handler(this::latestMarginComponent);
         router.get("/api/v1.0/latest/mc/:clearer/:member/:account").handler(this::latestMarginComponent);
         router.get("/api/v1.0/latest/mc/:clearer/:member/:account/:clss").handler(this::latestMarginComponent);
         router.get("/api/v1.0/latest/mc/:clearer/:member/:account/:clss/:ccy").handler(this::latestMarginComponent);
+        router.get("/api/v1.0/history/mc/:clearer").handler(this::historyMarginComponent);
+        router.get("/api/v1.0/history/mc/:clearer/:member").handler(this::historyMarginComponent);
+        router.get("/api/v1.0/history/mc/:clearer/:member/:account").handler(this::historyMarginComponent);
+        router.get("/api/v1.0/history/mc/:clearer/:member/:account/:clss").handler(this::historyMarginComponent);
         router.get("/api/v1.0/history/mc/:clearer/:member/:account/:clss/:ccy").handler(this::historyMarginComponent);
         router.get("/api/v1.0/latest/tmr").handler(this::latestTotalMarginRequirement);
         router.get("/api/v1.0/latest/tmr/:clearer").handler(this::latestTotalMarginRequirement);
@@ -67,6 +72,10 @@ public class WebVerticle extends AbstractVerticle {
         router.get("/api/v1.0/latest/tmr/:clearer/:pool/:member").handler(this::latestTotalMarginRequirement);
         router.get("/api/v1.0/latest/tmr/:clearer/:pool/:member/:account").handler(this::latestTotalMarginRequirement);
         router.get("/api/v1.0/latest/tmr/:clearer/:pool/:member/:account/:ccy").handler(this::latestTotalMarginRequirement);
+        router.get("/api/v1.0/history/tmr/:clearer").handler(this::historyTotalMarginRequirement);
+        router.get("/api/v1.0/history/tmr/:clearer/:pool").handler(this::historyTotalMarginRequirement);
+        router.get("/api/v1.0/history/tmr/:clearer/:pool/:member").handler(this::historyTotalMarginRequirement);
+        router.get("/api/v1.0/history/tmr/:clearer/:pool/:member/:account").handler(this::historyTotalMarginRequirement);
         router.get("/api/v1.0/history/tmr/:clearer/:pool/:member/:account/:ccy").handler(this::historyTotalMarginRequirement);
         router.get("/api/v1.0/latest/mss").handler(this::latestMarginShortfallSurplus);
         router.get("/api/v1.0/latest/mss/:clearer").handler(this::latestMarginShortfallSurplus);
@@ -74,6 +83,10 @@ public class WebVerticle extends AbstractVerticle {
         router.get("/api/v1.0/latest/mss/:clearer/:pool/:member").handler(this::latestMarginShortfallSurplus);
         router.get("/api/v1.0/latest/mss/:clearer/:pool/:member/:clearingCcy").handler(this::latestMarginShortfallSurplus);
         router.get("/api/v1.0/latest/mss/:clearer/:pool/:member/:clearingCcy/:ccy").handler(this::latestMarginShortfallSurplus);
+        router.get("/api/v1.0/history/mss/:clearer").handler(this::historyMarginShortfallSurplus);
+        router.get("/api/v1.0/history/mss/:clearer/:pool").handler(this::historyMarginShortfallSurplus);
+        router.get("/api/v1.0/history/mss/:clearer/:pool/:member").handler(this::historyMarginShortfallSurplus);
+        router.get("/api/v1.0/history/mss/:clearer/:pool/:member/:clearingCcy").handler(this::historyMarginShortfallSurplus);
         router.get("/api/v1.0/history/mss/:clearer/:pool/:member/:clearingCcy/:ccy").handler(this::historyMarginShortfallSurplus);
 
         router.route("/*").handler(StaticHandler.create("webroot"));
@@ -91,6 +104,24 @@ public class WebVerticle extends AbstractVerticle {
         eb.send("query.latestTradingSessionStatus", null, ar -> {
             if (ar.succeeded()) {
                 LOG.trace("Received response to latest/tss request");
+
+                routingContext.response()
+                        .putHeader("content-type", "application/json; charset=utf-8")
+                        .end((String)ar.result().body());
+            }
+            else
+            {
+                LOG.error("Failed to query the DB service", ar.cause());
+            }
+        });
+    }
+
+    private void historyTradingSessionStatus(RoutingContext routingContext) {
+        LOG.trace("Received history/tss request");
+
+        eb.send("query.historyTradingSessionStatus", null, ar -> {
+            if (ar.succeeded()) {
+                LOG.trace("Received response to history/tss request");
 
                 routingContext.response()
                         .putHeader("content-type", "application/json; charset=utf-8")
