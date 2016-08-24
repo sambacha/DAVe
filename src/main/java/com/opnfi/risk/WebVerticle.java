@@ -6,12 +6,15 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
+import io.vertx.core.eventbus.impl.codecs.BooleanMessageCodec;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.net.JksOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -26,6 +29,9 @@ import java.util.List;
 public class WebVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(WebVerticle.class);
     private static final Integer DEFAULT_HTTP_PORT = 8080;
+    private static final Boolean DEFAULT_SSL = false;
+    private static final String DEFAULT_SSL_KEYSTORE = "";
+    private static final String DEFAULT_SSL_KEYSTORE_PASSWORD = "";
 
     private HttpServer server;
     private EventBus eb;
@@ -92,7 +98,16 @@ public class WebVerticle extends AbstractVerticle {
         router.route("/*").handler(StaticHandler.create("webroot"));
 
         LOG.info("Starting web server on port {}", config().getInteger("httpPort", WebVerticle.DEFAULT_HTTP_PORT));
-        server = vertx.createHttpServer()
+
+        HttpServerOptions httpOptions = new HttpServerOptions();
+
+        if (config().getBoolean("ssl", DEFAULT_SSL))
+        {
+            LOG.info("Enabling SSL on webserver");
+            httpOptions.setSsl(true).setKeyStoreOptions(new JksOptions().setPassword(config().getString("keystorePassword", DEFAULT_SSL_KEYSTORE_PASSWORD)).setPath(config().getString("keystore", DEFAULT_SSL_KEYSTORE)));
+        }
+
+        server = vertx.createHttpServer(httpOptions)
                 .requestHandler(router::accept)
                 .listen(config().getInteger("httpPort", WebVerticle.DEFAULT_HTTP_PORT), webServerFuture.completer());
         return webServerFuture;

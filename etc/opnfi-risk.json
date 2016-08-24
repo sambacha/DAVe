@@ -1,6 +1,9 @@
 {
   "web": {
-    "httpPort": 8080
+    "httpPort": 8080,
+    "ssl": true,
+    "keystore": "web.keystore",
+    "keystorePassword": "123456"
   },
   "ers": {
     "brokerHost": "tcp://rgd003.xeop.de",
