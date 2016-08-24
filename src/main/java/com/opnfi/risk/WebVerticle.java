@@ -54,6 +54,7 @@ public class WebVerticle extends AbstractVerticle {
         LOG.info("Adding route REST API");
         router.route("/api/v1.0/*").handler(BodyHandler.create());
         router.get("/api/v1.0/latest/tss").handler(this::latestTradingSessionStatus);
+        router.get("/api/v1.0/history/tss").handler(this::historyTradingSessionStatus);
         router.get("/api/v1.0/latest/mc").handler(this::latestMarginComponent);
         router.get("/api/v1.0/latest/mc/:clearer").handler(this::latestMarginComponent);
         router.get("/api/v1.0/latest/mc/:clearer/:member").handler(this::latestMarginComponent);
@@ -103,6 +104,24 @@ public class WebVerticle extends AbstractVerticle {
         eb.send("query.latestTradingSessionStatus", null, ar -> {
             if (ar.succeeded()) {
                 LOG.trace("Received response to latest/tss request");
+
+                routingContext.response()
+                        .putHeader("content-type", "application/json; charset=utf-8")
+                        .end((String)ar.result().body());
+            }
+            else
+            {
+                LOG.error("Failed to query the DB service", ar.cause());
+            }
+        });
+    }
+
+    private void historyTradingSessionStatus(RoutingContext routingContext) {
+        LOG.trace("Received history/tss request");
+
+        eb.send("query.historyTradingSessionStatus", null, ar -> {
+            if (ar.succeeded()) {
+                LOG.trace("Received response to history/tss request");
 
                 routingContext.response()
                         .putHeader("content-type", "application/json; charset=utf-8")
