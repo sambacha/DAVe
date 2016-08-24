@@ -12,7 +12,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.mongo.FindOptions;
 import io.vertx.ext.mongo.MongoClient;
 
 import java.text.DateFormat;
@@ -82,24 +81,23 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         mongo.getCollections(res -> {
             if (res.succeeded()) {
                 List<String> mongoCollections = res.result();
-                List<String> neededCollections = new ArrayList<String>(Arrays.asList(
+                List<String> neededCollections = new ArrayList<>(Arrays.asList(
                         "ers.TradingSessionStatus",
                         "ers.MarginComponent",
                         "ers.TotalMarginRequirement",
                         "ers.MarginShortfallSurplus"
                 ));
 
-                List<Future> futs = new ArrayList<Future>();
+                List<Future> futs = new ArrayList<>();
 
-                neededCollections.forEach(collection -> {
-                    if (!mongoCollections.contains(collection))
-                    {
-                        LOG.info("Collection {} is missing and will be added", collection);
-                        Future<Void> fut = Future.future();
-                        mongo.createCollection(collection, fut.completer());
-                        futs.add(fut);
-                    }
-                });
+                neededCollections.stream()
+                        .filter(collection -> ! mongoCollections.contains(collection))
+                        .forEach(collection -> {
+                            LOG.info("Collection {} is missing and will be added", collection);
+                            Future<Void> fut = Future.future();
+                            mongo.createCollection(collection, fut.completer());
+                            futs.add(fut);
+                        });
 
                 CompositeFuture.all(futs).setHandler(ar -> {
                     if (ar.succeeded())
