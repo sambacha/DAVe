@@ -19,7 +19,7 @@ sandboxControllers.controller('MarginComponentOverview', ['$scope', '$routeParam
         if ($routeParams.account) { $scope.account = $routeParams.account } else { $scope.account = "*" }
         if ($routeParams.class) { $scope.class = $routeParams.class } else { $scope.class = "*" }
 
-        $scope.url = 'http://172.23.39.44:8080/api/v1.0/latest/mc/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class;
+        $scope.url = '/api/v1.0/latest/mc/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class;
 
         $http.get($scope.url).success(function(data) {
             $scope.processMarginComponents(data);
@@ -75,7 +75,7 @@ sandboxControllers.controller('MarginComponentDetail', ['$scope', '$routeParams'
         $scope.class = $routeParams.class;
         $scope.ccy = $routeParams.ccy;
 
-        $scope.url = 'http://172.23.39.44:8080/api/v1.0/history/mc' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class + '/' + $scope.ccy;
+        $scope.url = '/api/v1.0/history/mc' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class + '/' + $scope.ccy;
 
         $http.get($scope.url).success(function(data) {
             $scope.error = "";
@@ -191,7 +191,7 @@ sandboxControllers.controller('TotalMarginRequirementOverview', ['$scope', '$rou
         if ($routeParams.member) { $scope.member = $routeParams.member } else { $scope.member = "*" }
         if ($routeParams.account) { $scope.account = $routeParams.account } else { $scope.account = "*" }
 
-        $scope.url = 'http://172.23.39.44:8080/api/v1.0/latest/tmr/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.account;
+        $scope.url = '/api/v1.0/latest/tmr/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.account;
 
         $http.get($scope.url).success(function(data) {
             $scope.processTotalMarginRequirements(data);
@@ -247,7 +247,7 @@ sandboxControllers.controller('TotalMarginRequirementDetail', ['$scope', '$route
         $scope.account = $routeParams.account;
         $scope.ccy = $routeParams.ccy;
 
-        $scope.url = 'http://172.23.39.44:8080/api/v1.0/tmr-detail/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.account + '/' + $scope.ccy;
+        $scope.url = '/api/v1.0/tmr-detail/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.account + '/' + $scope.ccy;
 
         $http.get($scope.url).success(function(data) {
             $scope.error = "";
@@ -330,7 +330,7 @@ sandboxControllers.controller('MarginShortfallSurplusOverview', ['$scope', '$rou
         if ($routeParams.member) { $scope.member = $routeParams.member } else { $scope.member = "*" }
         if ($routeParams.clearingCcy) { $scope.clearingCcy = $routeParams.clearingCcy } else { $scope.clearingCcy = "*" }
 
-        $scope.url = 'http://172.23.39.44:8080/api/v1.0/latest/mss/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.clearingCcy;
+        $scope.url = '/api/v1.0/latest/mss/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.clearingCcy;
 
         $http.get($scope.url).success(function(data) {
             $scope.processMarginShortfallSurplus(data);
@@ -386,7 +386,7 @@ sandboxControllers.controller('MarginShortfallSurplusDetail', ['$scope', '$route
         $scope.clearingCcy = $routeParams.clearingCcy;
         $scope.ccy = $routeParams.ccy;
 
-        $scope.url = 'http://172.23.39.44:8080/api/v1.0/mss-detail/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.clearingCcy + '/' + $scope.ccy;
+        $scope.url = '/api/v1.0/mss-detail/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.clearingCcy + '/' + $scope.ccy;
 
         $http.get($scope.url).success(function(data) {
             $scope.error = "";
@@ -489,7 +489,7 @@ sandboxControllers.controller('MarginShortfallSurplusDetail', ['$scope', '$route
 sandboxControllers.controller('TssCtrl', ['$scope', '$http', '$interval',
     function($scope, $http, $interval) {
         $scope.refresh = null;
-        $scope.url = 'http://172.23.39.44:8080/api/v1.0/latest/tss';
+        $scope.url = '/api/v1.0/latest/tss';
         $http.get($scope.url).success(function(data) {
             $scope.tss = data;
         });
