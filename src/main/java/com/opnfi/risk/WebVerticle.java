@@ -60,6 +60,10 @@ public class WebVerticle extends AbstractVerticle {
         router.get("/api/v1.0/latest/mc/:clearer/:member/:account").handler(this::latestMarginComponent);
         router.get("/api/v1.0/latest/mc/:clearer/:member/:account/:clss").handler(this::latestMarginComponent);
         router.get("/api/v1.0/latest/mc/:clearer/:member/:account/:clss/:ccy").handler(this::latestMarginComponent);
+        router.get("/api/v1.0/history/mc/:clearer").handler(this::historyMarginComponent);
+        router.get("/api/v1.0/history/mc/:clearer/:member").handler(this::historyMarginComponent);
+        router.get("/api/v1.0/history/mc/:clearer/:member/:account").handler(this::historyMarginComponent);
+        router.get("/api/v1.0/history/mc/:clearer/:member/:account/:clss").handler(this::historyMarginComponent);
         router.get("/api/v1.0/history/mc/:clearer/:member/:account/:clss/:ccy").handler(this::historyMarginComponent);
         router.get("/api/v1.0/latest/tmr").handler(this::latestTotalMarginRequirement);
         router.get("/api/v1.0/latest/tmr/:clearer").handler(this::latestTotalMarginRequirement);
@@ -67,6 +71,10 @@ public class WebVerticle extends AbstractVerticle {
         router.get("/api/v1.0/latest/tmr/:clearer/:pool/:member").handler(this::latestTotalMarginRequirement);
         router.get("/api/v1.0/latest/tmr/:clearer/:pool/:member/:account").handler(this::latestTotalMarginRequirement);
         router.get("/api/v1.0/latest/tmr/:clearer/:pool/:member/:account/:ccy").handler(this::latestTotalMarginRequirement);
+        router.get("/api/v1.0/history/tmr/:clearer").handler(this::historyTotalMarginRequirement);
+        router.get("/api/v1.0/history/tmr/:clearer/:pool").handler(this::historyTotalMarginRequirement);
+        router.get("/api/v1.0/history/tmr/:clearer/:pool/:member").handler(this::historyTotalMarginRequirement);
+        router.get("/api/v1.0/history/tmr/:clearer/:pool/:member/:account").handler(this::historyTotalMarginRequirement);
         router.get("/api/v1.0/history/tmr/:clearer/:pool/:member/:account/:ccy").handler(this::historyTotalMarginRequirement);
         router.get("/api/v1.0/latest/mss").handler(this::latestMarginShortfallSurplus);
         router.get("/api/v1.0/latest/mss/:clearer").handler(this::latestMarginShortfallSurplus);
@@ -74,6 +82,10 @@ public class WebVerticle extends AbstractVerticle {
         router.get("/api/v1.0/latest/mss/:clearer/:pool/:member").handler(this::latestMarginShortfallSurplus);
         router.get("/api/v1.0/latest/mss/:clearer/:pool/:member/:clearingCcy").handler(this::latestMarginShortfallSurplus);
         router.get("/api/v1.0/latest/mss/:clearer/:pool/:member/:clearingCcy/:ccy").handler(this::latestMarginShortfallSurplus);
+        router.get("/api/v1.0/history/mss/:clearer").handler(this::historyMarginShortfallSurplus);
+        router.get("/api/v1.0/history/mss/:clearer/:pool").handler(this::historyMarginShortfallSurplus);
+        router.get("/api/v1.0/history/mss/:clearer/:pool/:member").handler(this::historyMarginShortfallSurplus);
+        router.get("/api/v1.0/history/mss/:clearer/:pool/:member/:clearingCcy").handler(this::historyMarginShortfallSurplus);
         router.get("/api/v1.0/history/mss/:clearer/:pool/:member/:clearingCcy/:ccy").handler(this::historyMarginShortfallSurplus);
 
         router.route("/*").handler(StaticHandler.create("webroot"));
