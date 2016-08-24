@@ -60,18 +60,21 @@ public class WebVerticle extends AbstractVerticle {
         router.get("/api/v1.0/latest/mc/:clearer/:member/:account").handler(this::latestMarginComponent);
         router.get("/api/v1.0/latest/mc/:clearer/:member/:account/:clss").handler(this::latestMarginComponent);
         router.get("/api/v1.0/latest/mc/:clearer/:member/:account/:clss/:ccy").handler(this::latestMarginComponent);
+        router.get("/api/v1.0/history/mc/:clearer/:member/:account/:clss/:ccy").handler(this::historyMarginComponent);
         router.get("/api/v1.0/latest/tmr").handler(this::latestTotalMarginRequirement);
         router.get("/api/v1.0/latest/tmr/:clearer").handler(this::latestTotalMarginRequirement);
         router.get("/api/v1.0/latest/tmr/:clearer/:pool").handler(this::latestTotalMarginRequirement);
         router.get("/api/v1.0/latest/tmr/:clearer/:pool/:member").handler(this::latestTotalMarginRequirement);
         router.get("/api/v1.0/latest/tmr/:clearer/:pool/:member/:account").handler(this::latestTotalMarginRequirement);
         router.get("/api/v1.0/latest/tmr/:clearer/:pool/:member/:account/:ccy").handler(this::latestTotalMarginRequirement);
+        router.get("/api/v1.0/history/tmr/:clearer/:pool/:member/:account/:ccy").handler(this::historyTotalMarginRequirement);
         router.get("/api/v1.0/latest/mss").handler(this::latestMarginShortfallSurplus);
         router.get("/api/v1.0/latest/mss/:clearer").handler(this::latestMarginShortfallSurplus);
         router.get("/api/v1.0/latest/mss/:clearer/:pool").handler(this::latestMarginShortfallSurplus);
         router.get("/api/v1.0/latest/mss/:clearer/:pool/:member").handler(this::latestMarginShortfallSurplus);
         router.get("/api/v1.0/latest/mss/:clearer/:pool/:member/:clearingCcy").handler(this::latestMarginShortfallSurplus);
         router.get("/api/v1.0/latest/mss/:clearer/:pool/:member/:clearingCcy/:ccy").handler(this::latestMarginShortfallSurplus);
+        router.get("/api/v1.0/history/mss/:clearer/:pool/:member/:clearingCcy/:ccy").handler(this::historyMarginShortfallSurplus);
 
         router.route("/*").handler(StaticHandler.create("webroot"));
 
@@ -145,6 +148,51 @@ public class WebVerticle extends AbstractVerticle {
         });
     }
 
+    private void historyMarginComponent(RoutingContext routingContext) {
+        LOG.trace("Received history/mc request");
+
+        JsonObject params = new JsonObject();
+
+        if (routingContext.request().getParam("clearer") != null && !"*".equals(routingContext.request().getParam("clearer")))
+        {
+            params.put("clearer", routingContext.request().getParam("clearer"));
+        }
+
+        if (routingContext.request().getParam("member") != null && !"*".equals(routingContext.request().getParam("member")))
+        {
+            params.put("member", routingContext.request().getParam("member"));
+        }
+
+        if (routingContext.request().getParam("account") != null && !"*".equals(routingContext.request().getParam("account")))
+        {
+            params.put("account", routingContext.request().getParam("account"));
+        }
+
+        if (routingContext.request().getParam("clss") != null && !"*".equals(routingContext.request().getParam("clss")))
+        {
+            params.put("clss", routingContext.request().getParam("clss"));
+        }
+
+        if (routingContext.request().getParam("ccy") != null && !"*".equals(routingContext.request().getParam("ccy")))
+        {
+            params.put("ccy", routingContext.request().getParam("ccy"));
+        }
+
+        eb.send("query.historyMarginComponent", params, ar -> {
+            if (ar.succeeded()) {
+                LOG.trace("Received response history/mc request");
+
+                routingContext.response()
+                        .putHeader("content-type", "application/json; charset=utf-8")
+                        .end((String)ar.result().body());
+            }
+            else
+            {
+                LOG.error("Failed to query the DB service", ar.cause());
+            }
+        });
+    }
+
     private void latestTotalMarginRequirement(RoutingContext routingContext) {
         LOG.trace("Received latest/tmr request");
 
@@ -190,6 +238,51 @@ public class WebVerticle extends AbstractVerticle {
         });
     }
 
+    private void historyTotalMarginRequirement(RoutingContext routingContext) {
+        LOG.trace("Received history/tmr request");
+
+        JsonObject params = new JsonObject();
+
+        if (routingContext.request().getParam("clearer") != null && !"*".equals(routingContext.request().getParam("clearer")))
+        {
+            params.put("clearer", routingContext.request().getParam("clearer"));
+        }
+
+        if (routingContext.request().getParam("pool") != null && !"*".equals(routingContext.request().getParam("pool")))
+        {
+            params.put("pool", routingContext.request().getParam("pool"));
+        }
+
+        if (routingContext.request().getParam("member") != null && !"*".equals(routingContext.request().getParam("member")))
+        {
+            params.put("member", routingContext.request().getParam("member"));
+        }
+
+        if (routingContext.request().getParam("account") != null && !"*".equals(routingContext.request().getParam("account")))
+        {
+            params.put("account", routingContext.request().getParam("account"));
+        }
+
+        if (routingContext.request().getParam("ccy") != null && !"*".equals(routingContext.request().getParam("ccy")))
+        {
+            params.put("ccy", routingContext.request().getParam("ccy"));
+        }
+
+        eb.send("query.historyTotalMarginRequirement", params, ar -> {
+            if (ar.succeeded()) {
+                LOG.trace("Received response history/tmr request");
+
+                routingContext.response()
+                        .putHeader("content-type", "application/json; charset=utf-8")
+                        .end((String)ar.result().body());
+            }
+            else
+            {
+                LOG.error("Failed to query the DB service", ar.cause());
+            }
+        });
+    }
+
     private void latestMarginShortfallSurplus(RoutingContext routingContext) {
         LOG.trace("Received latest/mss request");
 
@@ -223,6 +316,51 @@ public class WebVerticle extends AbstractVerticle {
         eb.send("query.latestMarginShortfallSurplus", params, ar -> {
             if (ar.succeeded()) {
                 LOG.trace("Received response latest/mss request");
+
+                routingContext.response()
+                        .putHeader("content-type", "application/json; charset=utf-8")
+                        .end((String)ar.result().body());
+            }
+            else
+            {
+                LOG.error("Failed to query the DB service", ar.cause());
+            }
+        });
+    }
+
+    private void historyMarginShortfallSurplus(RoutingContext routingContext) {
+        LOG.trace("Received history/mss request");
+
+        JsonObject params = new JsonObject();
+
+        if (routingContext.request().getParam("clearer") != null && !"*".equals(routingContext.request().getParam("clearer")))
+        {
+            params.put("clearer", routingContext.request().getParam("clearer"));
+        }
+
+        if (routingContext.request().getParam("pool") != null && !"*".equals(routingContext.request().getParam("pool")))
+        {
+            params.put("pool", routingContext.request().getParam("pool"));
+        }
+
+        if (routingContext.request().getParam("member") != null && !"*".equals(routingContext.request().getParam("member")))
+        {
+            params.put("member", routingContext.request().getParam("member"));
+        }
+
+        if (routingContext.request().getParam("clearingCcy") != null && !"*".equals(routingContext.request().getParam("clearingCcy")))
+        {
+            params.put("clearingCcy", routingContext.request().getParam("clearingCcy"));
+        }
+
+        if (routingContext.request().getParam("ccy") != null && !"*".equals(routingContext.request().getParam("ccy")))
+        {
+            params.put("ccy", routingContext.request().getParam("ccy"));
+        }
+
+        eb.send("query.historyMarginShortfallSurplus", params, ar -> {
+            if (ar.succeeded()) {
+                LOG.trace("Received response history/mss request");
 
                 routingContext.response()
                         .putHeader("content-type", "application/json; charset=utf-8")

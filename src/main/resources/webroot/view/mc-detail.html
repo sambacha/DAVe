@@ -25,7 +25,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr ng-repeat="mc in mcDetail | filter:recordQuery | orderBy:ordering track by mc.id" row-highlighter="mc.id">
+        <tr ng-repeat="mc in mcDetail | filter:recordQuery | orderBy:ordering track by mc.id.$oid" row-highlighter="mc.id.$oid">
             <td highlighter="mc.variationMargin">{{mc.variationMargin}}</td>
             <td highlighter="mc.premiumMargin">{{mc.premiumMargin}}</td>
             <td highlighter="mc.liquiMargin">{{mc.liquiMargin}}</td>

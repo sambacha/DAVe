@@ -75,7 +75,7 @@ sandboxControllers.controller('MarginComponentDetail', ['$scope', '$routeParams'
         $scope.class = $routeParams.class;
         $scope.ccy = $routeParams.ccy;
 
-        $scope.url = '/api/v1.0/history/mc' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class + '/' + $scope.ccy;
+        $scope.url = '/api/v1.0/history/mc/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class + '/' + $scope.ccy;
 
         $http.get($scope.url).success(function(data) {
             $scope.error = "";
@@ -247,7 +247,7 @@ sandboxControllers.controller('TotalMarginRequirementDetail', ['$scope', '$route
         $scope.account = $routeParams.account;
         $scope.ccy = $routeParams.ccy;
 
-        $scope.url = '/api/v1.0/tmr-detail/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.account + '/' + $scope.ccy;
+        $scope.url = '/api/v1.0/history/tmr/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.account + '/' + $scope.ccy;
 
         $http.get($scope.url).success(function(data) {
             $scope.error = "";
@@ -386,7 +386,7 @@ sandboxControllers.controller('MarginShortfallSurplusDetail', ['$scope', '$route
         $scope.clearingCcy = $routeParams.clearingCcy;
         $scope.ccy = $routeParams.ccy;
 
-        $scope.url = '/api/v1.0/mss-detail/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.clearingCcy + '/' + $scope.ccy;
+        $scope.url = '/api/v1.0/history/mss/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.clearingCcy + '/' + $scope.ccy;
 
         $http.get($scope.url).success(function(data) {
             $scope.error = "";

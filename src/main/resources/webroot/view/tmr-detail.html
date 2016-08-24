@@ -22,7 +22,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr ng-repeat="tmr in tmrDetail | filter:recordQuery | orderBy:ordering track by tmr.id" row-highlighter="tmr.id">
+        <tr ng-repeat="tmr in tmrDetail | filter:recordQuery | orderBy:ordering track by tmr.id.$oid" row-highlighter="tmr.id.$oid">
             <td highlighter="tmr.adjustedMargin">{{tmr.adjustedMargin}}</td>
             <td highlighter="tmr.unadjustedMargin">{{tmr.unadjustedMargin}}</td>
             <td highlighter="tmr.received">{{tmr.received | date:'dd.MM.yyyy HH:mm:ss'}}</td>

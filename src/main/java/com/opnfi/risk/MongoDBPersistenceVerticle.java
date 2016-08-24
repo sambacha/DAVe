@@ -12,6 +12,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.mongo.FindOptions;
 import io.vertx.ext.mongo.MongoClient;
 
 import java.text.DateFormat;
@@ -132,8 +133,11 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         // Query endpoints
         eb.consumer("query.latestTradingSessionStatus", message -> queryLatestTradingSessionStatus(message));
         eb.consumer("query.latestMarginComponent", message -> queryLatestMarginComponent(message));
+        eb.consumer("query.historyMarginComponent", message -> queryHistoryMarginComponent(message));
         eb.consumer("query.latestTotalMarginRequirement", message -> queryLatestTotalMarginRequirement(message));
+        eb.consumer("query.historyTotalMarginRequirement", message -> queryHistoryTotalMarginRequirement(message));
         eb.consumer("query.latestMarginShortfallSurplus", message -> queryLatestMarginShortfallSurplus(message));
+        eb.consumer("query.historyMarginShortfallSurplus", message -> queryHistoryMarginShortfallSurplus(message));
 
         completer.handle(Future.succeededFuture());
     }
@@ -340,6 +344,52 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         });
     }
 
+    private void queryHistoryMarginComponent(Message msg)
+    {
+        JsonObject params = (JsonObject)msg.body();
+        LOG.trace("Received history/mc query with parameters " + params);
+
+        JsonObject sort = new JsonObject();
+        sort.put("received", 1);
+
+        JsonObject project = new JsonObject();
+        project.put("_id", 0);
+        project.put("id", "$_id");
+        project.put("clearer", 1);
+        project.put("member", 1);
+        project.put("account", 1);
+        project.put("clss", 1);
+        project.put("ccy", 1);
+        project.put("txnTm", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$txnTm")));
+        project.put("bizDt", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d").put("date", "$bizDt")));
+        project.put("reqId", 1);
+        project.put("rptId", 1);
+        project.put("sesId", 1);
+        project.put("variationMargin", 1);
+        project.put("premiumMargin", 1);
+        project.put("liquiMargin", 1);
+        project.put("spreadMargin", 1);
+        project.put("additionalMargin", 1);
+        project.put("received",new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$received")));
+
+        JsonArray pipeline = new JsonArray();
+        pipeline.add(new JsonObject().put("$sort", sort));
+        pipeline.add(new JsonObject().put("$match", params));
+        pipeline.add(new JsonObject().put("$project", project));
+
+        JsonObject command = new JsonObject()
+                .put("aggregate", "ers.MarginComponent")
+                .put("pipeline", pipeline);
+
+        mongo.runCommand("aggregate", command, res -> {
+            if (res.succeeded()) {
+                msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
+            } else {
+                LOG.error("history/mc query failed", res.cause());
+            }
+        });
+    }
+
     private void queryLatestTotalMarginRequirement(Message msg)
     {
         JsonObject params = (JsonObject)msg.body();
@@ -379,6 +429,49 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
                 msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
             } else {
                 LOG.error("latest/tmr query failed", res.cause());
+            }
+        });
+    }
+
+    private void queryHistoryTotalMarginRequirement(Message msg)
+    {
+        JsonObject params = (JsonObject)msg.body();
+        LOG.trace("Received history/tmr query with parameters " + params);
+
+        JsonObject sort = new JsonObject();
+        sort.put("received", 1);
+
+        JsonObject project = new JsonObject();
+        project.put("_id", 0);
+        project.put("id", "$_id");
+        project.put("clearer", 1);
+        project.put("pool", 1);
+        project.put("member", 1);
+        project.put("account", 1);
+        project.put("ccy", 1);
+        project.put("txnTm", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$txnTm")));
+        project.put("bizDt", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d").put("date", "$bizDt")));
+        project.put("reqId", 1);
+        project.put("rptId", 1);
+        project.put("sesId", 1);
+        project.put("unadjustedMargin", 1);
+        project.put("adjustedMargin", 1);
+        project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$received")));
+
+        JsonArray pipeline = new JsonArray();
+        pipeline.add(new JsonObject().put("$sort", sort));
+        pipeline.add(new JsonObject().put("$match", params));
+        pipeline.add(new JsonObject().put("$project", project));
+
+        JsonObject command = new JsonObject()
+                .put("aggregate", "ers.TotalMarginRequirement")
+                .put("pipeline", pipeline);
+
+        mongo.runCommand("aggregate", command, res -> {
+            if (res.succeeded()) {
+                msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
+            } else {
+                LOG.error("history/tmr query failed", res.cause());
             }
         });
     }
@@ -426,6 +519,53 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
                 msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
             } else {
                 LOG.error("latest/mss query failed", res.cause());
+            }
+        });
+    }
+
+    private void queryHistoryMarginShortfallSurplus(Message msg)
+    {
+        JsonObject params = (JsonObject)msg.body();
+        LOG.trace("Received history/mss query with parameters " + params);
+
+        JsonObject sort = new JsonObject();
+        sort.put("received", 1);
+
+        JsonObject project = new JsonObject();
+        project.put("_id", 0);
+        project.put("id", "$_id");
+        project.put("clearer", 1);
+        project.put("pool", 1);
+        project.put("poolType", 1);
+        project.put("member", 1);
+        project.put("clearingCcy", 1);
+        project.put("ccy", 1);
+        project.put("txnTm", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$txnTm")));
+        project.put("bizDt", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d").put("date", "$bizDt")));
+        project.put("reqId", 1);
+        project.put("rptId", 1);
+        project.put("sesId", 1);
+        project.put("marginRequirement", 1);
+        project.put("securityCollateral", 1);
+        project.put("cashBalance", 1);
+        project.put("shortfallSurplus", 1);
+        project.put("marginCall", 1);
+        project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$received")));
+
+        JsonArray pipeline = new JsonArray();
+        pipeline.add(new JsonObject().put("$sort", sort));
+        pipeline.add(new JsonObject().put("$match", params));
+        pipeline.add(new JsonObject().put("$project", project));
+
+        JsonObject command = new JsonObject()
+                .put("aggregate", "ers.MarginShortfallSurplus")
+                .put("pipeline", pipeline);
+
+        mongo.runCommand("aggregate", command, res -> {
+            if (res.succeeded()) {
+                msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
+            } else {
+                LOG.error("history/mss query failed", res.cause());
             }
         });
     }

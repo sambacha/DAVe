@@ -26,7 +26,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr ng-repeat="mss in mssDetail | filter:recordQuery | orderBy:ordering track by mss.id" row-highlighter="mss.id">
+        <tr ng-repeat="mss in mssDetail | filter:recordQuery | orderBy:ordering track by mss.id.$oid" row-highlighter="mss.id.$oid">
             <td highlighter="mss.poolType">{{mss.poolType}}</td>
             <td highlighter="mss.marginRequirement">{{mss.marginRequirement}}</td>
             <td highlighter="mss.securityCollateral">{{mss.securityCollateral}}</td>
