@@ -93,7 +93,7 @@ public class WebVerticle extends AbstractVerticle {
     private void latestTradingSessionStatus(RoutingContext routingContext) {
         LOG.trace("Received latest/tss request");
 
-        eb.send("db.query.TradingSessionStatus", null, ar -> {
+        eb.send("query.latestTradingSessionStatus", null, ar -> {
             if (ar.succeeded()) {
                 LOG.trace("Received response to latest/tss request");
 
@@ -138,7 +138,7 @@ public class WebVerticle extends AbstractVerticle {
             params.put("ccy", routingContext.request().getParam("ccy"));
         }
 
-        eb.send("db.query.MarginComponent", params, ar -> {
+        eb.send("query.latestMarginComponent", params, ar -> {
             if (ar.succeeded()) {
                 LOG.trace("Received response latest/mc request");
 
@@ -183,7 +183,7 @@ public class WebVerticle extends AbstractVerticle {
             params.put("ccy", routingContext.request().getParam("ccy"));
         }
 
-        eb.send("db.query.TotalMarginRequirement", params, ar -> {
+        eb.send("query.latestTotalMarginRequirement", params, ar -> {
             if (ar.succeeded()) {
                 LOG.trace("Received response latest/tmr request");
 
@@ -228,7 +228,7 @@ public class WebVerticle extends AbstractVerticle {
             params.put("ccy", routingContext.request().getParam("ccy"));
         }
 
-        eb.send("db.query.MarginShortfallSurplus", params, ar -> {
+        eb.send("query.latestMarginShortfallSurplus", params, ar -> {
             if (ar.succeeded()) {
                 LOG.trace("Received response latest/mss request");
 

@@ -130,10 +130,10 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         eb.consumer("ers.MarginShortfallSurplus", message -> storeMarginShortfallSurplus(message));
 
         // Query endpoints
-        eb.consumer("db.query.TradingSessionStatus", message -> queryTradingSessionStatus(message));
-        eb.consumer("db.query.MarginComponent", message -> queryMarginComponent(message));
-        eb.consumer("db.query.TotalMarginRequirement", message -> queryTotalMarginRequirement(message));
-        eb.consumer("db.query.MarginShortfallSurplus", message -> queryMarginShortfallSurplus(message));
+        eb.consumer("query.latestTradingSessionStatus", message -> queryLatestTradingSessionStatus(message));
+        eb.consumer("query.latestMarginComponent", message -> queryLatestMarginComponent(message));
+        eb.consumer("query.latestTotalMarginRequirement", message -> queryLatestTotalMarginRequirement(message));
+        eb.consumer("query.latestMarginShortfallSurplus", message -> queryLatestMarginShortfallSurplus(message));
 
         completer.handle(Future.succeededFuture());
     }
@@ -254,7 +254,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         });
     }
 
-    private void queryTradingSessionStatus(Message msg)
+    private void queryLatestTradingSessionStatus(Message msg)
     {
         LOG.trace("Received latest/tss query");
 
@@ -294,7 +294,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         });
     }
 
-    private void queryMarginComponent(Message msg)
+    private void queryLatestMarginComponent(Message msg)
     {
         JsonObject params = (JsonObject)msg.body();
         LOG.trace("Received latest/mc query with parameters " + params);
@@ -340,7 +340,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         });
     }
 
-    private void queryTotalMarginRequirement(Message msg)
+    private void queryLatestTotalMarginRequirement(Message msg)
     {
         JsonObject params = (JsonObject)msg.body();
         LOG.trace("Received latest/tmr query with parameters " + params);
@@ -383,7 +383,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         });
     }
 
-    private void queryMarginShortfallSurplus(Message msg)
+    private void queryLatestMarginShortfallSurplus(Message msg)
     {
         JsonObject params = (JsonObject)msg.body();
         LOG.trace("Received latest/mss query with parameters " + params);
