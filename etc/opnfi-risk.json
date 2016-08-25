@@ -3,7 +3,12 @@
     "httpPort": 8080,
     "ssl": true,
     "keystore": "web.keystore",
-    "keystorePassword": "123456"
+    "keystorePassword": "123456",
+    "auth": {
+      "db_name": "OpnFi-Risk",
+      "connection_string": "mongodb://localhost:27017",
+      "salt": "OpnFiRisk"
+    }
   },
   "ers": {
     "brokerHost": "tcp://rgd003.xeop.de",
