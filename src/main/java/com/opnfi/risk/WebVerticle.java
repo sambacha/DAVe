@@ -7,6 +7,7 @@ import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.impl.codecs.BooleanMessageCodec;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.Json;
@@ -18,6 +19,7 @@ import io.vertx.core.net.JksOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 
 import java.util.ArrayList;
@@ -32,6 +34,7 @@ public class WebVerticle extends AbstractVerticle {
     private static final Boolean DEFAULT_SSL = false;
     private static final String DEFAULT_SSL_KEYSTORE = "";
     private static final String DEFAULT_SSL_KEYSTORE_PASSWORD = "";
+    private static final Boolean DEFAULT_CORS = false;
 
     private HttpServer server;
     private EventBus eb;
@@ -56,6 +59,20 @@ public class WebVerticle extends AbstractVerticle {
     private Future<HttpServer> startWebServer() {
         Future<HttpServer> webServerFuture = Future.future();
         Router router = Router.router(vertx);
+
+        if (config().getBoolean("allowCORS", WebVerticle.DEFAULT_CORS)) {
+            LOG.info("Enabling CORS handler");
+            CorsHandler corsHandler = CorsHandler.create("*");  //Wildcard(*) not allowed if allowCredentials is true
+            corsHandler.allowedMethod(HttpMethod.OPTIONS);
+            corsHandler.allowedMethod(HttpMethod.GET);
+            corsHandler.allowedMethod(HttpMethod.POST);
+            corsHandler.allowedMethod(HttpMethod.DELETE);
+            corsHandler.allowedHeader("Authorization");
+            corsHandler.allowedHeader("www-authenticate");
+            corsHandler.allowedHeader("Content-Type");
+
+            router.route().handler(corsHandler);
+        }
 
         LOG.info("Adding route REST API");
         router.route("/api/v1.0/*").handler(BodyHandler.create());
