@@ -31,6 +31,8 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
 
     private MongoClient mongo;
     final DateFormat timestampFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+    final String mongoTimestampFormat = "%Y-%m-%dT%H:%M:%S.%L";
+    final String mongoDayFormat = "%Y-%m-%d";
 
     @Override
     public void start(Future<Void> fut) throws Exception {
@@ -272,7 +274,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         group.put("stat", new JsonObject().put("$last", "$stat"));
         group.put("statRejRsn", new JsonObject().put("$last", "$statRejRsn"));
         group.put("txt", new JsonObject().put("$last", "$txt"));
-        group.put("received", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$received"))));
+        group.put("received", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received"))));
 
         JsonArray pipeline = new JsonArray();
         pipeline.add(new JsonObject().put("$sort", sort));
@@ -312,7 +314,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         project.put("stat", 1);
         project.put("statRejRsn", 1);
         project.put("txt", 1);
-        project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$received")));
+        project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received")));
 
         JsonArray pipeline = new JsonArray();
         pipeline.add(new JsonObject().put("$sort", sort));
@@ -347,8 +349,8 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         group.put("account", new JsonObject().put("$last", "$account"));
         group.put("clss", new JsonObject().put("$last", "$clss"));
         group.put("ccy", new JsonObject().put("$last", "$ccy"));
-        group.put("txnTm", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$txnTm"))));
-        group.put("bizDt", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d").put("date", "$bizDt"))));
+        group.put("txnTm", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$txnTm"))));
+        group.put("bizDt", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoDayFormat).put("date", "$bizDt"))));
         group.put("reqId", new JsonObject().put("$last", "$reqId"));
         group.put("rptId", new JsonObject().put("$last", "$rptId"));
         group.put("sesId", new JsonObject().put("$last", "$sesId"));
@@ -357,7 +359,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         group.put("liquiMargin", new JsonObject().put("$last", "$liquiMargin"));
         group.put("spreadMargin", new JsonObject().put("$last", "$spreadMargin"));
         group.put("additionalMargin", new JsonObject().put("$last", "$additionalMargin"));
-        group.put("received", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$received"))));
+        group.put("received", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received"))));
 
         JsonArray pipeline = new JsonArray();
         pipeline.add(new JsonObject().put("$sort", sort));
@@ -393,8 +395,8 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         project.put("account", 1);
         project.put("clss", 1);
         project.put("ccy", 1);
-        project.put("txnTm", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$txnTm")));
-        project.put("bizDt", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d").put("date", "$bizDt")));
+        project.put("txnTm", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$txnTm")));
+        project.put("bizDt", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoDayFormat).put("date", "$bizDt")));
         project.put("reqId", 1);
         project.put("rptId", 1);
         project.put("sesId", 1);
@@ -403,7 +405,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         project.put("liquiMargin", 1);
         project.put("spreadMargin", 1);
         project.put("additionalMargin", 1);
-        project.put("received",new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$received")));
+        project.put("received",new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received")));
 
         JsonArray pipeline = new JsonArray();
         pipeline.add(new JsonObject().put("$sort", sort));
@@ -439,14 +441,14 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         group.put("member", new JsonObject().put("$last", "$member"));
         group.put("account", new JsonObject().put("$last", "$account"));
         group.put("ccy", new JsonObject().put("$last", "$ccy"));
-        group.put("txnTm", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$txnTm"))));
-        group.put("bizDt", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d").put("date", "$bizDt"))));
+        group.put("txnTm", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$txnTm"))));
+        group.put("bizDt", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoDayFormat).put("date", "$bizDt"))));
         group.put("reqId", new JsonObject().put("$last", "$reqId"));
         group.put("rptId", new JsonObject().put("$last", "$rptId"));
         group.put("sesId", new JsonObject().put("$last", "$sesId"));
         group.put("unadjustedMargin", new JsonObject().put("$last", "$unadjustedMargin"));
         group.put("adjustedMargin", new JsonObject().put("$last", "$adjustedMargin"));
-        group.put("received", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$received"))));
+        group.put("received", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received"))));
 
         JsonArray pipeline = new JsonArray();
         pipeline.add(new JsonObject().put("$sort", sort));
@@ -482,14 +484,14 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         project.put("member", 1);
         project.put("account", 1);
         project.put("ccy", 1);
-        project.put("txnTm", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$txnTm")));
-        project.put("bizDt", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d").put("date", "$bizDt")));
+        project.put("txnTm", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$txnTm")));
+        project.put("bizDt", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoDayFormat).put("date", "$bizDt")));
         project.put("reqId", 1);
         project.put("rptId", 1);
         project.put("sesId", 1);
         project.put("unadjustedMargin", 1);
         project.put("adjustedMargin", 1);
-        project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$received")));
+        project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received")));
 
         JsonArray pipeline = new JsonArray();
         pipeline.add(new JsonObject().put("$sort", sort));
@@ -526,8 +528,8 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         group.put("member", new JsonObject().put("$last", "$member"));
         group.put("clearingCcy", new JsonObject().put("$last", "$clearingCcy"));
         group.put("ccy", new JsonObject().put("$last", "$ccy"));
-        group.put("txnTm", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$txnTm"))));
-        group.put("bizDt", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d").put("date", "$bizDt"))));
+        group.put("txnTm", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$txnTm"))));
+        group.put("bizDt", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoDayFormat).put("date", "$bizDt"))));
         group.put("reqId", new JsonObject().put("$last", "$reqId"));
         group.put("rptId", new JsonObject().put("$last", "$rptId"));
         group.put("sesId", new JsonObject().put("$last", "$sesId"));
@@ -536,7 +538,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         group.put("cashBalance", new JsonObject().put("$last", "$cashBalance"));
         group.put("shortfallSurplus", new JsonObject().put("$last", "$shortfallSurplus"));
         group.put("marginCall", new JsonObject().put("$last", "$marginCall"));
-        group.put("received", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$received"))));
+        group.put("received", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received"))));
 
         JsonArray pipeline = new JsonArray();
         pipeline.add(new JsonObject().put("$sort", sort));
@@ -573,8 +575,8 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         project.put("member", 1);
         project.put("clearingCcy", 1);
         project.put("ccy", 1);
-        project.put("txnTm", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$txnTm")));
-        project.put("bizDt", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d").put("date", "$bizDt")));
+        project.put("txnTm", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$txnTm")));
+        project.put("bizDt", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoDayFormat).put("date", "$bizDt")));
         project.put("reqId", 1);
         project.put("rptId", 1);
         project.put("sesId", 1);
@@ -583,7 +585,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         project.put("cashBalance", 1);
         project.put("shortfallSurplus", 1);
         project.put("marginCall", 1);
-        project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", "%Y-%m-%d %H:%M:%S.%L").put("date", "$received")));
+        project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received")));
 
         JsonArray pipeline = new JsonArray();
         pipeline.add(new JsonObject().put("$sort", sort));
