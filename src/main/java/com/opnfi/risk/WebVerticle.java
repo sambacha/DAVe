@@ -1,26 +1,31 @@
 package com.opnfi.risk;
 
-import com.opnfi.risk.model.TradingSessionStatus;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.eventbus.Message;
-import io.vertx.core.eventbus.impl.codecs.BooleanMessageCodec;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.net.JksOptions;
+import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.mongo.HashSaltStyle;
+import io.vertx.ext.auth.mongo.MongoAuth;
+import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
+import io.vertx.ext.web.handler.CookieHandler;
+import io.vertx.ext.web.handler.FormLoginHandler;
+import io.vertx.ext.web.handler.RedirectAuthHandler;
+import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.StaticHandler;
+import io.vertx.ext.web.handler.UserSessionHandler;
+import io.vertx.ext.web.sstore.LocalSessionStore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +40,10 @@ public class WebVerticle extends AbstractVerticle {
     private static final String DEFAULT_SSL_KEYSTORE = "";
     private static final String DEFAULT_SSL_KEYSTORE_PASSWORD = "";
     private static final Boolean DEFAULT_CORS = false;
+
+    private static final String DEFAULT_AUTH_DB_NAME = "OpnFi-Risk";
+    private static final String DEFAULT_AUTH_CONNECTION_STRING = "mongodb://localhost:27017";
+    private static final String DEFAULT_SALT = "OpnFiRisk";
 
     private HttpServer server;
     private EventBus eb;
@@ -56,6 +65,25 @@ public class WebVerticle extends AbstractVerticle {
         });
     }
 
+    private AuthProvider createAuthenticationProvider() {
+        JsonObject config = new JsonObject();
+        LOG.info("Auth config: ", config().getJsonObject("auth").encodePrettily());
+        config.put("db_name", config()
+                .getJsonObject("auth")
+                .getString("db_name", WebVerticle.DEFAULT_AUTH_DB_NAME));
+        config.put("useObjectId", true);
+        config.put("connection_string", config()
+                .getJsonObject("auth")
+                .getString("connection_string", WebVerticle.DEFAULT_AUTH_CONNECTION_STRING));
+        MongoClient client = MongoClient.createShared(vertx, config);
+
+        JsonObject authProperties = new JsonObject();
+        MongoAuth authProvider = MongoAuth.create(client, authProperties);
+        authProvider.getHashStrategy().setSaltStyle(HashSaltStyle.EXTERNAL);
+        authProvider.getHashStrategy().setExternalSalt(config().getJsonObject("auth").getString("salt", WebVerticle.DEFAULT_SALT));
+        return authProvider;
+    }
+
     private Future<HttpServer> startWebServer() {
         Future<HttpServer> webServerFuture = Future.future();
         Router router = Router.router(vertx);
@@ -74,7 +102,19 @@ public class WebVerticle extends AbstractVerticle {
             router.route().handler(corsHandler);
         }
 
+        router.route().handler(CookieHandler.create());
+        router.route().handler(BodyHandler.create());
+        router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+        AuthProvider authenticationProvider = this.createAuthenticationProvider();
+        router.route().handler(UserSessionHandler.create(authenticationProvider));
+
         LOG.info("Adding route REST API");
+        router.route("/login").handler(FormLoginHandler.create(authenticationProvider));
+        router.routeWithRegex("^/(?!login.html|logout.html|.*css|.*js).*$").handler(RedirectAuthHandler.create(authenticationProvider, "/login.html"));
+        router.route("/logout").handler(context -> {
+            context.clearUser();
+            context.response().putHeader("location", "/").setStatusCode(302).end();
+        });
         router.route("/api/v1.0/*").handler(BodyHandler.create());
         router.get("/api/v1.0/latest/tss").handler(this::latestTradingSessionStatus);
         router.get("/api/v1.0/history/tss").handler(this::historyTradingSessionStatus);
