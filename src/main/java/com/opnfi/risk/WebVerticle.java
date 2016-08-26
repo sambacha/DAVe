@@ -111,7 +111,7 @@ public class WebVerticle extends AbstractVerticle {
 
         LOG.info("Adding route REST API");
         router.route("/api/v1.0/*").handler(BodyHandler.create());
-        router.routeWithRegex("^/api/v1.0/(?!login).*$").handler(RedirectAuthHandler.create(authenticationProvider, "/login.html"));
+        router.routeWithRegex("^/api/v1.0/(?!login$).*$").handler(RedirectAuthHandler.create(authenticationProvider, "/login.html"));
         router.post("/api/v1.0/login").handler(JsonLoginHandler.create(authenticationProvider));
         router.get("/api/v1.0/logout").handler(this::logoutUser);
         router.get("/api/v1.0/loginStatus").handler(this::loginStatus);
@@ -175,9 +175,15 @@ public class WebVerticle extends AbstractVerticle {
     }
 
     private void loginStatus(RoutingContext routingContext) {
-        routingContext.response()
-                .putHeader("content-type", "application/json; charset=utf-8")
-                .end(routingContext.user().principal().encodePrettily());
+        if (routingContext.user() != null) {
+            routingContext.response()
+                    .putHeader("content-type", "application/json; charset=utf-8")
+                    .end(routingContext.user().principal().encodePrettily());
+        }
+        else
+        {
+            routingContext.response().setStatusCode(401).setStatusMessage("Unauthorized").end();
+        }
     }
 
     private void latestTradingSessionStatus(RoutingContext routingContext) {
