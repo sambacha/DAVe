@@ -114,7 +114,7 @@ public class WebVerticle extends AbstractVerticle {
         router.routeWithRegex("^/api/v1.0/(?!login).*$").handler(RedirectAuthHandler.create(authenticationProvider, "/login.html"));
         router.post("/api/v1.0/login").handler(JsonLoginHandler.create(authenticationProvider));
         router.get("/api/v1.0/logout").handler(this::logoutUser);
-        router.get("/api/v1.0/authenticationStatus").handler(this::authenticationStatus);
+        router.get("/api/v1.0/loginStatus").handler(this::loginStatus);
         router.get("/api/v1.0/latest/tss").handler(this::latestTradingSessionStatus);
         router.get("/api/v1.0/history/tss").handler(this::historyTradingSessionStatus);
         router.get("/api/v1.0/latest/mc").handler(this::latestMarginComponent);
@@ -174,7 +174,7 @@ public class WebVerticle extends AbstractVerticle {
         routingContext.response().putHeader("location", "/").setStatusCode(HttpResponseStatus.FOUND.code()).end();
     }
 
-    private void authenticationStatus(RoutingContext routingContext) {
+    private void loginStatus(RoutingContext routingContext) {
         routingContext.response()
                 .putHeader("content-type", "application/json; charset=utf-8")
                 .end(routingContext.user().principal().encodePrettily());
