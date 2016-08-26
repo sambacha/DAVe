@@ -1,5 +1,6 @@
 package com.opnfi.risk;
 
+import com.opnfi.risk.auth.JsonLoginHandler;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
@@ -109,13 +110,11 @@ public class WebVerticle extends AbstractVerticle {
         router.route().handler(UserSessionHandler.create(authenticationProvider));
 
         LOG.info("Adding route REST API");
-        //router.post("/login").handler(JsonLoginHandler.create(authenticationProvider));
-        router.route("/api/*").handler(RedirectAuthHandler.create(authenticationProvider, "/login.html"));
-        router.route("/logout").handler(context -> {
-            context.clearUser();
-            context.response().putHeader("location", "/").setStatusCode(HttpResponseStatus.FOUND.code()).end();
-        });
         router.route("/api/v1.0/*").handler(BodyHandler.create());
+        router.routeWithRegex("^/api/v1.0/(?!login).*$").handler(RedirectAuthHandler.create(authenticationProvider, "/login.html"));
+        router.post("/api/v1.0/login").handler(JsonLoginHandler.create(authenticationProvider));
+        router.get("/api/v1.0/logout").handler(this::logoutUser);
+        router.get("/api/v1.0/authenticationStatus").handler(this::authenticationStatus);
         router.get("/api/v1.0/latest/tss").handler(this::latestTradingSessionStatus);
         router.get("/api/v1.0/history/tss").handler(this::historyTradingSessionStatus);
         router.get("/api/v1.0/latest/mc").handler(this::latestMarginComponent);
@@ -168,6 +167,17 @@ public class WebVerticle extends AbstractVerticle {
                 .requestHandler(router::accept)
                 .listen(config().getInteger("httpPort", WebVerticle.DEFAULT_HTTP_PORT), webServerFuture.completer());
         return webServerFuture;
+    }
+
+    private void logoutUser(RoutingContext routingContext) {
+        routingContext.clearUser();
+        routingContext.response().putHeader("location", "/").setStatusCode(HttpResponseStatus.FOUND.code()).end();
+    }
+
+    private void authenticationStatus(RoutingContext routingContext) {
+        routingContext.response()
+                .putHeader("content-type", "application/json; charset=utf-8")
+                .end(routingContext.user().principal().encodePrettily());
     }
 
     private void latestTradingSessionStatus(RoutingContext routingContext) {
