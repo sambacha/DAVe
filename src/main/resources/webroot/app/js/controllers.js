@@ -17,10 +17,21 @@ opnFiRiskControllers.controller('Login', ['$scope', '$http', '$interval', '$root
         $http.get($scope.statusUrl).success(function(data) {
             $rootScope.authStatus = true;
             $rootScope.authUsername = data.username;
+
+            if ($rootScope.authRequestedPath) {
+                path = $rootScope.authRequestedPath;
+                $rootScope.authRequestedPath = null;
+                $location.path(path);
+            }
         })
         .error(function(data) {
             $rootScope.authStatus = false;
             $rootScope.authUsername = "";
+
+            if ($location.path() != "/login")
+            {
+                $location.path( "/login" );
+            }
         });
 
         $scope.login = function(username, password) {
@@ -53,6 +64,11 @@ opnFiRiskControllers.controller('Login', ['$scope', '$http', '$interval', '$root
                 .error(function(data) {
                     $rootScope.authStatus = false;
                     $rootScope.authUsername = "";
+
+                    if ($location.path() != "/login")
+                    {
+                        $location.path( "/login" );
+                    }
                 });
         },60000);
 

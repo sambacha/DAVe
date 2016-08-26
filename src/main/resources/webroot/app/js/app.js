@@ -94,13 +94,14 @@ opnFiRisk.config(['$routeProvider',
     }])
     .run( function($rootScope, $location) {
         // register listener to watch route changes
-        $rootScope.$on("$locationChangeStart", function(event, next, current) {
+        $rootScope.$on("$routeChangeStart", function(event, next, current) {
             if ($rootScope.authStatus == false) {
                 // no logged user, we should be going to #login
-                if (next.templateUrl == "login.html") {
+                if (next.templateUrl == "app/view/login.html") {
                     // already going to #login, no redirect needed
                 } else {
                     // not going to #login, we should redirect now
+                    $rootScope.authRequestedPath = $location.path();
                     $location.path("/login");
                 }
             }
