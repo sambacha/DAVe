@@ -1,78 +1,145 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="sandbox">
-  <head>
+<html lang="en" ng-app="opnFiRisk">
+
+<head>
+
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="">
+    <meta name="description" content="OpnFi Risk - Web based client for Eurex Clearing Enhanced Risk Solution (ERS) interface">
+    <meta name="author" content="Jakub Scholz">
     <link rel="icon" href="./favicon.ico">
 
-    <title>Opn-Fi Risk</title>
+    <title>OpnFi Risk</title>
 
-    <script src="/lib/jquery/jquery.min.js"></script>
+    <!-- Bootstrap Core CSS -->
+    <link href="./vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
-    <script src="/lib/bootstrap/js/bootstrap.min.js"></script>
+    <!-- MetisMenu CSS -->
+    <link href="./vendor/metisMenu/metisMenu.min.css" rel="stylesheet">
 
-    <!-- Bootstrap core CSS -->
-    <link href="/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Morris Charts CSS -->
+    <link href="./vendor/morrisjs/morris.css" rel="stylesheet">
 
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- Custom CSS -->
+    <link href="./vendor/sb-admin-2/sb-admin-2.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="./vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
-      <script src="/lib/html5shiv/html5shiv.min.js"></script>
-      <script src="/lib/respond/respond.min.js"></script>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 
-    <script src="/lib/chartjs/Chart.min.js"></script>
+</head>
 
-    <script src="/lib/angularjs/angular.js"></script>
-    <script src="/lib/angularjs/angular-route.js"></script>
-    <script src="/lib/angularjs/angular-animate.js"></script>
+<body>
 
-    <script src="/lib/angles/angles.js"></script>
+    <div id="wrapper">
 
-    <!-- Custom styles -->
-    <link href="dashboard.css" rel="stylesheet">
+        <!-- Navigation -->
+        <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#/"><span class="glyphicon glyphicon-fire"></span> Opn-Fi Risk</a>
+            </div>
+            <!-- /.navbar-header -->
+
+            <ul class="nav navbar-top-links navbar-right">
+                <li ng-controller="TssCtrl">
+                    <a href="#">
+                        <span ng-if="tss.stat==2" class="label label-success">ERS Status: Online</span>
+                        <span ng-if="tss.stat==1" class="label label-danger">ERS Status: Halted</span>
+                        <span ng-if="tss.stat==3" class="label label-danger">ERS Status: Closed</span>
+                        <span ng-if="tss.stat!=3 && tss.stat!=1 && tss.stat!=2" class="label label-warning">ERS Status: Unknown</span>
+                    </a>
+                </li>
+                <li class="dropdown" ng-controller="Login">
+                    <a class="dropdown-toggle" data-toggle="dropdown">
+                        <i class="fa fa-user fa-fw"></i> <i class="fa fa-caret-down"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-user">
+                        <!--<li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                        </li>
+                        <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                        </li>
+                        <li class="divider"></li>-->
+                        <li ng-click="logout()" ng-if="authStatus == true"><a href="#/login"><i class="fa fa-sign-out fa-fw"></i> Logout</a></li>
+                        <li ng-if="authStatus == false"><a href="#/login"><i class="fa fa-sign-out fa-fw"></i> Login</a></li>
+                    </ul>
+                    <!-- /.dropdown-user -->
+                </li>
+                <!-- /.dropdown -->
+            </ul>
+            <!-- /.navbar-top-links -->
+
+            <div class="navbar-default sidebar" role="navigation">
+                <div class="sidebar-nav navbar-collapse">
+                    <ul class="nav" id="side-menu" ng-controller="MenuCtrl">
+                        <li ng-class="amIActive('/dashboard')">
+                            <a href="#/dashboard"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
+                        </li>
+                        <li ng-class="amIActive('/marginComponent')">
+                            <a href="#/marginComponentLatest"><i class="fa fa-th fa-fw"></i> Margin Components</a>
+                        </li>
+                        <li ng-class="amIActive('/totalMarginRequirement')">
+                            <a href="#/totalMarginRequirementLatest"><i class="fa fa-th-list fa-fw"></i> Total Margin Requirements</a>
+                        </li>
+                        <li ng-class="amIActive('/marginShortfallSurplus')">
+                            <a href="#/marginShortfallSurplusLatest"><i class="fa fa-th-large fa-fw"></i> Margin Shortfall Surplus</a>
+                        </li>
+                    </ul>
+                </div>
+                <!-- /.sidebar-collapse -->
+            </div>
+            <!-- /.navbar-static-side -->
+        </nav>
+
+        <!-- Page Content -->
+        <div id="page-wrapper">
+            <div ng-view></div>
+        </div>
+        <!-- /#page-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+    <!-- jQuery -->
+    <script src="./vendor/jquery/jquery.min.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="./vendor/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- Metis Menu Plugin JavaScript -->
+    <script src="./vendor/metisMenu/metisMenu.min.js"></script>
+
+    <!-- Morris Charts JavaScript -->
+    <script src="./vendor/raphael/raphael.min.js"></script>
+    <script src="./vendor/morrisjs/morris.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="./vendor/sb-admin-2/sb-admin-2.js"></script>
+
+    <!-- AngularJS libraries -->
+    <script src="./vendor/angularjs/angular.js"></script>
+    <script src="./vendor/angularjs/angular-route.js"></script>
+    <script src="./vendor/angularjs/angular-animate.js"></script>
+
+    <script src="./vendor/angular-morris/angular-morris.min.js"></script>
 
     <!-- Custom javascript -->
-    <script src="/js/controllers.js"></script>
-    <script src="/js/filters.js"></script>
-    <script src="/js/directives.js"></script>
-    <script src="/js/app.js"></script>
-  </head>
+    <script src="./app/js/controllers.js"></script>
+    <script src="./app/js/filters.js"></script>
+    <script src="./app/js/directives.js"></script>
+    <script src="./app/js/app.js"></script>
+</body>
 
-  <body>
-
-    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-      <div class="container-fluid">
-        <div class="navbar-header">
-          <a class="navbar-brand" href="#/"><span class="glyphicon glyphicon-fire"></span> Opn-Fi Risk</a>
-        </div>
-        <div id="navbar">
-          <ul class="nav navbar-nav navbar-right" ng-controller="TssCtrl">
-            <li><a href="#"><span ng-if="tss.stat==2" class="label label-success">ERS Status: Online</span><span ng-if="tss.stat==1" class="label label-danger">Halted</span><span ng-if="tss.stat==3" class="label label-danger">Closed</span><span ng-if="tss.stat!=3 && tss.stat!=1 && tss.stat!=2" class="label label-warning">Unknown</span></a></li>
-          </ul>
-        </div>
-      </div>
-    </nav>
-
-    <div class="container-fluid">
-
-      <div class="mainsidebar pull-left">
-        <ul class="nav nav-sidebar" ng-controller="MenuCtrl">
-          <!--<li ng-repeat="item in items" class="{{item.style}}"><a href="{{item.link}}">{{item.name}}</a></li>-->
-          <li ng-class="amIActive('/pr-')"><a href="#/mc-overview">Position Reports</a></li>
-          <li ng-class="amIActive('/mc-')"><a href="#/mc-overview">Margin Components</a></li>
-          <li ng-class="amIActive('/tmr-')"><a href="#/tmr-overview">Total Margin Requirements</a></li>
-          <li ng-class="amIActive('/mss-')"><a href="#/mss-overview">Margin Shortfall Surplus</a></li>
-          <li ng-class="amIActive('/rlu-')"><a href="#/mc-overview">Risk Limit Utilization</a></li>
-        </ul>
-      </div>
-
-      <div class="main">
-        <div ng-view></div>
-      </div>
-    </div>
-
-  </body>
 </html>
