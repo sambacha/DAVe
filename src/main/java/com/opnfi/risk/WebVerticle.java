@@ -1,5 +1,6 @@
 package com.opnfi.risk;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -20,7 +21,6 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.CookieHandler;
-import io.vertx.ext.web.handler.FormLoginHandler;
 import io.vertx.ext.web.handler.RedirectAuthHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.StaticHandler;
@@ -109,11 +109,11 @@ public class WebVerticle extends AbstractVerticle {
         router.route().handler(UserSessionHandler.create(authenticationProvider));
 
         LOG.info("Adding route REST API");
-        router.route("/login").handler(FormLoginHandler.create(authenticationProvider));
-        router.routeWithRegex("^/(?!login.html|logout.html|.*css|.*js).*$").handler(RedirectAuthHandler.create(authenticationProvider, "/login.html"));
+        //router.post("/login").handler(JsonLoginHandler.create(authenticationProvider));
+        router.route("/api/*").handler(RedirectAuthHandler.create(authenticationProvider, "/login.html"));
         router.route("/logout").handler(context -> {
             context.clearUser();
-            context.response().putHeader("location", "/").setStatusCode(302).end();
+            context.response().putHeader("location", "/").setStatusCode(HttpResponseStatus.FOUND.code()).end();
         });
         router.route("/api/v1.0/*").handler(BodyHandler.create());
         router.get("/api/v1.0/latest/tss").handler(this::latestTradingSessionStatus);
