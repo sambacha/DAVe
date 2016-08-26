@@ -111,10 +111,10 @@ public class WebVerticle extends AbstractVerticle {
 
         LOG.info("Adding route REST API");
         router.route("/api/v1.0/*").handler(BodyHandler.create());
-        router.routeWithRegex("^/api/v1.0/(?!login$).*$").handler(RedirectAuthHandler.create(authenticationProvider, "/login.html"));
-        router.post("/api/v1.0/login").handler(JsonLoginHandler.create(authenticationProvider));
-        router.get("/api/v1.0/logout").handler(this::logoutUser);
-        router.get("/api/v1.0/loginStatus").handler(this::loginStatus);
+        router.routeWithRegex("^/api/v1.0/(?!user/login).*$").handler(RedirectAuthHandler.create(authenticationProvider, "/login.html"));
+        router.post("/api/v1.0/user/login").handler(JsonLoginHandler.create(authenticationProvider));
+        router.get("/api/v1.0/user/logout").handler(this::logoutUser);
+        router.get("/api/v1.0/user/status").handler(this::loginStatus);
         router.get("/api/v1.0/latest/tss").handler(this::latestTradingSessionStatus);
         router.get("/api/v1.0/history/tss").handler(this::historyTradingSessionStatus);
         router.get("/api/v1.0/latest/mc").handler(this::latestMarginComponent);

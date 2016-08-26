@@ -41,8 +41,10 @@ public class JsonLoginHandler implements Handler<RoutingContext> {
                         context.response()
                             .putHeader("content-type", "application/json; charset=utf-8")
                             .end();
+                        LOG.info("User {} authentiocated successfully", username);
                     } else {
                         context.fail(HttpResponseStatus.FORBIDDEN.code());
+                        LOG.warn("User {} failed to authenticate!", username);
                     }
                 });
             }
