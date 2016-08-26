@@ -4,7 +4,10 @@
     "ssl": true,
     "keystore": "web.keystore",
     "keystorePassword": "123456",
-    "allowCORS": true,
+    "CORS": {
+      "allow" : true,
+      "origin" : "*"
+    },
     "auth": {
       "db_name": "OpnFi-Risk",
       "connection_string": "mongodb://localhost:27017",

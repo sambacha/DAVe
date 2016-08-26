@@ -41,6 +41,7 @@ public class WebVerticle extends AbstractVerticle {
     private static final String DEFAULT_SSL_KEYSTORE = "";
     private static final String DEFAULT_SSL_KEYSTORE_PASSWORD = "";
     private static final Boolean DEFAULT_CORS = false;
+    private static final String DEFAULT_CORS_ORIGIN = "*";
 
     private static final String DEFAULT_AUTH_DB_NAME = "OpnFi-Risk";
     private static final String DEFAULT_AUTH_CONNECTION_STRING = "mongodb://localhost:27017";
@@ -89,9 +90,12 @@ public class WebVerticle extends AbstractVerticle {
         Future<HttpServer> webServerFuture = Future.future();
         Router router = Router.router(vertx);
 
-        if (config().getBoolean("allowCORS", WebVerticle.DEFAULT_CORS)) {
+        if (config().getJsonObject("CORS", new JsonObject()).getBoolean("allow", WebVerticle.DEFAULT_CORS)) {
             LOG.info("Enabling CORS handler");
-            CorsHandler corsHandler = CorsHandler.create("*");  //Wildcard(*) not allowed if allowCredentials is true
+
+            //Wildcard(*) not allowed if allowCredentials is true
+            CorsHandler corsHandler = CorsHandler.create(config().getJsonObject("CORS", new JsonObject()).getString("origin", WebVerticle.DEFAULT_CORS_ORIGIN));
+            corsHandler.allowCredentials(true);
             corsHandler.allowedMethod(HttpMethod.OPTIONS);
             corsHandler.allowedMethod(HttpMethod.GET);
             corsHandler.allowedMethod(HttpMethod.POST);
@@ -111,7 +115,7 @@ public class WebVerticle extends AbstractVerticle {
 
         LOG.info("Adding route REST API");
         router.route("/api/v1.0/*").handler(BodyHandler.create());
-        router.routeWithRegex("^/api/v1.0/(?!user/login).*$").handler(RedirectAuthHandler.create(authenticationProvider, "/login.html"));
+        router.routeWithRegex("^/api/v1.0/(?!user/login).*$").handler(RedirectAuthHandler.create(authenticationProvider));
         router.post("/api/v1.0/user/login").handler(JsonLoginHandler.create(authenticationProvider));
         router.get("/api/v1.0/user/logout").handler(this::logoutUser);
         router.get("/api/v1.0/user/status").handler(this::loginStatus);
@@ -176,13 +180,15 @@ public class WebVerticle extends AbstractVerticle {
 
     private void loginStatus(RoutingContext routingContext) {
         if (routingContext.user() != null) {
+            JsonObject resp = new JsonObject().put("username", routingContext.user().principal().getString("username"));
+
             routingContext.response()
                     .putHeader("content-type", "application/json; charset=utf-8")
-                    .end(routingContext.user().principal().encodePrettily());
+                    .end(resp.encodePrettily());
         }
         else
         {
-            routingContext.response().setStatusCode(401).setStatusMessage("Unauthorized").end();
+            routingContext.fail(HttpResponseStatus.FORBIDDEN.code());
         }
     }
 
