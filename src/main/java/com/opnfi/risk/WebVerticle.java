@@ -1,5 +1,7 @@
 package com.opnfi.risk;
 
+import com.opnfi.risk.auth.ApiAuthHandler;
+import com.opnfi.risk.auth.ApiAuthHandlerImpl;
 import com.opnfi.risk.auth.JsonLoginHandler;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AbstractVerticle;
@@ -22,7 +24,6 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.CookieHandler;
-import io.vertx.ext.web.handler.RedirectAuthHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.handler.UserSessionHandler;
@@ -115,7 +116,7 @@ public class WebVerticle extends AbstractVerticle {
 
         LOG.info("Adding route REST API");
         router.route("/api/v1.0/*").handler(BodyHandler.create());
-        router.routeWithRegex("^/api/v1.0/(?!user/login).*$").handler(RedirectAuthHandler.create(authenticationProvider));
+        router.routeWithRegex("^/api/v1.0/(?!user/login).*$").handler(ApiAuthHandler.create(authenticationProvider));
         router.post("/api/v1.0/user/login").handler(JsonLoginHandler.create(authenticationProvider));
         router.get("/api/v1.0/user/logout").handler(this::logoutUser);
         router.get("/api/v1.0/user/status").handler(this::loginStatus);
