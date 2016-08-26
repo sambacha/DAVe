@@ -10,18 +10,29 @@ opnFiRiskControllers.controller('Login', ['$scope', '$http', '$interval', '$root
         $rootScope.authUsername = "";
         $scope.authError = null;
         $scope.refresh = null;
-        $scope.statusUrl = 'https://localhost:8080/api/v1.0/user/status';
+        $scope.statusUrl = 'https://localhost:8080/api/v1.0/user/loginStatus';
         $scope.loginUrl = 'https://localhost:8080/api/v1.0/user/login';
         $scope.logoutUrl = 'https://localhost:8080/api/v1.0/user/logout';
 
         $http.get($scope.statusUrl).success(function(data) {
-            $rootScope.authStatus = true;
-            $rootScope.authUsername = data.username;
+            if (data.username != null) {
+                $rootScope.authStatus = true;
+                $rootScope.authUsername = data.username;
 
-            if ($rootScope.authRequestedPath) {
-                path = $rootScope.authRequestedPath;
-                $rootScope.authRequestedPath = null;
-                $location.path(path);
+                if ($rootScope.authRequestedPath) {
+                    path = $rootScope.authRequestedPath;
+                    $rootScope.authRequestedPath = null;
+                    $location.path(path);
+                }
+            }
+            else {
+                $rootScope.authStatus = false;
+                $rootScope.authUsername = "";
+
+                if ($location.path() != "/login")
+                {
+                    $location.path( "/login" );
+                }
             }
         })
         .error(function(data) {
@@ -58,10 +69,11 @@ opnFiRiskControllers.controller('Login', ['$scope', '$http', '$interval', '$root
 
         $scope.refresh = $interval(function(){
             $http.get($scope.statusUrl).success(function(data) {
-                $rootScope.authStatus = true;
-                $rootScope.authUsername = data.username;
-            })
-                .error(function(data) {
+                if (data.username != null) {
+                    $rootScope.authStatus = true;
+                    $rootScope.authUsername = data.username;
+                }
+                else {
                     $rootScope.authStatus = false;
                     $rootScope.authUsername = "";
 
@@ -69,7 +81,17 @@ opnFiRiskControllers.controller('Login', ['$scope', '$http', '$interval', '$root
                     {
                         $location.path( "/login" );
                     }
-                });
+                }
+            })
+            .error(function(data) {
+                $rootScope.authStatus = false;
+                $rootScope.authUsername = "";
+
+                if ($location.path() != "/login")
+                {
+                    $location.path( "/login" );
+                }
+            });
         },60000);
 
         $scope.$on("$destroy", function() {

@@ -11,6 +11,7 @@ import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -119,7 +120,7 @@ public class WebVerticle extends AbstractVerticle {
         router.routeWithRegex("^/api/v1.0/(?!user/login).*$").handler(ApiAuthHandler.create(authenticationProvider));
         router.post("/api/v1.0/user/login").handler(JsonLoginHandler.create(authenticationProvider));
         router.get("/api/v1.0/user/logout").handler(this::logoutUser);
-        router.get("/api/v1.0/user/status").handler(this::loginStatus);
+        router.get("/api/v1.0/user/loginStatus").handler(this::loginStatus);
         router.get("/api/v1.0/latest/tss").handler(this::latestTradingSessionStatus);
         router.get("/api/v1.0/history/tss").handler(this::historyTradingSessionStatus);
         router.get("/api/v1.0/latest/mc").handler(this::latestMarginComponent);
@@ -189,7 +190,11 @@ public class WebVerticle extends AbstractVerticle {
         }
         else
         {
-            routingContext.fail(HttpResponseStatus.FORBIDDEN.code());
+            //routingContext.fail(HttpResponseStatus.FORBIDDEN.code());
+            // Return success to avoid triggering HTTP 410 from repeated calls
+            routingContext.response()
+                    .putHeader("content-type", "application/json; charset=utf-8")
+                    .end(Json.encodePrettily(new JsonObject()));
         }
     }
 
