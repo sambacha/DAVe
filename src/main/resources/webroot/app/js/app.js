@@ -89,21 +89,19 @@ opnFiRisk.config(['$routeProvider',
                 controller: 'MarginShortfallSurplusHistory'
             }).
             otherwise({
-                //redirectTo: '/marginComponentLatest'
                 redirectTo: '/marginComponentLatest'
             });
     }])
     .run( function($rootScope, $location) {
-
         // register listener to watch route changes
-        $rootScope.$on("$routeChangeStart", function(event, next, current) {
-            if ( $rootScope.authStatus == null ) {
+        $rootScope.$on("$locationChangeStart", function(event, next, current) {
+            if ($rootScope.authStatus == false) {
                 // no logged user, we should be going to #login
-                if ( next.templateUrl == "login" ) {
+                if (next.templateUrl == "login.html") {
                     // already going to #login, no redirect needed
                 } else {
                     // not going to #login, we should redirect now
-                    $location.path( "/login" );
+                    $location.path("/login");
                 }
             }
         });

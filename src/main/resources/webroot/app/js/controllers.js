@@ -15,49 +15,42 @@ opnFiRiskControllers.controller('Login', ['$scope', '$http', '$interval', '$root
         $scope.logoutUrl = 'https://localhost:8080/api/v1.0/user/logout';
 
         $http.get($scope.statusUrl).success(function(data) {
-            console.log("I'm logged in!");
             $rootScope.authStatus = true;
             $rootScope.authUsername = data.username;
         })
         .error(function(data) {
-            console.log("I'm NOT logged in!");
             $rootScope.authStatus = false;
             $rootScope.authUsername = "";
         });
 
         $scope.login = function(username, password) {
             $scope.authError = null;
-            console.log("Login called with " + username + " / " + password);
             loginData = { "username": username, "password": password };
 
             $http.post($scope.loginUrl, loginData).success(function(data) {
                 $rootScope.authStatus = true;
                 $rootScope.authUsername = username;
             }).error(function(data) {
-                $scope.authError = "Authentication failed. Is the username and paswrod correct?";
+                $scope.authError = "Authentication failed. Is the username and password correct?";
             });
         }
 
         $scope.logout = function(username, password) {
-            console.log("Logout called");
-
             $http.get($scope.logoutUrl).success(function(data) {
                 $rootScope.authStatus = false;
                 $rootScope.authUsername = "";
                 $location.path( "/login" );
             }).error(function(data) {
-                console.log("Logout failed " + data)
+                // Nothing
             });
         }
 
         $scope.refresh = $interval(function(){
             $http.get($scope.statusUrl).success(function(data) {
-                console.log("I'm logged in!");
                 $rootScope.authStatus = true;
                 $rootScope.authUsername = data.username;
             })
                 .error(function(data) {
-                    console.log("I'm NOT logged in!");
                     $rootScope.authStatus = false;
                     $rootScope.authUsername = "";
                 });
@@ -466,18 +459,24 @@ opnFiRiskControllers.controller('MarginShortfallSurplusHistory', ['$scope', '$ro
         }
     }]);
 
-opnFiRiskControllers.controller('TssCtrl', ['$scope', '$http', '$interval',
-    function($scope, $http, $interval) {
+opnFiRiskControllers.controller('TssCtrl', ['$scope', '$http', '$interval', '$rootScope',
+    function($scope, $http, $interval, $rootScope) {
         $scope.refresh = null;
+        $scope.tss = null;
         $scope.url = 'https://localhost:8080/api/v1.0/latest/tss';
-        $http.get($scope.url).success(function(data) {
-            $scope.tss = data;
-        });
+
+        if ($rootScope.authStatus == true) {
+            $http.get($scope.url).success(function (data) {
+                $scope.tss = data;
+            });
+        }
 
         $scope.refresh = $interval(function(){
-            $http.get($scope.url).success(function(data) {
-                $scope.tss = data;
-            })
+            if ($rootScope.authStatus == true) {
+                $http.get($scope.url).success(function (data) {
+                    $scope.tss = data;
+                })
+            }
         },60000);
 
         $scope.$on("$destroy", function() {
