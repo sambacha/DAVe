@@ -55,12 +55,10 @@
 
             <ul class="nav navbar-top-links navbar-right">
                 <li ng-controller="TssCtrl">
-                    <a href="#">
                         <span ng-if="tss.stat==2" class="label label-success">ERS Status: Online</span>
                         <span ng-if="tss.stat==1" class="label label-danger">ERS Status: Halted</span>
                         <span ng-if="tss.stat==3" class="label label-danger">ERS Status: Closed</span>
                         <span ng-if="tss.stat!=3 && tss.stat!=1 && tss.stat!=2" class="label label-warning">ERS Status: Unknown</span>
-                    </a>
                 </li>
                 <li class="dropdown" ng-controller="Login">
                     <a class="dropdown-toggle" data-toggle="dropdown">
