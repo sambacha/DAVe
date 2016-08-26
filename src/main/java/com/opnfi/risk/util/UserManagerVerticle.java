@@ -2,15 +2,19 @@ package com.opnfi.risk.util;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.auth.mongo.HashSaltStyle;
 import io.vertx.ext.auth.mongo.MongoAuth;
 import io.vertx.ext.mongo.MongoClient;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public class UserManagerVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(UserManagerVerticle.class);
@@ -30,7 +34,7 @@ public class UserManagerVerticle extends AbstractVerticle {
 
         connectDbFuture.compose(v -> {
             LOG.info("Connected to MongoDB");
-            Future<Void> initDbFuture = Future.future();
+            Future<CompositeFuture> initDbFuture = Future.future();
             initDb(initDbFuture.completer());
             return initDbFuture;
         }).compose(v -> {
@@ -64,11 +68,23 @@ public class UserManagerVerticle extends AbstractVerticle {
         completer.handle(Future.succeededFuture());
     }
 
-    private void initDb(Handler<AsyncResult<Void>> completer) {
+    private void initDb(Handler<AsyncResult<CompositeFuture>> completer) {
         mongo.getCollections(ar -> {
             if (ar.succeeded()) {
                 if (!ar.result().contains(UserManagerVerticle.DEFAULT_USER_COLLECTION_NAME)) {
-                    mongo.createCollection(UserManagerVerticle.DEFAULT_USER_COLLECTION_NAME, completer);
+                    List<Future> futures = new ArrayList<>();
+                    Future<Void> createCollectionFuture = Future.future();
+                    mongo.createCollection(UserManagerVerticle.DEFAULT_USER_COLLECTION_NAME, createCollectionFuture.completer());
+                    JsonArray indexes = new JsonArray();
+                    JsonObject key = new JsonObject().put("username", 1);
+                    indexes.add(new JsonObject().put("key", key).put("name", "username_index").put("unique", true));
+                    JsonObject command = new JsonObject()
+                            .put("createIndexes", UserManagerVerticle.DEFAULT_USER_COLLECTION_NAME)
+                            .put("indexes", indexes);
+                    Future<JsonObject> createIndexFuture = Future.future();
+                    mongo.runCommand("createIndexes", command, createIndexFuture.completer());
+
+                    CompositeFuture.all(futures).setHandler(completer);
                 } else {
                     completer.handle(Future.succeededFuture());
                 }
@@ -80,6 +96,24 @@ public class UserManagerVerticle extends AbstractVerticle {
     }
 
     private void executeCommand(Handler<AsyncResult<String>> completer) {
+        String command = System.getProperty("cmd", "");
+        switch (command.toLowerCase()) {
+            case "insert":
+                this.executeInsert(completer);
+                break;
+            case "delete":
+                this.executeDelete(completer);
+                break;
+            case "list":
+                this.executeList(completer);
+                break;
+            default:
+                completer.handle(Future.failedFuture("Command not provided"));
+                break;
+        }
+    }
+
+    private void executeInsert(Handler<AsyncResult<String>> completer) {
         JsonObject authProperties = new JsonObject();
         MongoAuth authProvider = MongoAuth.create(mongo, authProperties);
         authProvider.getHashStrategy().setSaltStyle(HashSaltStyle.EXTERNAL);
@@ -95,6 +129,36 @@ public class UserManagerVerticle extends AbstractVerticle {
             return;
         }
         authProvider.insertUser(userName, userPassword, Collections.emptyList(), Collections.emptyList(), completer);
+    }
+
+    private void executeDelete(Handler<AsyncResult<String>> completer) {
+        String userName = System.getProperty("userName");
+        if (userName == null || userName.isEmpty()) {
+            completer.handle(Future.failedFuture("User name not provided"));
+            return;
+        }
+        JsonObject query = new JsonObject().put("username", userName);
+        mongo.removeDocument(UserManagerVerticle.DEFAULT_USER_COLLECTION_NAME, query, ar -> {
+            if (ar.succeeded()) {
+                LOG.info("Record for user {} removed from the database", userName);
+                completer.handle(Future.succeededFuture());
+            } else {
+                completer.handle(Future.failedFuture(ar.cause()));
+            }
+        });
+    }
+
+    private void executeList(Handler<AsyncResult<String>> completer) {
+        JsonObject query = new JsonObject();
+        mongo.find(UserManagerVerticle.DEFAULT_USER_COLLECTION_NAME, query, ar -> {
+            LOG.info("Users records stored in the database:");
+            if (ar.succeeded()) {
+                ar.result().forEach(json -> System.out.println(json.encodePrettily()));
+                completer.handle(Future.succeededFuture());
+            } else {
+                completer.handle(Future.failedFuture(ar.cause()));
+            }
+        });
     }
 
     @Override
