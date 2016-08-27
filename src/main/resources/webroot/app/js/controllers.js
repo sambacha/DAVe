@@ -52,6 +52,12 @@ opnFiRiskControllers.controller('Login', ['$scope', '$http', '$interval', '$root
             $http.post($scope.loginUrl, loginData).success(function(data) {
                 $rootScope.authStatus = true;
                 $rootScope.authUsername = username;
+
+                if ($rootScope.authRequestedPath) {
+                    path = $rootScope.authRequestedPath;
+                    $rootScope.authRequestedPath = null;
+                    $location.path(path);
+                }
             }).error(function(data) {
                 $scope.authError = "Authentication failed. Is the username and password correct?";
             });

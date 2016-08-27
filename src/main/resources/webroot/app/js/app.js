@@ -105,7 +105,14 @@ opnFiRisk.config(['$routeProvider',
                     // already going to #login, no redirect needed
                 } else {
                     // not going to #login, we should redirect now
-                    $rootScope.authRequestedPath = $location.path();
+                    if ($location.path() == "")
+                    {
+                        $rootScope.authRequestedPath = "/dashboard";
+                    }
+                    else {
+                        $rootScope.authRequestedPath = $location.path();
+                    }
+
                     $location.path("/login");
                 }
             }
