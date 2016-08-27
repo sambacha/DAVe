@@ -497,6 +497,11 @@ opnFiRiskControllers.controller('MarginShortfallSurplusHistory', ['$scope', '$ro
         }
     }]);
 
+opnFiRiskControllers.controller('Dashboard', ['$scope', '$routeParams', '$http', '$interval', '$filter',
+    function($scope, $routeParams, $http, $interval, $filter) {
+
+    }]);
+
 opnFiRiskControllers.controller('TssCtrl', ['$scope', '$http', '$interval', '$rootScope',
     function($scope, $http, $interval, $rootScope) {
         $scope.refresh = null;

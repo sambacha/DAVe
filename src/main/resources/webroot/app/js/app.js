@@ -16,6 +16,10 @@ opnFiRisk.config(['$routeProvider',
                 templateUrl: 'app/view/login.html',
                 controller: 'Login'
             }).
+            when('/dashboard', {
+                templateUrl: 'app/view/dashboard.html',
+                controller: 'Dashboard'
+            }).
             when('/marginComponentLatest', {
                 templateUrl: 'app/view/marginComponentLatest.html',
                 controller: 'MarginComponentLatest'
@@ -89,7 +93,7 @@ opnFiRisk.config(['$routeProvider',
                 controller: 'MarginShortfallSurplusHistory'
             }).
             otherwise({
-                redirectTo: '/marginComponentLatest'
+                redirectTo: '/dashboard'
             });
     }])
     .run( function($rootScope, $location) {
