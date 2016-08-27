@@ -10,9 +10,9 @@ opnFiRiskControllers.controller('Login', ['$scope', '$http', '$interval', '$root
         $rootScope.authUsername = "";
         $scope.authError = null;
         $scope.refresh = null;
-        $scope.statusUrl = 'https://localhost:8080/api/v1.0/user/loginStatus';
-        $scope.loginUrl = 'https://localhost:8080/api/v1.0/user/login';
-        $scope.logoutUrl = 'https://localhost:8080/api/v1.0/user/logout';
+        $scope.statusUrl = '/api/v1.0/user/loginStatus';
+        $scope.loginUrl = '/api/v1.0/user/login';
+        $scope.logoutUrl = '/api/v1.0/user/logout';
 
         $http.get($scope.statusUrl).success(function(data) {
             if (data.username != null) {
@@ -116,7 +116,7 @@ opnFiRiskControllers.controller('MarginComponentLatest', ['$scope', '$routeParam
         if ($routeParams.account) { $scope.account = $routeParams.account } else { $scope.account = "*" }
         if ($routeParams.class) { $scope.class = $routeParams.class } else { $scope.class = "*" }
 
-        $scope.url = 'https://localhost:8080/api/v1.0/latest/mc/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class;
+        $scope.url = '/api/v1.0/latest/mc/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class;
 
         $http.get($scope.url).success(function(data) {
             $scope.processMarginComponents(data);
@@ -177,7 +177,7 @@ opnFiRiskControllers.controller('MarginComponentHistory', ['$scope', '$routePara
         $scope.class = $routeParams.class;
         $scope.ccy = $routeParams.ccy;
 
-        $scope.url = 'https://localhost:8080/api/v1.0/history/mc/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class + '/' + $scope.ccy;
+        $scope.url = '/api/v1.0/history/mc/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class + '/' + $scope.ccy;
 
         $http.get($scope.url).success(function(data) {
             $scope.error = "";
@@ -249,7 +249,7 @@ opnFiRiskControllers.controller('TotalMarginRequirementLatest', ['$scope', '$rou
         if ($routeParams.member) { $scope.member = $routeParams.member } else { $scope.member = "*" }
         if ($routeParams.account) { $scope.account = $routeParams.account } else { $scope.account = "*" }
 
-        $scope.url = 'https://localhost:8080/api/v1.0/latest/tmr/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.account;
+        $scope.url = '/api/v1.0/latest/tmr/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.account;
 
         $http.get($scope.url).success(function(data) {
             $scope.processTotalMarginRequirements(data);
@@ -311,7 +311,7 @@ opnFiRiskControllers.controller('TotalMarginRequirementHistory', ['$scope', '$ro
         $scope.account = $routeParams.account;
         $scope.ccy = $routeParams.ccy;
 
-        $scope.url = 'https://localhost:8080/api/v1.0/history/tmr/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.account + '/' + $scope.ccy;
+        $scope.url = '/api/v1.0/history/tmr/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.account + '/' + $scope.ccy;
 
         $http.get($scope.url).success(function(data) {
             $scope.error = "";
@@ -379,7 +379,7 @@ opnFiRiskControllers.controller('MarginShortfallSurplusLatest', ['$scope', '$rou
         if ($routeParams.member) { $scope.member = $routeParams.member } else { $scope.member = "*" }
         if ($routeParams.clearingCcy) { $scope.clearingCcy = $routeParams.clearingCcy } else { $scope.clearingCcy = "*" }
 
-        $scope.url = 'https://localhost:8080/api/v1.0/latest/mss/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.clearingCcy;
+        $scope.url = '/api/v1.0/latest/mss/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.clearingCcy;
 
         $http.get($scope.url).success(function(data) {
             $scope.processMarginShortfallSurplus(data);
@@ -441,7 +441,7 @@ opnFiRiskControllers.controller('MarginShortfallSurplusHistory', ['$scope', '$ro
         $scope.clearingCcy = $routeParams.clearingCcy;
         $scope.ccy = $routeParams.ccy;
 
-        $scope.url = 'https://localhost:8080/api/v1.0/history/mss/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.clearingCcy + '/' + $scope.ccy;
+        $scope.url = '/api/v1.0/history/mss/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.clearingCcy + '/' + $scope.ccy;
 
         $http.get($scope.url).success(function(data) {
             $scope.error = "";
@@ -501,7 +501,7 @@ opnFiRiskControllers.controller('TssCtrl', ['$scope', '$http', '$interval', '$ro
     function($scope, $http, $interval, $rootScope) {
         $scope.refresh = null;
         $scope.tss = null;
-        $scope.url = 'https://localhost:8080/api/v1.0/latest/tss';
+        $scope.url = '/api/v1.0/latest/tss';
 
         if ($rootScope.authStatus == true) {
             $http.get($scope.url).success(function (data) {
