@@ -9,7 +9,7 @@ The shippable artifact will be built in `target/risk-VERSION` directory.
 
 ## Configure
 
-Configuration is stored in `opnfi-risk.json file in JSON format. Configuration is split into several sections:
+Configuration is stored in `opnfi-risk.json` file in JSON format. Configuration is split into several sections:
 
 ### ERS
 
