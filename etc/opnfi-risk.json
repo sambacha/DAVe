@@ -9,6 +9,7 @@
       "origin" : "*"
     },
     "auth": {
+      "auth": true,
       "db_name": "OpnFi-Risk",
       "connection_string": "mongodb://localhost:27017",
       "salt": "OpnFiRisk"

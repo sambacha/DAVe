@@ -38,13 +38,17 @@ import java.util.List;
  */
 public class WebVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(WebVerticle.class);
+
     private static final Integer DEFAULT_HTTP_PORT = 8080;
+
     private static final Boolean DEFAULT_SSL = false;
     private static final String DEFAULT_SSL_KEYSTORE = "";
     private static final String DEFAULT_SSL_KEYSTORE_PASSWORD = "";
+
     private static final Boolean DEFAULT_CORS = false;
     private static final String DEFAULT_CORS_ORIGIN = "*";
 
+    private static final Boolean DEFAULT_AUTH_ENABLED = true;
     private static final String DEFAULT_AUTH_DB_NAME = "OpnFi-Risk";
     private static final String DEFAULT_AUTH_CONNECTION_STRING = "mongodb://localhost:27017";
     private static final String DEFAULT_SALT = "OpnFiRisk";
@@ -109,21 +113,34 @@ public class WebVerticle extends AbstractVerticle {
             router.route().handler(corsHandler);
         }
 
-        router.route().handler(CookieHandler.create());
-        router.route().handler(BodyHandler.create());
-        router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
-        AuthProvider authenticationProvider = this.createAuthenticationProvider();
-        router.route().handler(UserSessionHandler.create(authenticationProvider));
+        UserApi userApi = null;
 
-        UserApi userApi = new UserApi(authenticationProvider);
+        if (config().getJsonObject("auth", new JsonObject()).getBoolean("auth", WebVerticle.DEFAULT_AUTH_ENABLED)) {
+            LOG.info("Enabling authentication");
+
+            AuthProvider authenticationProvider = this.createAuthenticationProvider();
+
+            router.route().handler(CookieHandler.create());
+            router.route().handler(BodyHandler.create());
+            router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+            router.route().handler(UserSessionHandler.create(authenticationProvider));
+            router.routeWithRegex("^/api/v1.0/(?!user/login).*$").handler(ApiAuthHandler.create(authenticationProvider));
+
+            userApi = new UserApi(authenticationProvider);
+        }
+        else
+        {
+            userApi = new UserApi(null);
+        }
+
         TradingSessionStatusApi tssApi = new TradingSessionStatusApi(eb);
         MarginComponentApi mcApi = new MarginComponentApi(eb);
         TotalMarginRequirementApi tmrApi = new TotalMarginRequirementApi(eb);
         MarginShortfallSurplusApi mssApi = new MarginShortfallSurplusApi(eb);
 
+
         LOG.info("Adding route REST API");
         router.route("/api/v1.0/*").handler(BodyHandler.create());
-        router.routeWithRegex("^/api/v1.0/(?!user/login).*$").handler(ApiAuthHandler.create(authenticationProvider));
         router.post("/api/v1.0/user/login").handler(userApi::login);
         router.get("/api/v1.0/user/logout").handler(userApi::logout);
         router.get("/api/v1.0/user/loginStatus").handler(userApi::loginStatus);
