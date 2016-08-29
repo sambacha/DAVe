@@ -227,7 +227,7 @@ opnFiRiskControllers.controller('MarginComponentHistory', ['$scope', '$routePara
 
             for (index = 0; index < data.length; ++index) {
                 tick = {
-                    period: $filter('date')(data[index].received, "HH:mm:ss"),
+                    period: $filter('date')(data[index].received, "yyyy-MM-dd HH:mm:ss"),
                     variationMargin: data[index].variationMargin,
                     premiumMargin: data[index].premiumMargin,
                     liquiMargin: data[index].liquiMargin,
@@ -360,7 +360,7 @@ opnFiRiskControllers.controller('TotalMarginRequirementHistory', ['$scope', '$ro
 
             for (index = 0; index < data.length; ++index) {
                 tick = {
-                    period: $filter('date')(data[index].received, "HH:mm:ss"),
+                    period: $filter('date')(data[index].received, "yyyy-MM-dd HH:mm:ss"),
                     adjustedMargin: data[index].adjustedMargin,
                     unadjustedMargin: data[index].unadjustedMargin
                 };
@@ -489,7 +489,7 @@ opnFiRiskControllers.controller('MarginShortfallSurplusHistory', ['$scope', '$ro
 
             for (index = 0; index < data.length; ++index) {
                 tick = {
-                    period: $filter('date')(data[index].received, "HH:mm:ss"),
+                    period: $filter('date')(data[index].received, "yyyy-MM-dd HH:mm:ss"),
                     marginRequirement: data[index].marginRequirement,
                     securityCollateral: data[index].securityCollateral,
                     cashBalance: data[index].cashBalance,
