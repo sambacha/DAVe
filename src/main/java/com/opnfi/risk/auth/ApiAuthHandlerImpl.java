@@ -28,9 +28,11 @@ public class ApiAuthHandlerImpl extends AuthHandlerImpl {
                 // Already logged in, just authorise
                 authorise(user, context);
             } else {
+                LOG.error("Unauthorized access to url {} from {}", context.request().uri(), context.request().remoteAddress().toString());
                 context.response().setStatusCode(HttpResponseStatus.UNAUTHORIZED.code()).end();
             }
         } else {
+            LOG.error("Unauthorized access to url {} from {}", context.request().uri(), context.request().remoteAddress().toString());
             context.fail(new NullPointerException("No session - did you forget to include a SessionHandler?"));
         }
 
