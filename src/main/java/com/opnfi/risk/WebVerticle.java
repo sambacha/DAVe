@@ -1,13 +1,11 @@
 package com.opnfi.risk;
 
 import com.opnfi.risk.auth.ApiAuthHandler;
-import com.opnfi.risk.auth.JsonLoginHandler;
 import com.opnfi.risk.restapi.ers.MarginComponentApi;
 import com.opnfi.risk.restapi.ers.MarginShortfallSurplusApi;
 import com.opnfi.risk.restapi.ers.TotalMarginRequirementApi;
 import com.opnfi.risk.restapi.ers.TradingSessionStatusApi;
 import com.opnfi.risk.restapi.user.UserApi;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -15,7 +13,6 @@ import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -25,7 +22,6 @@ import io.vertx.ext.auth.mongo.HashSaltStyle;
 import io.vertx.ext.auth.mongo.MongoAuth;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.CookieHandler;
@@ -119,7 +115,7 @@ public class WebVerticle extends AbstractVerticle {
         AuthProvider authenticationProvider = this.createAuthenticationProvider();
         router.route().handler(UserSessionHandler.create(authenticationProvider));
 
-        UserApi userApi = new UserApi();
+        UserApi userApi = new UserApi(authenticationProvider);
         TradingSessionStatusApi tssApi = new TradingSessionStatusApi(eb);
         MarginComponentApi mcApi = new MarginComponentApi(eb);
         TotalMarginRequirementApi tmrApi = new TotalMarginRequirementApi(eb);
@@ -128,8 +124,8 @@ public class WebVerticle extends AbstractVerticle {
         LOG.info("Adding route REST API");
         router.route("/api/v1.0/*").handler(BodyHandler.create());
         router.routeWithRegex("^/api/v1.0/(?!user/login).*$").handler(ApiAuthHandler.create(authenticationProvider));
-        router.post("/api/v1.0/user/login").handler(JsonLoginHandler.create(authenticationProvider));
-        router.get("/api/v1.0/user/logout").handler(userApi::logoutUser);
+        router.post("/api/v1.0/user/login").handler(userApi::login);
+        router.get("/api/v1.0/user/logout").handler(userApi::logout);
         router.get("/api/v1.0/user/loginStatus").handler(userApi::loginStatus);
         router.get("/api/v1.0/latest/tss").handler(tssApi::latestTradingSessionStatus);
         router.get("/api/v1.0/history/tss").handler(tssApi::historyTradingSessionStatus);
