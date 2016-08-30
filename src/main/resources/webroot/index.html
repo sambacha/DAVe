@@ -54,7 +54,7 @@
             <!-- /.navbar-header -->
 
             <ul class="nav navbar-top-links navbar-right">
-                <li ng-controller="TssCtrl">
+                <li ng-controller="TssCtrl" ng-if="authStatus == true">
                         <span ng-if="tss.stat==2" class="label label-success">ERS Status: Online</span>
                         <span ng-if="tss.stat==1" class="label label-danger">ERS Status: Halted</span>
                         <span ng-if="tss.stat==3" class="label label-danger">ERS Status: Closed</span>
