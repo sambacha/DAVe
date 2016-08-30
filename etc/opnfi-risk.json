@@ -4,7 +4,10 @@
     "ssl": {
       "enable": true,
       "keystore": "web.keystore",
-      "keystorePassword": "123456"
+      "keystorePassword": "123456",
+      "truststore": "web.truststore",
+      "truststorePassword": "123456",
+      "requireTLSClientAuth": false
     },
     "CORS": {
       "enable" : true,

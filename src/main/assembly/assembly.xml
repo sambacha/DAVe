@@ -40,6 +40,7 @@
 	    <include>truststore</include>
         <include>cbkfr.keystore</include>
         <include>web.keystore</include>
+        <include>web.truststore</include>
       </includes>
     </fileSet>
 

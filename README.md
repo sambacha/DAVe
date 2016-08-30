@@ -58,6 +58,9 @@ The `ssl` section configures the web SSL/TLS support in the webserver.
 | `enable` | Enable HTTPS protocol | `true` |
 | `keystore` | JKS file with the private key |  |
 | `keystorePassword` | Password to the JKS file containing the private key |  |
+| `truststore` | JKS file with trusted client CAs |  |
+| `truststore` | Password to the JKS file containing the trusted certificates |  |
+| `requireTLSClientAuth` | Sets TLS client authentication as required | `false` |
 
 #### Auth
 

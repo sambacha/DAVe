@@ -10,6 +10,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.http.ClientAuth;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
@@ -42,8 +43,7 @@ public class WebVerticle extends AbstractVerticle {
     private static final Integer DEFAULT_HTTP_PORT = 8080;
 
     private static final Boolean DEFAULT_SSL = false;
-    private static final String DEFAULT_SSL_KEYSTORE = "";
-    private static final String DEFAULT_SSL_KEYSTORE_PASSWORD = "";
+    private static final Boolean DEFAULT_SSL_REQUIRE_CLIENT_AUTH = false;
 
     private static final Boolean DEFAULT_CORS = false;
     private static final String DEFAULT_CORS_ORIGIN = "*";
@@ -115,7 +115,7 @@ public class WebVerticle extends AbstractVerticle {
             router.route().handler(corsHandler);
         }
 
-        UserApi userApi = null;
+        UserApi userApi;
 
         if (config().getJsonObject("auth", new JsonObject()).getBoolean("enable", WebVerticle.DEFAULT_AUTH_ENABLED)) {
             LOG.info("Enabling authentication");
@@ -188,10 +188,26 @@ public class WebVerticle extends AbstractVerticle {
 
         HttpServerOptions httpOptions = new HttpServerOptions();
 
-        if (config().getJsonObject("ssl", new JsonObject()).getBoolean("enable", DEFAULT_SSL))
+        if (config().getJsonObject("ssl", new JsonObject()).getBoolean("enable", DEFAULT_SSL) && config().getJsonObject("ssl", new JsonObject()).getString("keystore") != null && config().getJsonObject("ssl", new JsonObject()).getString("keystorePassword") != null)
         {
             LOG.info("Enabling SSL on webserver");
-            httpOptions.setSsl(true).setKeyStoreOptions(new JksOptions().setPassword(config().getJsonObject("ssl", new JsonObject()).getString("keystorePassword", DEFAULT_SSL_KEYSTORE_PASSWORD)).setPath(config().getJsonObject("ssl", new JsonObject()).getString("keystore", DEFAULT_SSL_KEYSTORE)));
+            httpOptions.setSsl(true).setKeyStoreOptions(new JksOptions().setPassword(config().getJsonObject("ssl").getString("keystorePassword")).setPath(config().getJsonObject("ssl").getString("keystore")));
+
+            if (config().getJsonObject("ssl", new JsonObject()).getString("truststore") != null && config().getJsonObject("ssl", new JsonObject()).getString("truststorePassword") != null)
+            {
+                LOG.info("Enabling SSL Client Authentication on webserver");
+                httpOptions.setTrustStoreOptions(new JksOptions().setPassword(config().getJsonObject("ssl").getString("truststorePassword")).setPath(config().getJsonObject("ssl").getString("truststore")));
+
+                if (config().getJsonObject("ssl").getBoolean("requireTLSClientAuth", DEFAULT_SSL_REQUIRE_CLIENT_AUTH))
+                {
+                    LOG.info("Setting SSL Client Authentication as required");
+                    httpOptions.setClientAuth(ClientAuth.REQUIRED);
+                }
+                else
+                {
+                    httpOptions.setClientAuth(ClientAuth.REQUEST);
+                }
+            }
         }
 
         if (config().getBoolean("compression", DEFAULT_COMPRESSION))
