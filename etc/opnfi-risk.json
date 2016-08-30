@@ -1,15 +1,17 @@
 {
   "web": {
     "httpPort": 8080,
-    "ssl": true,
-    "keystore": "web.keystore",
-    "keystorePassword": "123456",
+    "ssl": {
+      "enable": true,
+      "keystore": "web.keystore",
+      "keystorePassword": "123456"
+    },
     "CORS": {
-      "allow" : true,
+      "enable" : true,
       "origin" : "*"
     },
     "auth": {
-      "auth": true,
+      "enable": true,
       "db_name": "OpnFi-Risk",
       "connection_string": "mongodb://localhost:27017",
       "salt": "OpnFiRisk"

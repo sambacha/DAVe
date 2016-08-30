@@ -43,12 +43,21 @@ The `web` section configures the web based UI and the REST API.
 | Option | Explanation | Example |
 |--------|-------------|---------|
 | `httpPort` | Port of the HTTP server | `8080` |
-| `ssl` | Enable HTTPS protocol |  |
-| `keystore` | JKS file with the private key |  |
-| `keystorePassword` | Password to the JKS file containing the private key |  |
+| `compression` | Enbale gzip compression of the HTTP responses | `true` |
+| `ssl` | Subsection configuring SSL/TLS on the webserver |  |
 | `CORS` | Subsection configuring Cross-origin resource sharing (see below) |  |
 | `auth` | Subsection cofngiuring authentication (see below) |  |
-| `compression` | Enbale gzip compression of the HTTP responses | `true` |
+
+
+### SSL
+
+The `ssl` section configures the web SSL/TLS support in the webserver.
+
+| Option | Explanation | Example |
+|--------|-------------|---------|
+| `enable` | Enable HTTPS protocol | `true` |
+| `keystore` | JKS file with the private key |  |
+| `keystorePassword` | Password to the JKS file containing the private key |  |
 
 #### Auth
 
@@ -56,7 +65,7 @@ The `auth` subsection configures authentication to the UI and REST interface. Th
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `auth` | Disables or enables authetication | `true` |
+| `enable` | Disables or enables authetication | `true` |
 | `db_name` | Name of the database which will be used | `OpnFi-Risk` |
 | `connection_string` | Connection URL to connect to the database | `mongodb://localhost:27017` |
 | `salt` | Salt string used in hashed passwords | `sdf8hdgss3_a` |
@@ -67,7 +76,7 @@ The `CORS` subsection configures Cross-origin resource sharing (CORS), which all
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `allow` | Enabled the CORS handler | `true` |
+| `enable` | Enabled the CORS handler | `true` |
 | `origin` | Configures the domain from which cross-origin access will be allowed | `http://mydomain.com` |
 
 ## Run

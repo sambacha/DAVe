@@ -50,7 +50,7 @@ public class WebVerticle extends AbstractVerticle {
 
     private static final Boolean DEFAULT_COMPRESSION = true;
 
-    private static final Boolean DEFAULT_AUTH_ENABLED = true;
+    private static final Boolean DEFAULT_AUTH_ENABLED = false;
     private static final String DEFAULT_AUTH_DB_NAME = "OpnFi-Risk";
     private static final String DEFAULT_AUTH_CONNECTION_STRING = "mongodb://localhost:27017";
     private static final String DEFAULT_SALT = "OpnFiRisk";
@@ -77,7 +77,7 @@ public class WebVerticle extends AbstractVerticle {
 
     private AuthProvider createAuthenticationProvider() {
         JsonObject config = new JsonObject();
-        LOG.info("Auth config: ", config().getJsonObject("auth").encodePrettily());
+        LOG.info("Auth config: {}", config().getJsonObject("auth").encodePrettily());
         config.put("db_name", config()
                 .getJsonObject("auth")
                 .getString("db_name", WebVerticle.DEFAULT_AUTH_DB_NAME));
@@ -98,7 +98,7 @@ public class WebVerticle extends AbstractVerticle {
         Future<HttpServer> webServerFuture = Future.future();
         Router router = Router.router(vertx);
 
-        if (config().getJsonObject("CORS", new JsonObject()).getBoolean("allow", WebVerticle.DEFAULT_CORS)) {
+        if (config().getJsonObject("CORS", new JsonObject()).getBoolean("enable", WebVerticle.DEFAULT_CORS)) {
             LOG.info("Enabling CORS handler");
 
             //Wildcard(*) not allowed if allowCredentials is true
@@ -117,7 +117,7 @@ public class WebVerticle extends AbstractVerticle {
 
         UserApi userApi = null;
 
-        if (config().getJsonObject("auth", new JsonObject()).getBoolean("auth", WebVerticle.DEFAULT_AUTH_ENABLED)) {
+        if (config().getJsonObject("auth", new JsonObject()).getBoolean("enable", WebVerticle.DEFAULT_AUTH_ENABLED)) {
             LOG.info("Enabling authentication");
 
             AuthProvider authenticationProvider = this.createAuthenticationProvider();
@@ -188,10 +188,10 @@ public class WebVerticle extends AbstractVerticle {
 
         HttpServerOptions httpOptions = new HttpServerOptions();
 
-        if (config().getBoolean("ssl", DEFAULT_SSL))
+        if (config().getJsonObject("ssl", new JsonObject()).getBoolean("enable", DEFAULT_SSL))
         {
             LOG.info("Enabling SSL on webserver");
-            httpOptions.setSsl(true).setKeyStoreOptions(new JksOptions().setPassword(config().getString("keystorePassword", DEFAULT_SSL_KEYSTORE_PASSWORD)).setPath(config().getString("keystore", DEFAULT_SSL_KEYSTORE)));
+            httpOptions.setSsl(true).setKeyStoreOptions(new JksOptions().setPassword(config().getJsonObject("ssl", new JsonObject()).getString("keystorePassword", DEFAULT_SSL_KEYSTORE_PASSWORD)).setPath(config().getJsonObject("ssl", new JsonObject()).getString("keystore", DEFAULT_SSL_KEYSTORE)));
         }
 
         if (config().getBoolean("compression", DEFAULT_COMPRESSION))
