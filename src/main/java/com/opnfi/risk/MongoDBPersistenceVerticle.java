@@ -2,6 +2,7 @@ package com.opnfi.risk;
 
 import com.opnfi.risk.model.MarginComponent;
 import com.opnfi.risk.model.MarginShortfallSurplus;
+import com.opnfi.risk.model.PositionReport;
 import com.opnfi.risk.model.TotalMarginRequirement;
 import com.opnfi.risk.model.TradingSessionStatus;
 import io.vertx.core.*;
@@ -87,7 +88,8 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
                         "ers.TradingSessionStatus",
                         "ers.MarginComponent",
                         "ers.TotalMarginRequirement",
-                        "ers.MarginShortfallSurplus"
+                        "ers.MarginShortfallSurplus",
+                        "ers.PositionReport"
                 ));
 
                 List<Future> futs = new ArrayList<>();
@@ -129,6 +131,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         eb.consumer("ers.MarginComponent", message -> storeMarginComponent(message));
         eb.consumer("ers.TotalMarginRequirement", message -> storeTotalMarginRequirement(message));
         eb.consumer("ers.MarginShortfallSurplus", message -> storeMarginShortfallSurplus(message));
+        eb.consumer("ers.PositionReport", message -> storePositionReport(message));
 
         // Query endpoints
         eb.consumer("query.latestTradingSessionStatus", message -> queryLatestTradingSessionStatus(message));
@@ -255,6 +258,30 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
             else
             {
                 LOG.error("Failed to store MarginShortfallSurplus into DB " + res.cause());
+            }
+        });
+    }
+
+    private void storePositionReport(Message msg)
+    {
+        LOG.trace("Storing PositionReport message with body: " + msg.body().toString());
+        PositionReport pr = Json.decodeValue(msg.body().toString(), PositionReport.class);
+
+        JsonObject jsonPr = new JsonObject((String)msg.body());
+
+        if (pr.getBizDt() != null) {
+            jsonPr.put("bizDt", new JsonObject().put("$date", timestampFormatter.format(pr.getBizDt())));
+        }
+
+        if (pr.getReceived() != null) {
+            jsonPr.put("received", new JsonObject().put("$date", timestampFormatter.format(pr.getReceived())));
+        }
+
+        mongo.insert("ers.PositionReport", jsonPr, res -> {
+            if (res.succeeded()) {
+                LOG.trace("Stored PositionReport into DB");
+            } else {
+                LOG.error("Failed to store PositionReport into DB " + res.cause());
             }
         });
     }

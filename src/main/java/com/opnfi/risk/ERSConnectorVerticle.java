@@ -2,6 +2,7 @@ package com.opnfi.risk;
 
 import com.opnfi.risk.model.procesor.MarginComponentProcesor;
 import com.opnfi.risk.model.procesor.MarginShortfallSurplusProcesor;
+import com.opnfi.risk.model.procesor.PositionReportProcessor;
 import com.opnfi.risk.model.procesor.TotalMarginRequirementProcessor;
 import com.opnfi.risk.model.procesor.TradingSessionStatusProcesor;
 import io.vertx.camel.CamelBridge;
@@ -96,11 +97,14 @@ public class ERSConnectorVerticle extends AbstractVerticle {
                             member + ".MessageType.TotalMarginRequirement.#");
                     String mssBroadcastAddress = getBroadcastAddress("eurex.tmp." + member + ".opnfi_mss_" + addressSuffix,
                             member + ".MessageType.MarginShortfallSurplus.#");
+                    String prBroadcastAddress = getBroadcastAddress("eurex.tmp." + member + ".opnfi_pr_" + addressSuffix,
+                            member + ".MessageType.Position.#");
 
                     from("amqp:" + tssBroadcastAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcesor()).to("direct:tss");
                     from("amqp:" + mcBroadcastAddress).unmarshal(ersDataModel).process(new MarginComponentProcesor()).to("direct:mc");
                     from("amqp:" + tmrBroadcastAddress).unmarshal(ersDataModel).process(new TotalMarginRequirementProcessor()).to("direct:tmr");
                     from("amqp:" + mssBroadcastAddress).unmarshal(ersDataModel).process(new MarginShortfallSurplusProcesor()).to("direct:mss");
+                    from("amqp:" + prBroadcastAddress).unmarshal(ersDataModel).process(new PositionReportProcessor()).to("direct:pr");
                 }
             });
         }
@@ -138,6 +142,7 @@ public class ERSConnectorVerticle extends AbstractVerticle {
                         .addInboundMapping(InboundMapping.fromCamel("direct:mc").toVertx("ers.MarginComponent").usePublish())
                         .addInboundMapping(InboundMapping.fromCamel("direct:tmr").toVertx("ers.TotalMarginRequirement").usePublish())
                         .addInboundMapping(InboundMapping.fromCamel("direct:mss").toVertx("ers.MarginShortfallSurplus").usePublish())
+                        .addInboundMapping(InboundMapping.fromCamel("direct:pr").toVertx("ers.PositionReport").usePublish())
         );
 
         camelBridge.start();
