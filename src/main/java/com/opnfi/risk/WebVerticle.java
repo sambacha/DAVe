@@ -48,6 +48,8 @@ public class WebVerticle extends AbstractVerticle {
     private static final Boolean DEFAULT_CORS = false;
     private static final String DEFAULT_CORS_ORIGIN = "*";
 
+    private static final Boolean DEFAULT_COMPRESSION = true;
+
     private static final Boolean DEFAULT_AUTH_ENABLED = true;
     private static final String DEFAULT_AUTH_DB_NAME = "OpnFi-Risk";
     private static final String DEFAULT_AUTH_CONNECTION_STRING = "mongodb://localhost:27017";
@@ -190,6 +192,12 @@ public class WebVerticle extends AbstractVerticle {
         {
             LOG.info("Enabling SSL on webserver");
             httpOptions.setSsl(true).setKeyStoreOptions(new JksOptions().setPassword(config().getString("keystorePassword", DEFAULT_SSL_KEYSTORE_PASSWORD)).setPath(config().getString("keystore", DEFAULT_SSL_KEYSTORE)));
+        }
+
+        if (config().getBoolean("compression", DEFAULT_COMPRESSION))
+        {
+            LOG.info("Enabling compression on webserver");
+            httpOptions.setCompressionSupported(config().getBoolean("compression", DEFAULT_COMPRESSION));
         }
 
         server = vertx.createHttpServer(httpOptions)

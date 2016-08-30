@@ -13,7 +13,8 @@
       "db_name": "OpnFi-Risk",
       "connection_string": "mongodb://localhost:27017",
       "salt": "OpnFiRisk"
-    }
+    },
+    "compression": true
   },
   "ers": {
     "brokerHost": "tcp://rgd003.xeop.de",

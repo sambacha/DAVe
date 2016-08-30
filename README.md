@@ -48,6 +48,7 @@ The `web` section configures the web based UI and the REST API.
 | `keystorePassword` | Password to the JKS file containing the private key |  |
 | `CORS` | Subsection configuring Cross-origin resource sharing (see below) |  |
 | `auth` | Subsection cofngiuring authentication (see below) |  |
+| `compression` | Enbale gzip compression of the HTTP responses | `true` |
 
 #### Auth
 
