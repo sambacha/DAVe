@@ -1,5 +1,6 @@
 package com.opnfi.risk.restapi.ers;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -34,7 +35,7 @@ public abstract class AbstractErsApi {
         return result;
     }
 
-    protected void restCall(RoutingContext routingContext, String ebAddress, String requestName) {
+    protected void sendRequestToEventBus(RoutingContext routingContext, String ebAddress, String requestName) {
         LOG.trace("Received {} request", requestName);
 
         eb.send(ebAddress, this.createParamsFromContext(routingContext), ar -> {
@@ -45,15 +46,16 @@ public abstract class AbstractErsApi {
                         .end((String)ar.result().body());
             } else {
                 LOG.error("Failed to query the DB service", ar.cause());
+                routingContext.response().setStatusCode(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).end();
             }
         });
     }
 
     public void latestCall(RoutingContext routingContext) {
-        restCall(routingContext, latestEbAddress, "latest/" + requestName);
+        sendRequestToEventBus(routingContext, latestEbAddress, "latest/" + requestName);
     }
 
     public void historyCall(RoutingContext routingContext) {
-        restCall(routingContext, historyEbAddress, "history/" + requestName);
+        sendRequestToEventBus(routingContext, historyEbAddress, "history/" + requestName);
     }
 }
