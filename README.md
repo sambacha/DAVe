@@ -72,6 +72,9 @@ The `auth` subsection configures authentication to the UI and REST interface. Th
 | `db_name` | Name of the database which will be used | `OpnFi-Risk` |
 | `connection_string` | Connection URL to connect to the database | `mongodb://localhost:27017` |
 | `salt` | Salt string used in hashed passwords | `sdf8hdgss3_a` |
+| `checkUserAgainstCertificate` | Validate username against the CN from the TLS client certificate subject. Unless the CN is equal to the username, authentication will be refused. _*)_ | `false` |
+
+_*) This feature doesn't work properly with self-signed certificates, where the holder of the certificate can easily issue and sign another certificate which would contain different CN and login._ 
 
 #### CORS
 

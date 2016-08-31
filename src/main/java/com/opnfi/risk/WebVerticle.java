@@ -53,7 +53,8 @@ public class WebVerticle extends AbstractVerticle {
     private static final Boolean DEFAULT_AUTH_ENABLED = false;
     private static final String DEFAULT_AUTH_DB_NAME = "OpnFi-Risk";
     private static final String DEFAULT_AUTH_CONNECTION_STRING = "mongodb://localhost:27017";
-    private static final String DEFAULT_SALT = "OpnFiRisk";
+    private static final String DEFAULT_AUTH_SALT = "OpnFiRisk";
+    private static final Boolean DEFAULT_AUTH_CHECK_USER_AGAINST_CERTIFICATE = false;
 
     private HttpServer server;
     private EventBus eb;
@@ -90,7 +91,7 @@ public class WebVerticle extends AbstractVerticle {
         JsonObject authProperties = new JsonObject();
         MongoAuth authProvider = MongoAuth.create(client, authProperties);
         authProvider.getHashStrategy().setSaltStyle(HashSaltStyle.EXTERNAL);
-        authProvider.getHashStrategy().setExternalSalt(config().getJsonObject("auth").getString("salt", WebVerticle.DEFAULT_SALT));
+        authProvider.getHashStrategy().setExternalSalt(config().getJsonObject("auth").getString("salt", WebVerticle.DEFAULT_AUTH_SALT));
         return authProvider;
     }
 
@@ -128,11 +129,11 @@ public class WebVerticle extends AbstractVerticle {
             router.route().handler(UserSessionHandler.create(authenticationProvider));
             router.routeWithRegex("^/api/v1.0/(?!user/login).*$").handler(ApiAuthHandler.create(authenticationProvider));
 
-            userApi = new UserApi(authenticationProvider);
+            userApi = new UserApi(authenticationProvider, config().getJsonObject("auth").getBoolean("checkUserAgainstCertificate", WebVerticle.DEFAULT_AUTH_CHECK_USER_AGAINST_CERTIFICATE));
         }
         else
         {
-            userApi = new UserApi(null);
+            userApi = new UserApi(null, false);
         }
 
         TradingSessionStatusApi tssApi = new TradingSessionStatusApi(eb);
