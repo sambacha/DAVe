@@ -36,10 +36,10 @@ public class PositionReport {
     public Date received;
 
     public String functionalKey() {
-        String putOrCallKey = (putCall != null) ? putCall.toString() : "";
+        String putCallKey = (putCall != null) ? putCall.toString() : "";
         String strikePriceKey = (this.strikePrice != null) ? this.strikePrice.toString() : "";
         String optStringKey = (this.optAttribute != null) ? this.optAttribute : "";
-        return clearer + "-" + member + "-" + account + "-" + symbol + "-" + putOrCallKey + "-" + strikePriceKey + "-" + optStringKey + "-" + maturityMonthYear;
+        return clearer + "-" + member + "-" + account + "-" + symbol + "-" + putCallKey + "-" + strikePriceKey + "-" + optStringKey + "-" + maturityMonthYear;
     }
 
     public static PositionReport parseFromFIXML(FIXML fixml) {

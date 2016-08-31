@@ -20,6 +20,46 @@ opnFiRisk.config(['$routeProvider',
                 templateUrl: 'app/view/dashboard.html',
                 controller: 'Dashboard'
             }).
+            when('/positionReportLatest', {
+                templateUrl: 'app/view/positionReportLatest.html',
+                controller: 'PositionReportLatest'
+            }).
+            when('/positionReportLatest/:clearer', {
+                templateUrl: 'app/view/positionReportLatest.html',
+                controller: 'PositionReportLatest'
+            }).
+            when('/positionReportLatest/:clearer/:member', {
+                templateUrl: 'app/view/positionReportLatest.html',
+                controller: 'PositionReportLatest'
+            }).
+            when('/positionReportLatest/:clearer/:member/:account', {
+                templateUrl: 'app/view/positionReportLatest.html',
+                controller: 'PositionReportLatest'
+            }).
+            when('/positionReportLatest/:clearer/:member/:account/:symbol', {
+                templateUrl: 'app/view/positionReportLatest.html',
+                controller: 'PositionReportLatest'
+            }).
+            when('/positionReportLatest/:clearer/:member/:account/:symbol/:putCall', {
+                templateUrl: 'app/view/positionReportLatest.html',
+                controller: 'PositionReportLatest'
+            }).
+            when('/positionReportLatest/:clearer/:member/:account/:symbol/:putCall/:strikePrice', {
+                templateUrl: 'app/view/positionReportLatest.html',
+                controller: 'PositionReportLatest'
+            }).
+            when('/positionReportLatest/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute', {
+                templateUrl: 'app/view/positionReportLatest.html',
+                controller: 'PositionReportLatest'
+            }).
+            when('/positionReportLatest/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute/:maturityMonthYear', {
+                templateUrl: 'app/view/positionReportLatest.html',
+                controller: 'PositionReportLatest'
+            }).
+            when('/positionReportHistory/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute/:maturityMonthYear', {
+                templateUrl: 'app/view/positionReportHistory.html',
+                controller: 'PositionReportHistory'
+            }).
             when('/marginComponentLatest', {
                 templateUrl: 'app/view/marginComponentLatest.html',
                 controller: 'MarginComponentLatest'
