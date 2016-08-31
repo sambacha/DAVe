@@ -107,6 +107,70 @@ opnFiRiskControllers.controller('Login', ['$scope', '$http', '$interval', '$root
         });
     }]);
 
+opnFiRiskControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$http', '$interval', '$filter',
+    function($scope, $routeParams, $http, $interval, $filter) {
+        $scope.refresh = null;
+        $scope.sorting = false;
+
+        $scope.prLatest = [];
+        $scope.existingRecords = [];
+        $scope.error = "";
+        $scope.ordering= ["member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
+
+        if ($routeParams.clearer) { $scope.clearer = $routeParams.clearer; } else { $scope.clearer = "*" }
+        if ($routeParams.member) { $scope.member = $routeParams.member; } else { $scope.member = "*" }
+        if ($routeParams.account) { $scope.account = $routeParams.account; } else { $scope.account = "*" }
+        if ($routeParams.symbol) { $scope.symbol = $routeParams.symbol; } else { $scope.symbol = "*" }
+        if ($routeParams.putCall) { $scope.putCall = $routeParams.putCall; } else { $scope.putCall = "*" }
+        if ($routeParams.strikePrice) { $scope.strikePrice = $routeParams.strikePrice; } else { $scope.strikePrice = "*" }
+        if ($routeParams.optAttribute) { $scope.optAttribute = $routeParams.optAttribute; } else { $scope.optAttribute = "*" }
+        if ($routeParams.maturityMonthYear) { $scope.maturityMonthYear = $routeParams.maturityMonthYear; } else { $scope.maturityMonthYear = "*" }
+
+        $scope.url = '/api/v1.0/latest/pr/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.symbol + '/' + $scope.putCall + '/' + $scope.strikePrice + '/' + $scope.optAttribute + "/" + $scope.maturityMonthYear;
+
+        $http.get($scope.url).success(function(data) {
+            $scope.processPositionReports(data);
+            $scope.error = "";
+        }).error(function(data, status, headers, config) {
+            $scope.error = "Server returned status " + status;
+        });
+
+        $scope.processPositionReports = function(positionReports) {
+            var index;
+
+            for (index = 0; index < positionReports.length; ++index) {
+                positionReports[index].functionalKey = positionReports[index].clearer + '-' + positionReports[index].member + '-' + positionReports[index].account + '-' + positionReports[index].symbol + '-' + positionReports[index].putCall + '-' + positionReports[index].maturityMonthYear + '-' + positionReports[index].strikePrice + '-' + positionReports[index].optAttribute + '-' + positionReports[index].maturityMonthYear;
+            }
+
+            $scope.prLatest = positionReports;
+        }
+
+        $scope.sortRecords = function(column) {
+            if ($scope.ordering[0] == column)
+            {
+                $scope.ordering = ["-" + column, "member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
+            }
+            else {
+                $scope.ordering = [column, "member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
+            }
+        };
+
+        $scope.refresh = $interval(function(){
+            $http.get($scope.url).success(function(data) {
+                $scope.processPositionReports(data);
+                $scope.error = "";
+            }).error(function(data, status, headers, config) {
+                $scope.error = "Server returned status " + status;
+            });
+        },60000);
+
+        $scope.$on("$destroy", function() {
+           if ($scope.refresh != null) {
+               $interval.cancel($scope.refresh);
+           }
+        });
+    }]);
+
 opnFiRiskControllers.controller('MarginComponentLatest', ['$scope', '$routeParams', '$http', '$interval', '$filter',
     function($scope, $routeParams, $http, $interval, $filter) {
         $scope.refresh = null;
@@ -131,14 +195,14 @@ opnFiRiskControllers.controller('MarginComponentLatest', ['$scope', '$routeParam
             $scope.error = "Server returned status " + status;
         });
 
-        $scope.processMarginComponents = function(marginComponents) {
+        $scope.processMarginComponents = function(positionReports) {
             var index;
 
-            for (index = 0; index < marginComponents.length; ++index) {
-                marginComponents[index].functionalKey = marginComponents[index].clearer + '-' + marginComponents[index].member + '-' + marginComponents[index].account + '-' + marginComponents[index].clss + '-' + marginComponents[index].ccy;
+            for (index = 0; index < positionReports.length; ++index) {
+                positionReports[index].functionalKey = positionReports[index].clearer + '-' + positionReports[index].member + '-' + positionReports[index].account + '-' + positionReports[index].clss + '-' + positionReports[index].ccy;
             }
 
-            $scope.mcLatest = marginComponents;
+            $scope.mcLatest = positionReports;
         }
 
         $scope.sortRecords = function(column) {
