@@ -26,9 +26,7 @@ public class TradingSessionStatusApi {
                 routingContext.response()
                         .putHeader("content-type", "application/json; charset=utf-8")
                         .end((String)ar.result().body());
-            }
-            else
-            {
+            } else {
                 LOG.error("Failed to query the DB service", ar.cause());
             }
         });
@@ -44,9 +42,7 @@ public class TradingSessionStatusApi {
                 routingContext.response()
                         .putHeader("content-type", "application/json; charset=utf-8")
                         .end((String)ar.result().body());
-            }
-            else
-            {
+            } else {
                 LOG.error("Failed to query the DB service", ar.cause());
             }
         });

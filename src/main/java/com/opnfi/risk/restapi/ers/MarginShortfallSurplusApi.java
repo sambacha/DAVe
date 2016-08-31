@@ -17,46 +17,42 @@ public class MarginShortfallSurplusApi {
         this.eb = eb;
     }
 
-    public void latestMarginShortfallSurplus(RoutingContext routingContext) {
-        LOG.trace("Received latest/mss request");
+    private JsonObject createParamsFromContext(RoutingContext routingContext) {
+        final JsonObject params = new JsonObject();
 
-        JsonObject params = new JsonObject();
-
-        if (routingContext.request().getParam("clearer") != null && !"*".equals(routingContext.request().getParam("clearer")))
-        {
+        if (routingContext.request().getParam("clearer") != null && !"*".equals(routingContext.request().getParam("clearer"))) {
             params.put("clearer", routingContext.request().getParam("clearer"));
         }
 
-        if (routingContext.request().getParam("pool") != null && !"*".equals(routingContext.request().getParam("pool")))
-        {
+        if (routingContext.request().getParam("pool") != null && !"*".equals(routingContext.request().getParam("pool"))) {
             params.put("pool", routingContext.request().getParam("pool"));
         }
 
-        if (routingContext.request().getParam("member") != null && !"*".equals(routingContext.request().getParam("member")))
-        {
+        if (routingContext.request().getParam("member") != null && !"*".equals(routingContext.request().getParam("member"))) {
             params.put("member", routingContext.request().getParam("member"));
         }
 
-        if (routingContext.request().getParam("clearingCcy") != null && !"*".equals(routingContext.request().getParam("clearingCcy")))
-        {
+        if (routingContext.request().getParam("clearingCcy") != null && !"*".equals(routingContext.request().getParam("clearingCcy"))) {
             params.put("clearingCcy", routingContext.request().getParam("clearingCcy"));
         }
 
-        if (routingContext.request().getParam("ccy") != null && !"*".equals(routingContext.request().getParam("ccy")))
-        {
+        if (routingContext.request().getParam("ccy") != null && !"*".equals(routingContext.request().getParam("ccy"))) {
             params.put("ccy", routingContext.request().getParam("ccy"));
         }
+        return params;
+    }
 
-        eb.send("query.latestMarginShortfallSurplus", params, ar -> {
+    public void latestMarginShortfallSurplus(RoutingContext routingContext) {
+        LOG.trace("Received latest/mss request");
+
+        eb.send("query.latestMarginShortfallSurplus", this.createParamsFromContext(routingContext), ar -> {
             if (ar.succeeded()) {
                 LOG.trace("Received response latest/mss request");
 
                 routingContext.response()
                         .putHeader("content-type", "application/json; charset=utf-8")
                         .end((String)ar.result().body());
-            }
-            else
-            {
+            } else {
                 LOG.error("Failed to query the DB service", ar.cause());
             }
         });
@@ -65,43 +61,14 @@ public class MarginShortfallSurplusApi {
     public void historyMarginShortfallSurplus(RoutingContext routingContext) {
         LOG.trace("Received history/mss request");
 
-        JsonObject params = new JsonObject();
-
-        if (routingContext.request().getParam("clearer") != null && !"*".equals(routingContext.request().getParam("clearer")))
-        {
-            params.put("clearer", routingContext.request().getParam("clearer"));
-        }
-
-        if (routingContext.request().getParam("pool") != null && !"*".equals(routingContext.request().getParam("pool")))
-        {
-            params.put("pool", routingContext.request().getParam("pool"));
-        }
-
-        if (routingContext.request().getParam("member") != null && !"*".equals(routingContext.request().getParam("member")))
-        {
-            params.put("member", routingContext.request().getParam("member"));
-        }
-
-        if (routingContext.request().getParam("clearingCcy") != null && !"*".equals(routingContext.request().getParam("clearingCcy")))
-        {
-            params.put("clearingCcy", routingContext.request().getParam("clearingCcy"));
-        }
-
-        if (routingContext.request().getParam("ccy") != null && !"*".equals(routingContext.request().getParam("ccy")))
-        {
-            params.put("ccy", routingContext.request().getParam("ccy"));
-        }
-
-        eb.send("query.historyMarginShortfallSurplus", params, ar -> {
+        eb.send("query.historyMarginShortfallSurplus", this.createParamsFromContext(routingContext), ar -> {
             if (ar.succeeded()) {
                 LOG.trace("Received response history/mss request");
 
                 routingContext.response()
                         .putHeader("content-type", "application/json; charset=utf-8")
                         .end((String)ar.result().body());
-            }
-            else
-            {
+            } else {
                 LOG.error("Failed to query the DB service", ar.cause());
             }
         });
