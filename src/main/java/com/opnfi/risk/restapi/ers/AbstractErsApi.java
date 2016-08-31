@@ -5,6 +5,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
+import java.util.List;
 
 public abstract class AbstractErsApi {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractErsApi.class);
@@ -21,7 +22,17 @@ public abstract class AbstractErsApi {
         this.requestName = requestName;
     }
 
-    protected abstract JsonObject createParamsFromContext(RoutingContext routingContext);
+    protected abstract List<String> getParameters();
+
+    protected JsonObject createParamsFromContext(RoutingContext routingContext) {
+        final JsonObject result = new JsonObject();
+        for (String parameterName : getParameters()) {
+            if (routingContext.request().getParam(parameterName) != null && !"*".equals(routingContext.request().getParam(parameterName))) {
+                result.put(parameterName, routingContext.request().getParam(parameterName));
+            }
+        }
+        return result;
+    }
 
     protected void restCall(RoutingContext routingContext, String ebAddress, String requestName) {
         LOG.trace("Received {} request", requestName);
