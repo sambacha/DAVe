@@ -132,6 +132,30 @@ opnFiRisk.config(['$routeProvider',
                 templateUrl: 'app/view/marginShortfallSurplusHistory.html',
                 controller: 'MarginShortfallSurplusHistory'
             }).
+            when('/riskLimitLatest', {
+                templateUrl: 'app/view/riskLimitLatest.html',
+                controller: 'RiskLimitLatest'
+            }).
+            when('/riskLimitLatest/:clearer', {
+                templateUrl: 'app/view/riskLimitLatest.html',
+                controller: 'RiskLimitLatest'
+            }).
+            when('/riskLimitLatest/:clearer/:member', {
+                templateUrl: 'app/view/riskLimitLatest.html',
+                controller: 'RiskLimitLatest'
+            }).
+            when('/riskLimitLatest/:clearer/:member/:maintainer', {
+                templateUrl: 'app/view/riskLimitLatest.html',
+                controller: 'RiskLimitLatest'
+            }).
+            when('/riskLimitLatest/:clearer/:member/:maintainer/:limitType', {
+                templateUrl: 'app/view/riskLimitLatest.html',
+                controller: 'RiskLimitLatest'
+            }).
+            when('/riskLimitHistory/:clearer/:member/:maintainer/:limitType', {
+                templateUrl: 'app/view/riskLimitHistory.html',
+                controller: 'RiskLimitHistory'
+            }).
             otherwise({
                 redirectTo: '/dashboard'
             });

@@ -253,7 +253,7 @@ opnFiRiskControllers.controller('MarginComponentLatest', ['$scope', '$routeParam
         $scope.refresh = null;
         $scope.sorting = false;
 
-        $scope.mcLatest = [];
+        $scope.rlLatest = [];
         $scope.existingRecords = [];
         $scope.error = "";
         $scope.ordering= ["member", "account", "clss", "ccy"];
@@ -272,14 +272,14 @@ opnFiRiskControllers.controller('MarginComponentLatest', ['$scope', '$routeParam
             $scope.error = "Server returned status " + status;
         });
 
-        $scope.processMarginComponents = function(positionReports) {
+        $scope.processMarginComponents = function(data) {
             var index;
 
-            for (index = 0; index < positionReports.length; ++index) {
-                positionReports[index].functionalKey = positionReports[index].clearer + '-' + positionReports[index].member + '-' + positionReports[index].account + '-' + positionReports[index].clss + '-' + positionReports[index].ccy;
+            for (index = 0; index < data.length; ++index) {
+                data[index].functionalKey = data[index].clearer + '-' + data[index].member + '-' + data[index].account + '-' + data[index].clss + '-' + data[index].ccy;
             }
 
-            $scope.mcLatest = positionReports;
+            $scope.rlLatest = data;
         }
 
         $scope.sortRecords = function(column) {
@@ -312,10 +312,10 @@ opnFiRiskControllers.controller('MarginComponentHistory', ['$scope', '$routePara
     function($scope, $routeParams, $http, $interval, $filter) {
         $scope.refresh = null;
 
-        $scope.mcHistory = [];
+        $scope.rlHistory = [];
         $scope.existingRecords = [];
         $scope.error = "";
-        $scope.mcChartData = [];
+        $scope.rlChartData = [];
         $scope.ordering="-received";
 
         $scope.clearer = $routeParams.clearer;
@@ -328,7 +328,7 @@ opnFiRiskControllers.controller('MarginComponentHistory', ['$scope', '$routePara
 
         $http.get($scope.url).success(function(data) {
             $scope.error = "";
-            $scope.mcHistory = data;
+            $scope.rlHistory = data;
             $scope.prepareGraphData(data);
         }).error(function(data, status, headers, config) {
             $scope.error = "Server returned status " + status;
@@ -347,7 +347,7 @@ opnFiRiskControllers.controller('MarginComponentHistory', ['$scope', '$routePara
         $scope.refresh = $interval(function(){
             $http.get($scope.url).success(function(data) {
                 $scope.error = "";
-                $scope.mcHistory = data;
+                $scope.rlHistory = data;
                 //$scope.dtInstance.DataTable.rows().add(data);
                 $scope.prepareGraphData(data);
             }).error(function(data, status, headers, config) {
@@ -362,7 +362,7 @@ opnFiRiskControllers.controller('MarginComponentHistory', ['$scope', '$routePara
         });
 
         $scope.prepareGraphData = function(data) {
-            $scope.mcChartData = []
+            $scope.rlChartData = []
 
             var index;
 
@@ -376,7 +376,7 @@ opnFiRiskControllers.controller('MarginComponentHistory', ['$scope', '$routePara
                     additionalMargin: data[index].additionalMargin
                 };
 
-                $scope.mcChartData.push(tick);
+                $scope.rlChartData.push(tick);
             }
         }
     }]);
@@ -639,6 +639,136 @@ opnFiRiskControllers.controller('MarginShortfallSurplusHistory', ['$scope', '$ro
                 };
 
                 $scope.mssChartData.push(tick);
+            }
+        }
+    }]);
+
+opnFiRiskControllers.controller('RiskLimitLatest', ['$scope', '$routeParams', '$http', '$interval', '$filter',
+    function($scope, $routeParams, $http, $interval, $filter) {
+        $scope.refresh = null;
+        $scope.sorting = false;
+
+        $scope.rlLatest = [];
+        $scope.existingRecords = [];
+        $scope.error = "";
+        $scope.ordering= ["clearer", "member", "maintainer", "limitType"];
+
+        if ($routeParams.clearer) { $scope.clearer = $routeParams.clearer } else { $scope.clearer = "*" }
+        if ($routeParams.member) { $scope.member = $routeParams.member } else { $scope.member = "*" }
+        if ($routeParams.maintainer) { $scope.maintainer = $routeParams.maintainer } else { $scope.maintainer = "*" }
+        if ($routeParams.limitType) { $scope.limitType = $routeParams.limitType } else { $scope.limitType = "*" }
+
+        $scope.url = '/api/v1.0/latest/rl/' + $scope.clearer + '/' + $scope.member + '/' + $scope.maintainer + '/' + $scope.limitType;
+
+        $http.get($scope.url).success(function(data) {
+            $scope.processRiskLimits(data);
+            $scope.error = "";
+        }).error(function(data, status, headers, config) {
+            $scope.error = "Server returned status " + status;
+        });
+
+        $scope.processRiskLimits = function(data) {
+            var index;
+
+            for (index = 0; index < data.length; ++index) {
+                data[index].functionalKey = data[index].clearer + '-' + data[index].member + '-' + data[index].maintainer + '-' + data[index].limitType;
+            }
+
+            $scope.rlLatest = data;
+        }
+
+        $scope.sortRecords = function(column) {
+            if ($scope.ordering[0] == column)
+            {
+                $scope.ordering = ["-" + column, "clearer", "member", "maintainer", "limitType"];
+            }
+            else {
+                $scope.ordering = [column, "clearer", "member", "maintainer", "limitType"];
+            }
+        };
+
+        $scope.refresh = $interval(function(){
+            $http.get($scope.url).success(function(data) {
+                $scope.processRiskLimits(data);
+                $scope.error = "";
+            }).error(function(data, status, headers, config) {
+                $scope.error = "Server returned status " + status;
+            });
+        },60000);
+
+        $scope.$on("$destroy", function() {
+            if ($scope.refresh != null) {
+                $interval.cancel($scope.refresh);
+            }
+        });
+    }]);
+
+opnFiRiskControllers.controller('RiskLimitHistory', ['$scope', '$routeParams', '$http', '$interval', '$filter',
+    function($scope, $routeParams, $http, $interval, $filter) {
+        $scope.refresh = null;
+
+        $scope.rlHistory = [];
+        $scope.existingRecords = [];
+        $scope.error = "";
+        $scope.rlChartData = [];
+        $scope.ordering="-received";
+
+        $scope.clearer = $routeParams.clearer;
+        $scope.member = $routeParams.member;
+        $scope.maintainer = $routeParams.maintainer;
+        $scope.limitType = $routeParams.limitType;
+
+        $scope.url = '/api/v1.0/history/rl/' + $scope.clearer + '/' + $scope.member + '/' + $scope.maintainer + '/' + $scope.limitType;
+
+        $http.get($scope.url).success(function(data) {
+            $scope.error = "";
+            $scope.rlHistory = data;
+            $scope.prepareGraphData(data);
+        }).error(function(data, status, headers, config) {
+            $scope.error = "Server returned status " + status;
+        });
+
+        $scope.sortRecords = function(column) {
+            if ($scope.ordering == column)
+            {
+                $scope.ordering = "-" + column;
+            }
+            else {
+                $scope.ordering = column;
+            }
+        };
+
+        $scope.refresh = $interval(function(){
+            $http.get($scope.url).success(function(data) {
+                $scope.error = "";
+                $scope.rlHistory = data;
+                $scope.prepareGraphData(data);
+            }).error(function(data, status, headers, config) {
+                $scope.error = "Server returned status " + status;
+            });
+        },60000);
+
+        $scope.$on("$destroy", function() {
+            if ($scope.refresh != null) {
+                $interval.cancel($scope.refresh);
+            }
+        });
+
+        $scope.prepareGraphData = function(data) {
+            $scope.rlChartData = []
+
+            var index;
+
+            for (index = 0; index < data.length; ++index) {
+                tick = {
+                    period: $filter('date')(data[index].received, "yyyy-MM-dd HH:mm:ss"),
+                    utilization: data[index].utilization,
+                    warningLevel: data[index].warningLevel,
+                    throttleLevel: data[index].throttleLevel,
+                    rejectLevel: data[index].rejectLevel
+                };
+
+                $scope.rlChartData.push(tick);
             }
         }
     }]);

@@ -1,0 +1,67 @@
+<div class="row">
+    <div class="col-lg-12">
+        <h1 class="page-header">Risk Limits</h1>
+    </div>
+    <!-- /.col-lg-12 -->
+</div>
+<!-- /.row -->
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <a href="#/riskLimitLatest">Risk Limits</a><span ng-if="clearer != '*'">: <a href="#/riskLimitLatest/{{clearer}}">{{clearer}}</a></span><span ng-if="member != '*'"> / <a href="#/riskLimitLatest/{{clearer}}/{{member}}">{{member}}</a></span><span ng-if="maintainer != '*'"> / <a href="#/riskLimitsLatest/{{clearer}}/{{member}}/{{maintainer}}">{{maintainer}}</a></span><span ng-if="limitType != '*'"> / <a href="#/riskLimitLatest/{{clearer}}/{{member}}/{{maintainer}}/{{limitType}}">{{limitType}}</a></span>
+
+                <div class="pull-right">
+                    <form class="pull-right" role="search" style="margin-top: -4px">
+                        <div class="form-group-sm">
+                            <input type="text" class="form-control input-sm" placeholder="Search" ng-model="recordQuery">
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="panel-body" ng-if="rlLatest.length == 0">
+                <div class="alert alert-info" role="alert">No data available.</div>
+            </div>
+
+            <div class="panel-body" ng-if="error != ''">
+                <div class="alert alert-danger" role="alert">Failed to update the data: {{error}}.</div>
+            </div>
+
+            <!-- /.panel-heading -->
+            <div class="panel-body" ng-if="rlLatest.length > 0">
+                <table class="table table-striped table-bordered table-hover">
+                    <thead>
+                    <tr>
+                        <th>Mmb <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('member')"></span></th>
+                        <th>Mntnr <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('maintainer')"></span></th>
+                        <th>Typ <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('limitType')"></span></th>
+                        <th>Util <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('utilization')"></span></th>
+                        <th>Warning <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('warningLevel')"></span></th>
+                        <th>Throttle <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('throttleLevel')"></span></th>
+                        <th>Stop <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('rejectLevel')"></span></th>
+                        <th>Last upd. <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('received')"></span></th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="rl in rlLatest | spacedFilter:recordQuery | orderBy:ordering track by rl.functionalKey" row-highlighter="rl.functionalKey">
+                        <td highlighter="rl.member"><a href="#/riskLimitLatest/{{rl.clearer}}/{{rl.member}}">{{rl.member}}</a></td>
+                        <td highlighter="rl.maintainer"><a href="#/riskLimitLatest/{{clearer}}/{{member}}/{{rl.maintainer}}">{{rl.maintainer}}</a></td>
+                        <td highlighter="rl.limitType"><a href="#/riskLimitLatest/{{clearer}}/{{member}}/{{maintainer}}/{{rl.limitType}}">{{rl.limitType}}</a></td>
+                        <td highlighter="rl.utilization">{{rl.utilization | number:2}}</td>
+                        <td highlighter="rl.warningLevel">{{rl.warningLevel | number:2}}</td>
+                        <td highlighter="rl.throttleLevel">{{rl.throttleLevel | number:2}}</td>
+                        <td highlighter="rl.rejectLevel">{{rl.rejectLevel | number:2}}</td>
+                        <td highlighter="rl.received">{{rl.received | date:'HH:mm:ss.sss'}}</td>
+                        <td><a href="#/riskLimitHistory/{{rl.clearer}}/{{rl.member}}/{{rl.maintainer}}/{{rl.limitType}}"><span class="fa fa-bar-chart-o" aria-hidden="true" title="Detail"></span></a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.panel-body -->
+        </div>
+        <!-- /.panel -->
+    </div>
+    <!-- /.col-lg-12 -->
+</div>
