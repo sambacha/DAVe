@@ -66,7 +66,7 @@
                         <td highlighter="pr.allocationTradeQty">{{pr.allocationTradeQty | number:2}}</td>
                         <td highlighter="pr.deliveryNoticeQty">{{pr.deliveryNoticeQty | number:2}}</td>
                         <td highlighter="pr.received">{{pr.received | date:'HH:mm:ss.sss'}}</td>
-                        <td><a href="#/positionReportHistory/{{clearer}}/{{member}}/{{account}}/{{symbol}}/{{putCall}}/{{strikePrice}}/{{optAttribute}}/{{maturityMonthYear}}"><span class="fa fa-bar-chart-o" aria-hidden="true" title="Detail"></span></a></td>
+                        <td><a href="#/positionReportHistory/{{pr.clearer}}/{{pr.member}}/{{pr.account}}/{{pr.symbol}}/{{pr.putCall}}/{{pr.strikePrice}}/{{pr.optAttribute}}/{{pr.maturityMonthYear}}"><span class="fa fa-bar-chart-o" aria-hidden="true" title="Detail"></span></a></td>
                     </tr>
                     </tbody>
                 </table>

@@ -23,9 +23,9 @@ public class PositionReport {
     public String lastReportRequested;
     public String settlSesId;
     public String symbol;
-    public BigInteger putCall;
+    public String putCall;
     public String maturityMonthYear;
-    public BigDecimal strikePrice;
+    public String strikePrice;
     public String optAttribute;
     public BigDecimal crossMarginLongQty;
     public BigDecimal crossMarginShortQty;
@@ -36,8 +36,8 @@ public class PositionReport {
     public Date received;
 
     public String functionalKey() {
-        String putCallKey = (putCall != null) ? putCall.toString() : "";
-        String strikePriceKey = (this.strikePrice != null) ? this.strikePrice.toString() : "";
+        String putCallKey = (putCall != null) ? putCall : "";
+        String strikePriceKey = (this.strikePrice != null) ? this.strikePrice : "";
         String optStringKey = (this.optAttribute != null) ? this.optAttribute : "";
         return clearer + "-" + member + "-" + account + "-" + symbol + "-" + putCallKey + "-" + strikePriceKey + "-" + optStringKey + "-" + maturityMonthYear;
     }
@@ -68,10 +68,18 @@ public class PositionReport {
             }
         }
         InstrumentBlockT instrument = prMessage.getInstrmt();
-        pr.symbol = instrument.getSym();
-        pr.putCall = instrument.getPutCall();
+        pr.symbol = instrument.getSym().trim();
+        if (instrument.getPutCall() != null) {
+            if (instrument.getPutCall().equals(BigInteger.ZERO)) {
+                pr.putCall = "P";
+            } else if (instrument.getPutCall().equals(BigInteger.ONE)) {
+                pr.putCall = "C";
+            }
+        }
         pr.maturityMonthYear = instrument.getMMY();
-        pr.strikePrice = instrument.getStrkPx();
+        if (instrument.getStrkPx() != null) {
+            pr.strikePrice = instrument.getStrkPx().toString();
+        }
         pr.optAttribute = instrument.getOptAt();
 
         prMessage.getQty().forEach(positionQty -> {
@@ -97,7 +105,7 @@ public class PositionReport {
         return pr;
     }
 
-    public PositionReport(Long id, String clearer, String member, String account, String reqId, String rptId, Date bizDt, String lastReportRequested, String settlSesId, String symbol, BigInteger putCall, String maturityMonthYear, BigDecimal strikePrice, String optAttribute, BigDecimal crossMarginLongQty, BigDecimal crossMarginShortQty, BigDecimal optionExcerciseQty, BigDecimal optionAssignmentQty, BigDecimal allocationTradeQty, BigDecimal deliveryNoticeQty, Date received) {
+    public PositionReport(Long id, String clearer, String member, String account, String reqId, String rptId, Date bizDt, String lastReportRequested, String settlSesId, String symbol, String putCall, String maturityMonthYear, String strikePrice, String optAttribute, BigDecimal crossMarginLongQty, BigDecimal crossMarginShortQty, BigDecimal optionExcerciseQty, BigDecimal optionAssignmentQty, BigDecimal allocationTradeQty, BigDecimal deliveryNoticeQty, Date received) {
         this.id = id;
         this.clearer = clearer;
         this.member = member;
@@ -224,12 +232,12 @@ public class PositionReport {
         this.symbol = symbol;
     }
 
-    public BigInteger getPutCall()
+    public String getPutCall()
     {
         return putCall;
     }
 
-    public void setPutCall(BigInteger putCall)
+    public void setPutCall(String putCall)
     {
         this.putCall = putCall;
     }
@@ -244,12 +252,12 @@ public class PositionReport {
         this.maturityMonthYear = maturityMonthYear;
     }
 
-    public BigDecimal getStrikePrice()
+    public String getStrikePrice()
     {
         return strikePrice;
     }
 
-    public void setStrikePrice(BigDecimal strikePrice)
+    public void setStrikePrice(String strikePrice)
     {
         this.strikePrice = strikePrice;
     }

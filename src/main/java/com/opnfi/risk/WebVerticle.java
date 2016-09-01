@@ -137,70 +137,17 @@ public class WebVerticle extends AbstractVerticle {
             userApi = new UserApi(null, false);
         }
 
-        TradingSessionStatusApi tssApi = new TradingSessionStatusApi(eb);
-        MarginComponentApi mcApi = new MarginComponentApi(eb);
-        TotalMarginRequirementApi tmrApi = new TotalMarginRequirementApi(eb);
-        MarginShortfallSurplusApi mssApi = new MarginShortfallSurplusApi(eb);
-        PositionReportApi prApi = new PositionReportApi(eb);
-
         LOG.info("Adding route REST API");
         router.route("/api/v1.0/*").handler(BodyHandler.create());
         router.post("/api/v1.0/user/login").handler(userApi::login);
         router.get("/api/v1.0/user/logout").handler(userApi::logout);
         router.get("/api/v1.0/user/loginStatus").handler(userApi::loginStatus);
-        router.get("/api/v1.0/latest/tss").handler(tssApi::latestCall);
-        router.get("/api/v1.0/history/tss").handler(tssApi::historyCall);
-        router.get("/api/v1.0/latest/mc").handler(mcApi::latestCall);
-        router.get("/api/v1.0/latest/mc/:clearer").handler(mcApi::latestCall);
-        router.get("/api/v1.0/latest/mc/:clearer/:member").handler(mcApi::latestCall);
-        router.get("/api/v1.0/latest/mc/:clearer/:member/:account").handler(mcApi::latestCall);
-        router.get("/api/v1.0/latest/mc/:clearer/:member/:account/:clss").handler(mcApi::latestCall);
-        router.get("/api/v1.0/latest/mc/:clearer/:member/:account/:clss/:ccy").handler(mcApi::latestCall);
-        router.get("/api/v1.0/history/mc/:clearer").handler(mcApi::historyCall);
-        router.get("/api/v1.0/history/mc/:clearer/:member").handler(mcApi::historyCall);
-        router.get("/api/v1.0/history/mc/:clearer/:member/:account").handler(mcApi::historyCall);
-        router.get("/api/v1.0/history/mc/:clearer/:member/:account/:clss").handler(mcApi::historyCall);
-        router.get("/api/v1.0/history/mc/:clearer/:member/:account/:clss/:ccy").handler(mcApi::historyCall);
-        router.get("/api/v1.0/latest/tmr").handler(tmrApi::latestCall);
-        router.get("/api/v1.0/latest/tmr/:clearer").handler(tmrApi::latestCall);
-        router.get("/api/v1.0/latest/tmr/:clearer/:pool").handler(tmrApi::latestCall);
-        router.get("/api/v1.0/latest/tmr/:clearer/:pool/:member").handler(tmrApi::latestCall);
-        router.get("/api/v1.0/latest/tmr/:clearer/:pool/:member/:account").handler(tmrApi::latestCall);
-        router.get("/api/v1.0/latest/tmr/:clearer/:pool/:member/:account/:ccy").handler(tmrApi::latestCall);
-        router.get("/api/v1.0/history/tmr/:clearer").handler(tmrApi::historyCall);
-        router.get("/api/v1.0/history/tmr/:clearer/:pool").handler(tmrApi::historyCall);
-        router.get("/api/v1.0/history/tmr/:clearer/:pool/:member").handler(tmrApi::historyCall);
-        router.get("/api/v1.0/history/tmr/:clearer/:pool/:member/:account").handler(tmrApi::historyCall);
-        router.get("/api/v1.0/history/tmr/:clearer/:pool/:member/:account/:ccy").handler(tmrApi::historyCall);
-        router.get("/api/v1.0/latest/mss").handler(mssApi::latestCall);
-        router.get("/api/v1.0/latest/mss/:clearer").handler(mssApi::latestCall);
-        router.get("/api/v1.0/latest/mss/:clearer/:pool").handler(mssApi::latestCall);
-        router.get("/api/v1.0/latest/mss/:clearer/:pool/:member").handler(mssApi::latestCall);
-        router.get("/api/v1.0/latest/mss/:clearer/:pool/:member/:clearingCcy").handler(mssApi::latestCall);
-        router.get("/api/v1.0/latest/mss/:clearer/:pool/:member/:clearingCcy/:ccy").handler(mssApi::latestCall);
-        router.get("/api/v1.0/history/mss/:clearer").handler(mssApi::historyCall);
-        router.get("/api/v1.0/history/mss/:clearer/:pool").handler(mssApi::historyCall);
-        router.get("/api/v1.0/history/mss/:clearer/:pool/:member").handler(mssApi::historyCall);
-        router.get("/api/v1.0/history/mss/:clearer/:pool/:member/:clearingCcy").handler(mssApi::historyCall);
-        router.get("/api/v1.0/history/mss/:clearer/:pool/:member/:clearingCcy/:ccy").handler(mssApi::historyCall);
-        router.get("/api/v1.0/latest/pr").handler(prApi::latestCall);
-        router.get("/api/v1.0/latest/pr/:clearer").handler(prApi::latestCall);
-        router.get("/api/v1.0/latest/pr/:clearer/:member").handler(prApi::latestCall);
-        router.get("/api/v1.0/latest/pr/:clearer/:member/:account").handler(prApi::latestCall);
-        router.get("/api/v1.0/latest/pr/:clearer/:member/:account/:symbol").handler(prApi::latestCall);
-        router.get("/api/v1.0/latest/pr/:clearer/:member/:account/:symbol/:putCall").handler(prApi::latestCall);
-        router.get("/api/v1.0/latest/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice").handler(prApi::latestCall);
-        router.get("/api/v1.0/latest/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute").handler(prApi::latestCall);
-        router.get("/api/v1.0/latest/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute/:maturityMonthYear").handler(prApi::latestCall);
-        router.get("/api/v1.0/history/pr").handler(prApi::historyCall);
-        router.get("/api/v1.0/history/pr/:clearer").handler(prApi::historyCall);
-        router.get("/api/v1.0/history/pr/:clearer/:member").handler(prApi::historyCall);
-        router.get("/api/v1.0/history/pr/:clearer/:member/:account").handler(prApi::historyCall);
-        router.get("/api/v1.0/history/pr/:clearer/:member/:account/:symbol").handler(prApi::historyCall);
-        router.get("/api/v1.0/history/pr/:clearer/:member/:account/:symbol/:putCall").handler(prApi::historyCall);
-        router.get("/api/v1.0/history/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice").handler(prApi::historyCall);
-        router.get("/api/v1.0/history/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute").handler(prApi::historyCall);
-        router.get("/api/v1.0/history/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute/:maturityMonthYear").handler(prApi::historyCall);
+
+        router.mountSubRouter("/api/v1.0", this.createTssSubRoutes());
+        router.mountSubRouter("/api/v1.0", this.createMcSubRoutes());
+        router.mountSubRouter("/api/v1.0", this.createTmrSubRoutes());
+        router.mountSubRouter("/api/v1.0", this.createMssSubRoutes());
+        router.mountSubRouter("/api/v1.0", this.createPrSubRoutes());
 
         router.route("/*").handler(StaticHandler.create("webroot"));
 
@@ -240,6 +187,92 @@ public class WebVerticle extends AbstractVerticle {
                 .requestHandler(router::accept)
                 .listen(config().getInteger("httpPort", WebVerticle.DEFAULT_HTTP_PORT), webServerFuture.completer());
         return webServerFuture;
+    }
+
+    private Router createTssSubRoutes() {
+        Router router = Router.router(vertx);
+        TradingSessionStatusApi tssApi = new TradingSessionStatusApi(eb);
+        router.get("/latest/tss").handler(tssApi::latestCall);
+        router.get("/history/tss").handler(tssApi::historyCall);
+        return router;
+    }
+
+    private Router createMcSubRoutes() {
+        Router router = Router.router(vertx);
+        MarginComponentApi mcApi = new MarginComponentApi(eb);
+        router.get("/latest/mc").handler(mcApi::latestCall);
+        router.get("/latest/mc/:clearer").handler(mcApi::latestCall);
+        router.get("/latest/mc/:clearer/:member").handler(mcApi::latestCall);
+        router.get("/latest/mc/:clearer/:member/:account").handler(mcApi::latestCall);
+        router.get("/latest/mc/:clearer/:member/:account/:clss").handler(mcApi::latestCall);
+        router.get("/latest/mc/:clearer/:member/:account/:clss/:ccy").handler(mcApi::latestCall);
+        router.get("/history/mc").handler(mcApi::historyCall);
+        router.get("/history/mc/:clearer").handler(mcApi::historyCall);
+        router.get("/history/mc/:clearer/:member").handler(mcApi::historyCall);
+        router.get("/history/mc/:clearer/:member/:account").handler(mcApi::historyCall);
+        router.get("/history/mc/:clearer/:member/:account/:clss").handler(mcApi::historyCall);
+        router.get("/history/mc/:clearer/:member/:account/:clss/:ccy").handler(mcApi::historyCall);
+        return router;
+    }
+
+    private Router createTmrSubRoutes() {
+        Router router = Router.router(vertx);
+        TotalMarginRequirementApi tmrApi = new TotalMarginRequirementApi(eb);
+        router.get("/latest/tmr").handler(tmrApi::latestCall);
+        router.get("/latest/tmr/:clearer").handler(tmrApi::latestCall);
+        router.get("/latest/tmr/:clearer/:pool").handler(tmrApi::latestCall);
+        router.get("/latest/tmr/:clearer/:pool/:member").handler(tmrApi::latestCall);
+        router.get("/latest/tmr/:clearer/:pool/:member/:account").handler(tmrApi::latestCall);
+        router.get("/latest/tmr/:clearer/:pool/:member/:account/:ccy").handler(tmrApi::latestCall);
+        router.get("/history/tmr").handler(tmrApi::historyCall);
+        router.get("/history/tmr/:clearer").handler(tmrApi::historyCall);
+        router.get("/history/tmr/:clearer/:pool").handler(tmrApi::historyCall);
+        router.get("/history/tmr/:clearer/:pool/:member").handler(tmrApi::historyCall);
+        router.get("/history/tmr/:clearer/:pool/:member/:account").handler(tmrApi::historyCall);
+        router.get("/history/tmr/:clearer/:pool/:member/:account/:ccy").handler(tmrApi::historyCall);
+        return router;
+    }
+
+    private Router createMssSubRoutes() {
+        Router router = Router.router(vertx);
+        MarginShortfallSurplusApi mssApi = new MarginShortfallSurplusApi(eb);
+        router.get("/latest/mss").handler(mssApi::latestCall);
+        router.get("/latest/mss/:clearer").handler(mssApi::latestCall);
+        router.get("/latest/mss/:clearer/:pool").handler(mssApi::latestCall);
+        router.get("/latest/mss/:clearer/:pool/:member").handler(mssApi::latestCall);
+        router.get("/latest/mss/:clearer/:pool/:member/:clearingCcy").handler(mssApi::latestCall);
+        router.get("/latest/mss/:clearer/:pool/:member/:clearingCcy/:ccy").handler(mssApi::latestCall);
+        router.get("/history/mss").handler(mssApi::historyCall);
+        router.get("/history/mss/:clearer").handler(mssApi::historyCall);
+        router.get("/history/mss/:clearer/:pool").handler(mssApi::historyCall);
+        router.get("/history/mss/:clearer/:pool/:member").handler(mssApi::historyCall);
+        router.get("/history/mss/:clearer/:pool/:member/:clearingCcy").handler(mssApi::historyCall);
+        router.get("/history/mss/:clearer/:pool/:member/:clearingCcy/:ccy").handler(mssApi::historyCall);
+        return router;
+    }
+
+    private Router createPrSubRoutes() {
+        Router router = Router.router(vertx);
+        PositionReportApi prApi = new PositionReportApi(eb);
+        router.get("/latest/pr").handler(prApi::latestCall);
+        router.get("/latest/pr/:clearer").handler(prApi::latestCall);
+        router.get("/latest/pr/:clearer/:member").handler(prApi::latestCall);
+        router.get("/latest/pr/:clearer/:member/:account").handler(prApi::latestCall);
+        router.get("/latest/pr/:clearer/:member/:account/:symbol").handler(prApi::latestCall);
+        router.get("/latest/pr/:clearer/:member/:account/:symbol/:putCall").handler(prApi::latestCall);
+        router.get("/latest/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice").handler(prApi::latestCall);
+        router.get("/latest/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute").handler(prApi::latestCall);
+        router.get("/latest/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute/:maturityMonthYear").handler(prApi::latestCall);
+        router.get("/history/pr").handler(prApi::historyCall);
+        router.get("/history/pr/:clearer").handler(prApi::historyCall);
+        router.get("/history/pr/:clearer/:member").handler(prApi::historyCall);
+        router.get("/history/pr/:clearer/:member/:account").handler(prApi::historyCall);
+        router.get("/history/pr/:clearer/:member/:account/:symbol").handler(prApi::historyCall);
+        router.get("/history/pr/:clearer/:member/:account/:symbol/:putCall").handler(prApi::historyCall);
+        router.get("/history/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice").handler(prApi::historyCall);
+        router.get("/history/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute").handler(prApi::historyCall);
+        router.get("/history/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute/:maturityMonthYear").handler(prApi::historyCall);
+        return router;
     }
 
     @Override
