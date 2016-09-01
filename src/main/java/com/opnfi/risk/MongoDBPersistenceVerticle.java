@@ -1,10 +1,6 @@
 package com.opnfi.risk;
 
-import com.opnfi.risk.model.MarginComponent;
-import com.opnfi.risk.model.MarginShortfallSurplus;
-import com.opnfi.risk.model.PositionReport;
-import com.opnfi.risk.model.TotalMarginRequirement;
-import com.opnfi.risk.model.TradingSessionStatus;
+import com.opnfi.risk.model.*;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
@@ -89,7 +85,8 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
                         "ers.MarginComponent",
                         "ers.TotalMarginRequirement",
                         "ers.MarginShortfallSurplus",
-                        "ers.PositionReport"
+                        "ers.PositionReport",
+                        "ers.RiskLimit"
                 ));
 
                 List<Future> futs = new ArrayList<>();
@@ -132,6 +129,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         eb.consumer("ers.TotalMarginRequirement", message -> storeTotalMarginRequirement(message));
         eb.consumer("ers.MarginShortfallSurplus", message -> storeMarginShortfallSurplus(message));
         eb.consumer("ers.PositionReport", message -> storePositionReport(message));
+        eb.consumer("ers.RiskLimit", message -> storeRiskLimit(message));
 
         // Query endpoints
         eb.consumer("query.latestTradingSessionStatus", message -> queryLatestTradingSessionStatus(message));
@@ -286,6 +284,56 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
                 LOG.error("Failed to store PositionReport into DB " + res.cause());
             }
         });
+    }
+
+    private void storeRiskLimit(Message msg)
+    {
+        LOG.trace("Storing RL message with body: " + msg.body().toString());
+
+        List<Future> storeTasks = new ArrayList<>();
+        JsonArray jsonMsg = new JsonArray((String)msg.body());
+
+        for (int i = 0; i < jsonMsg.size(); i++)
+        {
+            Future storeTask = Future.future();
+            storeTasks.add(storeTask);
+
+            JsonObject jsonRl = jsonMsg.getJsonObject(i);
+            RiskLimit rl = Json.decodeValue(jsonRl.encodePrettily(), RiskLimit.class);
+
+            if (rl.getTxnTm() != null) {
+                jsonRl.put("txnTm", new JsonObject().put("$date", timestampFormatter.format(rl.getTxnTm())));
+            }
+
+            if (rl.getReceived() != null) {
+                jsonRl.put("received", new JsonObject().put("$date", timestampFormatter.format(rl.getReceived())));
+            }
+
+            mongo.insert("ers.RiskLimit", jsonRl, res -> {
+                if (res.succeeded())
+                {
+                    LOG.trace("Stored RiskLimit into DB {}", jsonRl);
+                    storeTask.complete();
+                }
+                else
+                {
+                    LOG.error("Failed to store RiskLimit {} into DB", res.cause(), jsonRl);
+                    storeTask.fail(res.cause());
+                }
+            });
+        }
+
+        CompositeFuture.all(storeTasks).setHandler(ar -> {
+            if (ar.succeeded())
+            {
+                LOG.trace("Complete RiskLimit message stored in DB");
+            }
+            else
+            {
+                LOG.trace("Failed to store complete RiskLimit message into DB");
+            }
+        });
+
     }
 
     private void queryLatestTradingSessionStatus(Message msg)
