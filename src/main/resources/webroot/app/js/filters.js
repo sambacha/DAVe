@@ -34,3 +34,12 @@ opnFiRiskFilters.filter('spacedFilter', function() {
         }
     };
 });
+
+opnFiRiskFilters.filter('nullHandler', function() {
+    return function(item, subst) {
+        subst = subst || "null";
+        item = item || subst;
+
+        return item;
+    };
+});

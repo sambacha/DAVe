@@ -55,10 +55,10 @@
                         <td highlighter="pr.member"><a href="#/positionReportLatest/{{pr.clearer}}/{{pr.member}}">{{pr.member}}</a></td>
                         <td highlighter="pr.account"><a href="#/positionReportLatest/{{pr.clearer}}/{{pr.member}}/{{pr.account}}">{{pr.account}}</a></td>
                         <td highlighter="pr.symbol"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.symbol}}">{{pr.symbol}}</a></td>
-                        <td highlighter="pr.putCall"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.symbol}}/{{pr.putCall}}">{{pr.putCall}}</a></td>
-                        <td highlighter="pr.strikePrice"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.symbol}}/{{pr.putCall}}/{{pr.strikePrice}}">{{pr.strikePrice}}</a></td>
-                        <td highlighter="pr.optAttribute"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.symbol}}/{{pr.putCall}}/{{pr.strikePrice}}/{{pr.optAttribute}}">{{pr.optAttribute}}</a></td>
-                        <td highlighter="pr.maturityMonthYear"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.symbol}}/{{pr.putCall}}/{{pr.strikePrice}}/{{pr.optAttribute}}/{{pr.maturityMonthYear}}">{{pr.maturityMonthYear}}</a></td>
+                        <td highlighter="pr.putCall"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.symbol}}/{{pr.putCall | nullHandler:'*'}}">{{pr.putCall}}</a></td>
+                        <td highlighter="pr.strikePrice"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.symbol}}/{{pr.putCall | nullHandler:'*'}}/{{pr.strikePrice | nullHandler:'*'}}">{{pr.strikePrice}}</a></td>
+                        <td highlighter="pr.optAttribute"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.symbol}}/{{pr.putCall | nullHandler:'*'}}/{{pr.strikePrice | nullHandler:'*'}}/{{pr.optAttribute | nullHandler:'*'}}">{{pr.optAttribute}}</a></td>
+                        <td highlighter="pr.maturityMonthYear"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.symbol}}/{{pr.putCall | nullHandler:'*'}}/{{pr.strikePrice | nullHandler:'*'}}/{{pr.optAttribute | nullHandler:'*'}}/{{pr.maturityMonthYear}}">{{pr.maturityMonthYear}}</a></td>
                         <td highlighter="pr.crossMarginLongQty">{{pr.crossMarginLongQty | number:2}}</td>
                         <td highlighter="pr.crossMarginShortQty">{{pr.crossMarginShortQty | number:2}}</td>
                         <td highlighter="pr.optionExcerciseQty">{{pr.optionExcerciseQty | number:2}}</td>
@@ -66,7 +66,7 @@
                         <td highlighter="pr.allocationTradeQty">{{pr.allocationTradeQty | number:2}}</td>
                         <td highlighter="pr.deliveryNoticeQty">{{pr.deliveryNoticeQty | number:2}}</td>
                         <td highlighter="pr.received">{{pr.received | date:'HH:mm:ss.sss'}}</td>
-                        <td><a href="#/positionReportHistory/{{pr.clearer}}/{{pr.member}}/{{pr.account}}/{{pr.symbol}}/{{pr.putCall}}/{{pr.strikePrice}}/{{pr.optAttribute}}/{{pr.maturityMonthYear}}"><span class="fa fa-bar-chart-o" aria-hidden="true" title="Detail"></span></a></td>
+                        <td><a href="#/positionReportHistory/{{pr.clearer}}/{{pr.member}}/{{pr.account}}/{{pr.symbol}}/{{pr.putCall | nullHandler:'*'}}/{{pr.strikePrice | nullHandler:'*'}}/{{pr.optAttribute | nullHandler:'*'}}/{{pr.maturityMonthYear}}"><span class="fa fa-bar-chart-o" aria-hidden="true" title="Detail"></span></a></td>
                     </tr>
                     </tbody>
                 </table>
