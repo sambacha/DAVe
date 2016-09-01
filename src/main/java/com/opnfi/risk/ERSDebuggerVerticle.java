@@ -35,6 +35,10 @@ public class ERSDebuggerVerticle extends AbstractVerticle {
             LOG.trace("Received TMR message with body: " + message.body().toString());
         });
 
+        eb.consumer("ers.PositionReport", message -> {
+            LOG.trace("Received PR message with body: " + message.body().toString());
+        });
+
         eb.consumer("ers.RiskLimit", message -> {
             LOG.trace("Received RiskLimit message with body: " + message.body().toString());
         });
