@@ -1,11 +1,7 @@
 package com.opnfi.risk;
 
 import com.opnfi.risk.auth.ApiAuthHandler;
-import com.opnfi.risk.restapi.ers.MarginComponentApi;
-import com.opnfi.risk.restapi.ers.MarginShortfallSurplusApi;
-import com.opnfi.risk.restapi.ers.PositionReportApi;
-import com.opnfi.risk.restapi.ers.TotalMarginRequirementApi;
-import com.opnfi.risk.restapi.ers.TradingSessionStatusApi;
+import com.opnfi.risk.restapi.ers.*;
 import com.opnfi.risk.restapi.user.UserApi;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
@@ -148,6 +144,7 @@ public class WebVerticle extends AbstractVerticle {
         router.mountSubRouter("/api/v1.0", this.createTmrSubRoutes());
         router.mountSubRouter("/api/v1.0", this.createMssSubRoutes());
         router.mountSubRouter("/api/v1.0", this.createPrSubRoutes());
+        router.mountSubRouter("/api/v1.0", this.createRlSubRoutes());
 
         router.route("/*").handler(StaticHandler.create("webroot"));
 
@@ -272,6 +269,22 @@ public class WebVerticle extends AbstractVerticle {
         router.get("/history/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice").handler(prApi::historyCall);
         router.get("/history/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute").handler(prApi::historyCall);
         router.get("/history/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute/:maturityMonthYear").handler(prApi::historyCall);
+        return router;
+    }
+
+    private Router createRlSubRoutes() {
+        Router router = Router.router(vertx);
+        RiskLimitApi rlApi = new RiskLimitApi(eb);
+        router.get("/latest/rl").handler(rlApi::latestCall);
+        router.get("/latest/rl/:clearer").handler(rlApi::latestCall);
+        router.get("/latest/rl/:clearer/:member").handler(rlApi::latestCall);
+        router.get("/latest/rl/:clearer/:member/:maintainer").handler(rlApi::latestCall);
+        router.get("/latest/rl/:clearer/:member/:maintainer/:limitType").handler(rlApi::latestCall);
+        router.get("/history/rl").handler(rlApi::historyCall);
+        router.get("/history/rl/:clearer").handler(rlApi::historyCall);
+        router.get("/history/rl/:clearer/:member").handler(rlApi::historyCall);
+        router.get("/history/rl/:clearer/:member/:maintainer").handler(rlApi::historyCall);
+        router.get("/history/rl/:clearer/:member/:maintainer/:limitType").handler(rlApi::historyCall);
         return router;
     }
 
