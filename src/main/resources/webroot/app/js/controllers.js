@@ -171,6 +171,83 @@ opnFiRiskControllers.controller('PositionReportLatest', ['$scope', '$routeParams
         });
     }]);
 
+opnFiRiskControllers.controller('PositionReportHistory', ['$scope', '$routeParams', '$http', '$interval', '$filter',
+    function($scope, $routeParams, $http, $interval, $filter) {
+        $scope.refresh = null;
+
+        $scope.prHistory = [];
+        $scope.existingRecords = [];
+        $scope.error = "";
+        $scope.prChartData = [];
+        $scope.ordering="-received";
+
+        $scope.clearer = $routeParams.clearer;
+        $scope.member = $routeParams.member;
+        $scope.account = $routeParams.account;
+        $scope.symbol = $routeParams.symbol;
+        $scope.putCall = $routeParams.putCall;
+        $scope.strikePrice = $routeParams.strikePrice;
+        $scope.optAttribute = $routeParams.optAttribute;
+        $scope.maturityMonthYear = $routeParams.maturityMonthYear;
+
+        $scope.url = '/api/v1.0/history/pr/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.symbol + '/' + $scope.putCall + '/' + $scope.strikePrice + '/' + $scope.optAttribute + '/' + $scope.maturityMonthYear;
+
+        $http.get($scope.url).success(function(data) {
+            $scope.error = "";
+            $scope.prHistory = data;
+            $scope.prepareGraphData(data);
+        }).error(function(data, status, headers, config) {
+            $scope.error = "Server returned status " + status;
+        });
+
+        $scope.sortRecords = function(column) {
+            if ($scope.ordering == column)
+            {
+                $scope.ordering = "-" + column;
+            }
+            else {
+                $scope.ordering = column;
+            }
+        };
+
+        $scope.refresh = $interval(function(){
+            $http.get($scope.url).success(function(data) {
+                $scope.error = "";
+                $scope.prHistory = data;
+                //$scope.dtInstance.DataTable.rows().add(data);
+                $scope.prepareGraphData(data);
+            }).error(function(data, status, headers, config) {
+                $scope.error = "Server returned status " + status;
+            });
+        },60000);
+
+        $scope.$on("$destroy", function() {
+            if ($scope.refresh != null) {
+                $interval.cancel($scope.refresh);
+            }
+        });
+
+        $scope.prepareGraphData = function(data) {
+            $scope.prChartData = []
+
+            var index;
+
+            for (index = 0; index < data.length; ++index) {
+                tick = {
+                    period: $filter('date')(data[index].received, "yyyy-MM-dd HH:mm:ss"),
+                    crossMarginLongQty: data[index].crossMarginLongQty,
+                    crossMarginShortQty: data[index].crossMarginShortQty,
+                    optionExcerciseQty: data[index].optionExcerciseQty,
+                    optionAssignmentQty: data[index].optionAssignmentQty,
+                    allocationTradeQty: data[index].allocationTradeQty,
+                    deliveryNoticeQty: data[index].deliveryNoticeQty
+                };
+
+                $scope.prChartData.push(tick);
+            }
+        }
+    }]);
+
 opnFiRiskControllers.controller('MarginComponentLatest', ['$scope', '$routeParams', '$http', '$interval', '$filter',
     function($scope, $routeParams, $http, $interval, $filter) {
         $scope.refresh = null;
