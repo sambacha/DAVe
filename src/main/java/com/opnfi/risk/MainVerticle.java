@@ -40,11 +40,11 @@ public class MainVerticle extends AbstractVerticle {
             LOG.info("Deployed ERSDebuggerVerticle with ID {}", v);
             ersDebbugerDeployment = v;
             DeploymentOptions webOptions = new DeploymentOptions().setConfig(config().getJsonObject("web"));
-            Future<String> webVerticleFuture = Future.future();
-            vertx.deployVerticle(WebVerticle.class.getName(), webOptions, webVerticleFuture.completer());
-            return webVerticleFuture;
+            Future<String> httpVerticleFuture = Future.future();
+            vertx.deployVerticle(HttpVerticle.class.getName(), webOptions, httpVerticleFuture.completer());
+            return httpVerticleFuture;
         }).compose(v -> {
-            LOG.info("Deployed WebVerticle with ID {}", v);
+            LOG.info("Deployed HttpVerticle with ID {}", v);
             webInterfaceDeployment = v;
             DeploymentOptions ersConnectorOptions = new DeploymentOptions().setConfig(config().getJsonObject("ers"));
             Future<String> ersConnectorVerticleFuture = Future.future();
