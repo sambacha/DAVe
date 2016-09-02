@@ -34,8 +34,8 @@ import java.util.List;
 /**
  * Created by schojak on 19.8.16.
  */
-public class WebVerticle extends AbstractVerticle {
-    private static final Logger LOG = LoggerFactory.getLogger(WebVerticle.class);
+public class HttpVerticle extends AbstractVerticle {
+    private static final Logger LOG = LoggerFactory.getLogger(HttpVerticle.class);
 
     private static final Integer DEFAULT_HTTP_PORT = 8080;
 
@@ -58,7 +58,7 @@ public class WebVerticle extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> startFuture) throws Exception {
-        LOG.info("Starting {} with configuration: {}", WebVerticle.class.getSimpleName(), config().encodePrettily());
+        LOG.info("Starting {} with configuration: {}", HttpVerticle.class.getSimpleName(), config().encodePrettily());
         eb = vertx.eventBus();
 
         List<Future> futures = new ArrayList<>();
@@ -78,17 +78,17 @@ public class WebVerticle extends AbstractVerticle {
         LOG.info("Auth config: {}", config().getJsonObject("auth").encodePrettily());
         config.put("db_name", config()
                 .getJsonObject("auth")
-                .getString("db_name", WebVerticle.DEFAULT_AUTH_DB_NAME));
+                .getString("db_name", HttpVerticle.DEFAULT_AUTH_DB_NAME));
         config.put("useObjectId", true);
         config.put("connection_string", config()
                 .getJsonObject("auth")
-                .getString("connection_string", WebVerticle.DEFAULT_AUTH_CONNECTION_STRING));
+                .getString("connection_string", HttpVerticle.DEFAULT_AUTH_CONNECTION_STRING));
         MongoClient client = MongoClient.createShared(vertx, config);
 
         JsonObject authProperties = new JsonObject();
         MongoAuth authProvider = MongoAuth.create(client, authProperties);
         authProvider.getHashStrategy().setSaltStyle(HashSaltStyle.EXTERNAL);
-        authProvider.getHashStrategy().setExternalSalt(config().getJsonObject("auth").getString("salt", WebVerticle.DEFAULT_AUTH_SALT));
+        authProvider.getHashStrategy().setExternalSalt(config().getJsonObject("auth").getString("salt", HttpVerticle.DEFAULT_AUTH_SALT));
         return authProvider;
     }
 
@@ -96,11 +96,11 @@ public class WebVerticle extends AbstractVerticle {
         Future<HttpServer> webServerFuture = Future.future();
         Router router = Router.router(vertx);
 
-        if (config().getJsonObject("CORS", new JsonObject()).getBoolean("enable", WebVerticle.DEFAULT_CORS)) {
+        if (config().getJsonObject("CORS", new JsonObject()).getBoolean("enable", HttpVerticle.DEFAULT_CORS)) {
             LOG.info("Enabling CORS handler");
 
             //Wildcard(*) not allowed if allowCredentials is true
-            CorsHandler corsHandler = CorsHandler.create(config().getJsonObject("CORS", new JsonObject()).getString("origin", WebVerticle.DEFAULT_CORS_ORIGIN));
+            CorsHandler corsHandler = CorsHandler.create(config().getJsonObject("CORS", new JsonObject()).getString("origin", HttpVerticle.DEFAULT_CORS_ORIGIN));
             corsHandler.allowCredentials(true);
             corsHandler.allowedMethod(HttpMethod.OPTIONS);
             corsHandler.allowedMethod(HttpMethod.GET);
@@ -115,7 +115,7 @@ public class WebVerticle extends AbstractVerticle {
 
         UserApi userApi;
 
-        if (config().getJsonObject("auth", new JsonObject()).getBoolean("enable", WebVerticle.DEFAULT_AUTH_ENABLED)) {
+        if (config().getJsonObject("auth", new JsonObject()).getBoolean("enable", HttpVerticle.DEFAULT_AUTH_ENABLED)) {
             LOG.info("Enabling authentication");
 
             AuthProvider authenticationProvider = this.createAuthenticationProvider();
@@ -126,7 +126,7 @@ public class WebVerticle extends AbstractVerticle {
             router.route().handler(UserSessionHandler.create(authenticationProvider));
             router.routeWithRegex("^/api/v1.0/(?!user/login).*$").handler(ApiAuthHandler.create(authenticationProvider));
 
-            userApi = new UserApi(authenticationProvider, config().getJsonObject("auth").getBoolean("checkUserAgainstCertificate", WebVerticle.DEFAULT_AUTH_CHECK_USER_AGAINST_CERTIFICATE));
+            userApi = new UserApi(authenticationProvider, config().getJsonObject("auth").getBoolean("checkUserAgainstCertificate", HttpVerticle.DEFAULT_AUTH_CHECK_USER_AGAINST_CERTIFICATE));
         }
         else
         {
@@ -148,7 +148,7 @@ public class WebVerticle extends AbstractVerticle {
 
         router.route("/*").handler(StaticHandler.create("webroot"));
 
-        LOG.info("Starting web server on port {}", config().getInteger("httpPort", WebVerticle.DEFAULT_HTTP_PORT));
+        LOG.info("Starting web server on port {}", config().getInteger("httpPort", HttpVerticle.DEFAULT_HTTP_PORT));
 
         HttpServerOptions httpOptions = new HttpServerOptions();
 
@@ -182,7 +182,7 @@ public class WebVerticle extends AbstractVerticle {
 
         server = vertx.createHttpServer(httpOptions)
                 .requestHandler(router::accept)
-                .listen(config().getInteger("httpPort", WebVerticle.DEFAULT_HTTP_PORT), webServerFuture.completer());
+                .listen(config().getInteger("httpPort", HttpVerticle.DEFAULT_HTTP_PORT), webServerFuture.completer());
         return webServerFuture;
     }
 
