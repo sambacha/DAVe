@@ -253,7 +253,7 @@ opnFiRiskControllers.controller('MarginComponentLatest', ['$scope', '$routeParam
         $scope.refresh = null;
         $scope.sorting = false;
 
-        $scope.rlLatest = [];
+        $scope.mcLatest = [];
         $scope.existingRecords = [];
         $scope.error = "";
         $scope.ordering= ["member", "account", "clss", "ccy"];
@@ -279,7 +279,7 @@ opnFiRiskControllers.controller('MarginComponentLatest', ['$scope', '$routeParam
                 data[index].functionalKey = data[index].clearer + '-' + data[index].member + '-' + data[index].account + '-' + data[index].clss + '-' + data[index].ccy;
             }
 
-            $scope.rlLatest = data;
+            $scope.mcLatest = data;
         }
 
         $scope.sortRecords = function(column) {
@@ -312,10 +312,10 @@ opnFiRiskControllers.controller('MarginComponentHistory', ['$scope', '$routePara
     function($scope, $routeParams, $http, $interval, $filter) {
         $scope.refresh = null;
 
-        $scope.rlHistory = [];
+        $scope.mcHistory = [];
         $scope.existingRecords = [];
         $scope.error = "";
-        $scope.rlChartData = [];
+        $scope.mcChartData = [];
         $scope.ordering="-received";
 
         $scope.clearer = $routeParams.clearer;
@@ -328,7 +328,7 @@ opnFiRiskControllers.controller('MarginComponentHistory', ['$scope', '$routePara
 
         $http.get($scope.url).success(function(data) {
             $scope.error = "";
-            $scope.rlHistory = data;
+            $scope.mcHistory = data;
             $scope.prepareGraphData(data);
         }).error(function(data, status, headers, config) {
             $scope.error = "Server returned status " + status;
@@ -347,7 +347,7 @@ opnFiRiskControllers.controller('MarginComponentHistory', ['$scope', '$routePara
         $scope.refresh = $interval(function(){
             $http.get($scope.url).success(function(data) {
                 $scope.error = "";
-                $scope.rlHistory = data;
+                $scope.mcHistory = data;
                 //$scope.dtInstance.DataTable.rows().add(data);
                 $scope.prepareGraphData(data);
             }).error(function(data, status, headers, config) {
@@ -362,7 +362,7 @@ opnFiRiskControllers.controller('MarginComponentHistory', ['$scope', '$routePara
         });
 
         $scope.prepareGraphData = function(data) {
-            $scope.rlChartData = []
+            $scope.mcChartData = []
 
             var index;
 
@@ -376,7 +376,7 @@ opnFiRiskControllers.controller('MarginComponentHistory', ['$scope', '$routePara
                     additionalMargin: data[index].additionalMargin
                 };
 
-                $scope.rlChartData.push(tick);
+                $scope.mcChartData.push(tick);
             }
         }
     }]);
