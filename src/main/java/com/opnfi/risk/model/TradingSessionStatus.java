@@ -30,15 +30,6 @@ public class TradingSessionStatus {
         return tss;
     }
 
-    public TradingSessionStatus(Long id, String reqId, String sesId, String stat, String statRejRsn, String txt, Date received) {
-        this.id = id;
-        this.reqId = reqId;
-        this.sesId = sesId;
-        this.stat = stat;
-        this.statRejRsn = statRejRsn;
-        this.txt = txt;
-    }
-
     public TradingSessionStatus() {
     }
 

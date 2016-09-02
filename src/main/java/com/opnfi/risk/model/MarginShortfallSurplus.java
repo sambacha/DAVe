@@ -103,27 +103,6 @@ public class MarginShortfallSurplus {
         return mss;
     }
 
-    public MarginShortfallSurplus(Long id, String clearer, String pool, String poolType, String member, String clearingCcy, String ccy, Date txnTm, Date bizDt, String reqId, String rptId, String sesId, BigDecimal marginRequirement, BigDecimal securityCollateral, BigDecimal cashBalance, BigDecimal shortfallSurplus, BigDecimal marginCall, Date received) {
-        this.id = id;
-        this.clearer = clearer;
-        this.pool = pool;
-        this.poolType = poolType;
-        this.member = member;
-        this.clearingCcy = clearingCcy;
-        this.ccy = ccy;
-        this.txnTm = txnTm;
-        this.bizDt = bizDt;
-        this.reqId = reqId;
-        this.rptId = rptId;
-        this.sesId = sesId;
-        this.marginRequirement = marginRequirement;
-        this.securityCollateral = securityCollateral;
-        this.cashBalance = cashBalance;
-        this.shortfallSurplus = shortfallSurplus;
-        this.marginCall = marginCall;
-        this.received = received;
-    }
-
     public MarginShortfallSurplus() {
     }
 

@@ -105,30 +105,6 @@ public class PositionReport {
         return pr;
     }
 
-    public PositionReport(Long id, String clearer, String member, String account, String reqId, String rptId, Date bizDt, String lastReportRequested, String settlSesId, String symbol, String putCall, String maturityMonthYear, String strikePrice, String optAttribute, BigDecimal crossMarginLongQty, BigDecimal crossMarginShortQty, BigDecimal optionExcerciseQty, BigDecimal optionAssignmentQty, BigDecimal allocationTradeQty, BigDecimal deliveryNoticeQty, Date received) {
-        this.id = id;
-        this.clearer = clearer;
-        this.member = member;
-        this.account = account;
-        this.reqId = reqId;
-        this.rptId = rptId;
-        this.bizDt = bizDt;
-        this.lastReportRequested = lastReportRequested;
-        this.settlSesId = settlSesId;
-        this.symbol = symbol;
-        this.putCall = putCall;
-        this.maturityMonthYear = maturityMonthYear;
-        this.strikePrice = strikePrice;
-        this.optAttribute = optAttribute;
-        this.crossMarginLongQty = crossMarginLongQty;
-        this.crossMarginShortQty = crossMarginShortQty;
-        this.optionExcerciseQty = optionExcerciseQty;
-        this.optionAssignmentQty = optionAssignmentQty;
-        this.allocationTradeQty = allocationTradeQty;
-        this.deliveryNoticeQty = deliveryNoticeQty;
-        this.received = received;
-    }
-
     public PositionReport() {
     }
 

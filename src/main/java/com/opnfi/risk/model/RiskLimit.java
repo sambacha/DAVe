@@ -4,7 +4,6 @@ import com.opnfi.risk.model.jaxb.*;
 
 import javax.xml.bind.JAXBElement;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -122,24 +121,6 @@ public class RiskLimit {
         }
 
         return riskLimits;
-    }
-
-    public RiskLimit(Long id, String clearer, String member, String maintainer, Date txnTm, String reqId, String rptId, String reqRslt, String txt, String limitType, BigDecimal utilization, BigDecimal warningLevel, BigDecimal throttleLevel, BigDecimal rejectLevel, Date received) {
-        this.id = id;
-        this.clearer = clearer;
-        this.member = member;
-        this.maintainer = maintainer;
-        this.txnTm = txnTm;
-        this.reqId = reqId;
-        this.rptId = rptId;
-        this.reqRslt = reqRslt;
-        this.txt = txt;
-        this.limitType = limitType;
-        this.utilization = utilization;
-        this.warningLevel = warningLevel;
-        this.throttleLevel = throttleLevel;
-        this.rejectLevel = rejectLevel;
-        this.received = received;
     }
 
     public RiskLimit() {

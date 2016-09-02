@@ -91,23 +91,6 @@ public class TotalMarginRequirement {
         return tmr;
     }
 
-    public TotalMarginRequirement(Long id, String clearer, String pool, String member, String account, String ccy, Date txnTm, Date bizDt, String reqId, String rptId, String sesId, BigDecimal unadjustedMargin, BigDecimal adjustedMargin, Date received) {
-        this.id = id;
-        this.clearer = clearer;
-        this.pool = pool;
-        this.member = member;
-        this.account = account;
-        this.ccy = ccy;
-        this.txnTm = txnTm;
-        this.bizDt = bizDt;
-        this.reqId = reqId;
-        this.rptId = rptId;
-        this.sesId = sesId;
-        this.unadjustedMargin = unadjustedMargin;
-        this.adjustedMargin = adjustedMargin;
-        this.received = received;
-    }
-
     public TotalMarginRequirement() {
     }
 
