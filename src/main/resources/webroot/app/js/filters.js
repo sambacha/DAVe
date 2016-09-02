@@ -7,7 +7,7 @@ var opnFiRiskFilters = angular.module('opnFiRiskFilters', []);
 opnFiRiskFilters.filter('spacedFilter', function() {
     return function(items, filter) {
         if (filter) {
-            var filters = filter.split(" ");
+            var filters = filter.toLowerCase().split(" ");
             var index;
             var index2;
             var filteredItems = [];
@@ -16,7 +16,7 @@ opnFiRiskFilters.filter('spacedFilter', function() {
                 var match = true;
 
                 for (index2 = 0; index2 < filters.length; index2++) {
-                    if (items[index].functionalKey.indexOf(filters[index2]) == -1) {
+                    if (items[index].functionalKey.toLowerCase().indexOf(filters[index2]) == -1) {
                         match = false;
                         break;
                     }
