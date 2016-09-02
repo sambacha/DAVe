@@ -62,7 +62,7 @@ public class HttpVerticle extends AbstractVerticle {
         eb = vertx.eventBus();
 
         List<Future> futures = new ArrayList<>();
-        futures.add(startWebServer());
+        futures.add(startHttpServer());
 
         CompositeFuture.all(futures).setHandler(ar -> {
             if (ar.succeeded()) {
@@ -92,7 +92,7 @@ public class HttpVerticle extends AbstractVerticle {
         return authProvider;
     }
 
-    private Future<HttpServer> startWebServer() {
+    private Future<HttpServer> startHttpServer() {
         Future<HttpServer> webServerFuture = Future.future();
         Router router = Router.router(vertx);
 
