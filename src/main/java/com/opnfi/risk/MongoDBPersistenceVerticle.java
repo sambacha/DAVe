@@ -1,6 +1,5 @@
 package com.opnfi.risk;
 
-import com.opnfi.risk.model.*;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
@@ -151,22 +150,18 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
     private void storeTradingSessionStatus(Message msg)
     {
         LOG.trace("Storing TradingSessionStatus message with body: " + msg.body().toString());
-        TradingSessionStatus tss = Json.decodeValue(msg.body().toString(), TradingSessionStatus.class);
-
-        JsonObject jsonTss = new JsonObject((String)msg.body());
-
-        if (tss.getReceived() != null) {
-            jsonTss.put("received", new JsonObject().put("$date", timestampFormatter.format(tss.getReceived())));
-        }
+        JsonObject jsonTss = (JsonObject)msg.body();
 
         mongo.insert("ers.TradingSessionStatus", jsonTss, res -> {
            if (res.succeeded())
            {
                LOG.trace("Stored TradingSessionStatus into DB");
+               msg.reply(new JsonObject());
            }
            else
            {
                LOG.error("Failed to store TradingSessionStatus into DB " + res.cause());
+               msg.fail(1, res.cause().getMessage());
            }
         });
     }
@@ -174,30 +169,18 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
     private void storeMarginComponent(Message msg)
     {
         LOG.trace("Storing MC message with body: " + msg.body().toString());
-        MarginComponent mc = Json.decodeValue(msg.body().toString(), MarginComponent.class);
-
-        JsonObject jsonMc = new JsonObject((String)msg.body());
-
-        if (mc.getBizDt() != null) {
-            jsonMc.put("bizDt", new JsonObject().put("$date", timestampFormatter.format(mc.getBizDt())));
-        }
-
-        if (mc.getTxnTm() != null) {
-            jsonMc.put("txnTm", new JsonObject().put("$date", timestampFormatter.format(mc.getTxnTm())));
-        }
-
-        if (mc.getReceived() != null) {
-            jsonMc.put("received", new JsonObject().put("$date", timestampFormatter.format(mc.getReceived())));
-        }
+        JsonObject jsonMc = (JsonObject)msg.body();
 
         mongo.insert("ers.MarginComponent", jsonMc, res -> {
             if (res.succeeded())
             {
                 LOG.trace("Stored MarginComponent into DB");
+                msg.reply(new JsonObject());
             }
             else
             {
                 LOG.error("Failed to store MarginComponent into DB " + res.cause());
+                msg.fail(1, res.cause().getMessage());
             }
         });
     }
@@ -205,30 +188,18 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
     private void storeTotalMarginRequirement(Message msg)
     {
         LOG.trace("Storing TMR message with body: " + msg.body().toString());
-        TotalMarginRequirement tmr = Json.decodeValue(msg.body().toString(), TotalMarginRequirement.class);
-
-        JsonObject jsonTmr = new JsonObject((String)msg.body());
-
-        if (tmr.getBizDt() != null) {
-            jsonTmr.put("bizDt", new JsonObject().put("$date", timestampFormatter.format(tmr.getBizDt())));
-        }
-
-        if (tmr.getTxnTm() != null) {
-            jsonTmr.put("txnTm", new JsonObject().put("$date", timestampFormatter.format(tmr.getTxnTm())));
-        }
-
-        if (tmr.getReceived() != null) {
-            jsonTmr.put("received", new JsonObject().put("$date", timestampFormatter.format(tmr.getReceived())));
-        }
+        JsonObject jsonTmr = (JsonObject)msg.body();
 
         mongo.insert("ers.TotalMarginRequirement", jsonTmr, res -> {
             if (res.succeeded())
             {
                 LOG.trace("Stored TotalMarginRequirement into DB");
+                msg.reply(new JsonObject());
             }
             else
             {
                 LOG.error("Failed to store TotalMarginRequirement into DB " + res.cause());
+                msg.fail(1, res.cause().getMessage());
             }
         });
     }
@@ -236,30 +207,18 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
     private void storeMarginShortfallSurplus(Message msg)
     {
         LOG.trace("Storing MarginShortfallSurplus message with body: " + msg.body().toString());
-        MarginShortfallSurplus mss = Json.decodeValue(msg.body().toString(), MarginShortfallSurplus.class);
-
-        JsonObject jsonMss = new JsonObject((String)msg.body());
-
-        if (mss.getBizDt() != null) {
-            jsonMss.put("bizDt", new JsonObject().put("$date", timestampFormatter.format(mss.getBizDt())));
-        }
-
-        if (mss.getTxnTm() != null) {
-            jsonMss.put("txnTm", new JsonObject().put("$date", timestampFormatter.format(mss.getTxnTm())));
-        }
-
-        if (mss.getReceived() != null) {
-            jsonMss.put("received", new JsonObject().put("$date", timestampFormatter.format(mss.getReceived())));
-        }
+        JsonObject jsonMss = (JsonObject)msg.body();
 
         mongo.insert("ers.MarginShortfallSurplus", jsonMss, res -> {
             if (res.succeeded())
             {
                 LOG.trace("Stored MarginShortfallSurplus into DB");
+                msg.reply(new JsonObject());
             }
             else
             {
                 LOG.error("Failed to store MarginShortfallSurplus into DB " + res.cause());
+                msg.fail(1, res.cause().getMessage());
             }
         });
     }
@@ -267,23 +226,15 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
     private void storePositionReport(Message msg)
     {
         LOG.trace("Storing PositionReport message with body: " + msg.body().toString());
-        PositionReport pr = Json.decodeValue(msg.body().toString(), PositionReport.class);
-
-        JsonObject jsonPr = new JsonObject((String)msg.body());
-
-        if (pr.getBizDt() != null) {
-            jsonPr.put("bizDt", new JsonObject().put("$date", timestampFormatter.format(pr.getBizDt())));
-        }
-
-        if (pr.getReceived() != null) {
-            jsonPr.put("received", new JsonObject().put("$date", timestampFormatter.format(pr.getReceived())));
-        }
+        JsonObject jsonPr = (JsonObject)msg.body();
 
         mongo.insert("ers.PositionReport", jsonPr, res -> {
             if (res.succeeded()) {
                 LOG.trace("Stored PositionReport into DB");
+                msg.reply(new JsonObject());
             } else {
                 LOG.error("Failed to store PositionReport into DB " + res.cause());
+                msg.fail(1, res.cause().getMessage());
             }
         });
     }
@@ -293,7 +244,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         LOG.trace("Storing RL message with body: " + msg.body().toString());
 
         List<Future> storeTasks = new ArrayList<>();
-        JsonArray jsonMsg = new JsonArray((String)msg.body());
+        JsonArray jsonMsg = (JsonArray)msg.body();
 
         for (int i = 0; i < jsonMsg.size(); i++)
         {
@@ -301,16 +252,6 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
             storeTasks.add(storeTask);
 
             JsonObject jsonRl = jsonMsg.getJsonObject(i);
-            RiskLimit rl = Json.decodeValue(jsonRl.encodePrettily(), RiskLimit.class);
-
-            if (rl.getTxnTm() != null) {
-                jsonRl.put("txnTm", new JsonObject().put("$date", timestampFormatter.format(rl.getTxnTm())));
-            }
-
-            if (rl.getReceived() != null) {
-                jsonRl.put("received", new JsonObject().put("$date", timestampFormatter.format(rl.getReceived())));
-            }
-
             mongo.insert("ers.RiskLimit", jsonRl, res -> {
                 if (res.succeeded())
                 {
@@ -329,13 +270,14 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
             if (ar.succeeded())
             {
                 LOG.trace("Complete RiskLimit message stored in DB");
+                msg.reply(new JsonObject());
             }
             else
             {
                 LOG.trace("Failed to store complete RiskLimit message into DB");
+                msg.fail(1, ar.cause().getMessage());
             }
         });
-
     }
 
     private void queryLatestTradingSessionStatus(Message msg)
