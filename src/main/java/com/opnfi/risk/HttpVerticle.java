@@ -45,7 +45,7 @@ public class HttpVerticle extends AbstractVerticle {
     private static final Boolean DEFAULT_CORS = false;
     private static final String DEFAULT_CORS_ORIGIN = "*";
 
-    private static final Boolean DEFAULT_COMPRESSION = true;
+    private static final Boolean DEFAULT_COMPRESSION = false;
 
     private static final Boolean DEFAULT_AUTH_ENABLED = false;
     private static final String DEFAULT_AUTH_DB_NAME = "OpnFi-Risk";

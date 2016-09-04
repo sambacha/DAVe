@@ -39,6 +39,7 @@
       <includes>
 	    <include>truststore</include>
         <include>cbkfr.keystore</include>
+        <include>deffr.keystore</include>
         <include>web.keystore</include>
         <include>web.truststore</include>
       </includes>
