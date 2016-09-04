@@ -1,16 +1,12 @@
 package com.opnfi.risk;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.CompositeFuture;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Future;
+import io.vertx.core.*;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import java.util.HashMap;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by schojak on 19.8.16.
@@ -19,8 +15,8 @@ public class MainVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(MainVerticle.class);
 
     private String mongoDbPersistenceDeployment;
-    private String ersConnectorDeployment;
     private String ersDebbugerDeployment;
+    private List<String> ersConnectorDeployment = new ArrayList<>();
     private String webInterfaceDeployment;
 
     @Override
@@ -46,13 +42,21 @@ public class MainVerticle extends AbstractVerticle {
         }).compose(v -> {
             LOG.info("Deployed HttpVerticle with ID {}", v);
             webInterfaceDeployment = v;
-            DeploymentOptions ersConnectorOptions = new DeploymentOptions().setConfig(config().getJsonObject("ers"));
-            Future<String> ersConnectorVerticleFuture = Future.future();
-            vertx.deployVerticle(ERSConnectorVerticle.class.getName(), ersConnectorOptions, ersConnectorVerticleFuture.completer());
-            return ersConnectorVerticleFuture;
+            JsonArray ersConnectorOptions;
+
+            if (config().getValue("ers") instanceof JsonObject)
+            {
+                ersConnectorOptions = new JsonArray().add(config().getJsonObject("ers"));
+            }
+            else
+            {
+                ersConnectorOptions = config().getJsonArray("ers");
+            }
+
+            Future<Void> ersConnectorDeploymentFuture = Future.future();
+            deployErsVerticles(ersConnectorOptions, ersConnectorDeploymentFuture.completer());
+            return ersConnectorDeploymentFuture;
         }).compose(v -> {
-            LOG.info("Deployed ERSConnectorVerticle with ID {}", v);
-            ersConnectorDeployment = v;
             chainFuture.complete();
         }, chainFuture);
 
@@ -68,10 +72,52 @@ public class MainVerticle extends AbstractVerticle {
         });
     }
 
+    private void deployErsVerticles(JsonArray ersOptions, Handler<AsyncResult<Void>> handler)
+    {
+        List<Future> tasks = new ArrayList<>();
+
+        ersOptions.forEach( connectorOptions -> {
+            LOG.info("Deploying ERS connector verticle {}", (JsonObject)connectorOptions);
+
+            DeploymentOptions ersDeploymentOptions = new DeploymentOptions().setConfig((JsonObject)connectorOptions);
+            Future<String> fut = Future.future();
+
+            vertx.deployVerticle(ERSConnectorVerticle.class.getName(), ersDeploymentOptions, res -> {
+                if (res.succeeded())
+                {
+                    LOG.info("Deployed ERSConnectorVerticle with ID {}", res.result());
+                    ersConnectorDeployment.add(res.result());
+                    fut.complete();
+                }
+                else
+                {
+                    LOG.error("Failed to deployed ERSConnectorVerticle", res.cause());
+                    fut.fail(res.cause());
+                }
+            });
+            tasks.add(fut);
+        });
+
+        CompositeFuture.all(tasks).setHandler(res -> {
+            if (res.succeeded())
+            {
+                LOG.info("Deployed all ERS verticles");
+                handler.handle(Future.succeededFuture());
+            }
+            else
+            {
+                LOG.error("Failed to deploy some or all ERS verticles");
+                handler.handle(Future.failedFuture(res.cause()));
+            }
+        });
+    }
+
     private void closeAllDeployments() {
         LOG.info("Undeploying verticles");
         Map<String, String> deployments = new HashMap<>();
-        deployments.put("ERSConnector", ersConnectorDeployment);
+        ersConnectorDeployment.forEach(id -> {
+            deployments.put("ERSConnector", id);
+        });
         deployments.put("ERSDebugger", ersDebbugerDeployment);
         deployments.put("WebInterface", webInterfaceDeployment);
 

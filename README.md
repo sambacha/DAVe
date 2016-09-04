@@ -13,7 +13,7 @@ Configuration is stored in `opnfi-risk.json` file in JSON format. Configuration 
 
 ### ERS
 
-The `ers` section configures the Enhanced Risk Solution connection:
+The `ers` section configures the Enhanced Risk Solution connection. It is an array which might contain several JSON objects - each object representing one ERS connection.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
