@@ -177,7 +177,7 @@ public class HttpVerticle extends AbstractVerticle {
         if (config().getBoolean("compression", DEFAULT_COMPRESSION))
         {
             LOG.info("Enabling compression on webserver");
-            httpOptions.setCompressionSupported(config().getBoolean("compression", DEFAULT_COMPRESSION));
+            httpOptions.setCompressionSupported(true);
         }
 
         server = vertx.createHttpServer(httpOptions)
