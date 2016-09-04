@@ -22,7 +22,7 @@
     },
     "compression": true
   },
-  "ers": {
+  "ers": [ {
     "brokerHost": "tcp://rgd003.xeop.de",
     "brokerPort": 15160,
     "member": "CBKFR",
@@ -31,7 +31,7 @@
     "truststorePassword": "123456",
     "keystore": "cbkfr.keystore",
     "keystorePassword": "123456"
-  },
+  } ],
   "mongodb": {
     "db_name": "OpnFi-Risk",
     "connection_string": "mongodb://localhost:27017"
