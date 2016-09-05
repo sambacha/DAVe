@@ -135,10 +135,7 @@ public class HttpVerticle extends AbstractVerticle {
 
         LOG.info("Adding route REST API");
         router.route("/api/v1.0/*").handler(BodyHandler.create());
-        router.post("/api/v1.0/user/login").handler(userApi::login);
-        router.get("/api/v1.0/user/logout").handler(userApi::logout);
-        router.get("/api/v1.0/user/loginStatus").handler(userApi::loginStatus);
-
+        router.mountSubRouter("/api/v1.0/user", this.createUserSubRoutes(userApi));
         router.mountSubRouter("/api/v1.0/tss", this.createTssSubRoutes());
         router.mountSubRouter("/api/v1.0/mc", this.createMcSubRoutes());
         router.mountSubRouter("/api/v1.0/tmr", this.createTmrSubRoutes());
@@ -184,6 +181,14 @@ public class HttpVerticle extends AbstractVerticle {
                 .requestHandler(router::accept)
                 .listen(config().getInteger("httpPort", HttpVerticle.DEFAULT_HTTP_PORT), webServerFuture.completer());
         return webServerFuture;
+    }
+
+    private Router createUserSubRoutes(UserApi userApi) {
+        Router router = Router.router(vertx);
+        router.post("/login").handler(userApi::login);
+        router.get("/logout").handler(userApi::logout);
+        router.get("/loginStatus").handler(userApi::loginStatus);
+        return router;
     }
 
     private Router createTssSubRoutes() {
