@@ -139,12 +139,12 @@ public class HttpVerticle extends AbstractVerticle {
         router.get("/api/v1.0/user/logout").handler(userApi::logout);
         router.get("/api/v1.0/user/loginStatus").handler(userApi::loginStatus);
 
-        router.mountSubRouter("/api/v1.0", this.createTssSubRoutes());
-        router.mountSubRouter("/api/v1.0", this.createMcSubRoutes());
-        router.mountSubRouter("/api/v1.0", this.createTmrSubRoutes());
-        router.mountSubRouter("/api/v1.0", this.createMssSubRoutes());
-        router.mountSubRouter("/api/v1.0", this.createPrSubRoutes());
-        router.mountSubRouter("/api/v1.0", this.createRlSubRoutes());
+        router.mountSubRouter("/api/v1.0/tss", this.createTssSubRoutes());
+        router.mountSubRouter("/api/v1.0/mc", this.createMcSubRoutes());
+        router.mountSubRouter("/api/v1.0/tmr", this.createTmrSubRoutes());
+        router.mountSubRouter("/api/v1.0/mss", this.createMssSubRoutes());
+        router.mountSubRouter("/api/v1.0/pr", this.createPrSubRoutes());
+        router.mountSubRouter("/api/v1.0/rl", this.createRlSubRoutes());
 
         router.route("/*").handler(StaticHandler.create("webroot"));
 
@@ -197,94 +197,94 @@ public class HttpVerticle extends AbstractVerticle {
     private Router createMcSubRoutes() {
         Router router = Router.router(vertx);
         MarginComponentApi mcApi = new MarginComponentApi(eb);
-        router.get("/latest/mc").handler(mcApi::latestCall);
-        router.get("/latest/mc/:clearer").handler(mcApi::latestCall);
-        router.get("/latest/mc/:clearer/:member").handler(mcApi::latestCall);
-        router.get("/latest/mc/:clearer/:member/:account").handler(mcApi::latestCall);
-        router.get("/latest/mc/:clearer/:member/:account/:clss").handler(mcApi::latestCall);
-        router.get("/latest/mc/:clearer/:member/:account/:clss/:ccy").handler(mcApi::latestCall);
-        router.get("/history/mc").handler(mcApi::historyCall);
-        router.get("/history/mc/:clearer").handler(mcApi::historyCall);
-        router.get("/history/mc/:clearer/:member").handler(mcApi::historyCall);
-        router.get("/history/mc/:clearer/:member/:account").handler(mcApi::historyCall);
-        router.get("/history/mc/:clearer/:member/:account/:clss").handler(mcApi::historyCall);
-        router.get("/history/mc/:clearer/:member/:account/:clss/:ccy").handler(mcApi::historyCall);
+        router.get("/latest").handler(mcApi::latestCall);
+        router.get("/latest/:clearer").handler(mcApi::latestCall);
+        router.get("/latest/:clearer/:member").handler(mcApi::latestCall);
+        router.get("/latest/:clearer/:member/:account").handler(mcApi::latestCall);
+        router.get("/latest/:clearer/:member/:account/:clss").handler(mcApi::latestCall);
+        router.get("/latest/:clearer/:member/:account/:clss/:ccy").handler(mcApi::latestCall);
+        router.get("/history").handler(mcApi::historyCall);
+        router.get("/history/:clearer").handler(mcApi::historyCall);
+        router.get("/history/:clearer/:member").handler(mcApi::historyCall);
+        router.get("/history/:clearer/:member/:account").handler(mcApi::historyCall);
+        router.get("/history/:clearer/:member/:account/:clss").handler(mcApi::historyCall);
+        router.get("/history/:clearer/:member/:account/:clss/:ccy").handler(mcApi::historyCall);
         return router;
     }
 
     private Router createTmrSubRoutes() {
         Router router = Router.router(vertx);
         TotalMarginRequirementApi tmrApi = new TotalMarginRequirementApi(eb);
-        router.get("/latest/tmr").handler(tmrApi::latestCall);
-        router.get("/latest/tmr/:clearer").handler(tmrApi::latestCall);
-        router.get("/latest/tmr/:clearer/:pool").handler(tmrApi::latestCall);
-        router.get("/latest/tmr/:clearer/:pool/:member").handler(tmrApi::latestCall);
-        router.get("/latest/tmr/:clearer/:pool/:member/:account").handler(tmrApi::latestCall);
-        router.get("/latest/tmr/:clearer/:pool/:member/:account/:ccy").handler(tmrApi::latestCall);
-        router.get("/history/tmr").handler(tmrApi::historyCall);
-        router.get("/history/tmr/:clearer").handler(tmrApi::historyCall);
-        router.get("/history/tmr/:clearer/:pool").handler(tmrApi::historyCall);
-        router.get("/history/tmr/:clearer/:pool/:member").handler(tmrApi::historyCall);
-        router.get("/history/tmr/:clearer/:pool/:member/:account").handler(tmrApi::historyCall);
-        router.get("/history/tmr/:clearer/:pool/:member/:account/:ccy").handler(tmrApi::historyCall);
+        router.get("/latest").handler(tmrApi::latestCall);
+        router.get("/latest/:clearer").handler(tmrApi::latestCall);
+        router.get("/latest/:clearer/:pool").handler(tmrApi::latestCall);
+        router.get("/latest/:clearer/:pool/:member").handler(tmrApi::latestCall);
+        router.get("/latest/:clearer/:pool/:member/:account").handler(tmrApi::latestCall);
+        router.get("/latest/:clearer/:pool/:member/:account/:ccy").handler(tmrApi::latestCall);
+        router.get("/history").handler(tmrApi::historyCall);
+        router.get("/history/:clearer").handler(tmrApi::historyCall);
+        router.get("/history/:clearer/:pool").handler(tmrApi::historyCall);
+        router.get("/history/:clearer/:pool/:member").handler(tmrApi::historyCall);
+        router.get("/history/:clearer/:pool/:member/:account").handler(tmrApi::historyCall);
+        router.get("/history/:clearer/:pool/:member/:account/:ccy").handler(tmrApi::historyCall);
         return router;
     }
 
     private Router createMssSubRoutes() {
         Router router = Router.router(vertx);
         MarginShortfallSurplusApi mssApi = new MarginShortfallSurplusApi(eb);
-        router.get("/latest/mss").handler(mssApi::latestCall);
-        router.get("/latest/mss/:clearer").handler(mssApi::latestCall);
-        router.get("/latest/mss/:clearer/:pool").handler(mssApi::latestCall);
-        router.get("/latest/mss/:clearer/:pool/:member").handler(mssApi::latestCall);
-        router.get("/latest/mss/:clearer/:pool/:member/:clearingCcy").handler(mssApi::latestCall);
-        router.get("/latest/mss/:clearer/:pool/:member/:clearingCcy/:ccy").handler(mssApi::latestCall);
-        router.get("/history/mss").handler(mssApi::historyCall);
-        router.get("/history/mss/:clearer").handler(mssApi::historyCall);
-        router.get("/history/mss/:clearer/:pool").handler(mssApi::historyCall);
-        router.get("/history/mss/:clearer/:pool/:member").handler(mssApi::historyCall);
-        router.get("/history/mss/:clearer/:pool/:member/:clearingCcy").handler(mssApi::historyCall);
-        router.get("/history/mss/:clearer/:pool/:member/:clearingCcy/:ccy").handler(mssApi::historyCall);
+        router.get("/latest").handler(mssApi::latestCall);
+        router.get("/latest/:clearer").handler(mssApi::latestCall);
+        router.get("/latest/:clearer/:pool").handler(mssApi::latestCall);
+        router.get("/latest/:clearer/:pool/:member").handler(mssApi::latestCall);
+        router.get("/latest/:clearer/:pool/:member/:clearingCcy").handler(mssApi::latestCall);
+        router.get("/latest/:clearer/:pool/:member/:clearingCcy/:ccy").handler(mssApi::latestCall);
+        router.get("/history").handler(mssApi::historyCall);
+        router.get("/history/:clearer").handler(mssApi::historyCall);
+        router.get("/history/:clearer/:pool").handler(mssApi::historyCall);
+        router.get("/history/:clearer/:pool/:member").handler(mssApi::historyCall);
+        router.get("/history/:clearer/:pool/:member/:clearingCcy").handler(mssApi::historyCall);
+        router.get("/history/:clearer/:pool/:member/:clearingCcy/:ccy").handler(mssApi::historyCall);
         return router;
     }
 
     private Router createPrSubRoutes() {
         Router router = Router.router(vertx);
         PositionReportApi prApi = new PositionReportApi(eb);
-        router.get("/latest/pr").handler(prApi::latestCall);
-        router.get("/latest/pr/:clearer").handler(prApi::latestCall);
-        router.get("/latest/pr/:clearer/:member").handler(prApi::latestCall);
-        router.get("/latest/pr/:clearer/:member/:account").handler(prApi::latestCall);
-        router.get("/latest/pr/:clearer/:member/:account/:symbol").handler(prApi::latestCall);
-        router.get("/latest/pr/:clearer/:member/:account/:symbol/:putCall").handler(prApi::latestCall);
-        router.get("/latest/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice").handler(prApi::latestCall);
-        router.get("/latest/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute").handler(prApi::latestCall);
-        router.get("/latest/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute/:maturityMonthYear").handler(prApi::latestCall);
-        router.get("/history/pr").handler(prApi::historyCall);
-        router.get("/history/pr/:clearer").handler(prApi::historyCall);
-        router.get("/history/pr/:clearer/:member").handler(prApi::historyCall);
-        router.get("/history/pr/:clearer/:member/:account").handler(prApi::historyCall);
-        router.get("/history/pr/:clearer/:member/:account/:symbol").handler(prApi::historyCall);
-        router.get("/history/pr/:clearer/:member/:account/:symbol/:putCall").handler(prApi::historyCall);
-        router.get("/history/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice").handler(prApi::historyCall);
-        router.get("/history/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute").handler(prApi::historyCall);
-        router.get("/history/pr/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute/:maturityMonthYear").handler(prApi::historyCall);
+        router.get("/latest").handler(prApi::latestCall);
+        router.get("/latest/:clearer").handler(prApi::latestCall);
+        router.get("/latest/:clearer/:member").handler(prApi::latestCall);
+        router.get("/latest/:clearer/:member/:account").handler(prApi::latestCall);
+        router.get("/latest/:clearer/:member/:account/:symbol").handler(prApi::latestCall);
+        router.get("/latest/:clearer/:member/:account/:symbol/:putCall").handler(prApi::latestCall);
+        router.get("/latest/:clearer/:member/:account/:symbol/:putCall/:strikePrice").handler(prApi::latestCall);
+        router.get("/latest/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute").handler(prApi::latestCall);
+        router.get("/latest/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute/:maturityMonthYear").handler(prApi::latestCall);
+        router.get("/history").handler(prApi::historyCall);
+        router.get("/history/:clearer").handler(prApi::historyCall);
+        router.get("/history/:clearer/:member").handler(prApi::historyCall);
+        router.get("/history/:clearer/:member/:account").handler(prApi::historyCall);
+        router.get("/history/:clearer/:member/:account/:symbol").handler(prApi::historyCall);
+        router.get("/history/:clearer/:member/:account/:symbol/:putCall").handler(prApi::historyCall);
+        router.get("/history/:clearer/:member/:account/:symbol/:putCall/:strikePrice").handler(prApi::historyCall);
+        router.get("/history/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute").handler(prApi::historyCall);
+        router.get("/history/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute/:maturityMonthYear").handler(prApi::historyCall);
         return router;
     }
 
     private Router createRlSubRoutes() {
         Router router = Router.router(vertx);
         RiskLimitApi rlApi = new RiskLimitApi(eb);
-        router.get("/latest/rl").handler(rlApi::latestCall);
-        router.get("/latest/rl/:clearer").handler(rlApi::latestCall);
-        router.get("/latest/rl/:clearer/:member").handler(rlApi::latestCall);
-        router.get("/latest/rl/:clearer/:member/:maintainer").handler(rlApi::latestCall);
-        router.get("/latest/rl/:clearer/:member/:maintainer/:limitType").handler(rlApi::latestCall);
-        router.get("/history/rl").handler(rlApi::historyCall);
-        router.get("/history/rl/:clearer").handler(rlApi::historyCall);
-        router.get("/history/rl/:clearer/:member").handler(rlApi::historyCall);
-        router.get("/history/rl/:clearer/:member/:maintainer").handler(rlApi::historyCall);
-        router.get("/history/rl/:clearer/:member/:maintainer/:limitType").handler(rlApi::historyCall);
+        router.get("/latest").handler(rlApi::latestCall);
+        router.get("/latest/:clearer").handler(rlApi::latestCall);
+        router.get("/latest/:clearer/:member").handler(rlApi::latestCall);
+        router.get("/latest/:clearer/:member/:maintainer").handler(rlApi::latestCall);
+        router.get("/latest/:clearer/:member/:maintainer/:limitType").handler(rlApi::latestCall);
+        router.get("/history").handler(rlApi::historyCall);
+        router.get("/history/:clearer").handler(rlApi::historyCall);
+        router.get("/history/:clearer/:member").handler(rlApi::historyCall);
+        router.get("/history/:clearer/:member/:maintainer").handler(rlApi::historyCall);
+        router.get("/history/:clearer/:member/:maintainer/:limitType").handler(rlApi::historyCall);
         return router;
     }
 
