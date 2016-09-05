@@ -28,6 +28,8 @@ public class HttpVerticleTest {
 
     @BeforeClass
     public static void setUp(TestContext context) throws IOException {
+        System.setProperty("vertx.logger-delegate-factory-class-name", "io.vertx.core.logging.SLF4JLogDelegateFactory");
+
         vertx = Vertx.vertx();
 
         // Get some free port
@@ -85,12 +87,12 @@ public class HttpVerticleTest {
 
     @Test
     public void testSslServerAuthentication(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("ssl", new JsonObject().put("enable", true).put("keystore", "./src/test/resources/http.keystore").put("keystorePassword", "123456"));
+        JsonObject config = new JsonObject().put("httpPort", port).put("ssl", new JsonObject().put("enable", true).put("keystore", getClass().getResource("http.keystore").getPath()).put("keystorePassword", "123456"));
         deployHttpVerticle(context, config);
 
         final Async asyncSslClient = context.async();
 
-        HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true).setTrustStoreOptions(new JksOptions().setPath("./src/test/resources/client.truststore").setPassword("123456"));
+        HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true).setTrustStoreOptions(new JksOptions().setPath(getClass().getResource("client.truststore").getPath()).setPassword("123456"));
 
         vertx.createHttpClient(sslOpts).get(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
             context.assertEquals(res.statusCode(), 200);
@@ -108,12 +110,12 @@ public class HttpVerticleTest {
 
     @Test
     public void testSslClientAuthentication(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("ssl", new JsonObject().put("enable", true).put("keystore", "./src/test/resources/http.keystore").put("keystorePassword", "123456").put("truststore", "./src/test/resources/http.truststore").put("truststorePassword", "123456").put("requireTLSClientAuth", false));
+        JsonObject config = new JsonObject().put("httpPort", port).put("ssl", new JsonObject().put("enable", true).put("keystore", getClass().getResource("http.keystore").getPath()).put("keystorePassword", "123456").put("truststore", getClass().getResource("http.truststore").getPath()).put("truststorePassword", "123456").put("requireTLSClientAuth", false));
         deployHttpVerticle(context, config);
 
         final Async asyncSslClient = context.async();
 
-        HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true).setTrustStoreOptions(new JksOptions().setPath("./src/test/resources/client.truststore").setPassword("123456"));
+        HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true).setTrustStoreOptions(new JksOptions().setPath(getClass().getResource("client.truststore").getPath()).setPassword("123456"));
 
         vertx.createHttpClient(sslOpts).get(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
             context.assertEquals(res.statusCode(), 200);
@@ -121,7 +123,7 @@ public class HttpVerticleTest {
         }).end();
 
         final Async asyncSslClientAuth = context.async();
-        HttpClientOptions sslClientAuthOpts = new HttpClientOptions().setSsl(true).setTrustStoreOptions(new JksOptions().setPath("./src/test/resources/client.truststore").setPassword("123456")).setKeyStoreOptions(new JksOptions().setPath("./src/test/resources/client.keystore").setPassword("123456"));
+        HttpClientOptions sslClientAuthOpts = new HttpClientOptions().setSsl(true).setTrustStoreOptions(new JksOptions().setPath(getClass().getResource("client.truststore").getPath()).setPassword("123456")).setKeyStoreOptions(new JksOptions().setPath(getClass().getResource("client.keystore").getPath()).setPassword("123456"));
 
         vertx.createHttpClient(sslClientAuthOpts).get(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
             context.assertEquals(res.statusCode(), 200);
@@ -139,12 +141,12 @@ public class HttpVerticleTest {
 
     @Test
     public void testSslRequiredClientAuthentication(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("ssl", new JsonObject().put("enable", true).put("keystore", "./src/test/resources/http.keystore").put("keystorePassword", "123456").put("truststore", "./src/test/resources/http.truststore").put("truststorePassword", "123456").put("requireTLSClientAuth", true));
+        JsonObject config = new JsonObject().put("httpPort", port).put("ssl", new JsonObject().put("enable", true).put("keystore", getClass().getResource("http.keystore").getPath()).put("keystorePassword", "123456").put("truststore", getClass().getResource("http.truststore").getPath()).put("truststorePassword", "123456").put("requireTLSClientAuth", true));
         deployHttpVerticle(context, config);
 
         final Async asyncSslClient = context.async();
 
-        HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true).setTrustStoreOptions(new JksOptions().setPath("./src/test/resources/client.truststore").setPassword("123456"));
+        HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true).setTrustStoreOptions(new JksOptions().setPath(getClass().getResource("client.truststore").getPath()).setPassword("123456"));
 
         vertx.createHttpClient(sslOpts).get(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
             context.fail("Connected without client authentication!");
@@ -153,7 +155,7 @@ public class HttpVerticleTest {
         }).end();
 
         final Async asyncSslClientAuth = context.async();
-        HttpClientOptions sslClientAuthOpts = new HttpClientOptions().setSsl(true).setTrustStoreOptions(new JksOptions().setPath("./src/test/resources/client.truststore").setPassword("123456")).setKeyStoreOptions(new JksOptions().setPath("./src/test/resources/client.keystore").setPassword("123456"));
+        HttpClientOptions sslClientAuthOpts = new HttpClientOptions().setSsl(true).setTrustStoreOptions(new JksOptions().setPath(getClass().getResource("client.truststore").getPath()).setPassword("123456")).setKeyStoreOptions(new JksOptions().setPath(getClass().getResource("client.keystore").getPath()).setPassword("123456"));
 
         vertx.createHttpClient(sslClientAuthOpts).get(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
             context.assertEquals(res.statusCode(), 200);
