@@ -36,6 +36,8 @@ public class UserApi {
 
     public void login(RoutingContext routingContext) {
         if (authProvider != null) {
+            LOG.info("Starting authentication for login request from {}!", routingContext.request().remoteAddress().toString());
+
             try {
                 JsonObject record = routingContext.getBodyAsJson();
                 String username = record.getString("username");
@@ -119,10 +121,10 @@ public class UserApi {
                             routingContext.response()
                                     .putHeader("content-type", "application/json; charset=utf-8")
                                     .end(Json.encodePrettily(resp));
-                            LOG.info("User {} authenticated successfully", username);
+                            LOG.info("User {} authenticated successfully from {}", username, routingContext.request().remoteAddress().toString());
                         } else {
                             routingContext.fail(HttpResponseStatus.FORBIDDEN.code());
-                            LOG.warn("User {} failed to authenticate!", username);
+                            LOG.warn("User {} failed to authenticate from {}!", username, routingContext.request().remoteAddress().toString());
                         }
                     });
                 }
