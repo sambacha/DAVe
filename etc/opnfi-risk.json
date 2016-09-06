@@ -10,7 +10,7 @@
       "requireTLSClientAuth": false
     },
     "CORS": {
-      "enable" : true,
+      "enable" : false,
       "origin" : "*"
     },
     "auth": {
