@@ -211,6 +211,7 @@
         <configuration>
           <systemPropertyVariables>
             <mongodb.port>${mongodb.port}</mongodb.port>
+            <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
           </systemPropertyVariables>
         </configuration>
         <executions>
