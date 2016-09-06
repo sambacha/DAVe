@@ -34,7 +34,6 @@ The `mongodb` section contains the configuration of the MongoDB database where w
 |--------|-------------|---------|
 | `db_name` | Name of the database which will be used | `OpnFi-Risk` |
 | `connection_string` | Connection URL to connect to the database | `mongodb://localhost:27017` |
-| `salt` | Salt string used in hashed passwords | `sdf8hdgss3_a` |
 
 ### Web
 
