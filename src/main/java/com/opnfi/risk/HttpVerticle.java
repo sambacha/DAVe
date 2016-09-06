@@ -194,8 +194,8 @@ public class HttpVerticle extends AbstractVerticle {
     private Router createTssSubRoutes() {
         Router router = Router.router(vertx);
         TradingSessionStatusApi tssApi = new TradingSessionStatusApi(eb);
-        router.get("/latest/tss").handler(tssApi::latestCall);
-        router.get("/history/tss").handler(tssApi::historyCall);
+        router.get("/latest").handler(tssApi::latestCall);
+        router.get("/history").handler(tssApi::historyCall);
         return router;
     }
 
