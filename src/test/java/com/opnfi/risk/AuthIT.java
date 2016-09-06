@@ -338,6 +338,50 @@ public class AuthIT {
         }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
     }
 
+    @Test
+    public void testLogout(TestContext context) {
+        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        deployHttpVerticle(context, config);
+
+        HttpClient client = vertx.createHttpClient();
+
+        // Log in
+        final Async asyncLogin = context.async();
+        client.post(port, "localhost", "/api/v1.0/user/login", res -> {
+            context.assertEquals(res.statusCode(), 200);
+            context.assertNotNull(res.getHeader(HttpHeaders.SET_COOKIE));
+            String sessionCookie = res.getHeader(HttpHeaders.SET_COOKIE);
+
+            // Logged in => loginStatus should return JsonObject with username
+            final Async asyncLoginStatus = context.async();
+            client.get(port, "localhost", "/api/v1.0/user/loginStatus", statusRes -> {
+                context.assertEquals(statusRes.statusCode(), 200);
+                statusRes.bodyHandler(body -> {
+                    JsonObject bd = body.toJsonObject();
+                    context.assertEquals(bd, new JsonObject().put("username", "user1"));
+                    asyncLoginStatus.complete();
+                });
+            }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
+
+            // Logout
+            final Async asyncLogout = context.async();
+            client.get(port, "localhost", "/api/v1.0/user/logout", logoutRes -> {
+                context.assertEquals(logoutRes.statusCode(), 200);
+
+                // Logged out in => REST access should return 401
+                final Async asyncUnauthorized = context.async();
+                client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
+                    context.assertEquals(tssRes.statusCode(), 401);
+                    asyncUnauthorized.complete();
+                }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
+
+                asyncLogout.complete();
+            }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
+
+            asyncLogin.complete();
+        }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
+    }
+
     @After
     public void cleanup(TestContext context)
     {
