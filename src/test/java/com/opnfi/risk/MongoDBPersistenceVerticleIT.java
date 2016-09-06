@@ -2,7 +2,6 @@ package com.opnfi.risk;
 
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.unit.Async;
@@ -30,6 +29,7 @@ public class MongoDBPersistenceVerticleIT {
         MongoDBPersistenceVerticleIT.vertx = Vertx.vertx();
         JsonObject config = new JsonObject();
         config.put("db_name", "OpnFi-Risk-Test" + UUID.randomUUID().getLeastSignificantBits());
+        config.put("connection_string", "mongodb://localhost:" + System.getProperty("mongodb.port", "27017"));
         DeploymentOptions options = new DeploymentOptions().setConfig(config);
         MongoDBPersistenceVerticleIT.vertx.deployVerticle(MongoDBPersistenceVerticle.class.getName(), options, context.asyncAssertSuccess());
         MongoDBPersistenceVerticleIT.mongoClient = MongoClient.createShared(MongoDBPersistenceVerticleIT.vertx, config);
@@ -69,15 +69,13 @@ public class MongoDBPersistenceVerticleIT {
         tradingSessionStatus.put("stat", "STAT");
         tradingSessionStatus.put("statRejRsn", "STATREJRSN");
         tradingSessionStatus.put("txt", "TXT");
-        String tradingSessionStatusDocument = Json.encode(tradingSessionStatus);
-        MongoDBPersistenceVerticleIT.vertx.eventBus().send("ers.TradingSessionStatus", tradingSessionStatusDocument, ar -> {
+        MongoDBPersistenceVerticleIT.vertx.eventBus().send("ers.TradingSessionStatus", tradingSessionStatus, ar -> {
             context.assertTrue(ar.succeeded());
             asyncStore.complete();
         });
         asyncStore.awaitSuccess();
         final Async asyncFind = context.async();
-        System.out.println(tradingSessionStatusDocument);
-        MongoDBPersistenceVerticleIT.mongoClient.findOne("ers.TradingSessionStatus", new JsonObject(tradingSessionStatusDocument), null, ar -> {
+        MongoDBPersistenceVerticleIT.mongoClient.findOne("ers.TradingSessionStatus", tradingSessionStatus, null, ar -> {
             if (ar.succeeded()) {
                 context.assertEquals("REQID", ar.result().getString("reqId"));
                 context.assertEquals("SESID", ar.result().getString("sesId"));
