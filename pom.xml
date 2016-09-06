@@ -17,6 +17,7 @@
     <logback.version>1.1.7</logback.version>
     <woodstox.version>5.0.2</woodstox.version>
     <docker.maven.plugin.fabric8.version>0.15.16</docker.maven.plugin.fabric8.version>
+    <build.helper.maven.plugin>1.12</build.helper.maven.plugin>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
@@ -129,8 +130,35 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.19</version>
+          <configuration>
+            <systemPropertyVariables>
+              <http.port>${http.port}</http.port>
+              <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
+            </systemPropertyVariables>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>2.19</version>
+          <configuration>
+            <systemPropertyVariables>
+              <mongodb.port>${mongodb.port}</mongodb.port>
+              <http.port>${http.port}</http.port>
+              <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
+            </systemPropertyVariables>
+          </configuration>
+          <executions>
+            <execution>
+              <id>integration-tests</id>
+              <goals>
+                <goal>integration-test</goal>
+                <goal>verify</goal>
+              </goals>
+            </execution>
+          </executions>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -206,14 +234,27 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>${build.helper.maven.plugin}</version>
+        <executions>
+          <execution>
+            <id>reserve-network-port</id>
+            <goals>
+              <goal>reserve-network-port</goal>
+            </goals>
+            <phase>process-sources</phase>
+            <configuration>
+              <portNames>
+                <portName>http.port</portName>
+              </portNames>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <configuration>
-          <systemPropertyVariables>
-            <mongodb.port>${mongodb.port}</mongodb.port>
-            <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
-          </systemPropertyVariables>
-        </configuration>
         <executions>
           <execution>
             <id>integration-tests</id>

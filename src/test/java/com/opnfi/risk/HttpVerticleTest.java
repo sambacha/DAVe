@@ -16,7 +16,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.net.ServerSocket;
 
 /**
  * Created by jakub on 03.09.16.
@@ -28,14 +27,8 @@ public class HttpVerticleTest {
 
     @BeforeClass
     public static void setUp(TestContext context) throws IOException {
-        System.setProperty("vertx.logger-delegate-factory-class-name", "io.vertx.core.logging.SLF4JLogDelegateFactory");
-
-        vertx = Vertx.vertx();
-
-        // Get some free port
-        ServerSocket socket = new ServerSocket(0);
-        port = socket.getLocalPort();
-        socket.close();
+        HttpVerticleTest.vertx = Vertx.vertx();
+        HttpVerticleTest.port = Integer.getInteger("http.port", 8080);
     }
 
     private void deployHttpVerticle(TestContext context, JsonObject config)
