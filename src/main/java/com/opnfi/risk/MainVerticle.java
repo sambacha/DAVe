@@ -42,17 +42,8 @@ public class MainVerticle extends AbstractVerticle {
         }).compose(v -> {
             LOG.info("Deployed HttpVerticle with ID {}", v);
             webInterfaceDeployment = v;
-            JsonArray ersConnectorOptions;
 
-            if (config().getValue("ers") instanceof JsonObject)
-            {
-                ersConnectorOptions = new JsonArray().add(config().getJsonObject("ers"));
-            }
-            else
-            {
-                ersConnectorOptions = config().getJsonArray("ers");
-            }
-
+            JsonArray ersConnectorOptions = config().getJsonArray("ers");
             Future<Void> ersConnectorDeploymentFuture = Future.future();
             deployErsVerticles(ersConnectorOptions, ersConnectorDeploymentFuture.completer());
             return ersConnectorDeploymentFuture;
