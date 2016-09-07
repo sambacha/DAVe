@@ -65,6 +65,18 @@
       <version>${vertx.version}</version>
       <scope>test</scope>
     </dependency>
+    <!--<dependency>
+      <groupId>org.apache.qpid</groupId>
+      <artifactId>qpid-client</artifactId>
+      <version>6.0.4</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-jms_1.1_spec</artifactId>
+      <version>1.1</version>
+      <scope>test</scope>
+    </dependency>-->
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-jdbc-client</artifactId>
@@ -146,6 +158,8 @@
           <configuration>
             <systemPropertyVariables>
               <mongodb.port>${mongodb.port}</mongodb.port>
+              <ers.tcp_port>${ers.tcp_port}</ers.tcp_port>
+              <ers.ssl_port>${ers.ssl_port}</ers.ssl_port>
               <http.port>${http.port}</http.port>
               <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
             </systemPropertyVariables>
@@ -238,7 +252,7 @@
                 </log>
                 <ports>
                   <port>ers.tcp_port:5672</port>
-                  <port>ers.tcp_port:5671</port>
+                  <port>ers.ssl_port:5671</port>
                 </ports>
               </run>
             </image>
