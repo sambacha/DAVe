@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/scholzj/opnfi-risk.svg?style=svg)](https://circleci.com/gh/scholzj/opnfi-risk) [![Coverage Status](https://coveralls.io/repos/github/scholzj/opnfi-risk/badge.svg?branch=master)](https://coveralls.io/github/scholzj/opnfi-risk?branch=master)
+
 # OpnFi Risk
 
 OpnFi Risk is free open source client for [Eurex Clearing Enhanced Risk Interface](http://www.eurexclearing.com/clearing-en/risk-management/system-based-risk-controls/post-trade-risk-control/enhanced-risk-interface) interface AMQP interface (ERS). It provides a UI and REST interface to acces lastest as well as historical data data received over ERS.
