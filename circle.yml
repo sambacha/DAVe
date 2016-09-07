@@ -1,0 +1,12 @@
+machine:
+  java:
+    version: oraclejdk8
+  services:
+    - docker
+
+test:
+  pre:
+    - docker pull ecmi/fixml:sim
+    - docker pull mongo:3.2
+  override:
+    - mvn vertify
