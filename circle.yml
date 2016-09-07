@@ -9,4 +9,4 @@ test:
     - docker pull ecmi/fixml:sim
     - docker pull mongo:3.2
   override:
-    - mvn vertify
+    - mvn verify
