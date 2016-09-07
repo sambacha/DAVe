@@ -298,6 +298,11 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>com/opnfi/risk/model/jaxb/*.class</exclude>
+          </excludes>
+        </configuration>
         <executions>
           <execution>
             <id>pre-unit-test</id>
