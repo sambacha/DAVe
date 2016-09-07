@@ -9,4 +9,4 @@ test:
     - docker pull ecmi/fixml:sim
     - docker pull mongo:3.2
   override:
-    - mvn -Ddocker.keepContainer verify
+    - mvn -DrepoToken=${COVERALLS_TOKEN} -Ddocker.keepContainer verify coveralls:report
