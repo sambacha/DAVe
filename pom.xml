@@ -224,6 +224,24 @@
                 </ports>
               </run>
             </image>
+            <image>
+              <alias>db</alias>
+              <name>ecmi/ers:sim</name>
+              <run>
+                <wait>
+                  <log>Broker \(pid=1\) running</log>
+                  <time>10000</time>
+                </wait>
+                <log>
+                  <prefix>ERS</prefix>
+                  <color>cyan</color>
+                </log>
+                <ports>
+                  <port>ers.tcp_port:5672</port>
+                  <port>ers.tcp_port:5671</port>
+                </ports>
+              </run>
+            </image>
           </images>
         </configuration>
         <executions>
