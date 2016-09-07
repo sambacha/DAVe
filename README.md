@@ -47,7 +47,7 @@ The `web` section configures the web based UI and the REST API.
 | `compression` | Enbale gzip compression of the HTTP responses | `true` |
 | `ssl` | Subsection configuring SSL/TLS on the webserver |  |
 | `CORS` | Subsection configuring Cross-origin resource sharing (see below) |  |
-| `auth` | Subsection cofngiuring authentication (see below) |  |
+| `auth` | Subsection configuring authentication (see below) |  |
 
 
 ### SSL
