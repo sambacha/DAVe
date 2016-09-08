@@ -87,6 +87,35 @@ public class ERSConnectorVerticleIT {
         sendErsBroadcast(context, "public.MessageType.TradingSessionStatus", DummyData.tradingSessionStatusXML);
     }
 
+    @Test
+    public void testPositionReport(TestContext context) throws InterruptedException {
+        final Async asyncReceiver = context.async();
+        vertx.eventBus().consumer("ers.PositionReport", msg -> {
+            JsonObject pos = (JsonObject)msg.body();
+
+            context.assertEquals(pos.getString("clearer"), "ABCFR");
+            context.assertEquals(pos.getString("member"), "DEFFR");
+            context.assertNull(pos.getString("reqID"));
+            context.assertEquals(pos.getString("account"), "A1");
+            context.assertEquals(pos.getJsonObject("bizDt"), new JsonObject().put("$date", "2009-12-16T00:00:00.000+01:00"));
+            context.assertEquals(pos.getString("settlSesId"), "ITD");
+            context.assertEquals(pos.getString("rptId"), "13365938226608");
+            context.assertEquals(pos.getString("putCall"), "C");
+            context.assertEquals(pos.getString("maturityMonthYear"), "201001");
+            context.assertEquals(pos.getString("strikePrice"), "3500");
+            context.assertEquals(pos.getString("symbol"), "BMW");
+            context.assertEquals(pos.getDouble("crossMarginLongQty"), 0.0);
+            context.assertEquals(pos.getDouble("crossMarginShortQty"), 100.0);
+            context.assertEquals(pos.getDouble("optionExcerciseQty"), 0.0);
+            context.assertEquals(pos.getDouble("optionAssignmentQty"), 0.0);
+            context.assertNull(pos.getDouble("allocationTradeQty"));
+            context.assertNull(pos.getDouble("deliveryNoticeQty"));
+            asyncReceiver.complete();
+        });
+
+        sendErsBroadcast(context, "ABCFR.MessageType.Position", DummyData.positionReportXML);
+    }
+
     @AfterClass
     public static void tearDown(TestContext context) {
         ERSConnectorVerticleIT.vertx.close(context.asyncAssertSuccess());
