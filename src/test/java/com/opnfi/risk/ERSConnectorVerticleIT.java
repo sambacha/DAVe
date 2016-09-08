@@ -9,6 +9,7 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.JksOptions;
 import io.vertx.ext.unit.Async;
@@ -120,23 +121,23 @@ public class ERSConnectorVerticleIT {
     public void testMarginComponent(TestContext context) throws InterruptedException {
         final Async asyncReceiver = context.async();
         vertx.eventBus().consumer("ers.MarginComponent", msg -> {
-            JsonObject pos = (JsonObject)msg.body();
+            JsonObject mc = (JsonObject)msg.body();
 
-            context.assertEquals(pos.getString("clearer"), "ABCFR");
-            context.assertEquals(pos.getString("member"), "DEFFR");
-            context.assertNull(pos.getString("reqID"));
-            context.assertEquals(pos.getString("account"), "A1");
-            context.assertEquals(pos.getJsonObject("bizDt"), new JsonObject().put("$date", "2009-12-16T00:00:00.000+01:00"));
-            context.assertEquals(pos.getJsonObject("txnTm"), new JsonObject().put("$date", "2009-12-16T14:46:18.550+01:00"));
-            context.assertEquals(pos.getString("sesId"), "ITD");
-            context.assertEquals(pos.getString("clss"), "BMW");
-            context.assertEquals(pos.getString("ccy"), "EUR");
-            context.assertEquals(pos.getString("rptId"), "13365938226624");
-            context.assertEquals(pos.getDouble("variationMargin"), 1714286.0);
-            context.assertEquals(pos.getDouble("premiumMargin"), 25539.0);
-            context.assertEquals(pos.getDouble("liquiMargin"), 0.0);
-            context.assertEquals(pos.getDouble("spreadMargin"), 0.0);
-            context.assertEquals(pos.getDouble("additionalMargin"), 20304.0);
+            context.assertEquals(mc.getString("clearer"), "ABCFR");
+            context.assertEquals(mc.getString("member"), "DEFFR");
+            context.assertNull(mc.getString("reqID"));
+            context.assertEquals(mc.getString("account"), "A1");
+            context.assertEquals(mc.getJsonObject("bizDt"), new JsonObject().put("$date", "2009-12-16T00:00:00.000+01:00"));
+            context.assertEquals(mc.getJsonObject("txnTm"), new JsonObject().put("$date", "2009-12-16T14:46:18.550+01:00"));
+            context.assertEquals(mc.getString("sesId"), "ITD");
+            context.assertEquals(mc.getString("clss"), "BMW");
+            context.assertEquals(mc.getString("ccy"), "EUR");
+            context.assertEquals(mc.getString("rptId"), "13365938226624");
+            context.assertEquals(mc.getDouble("variationMargin"), 1714286.0);
+            context.assertEquals(mc.getDouble("premiumMargin"), 25539.0);
+            context.assertEquals(mc.getDouble("liquiMargin"), 0.0);
+            context.assertEquals(mc.getDouble("spreadMargin"), 0.0);
+            context.assertEquals(mc.getDouble("additionalMargin"), 20304.0);
             asyncReceiver.complete();
         });
 
@@ -147,20 +148,20 @@ public class ERSConnectorVerticleIT {
     public void testTotalMarginRequirement(TestContext context) throws InterruptedException {
         final Async asyncReceiver = context.async();
         vertx.eventBus().consumer("ers.TotalMarginRequirement", msg -> {
-            JsonObject pos = (JsonObject)msg.body();
+            JsonObject tmr = (JsonObject)msg.body();
 
-            context.assertEquals(pos.getString("clearer"), "ABCFR");
-            context.assertEquals(pos.getString("member"), "DEFFR");
-            context.assertNull(pos.getString("reqID"));
-            context.assertEquals(pos.getString("account"), "A1");
-            context.assertEquals(pos.getString("pool"), "ABCFRDEFM");
-            context.assertEquals(pos.getJsonObject("bizDt"), new JsonObject().put("$date", "2009-12-16T00:00:00.000+01:00"));
-            context.assertEquals(pos.getJsonObject("txnTm"), new JsonObject().put("$date", "2009-12-16T14:46:18.550+01:00"));
-            context.assertEquals(pos.getString("sesId"), "ITD");
-            context.assertEquals(pos.getString("ccy"), "EUR");
-            context.assertEquals(pos.getString("rptId"), "13365938226622");
-            context.assertEquals(pos.getDouble("adjustedMargin"), 58054385.7);
-            context.assertEquals(pos.getDouble("unadjustedMargin"), 58054385.7);
+            context.assertEquals(tmr.getString("clearer"), "ABCFR");
+            context.assertEquals(tmr.getString("member"), "DEFFR");
+            context.assertNull(tmr.getString("reqID"));
+            context.assertEquals(tmr.getString("account"), "A1");
+            context.assertEquals(tmr.getString("pool"), "ABCFRDEFM");
+            context.assertEquals(tmr.getJsonObject("bizDt"), new JsonObject().put("$date", "2009-12-16T00:00:00.000+01:00"));
+            context.assertEquals(tmr.getJsonObject("txnTm"), new JsonObject().put("$date", "2009-12-16T14:46:18.550+01:00"));
+            context.assertEquals(tmr.getString("sesId"), "ITD");
+            context.assertEquals(tmr.getString("ccy"), "EUR");
+            context.assertEquals(tmr.getString("rptId"), "13365938226622");
+            context.assertEquals(tmr.getDouble("adjustedMargin"), 58054385.7);
+            context.assertEquals(tmr.getDouble("unadjustedMargin"), 58054385.7);
             asyncReceiver.complete();
         });
 
@@ -171,28 +172,72 @@ public class ERSConnectorVerticleIT {
     public void testMarginShortfallSurplus(TestContext context) throws InterruptedException {
         final Async asyncReceiver = context.async();
         vertx.eventBus().consumer("ers.MarginShortfallSurplus", msg -> {
-            JsonObject pos = (JsonObject)msg.body();
+            JsonObject mss = (JsonObject)msg.body();
 
-            context.assertEquals(pos.getString("clearer"), "ABCFR");
-            context.assertEquals(pos.getString("member"), "DEFFR");
-            context.assertNull(pos.getString("reqID"));
-            context.assertEquals(pos.getString("pool"), "ABCFRDEFM");
-            context.assertEquals(pos.getString("poolType"), "Default");
-            context.assertEquals(pos.getJsonObject("bizDt"), new JsonObject().put("$date", "2009-12-16T00:00:00.000+01:00"));
-            context.assertEquals(pos.getJsonObject("txnTm"), new JsonObject().put("$date", "2009-12-16T14:46:18.550+01:00"));
-            context.assertEquals(pos.getString("sesId"), "ITD");
-            context.assertEquals(pos.getString("ccy"), "EUR");
-            context.assertEquals(pos.getString("clearingCcy"), "EUR");
-            context.assertEquals(pos.getString("rptId"), "13365938226618");
-            context.assertEquals(pos.getDouble("marginRequirement"), 5656891139.9);
-            context.assertEquals(pos.getDouble("securityCollateral"), 604369.0);
-            context.assertEquals(pos.getDouble("cashBalance"), 48017035.95);
-            context.assertEquals(pos.getDouble("shortfallSurplus"), -5603269734.95);
-            context.assertEquals(pos.getDouble("marginCall"), -5603269734.95);
+            context.assertEquals(mss.getString("clearer"), "ABCFR");
+            context.assertEquals(mss.getString("member"), "DEFFR");
+            context.assertNull(mss.getString("reqID"));
+            context.assertEquals(mss.getString("pool"), "ABCFRDEFM");
+            context.assertEquals(mss.getString("poolType"), "Default");
+            context.assertEquals(mss.getJsonObject("bizDt"), new JsonObject().put("$date", "2009-12-16T00:00:00.000+01:00"));
+            context.assertEquals(mss.getJsonObject("txnTm"), new JsonObject().put("$date", "2009-12-16T14:46:18.550+01:00"));
+            context.assertEquals(mss.getString("sesId"), "ITD");
+            context.assertEquals(mss.getString("ccy"), "EUR");
+            context.assertEquals(mss.getString("clearingCcy"), "EUR");
+            context.assertEquals(mss.getString("rptId"), "13365938226618");
+            context.assertEquals(mss.getDouble("marginRequirement"), 5656891139.9);
+            context.assertEquals(mss.getDouble("securityCollateral"), 604369.0);
+            context.assertEquals(mss.getDouble("cashBalance"), 48017035.95);
+            context.assertEquals(mss.getDouble("shortfallSurplus"), -5603269734.95);
+            context.assertEquals(mss.getDouble("marginCall"), -5603269734.95);
             asyncReceiver.complete();
         });
 
         sendErsBroadcast(context, "ABCFR.MessageType.MarginShortfallSurplus", DummyData.marginShortfallSurplusXML);
+    }
+
+    @Test
+    public void testRiskLimit(TestContext context) throws InterruptedException {
+        final Async asyncReceiver = context.async();
+        vertx.eventBus().consumer("ers.RiskLimit", msg -> {
+            JsonArray limits = (JsonArray)msg.body();
+            context.assertEquals(limits.size(), 2);
+
+            for (Object member : limits.getList()) {
+                JsonObject rl = (JsonObject)member;
+
+                context.assertEquals(rl.getString("clearer"), "ABCFR");
+                context.assertEquals(rl.getString("member"), "DEFFR");
+                context.assertEquals(rl.getString("maintainer"), "ABCFR");
+                context.assertNull(rl.getString("reqID"));
+                context.assertEquals(rl.getString("reqRslt"), "0");
+                context.assertNull(rl.getString("txt"));
+                context.assertEquals(rl.getJsonObject("txnTm"), new JsonObject().put("$date", "2009-12-16T14:46:18.550+01:00"));
+                context.assertEquals(rl.getString("rptId"), "13365938226620");
+
+                switch (rl.getString("limitType"))
+                {
+                    case "TMR":
+                        context.assertEquals(rl.getDouble("utilization"), 2838987418.92);
+                        context.assertEquals(rl.getDouble("warningLevel"), 1000.0);
+                        context.assertEquals(rl.getDouble("throttleLevel"), 10000.0);
+                        context.assertEquals(rl.getDouble("rejectLevel"), 100000.0);
+                        break;
+                    case "NDM":
+                        context.assertEquals(rl.getDouble("utilization"), 2480888829.87);
+                        context.assertEquals(rl.getDouble("warningLevel"), 2000.0);
+                        context.assertEquals(rl.getDouble("throttleLevel"), 20000.0);
+                        context.assertEquals(rl.getDouble("rejectLevel"), 200000.0);
+                        break;
+                    default:
+                        context.fail("Got unexpected limit type!");
+                }
+            }
+
+            asyncReceiver.complete();
+        });
+
+        sendErsBroadcast(context, "ABCFR.MessageType.RiskLimits", DummyData.riskLimitXML);
     }
 
     @AfterClass
