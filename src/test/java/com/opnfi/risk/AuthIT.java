@@ -350,6 +350,43 @@ public class AuthIT {
     }
 
     @Test
+    public void testAuthWithSslClientAuthWithoutClientCert(TestContext context) {
+        JsonObject config = new JsonObject().put("httpPort", port)
+                .put("ssl", new JsonObject().put("enable", true).put("keystore", getClass().getResource("http.keystore").getPath()).put("keystorePassword", "123456").put("requireTLSClientAuth", false))
+                .put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", true));
+        deployHttpVerticle(context, config);
+
+        HttpClientOptions sslClientAuthOpts = new HttpClientOptions().setSsl(true).setTrustStoreOptions(new JksOptions().setPath(getClass().getResource("client.truststore").getPath()).setPassword("123456"));
+        HttpClient client = vertx.createHttpClient(sslClientAuthOpts);
+
+        // Log in with username not matching certificate subject
+        final Async asyncLoginWithoutSSL = context.async();
+        client.post(port, "localhost", "/api/v1.0/user/login", res -> {
+            context.assertEquals(res.statusCode(), 403);
+            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
+            asyncLoginWithoutSSL.complete();
+        }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
+    }
+
+    @Test
+    public void testAuthWithSslClientAuthWithoutActualSsl(TestContext context) {
+        JsonObject config = new JsonObject().put("httpPort", port)
+                .put("ssl", new JsonObject().put("enable", false))
+                .put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", true));
+        deployHttpVerticle(context, config);
+
+        HttpClient client = vertx.createHttpClient();
+
+        // Log in with username not matching certificate subject
+        final Async asyncLoginWithoutSSL = context.async();
+        client.post(port, "localhost", "/api/v1.0/user/login", res -> {
+            context.assertEquals(res.statusCode(), 403);
+            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
+            asyncLoginWithoutSSL.complete();
+        }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
+    }
+
+    @Test
     public void testLogout(TestContext context) {
         JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
         deployHttpVerticle(context, config);
