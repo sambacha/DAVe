@@ -52,10 +52,10 @@ public abstract class AbstractErsApi {
     }
 
     public void latestCall(RoutingContext routingContext) {
-        sendRequestToEventBus(routingContext, latestEbAddress, "latest/" + requestName);
+        sendRequestToEventBus(routingContext, latestEbAddress, requestName + "/latest");
     }
 
     public void historyCall(RoutingContext routingContext) {
-        sendRequestToEventBus(routingContext, historyEbAddress, "history/" + requestName);
+        sendRequestToEventBus(routingContext, historyEbAddress, requestName + "/history");
     }
 }
