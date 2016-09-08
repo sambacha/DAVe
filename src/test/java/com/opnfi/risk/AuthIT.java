@@ -1,9 +1,11 @@
 package com.opnfi.risk;
 
 import com.opnfi.risk.util.UserManagerVerticle;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpHeaders;
@@ -11,6 +13,7 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.JksOptions;
+import io.vertx.core.spi.BufferFactory;
 import io.vertx.ext.auth.mongo.HashSaltStyle;
 import io.vertx.ext.auth.mongo.MongoAuth;
 import io.vertx.ext.mongo.MongoClient;
@@ -216,6 +219,22 @@ public class AuthIT {
             context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLogin.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", "wrongpassword")));
+    }
+
+    @Test
+    public void testLoginWithBinaryData(TestContext context) {
+        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        deployHttpVerticle(context, config);
+
+        HttpClient client = vertx.createHttpClient();
+
+        // Log in with some binary garbage
+        final Async asyncLogin = context.async();
+        client.post(port, "localhost", "/api/v1.0/user/login", res -> {
+            context.assertEquals(res.statusCode(), HttpResponseStatus.BAD_REQUEST.code());
+            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
+            asyncLogin.complete();
+        }).end(Buffer.buffer(new byte[] {1, 3, 5, 7, 9}));
     }
 
     @Test
