@@ -29,11 +29,6 @@ public class UserApi {
         this.authProvider = ap;
     }
 
-    public UserApi(AuthProvider ap) {
-        this.checkUserAgainstCertificate = false;
-        this.authProvider = ap;
-    }
-
     public void login(RoutingContext routingContext) {
         if (authProvider != null) {
             LOG.info("Starting authentication for login request from {}!", routingContext.request().remoteAddress().toString());
