@@ -5,9 +5,6 @@ machine:
     - docker
 
 test:
-  pre:
-    - docker pull ecmi/fixml:sim
-    - docker pull mongo:3.2
   override:
     - mvn -DrepoToken=${COVERALLS_TOKEN} -Ddocker.keepContainer verify coveralls:report
   post:
