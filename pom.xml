@@ -158,8 +158,8 @@
           <configuration>
             <systemPropertyVariables>
               <mongodb.port>${mongodb.port}</mongodb.port>
-              <ers.tcp_port>${ers.tcp_port}</ers.tcp_port>
-              <ers.ssl_port>${ers.ssl_port}</ers.ssl_port>
+              <ers.tcpport>${ers.tcpport}</ers.tcpport>
+              <ers.sslport>${ers.sslport}</ers.sslport>
               <http.port>${http.port}</http.port>
               <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
             </systemPropertyVariables>
@@ -239,7 +239,7 @@
               </run>
             </image>
             <image>
-              <alias>db</alias>
+              <alias>ers</alias>
               <name>ecmi/ers:sim</name>
               <run>
                 <wait>
@@ -251,8 +251,8 @@
                   <color>cyan</color>
                 </log>
                 <ports>
-                  <port>ers.tcp_port:5672</port>
-                  <port>ers.ssl_port:5671</port>
+                  <port>ers.sslport:5671</port>
+                  <port>ers.tcpport:5672</port>
                 </ports>
               </run>
             </image>

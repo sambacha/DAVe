@@ -1,5 +1,8 @@
 package com.opnfi.risk;
 
+import com.opnfi.risk.utils.AutoCloseableConnection;
+import com.opnfi.risk.utils.DummyData;
+import com.opnfi.risk.utils.Utils;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
@@ -16,6 +19,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.jms.JMSException;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
+import javax.naming.NamingException;
+
 @RunWith(VertxUnitRunner.class)
 public class ERSConnectorVerticleIT {
     private static Vertx vertx;
@@ -24,19 +32,59 @@ public class ERSConnectorVerticleIT {
 
     @BeforeClass
     public static void setUp(TestContext context) {
-        ERSConnectorVerticleIT.vertx = Vertx.vertx();
-        ERSConnectorVerticleIT.tcpPort = Integer.getInteger("ers.tcp_port", 5672);
-        ERSConnectorVerticleIT.sslPort = Integer.getInteger("ers.ssl_port", 5671);
+        vertx = Vertx.vertx();
+
+        tcpPort = Integer.getInteger("ers.tcpport", 5672);
+        sslPort = Integer.getInteger("ers.sslport", 5671);
 
         JsonObject config = new JsonObject().put("brokerHost", "localhost").put("brokerPort", sslPort).put("member", "ABCFR").put("sslCertAlias", "abcfr").put("truststore", ERSConnectorVerticleIT.class.getResource("ers.truststore").getPath()).put("truststorePassword", "123456").put("keystore", ERSConnectorVerticleIT.class.getResource("ers.keystore").getPath()).put("keystorePassword", "123456");
-
         vertx.deployVerticle(ERSConnectorVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
     }
 
-    @Test
-    public void testTradingSessionStatus(TestContext test)
-    {
+    private void sendErsBroadcast(TestContext context, String routingKey, String messageBody) {
+        final Async asyncBroadcast = context.async();
 
+        vertx.executeBlocking(future -> {
+            try {
+                Utils utils = new Utils();
+                AutoCloseableConnection conn = utils.getAdminConnection("localhost", tcpPort);
+                Session ses = conn.createSession(false, Session.CLIENT_ACKNOWLEDGE);
+                MessageProducer prod = ses.createProducer(utils.getTopic("eurex.broadcast/" + routingKey));
+                prod.send(ses.createTextMessage(messageBody));
+
+                future.complete();
+            }
+            catch (NamingException | JMSException e)
+            {
+                future.fail(e);
+            }
+        }, res -> {
+            if (res.succeeded())
+            {
+                asyncBroadcast.complete();
+            }
+            else
+            {
+                context.fail("Failed to send broadcast message");
+            }
+        });
+
+        asyncBroadcast.awaitSuccess();
+    }
+
+    @Test
+    public void testTradingSessionStatus(TestContext context) throws InterruptedException {
+        final Async asyncReceiver = context.async();
+        vertx.eventBus().consumer("ers.TradingSessionStatus", msg -> {
+            JsonObject tss = (JsonObject)msg.body();
+
+            context.assertEquals(tss.getString("sesId"), "1");
+            context.assertEquals(tss.getString("stat"), "2");
+            context.assertNull(tss.getString("reqID"));
+            asyncReceiver.complete();
+        });
+
+        sendErsBroadcast(context, "public.MessageType.TradingSessionStatus", DummyData.tradingSessionStatusXML);
     }
 
     @AfterClass

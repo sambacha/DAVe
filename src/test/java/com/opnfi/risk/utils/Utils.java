@@ -9,9 +9,9 @@ import javax.naming.NamingException;
 
 public class Utils
 {
-    public AutoCloseableConnection getAdminConnection(String hostname) throws JMSException, NamingException
+    public AutoCloseableConnection getAdminConnection(String hostname, int port) throws JMSException, NamingException
     {
-        return new ConnectionBuilder().hostname(hostname).build();
+        return new ConnectionBuilder().hostname(hostname).port(Integer.toString(port)).build();
     }
 
     public Queue getQueue(String queueName) throws NamingException
