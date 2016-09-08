@@ -24,9 +24,15 @@ import javax.jms.JMSException;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.naming.NamingException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 @RunWith(VertxUnitRunner.class)
 public class ERSConnectorVerticleIT {
+    protected static final DateFormat timestampFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+    protected static final DateFormat timestampFormatterTimezone = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+
     private static Vertx vertx;
     private static int tcpPort;
     private static int sslPort;
@@ -92,26 +98,32 @@ public class ERSConnectorVerticleIT {
     public void testPositionReport(TestContext context) throws InterruptedException {
         final Async asyncReceiver = context.async();
         vertx.eventBus().consumer("ers.PositionReport", msg -> {
-            JsonObject pos = (JsonObject)msg.body();
+            try {
+                JsonObject pos = (JsonObject) msg.body();
 
-            context.assertEquals(pos.getString("clearer"), "ABCFR");
-            context.assertEquals(pos.getString("member"), "DEFFR");
-            context.assertNull(pos.getString("reqID"));
-            context.assertEquals(pos.getString("account"), "A1");
-            context.assertEquals(pos.getJsonObject("bizDt"), new JsonObject().put("$date", "2009-12-16T00:00:00.000+01:00"));
-            context.assertEquals(pos.getString("sesId"), "ITD");
-            context.assertEquals(pos.getString("rptId"), "13365938226608");
-            context.assertEquals(pos.getString("putCall"), "C");
-            context.assertEquals(pos.getString("maturityMonthYear"), "201001");
-            context.assertEquals(pos.getString("strikePrice"), "3500");
-            context.assertEquals(pos.getString("symbol"), "BMW");
-            context.assertEquals(pos.getDouble("crossMarginLongQty"), 0.0);
-            context.assertEquals(pos.getDouble("crossMarginShortQty"), 100.0);
-            context.assertEquals(pos.getDouble("optionExcerciseQty"), 0.0);
-            context.assertEquals(pos.getDouble("optionAssignmentQty"), 0.0);
-            context.assertNull(pos.getDouble("allocationTradeQty"));
-            context.assertNull(pos.getDouble("deliveryNoticeQty"));
-            asyncReceiver.complete();
+                context.assertEquals(pos.getString("clearer"), "ABCFR");
+                context.assertEquals(pos.getString("member"), "DEFFR");
+                context.assertNull(pos.getString("reqID"));
+                context.assertEquals(pos.getString("account"), "A1");
+                context.assertEquals(pos.getJsonObject("bizDt"), new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T00:00:00.000"))));
+                context.assertEquals(pos.getString("sesId"), "ITD");
+                context.assertEquals(pos.getString("rptId"), "13365938226608");
+                context.assertEquals(pos.getString("putCall"), "C");
+                context.assertEquals(pos.getString("maturityMonthYear"), "201001");
+                context.assertEquals(pos.getString("strikePrice"), "3500");
+                context.assertEquals(pos.getString("symbol"), "BMW");
+                context.assertEquals(pos.getDouble("crossMarginLongQty"), 0.0);
+                context.assertEquals(pos.getDouble("crossMarginShortQty"), 100.0);
+                context.assertEquals(pos.getDouble("optionExcerciseQty"), 0.0);
+                context.assertEquals(pos.getDouble("optionAssignmentQty"), 0.0);
+                context.assertNull(pos.getDouble("allocationTradeQty"));
+                context.assertNull(pos.getDouble("deliveryNoticeQty"));
+                asyncReceiver.complete();
+            }
+            catch (Exception e)
+            {
+                context.fail(e);
+            }
         });
 
         sendErsBroadcast(context, "ABCFR.MessageType.Position", DummyData.positionReportXML);
