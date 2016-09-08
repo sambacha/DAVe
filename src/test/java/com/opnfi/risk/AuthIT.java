@@ -158,14 +158,14 @@ public class AuthIT {
 
         final Async asyncLogin = context.async();
 
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/user/login", res -> {
+        vertx.createHttpClient().post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(res.statusCode(), 200);
             res.bodyHandler(body -> {
                 JsonObject bd = body.toJsonObject();
                 context.assertEquals(bd, new JsonObject().put("username", "Annonymous"));
                 asyncLogin.complete();
             });
-        });
+        }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
     }
 
     @Test
