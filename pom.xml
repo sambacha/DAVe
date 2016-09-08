@@ -162,6 +162,7 @@
               <ers.sslport>${ers.sslport}</ers.sslport>
               <http.port>${http.port}</http.port>
               <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
+              <logback.configurationFile>${project.basedir}/src/test/resources/logback.xml</logback.configurationFile>
             </systemPropertyVariables>
           </configuration>
           <executions>
