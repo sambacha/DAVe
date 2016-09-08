@@ -30,11 +30,7 @@ public class RestApiTest {
     public static void setUp(TestContext context) throws IOException {
         RestApiTest.vertx = Vertx.vertx();
         RestApiTest.port = Integer.getInteger("http.port", 8080);
-    }
 
-    @Before
-    public void deployHttpVerticle(TestContext context)
-    {
         JsonObject config = new JsonObject().put("httpPort", port);
         vertx.deployVerticle(HttpVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
     }
@@ -569,14 +565,6 @@ public class RestApiTest {
         asyncQuery.awaitSuccess();
         asyncRest.awaitSuccess();
         cons.unregister(context.asyncAssertSuccess());
-    }
-
-    @After
-    public void cleanup(TestContext context)
-    {
-        vertx.deploymentIDs().forEach(id -> {
-            vertx.undeploy(id, context.asyncAssertSuccess());
-        });
     }
 
     @AfterClass
