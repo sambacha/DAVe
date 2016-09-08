@@ -145,14 +145,25 @@ public class AuthIT {
         JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", false));
         deployHttpVerticle(context, config);
 
-        final Async asyncClient = context.async();
+        final Async asyncLoginStatus = context.async();
 
         vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
             context.assertEquals(res.statusCode(), 200);
             res.bodyHandler(body -> {
                 JsonObject bd = body.toJsonObject();
                 context.assertEquals(bd, new JsonObject().put("username", "Annonymous"));
-                asyncClient.complete();
+                asyncLoginStatus.complete();
+            });
+        });
+
+        final Async asyncLogin = context.async();
+
+        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/user/login", res -> {
+            context.assertEquals(res.statusCode(), 200);
+            res.bodyHandler(body -> {
+                JsonObject bd = body.toJsonObject();
+                context.assertEquals(bd, new JsonObject().put("username", "Annonymous"));
+                asyncLogin.complete();
             });
         });
     }
