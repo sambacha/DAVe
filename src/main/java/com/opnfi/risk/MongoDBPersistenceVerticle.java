@@ -647,7 +647,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         group.put("rptId", new JsonObject().put("$last", "$rptId"));
         group.put("bizDt", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoDayFormat).put("date", "$bizDt"))));
         group.put("lastReportRequested", new JsonObject().put("$last", "$lastReportRequested"));
-        group.put("settlSesId", new JsonObject().put("$last", "$settlSesId"));
+        group.put("sesId", new JsonObject().put("$last", "$sesId"));
         group.put("symbol", new JsonObject().put("$last", "$symbol"));
         group.put("putCall", new JsonObject().put("$last", "$putCall"));
         group.put("maturityMonthYear", new JsonObject().put("$last", "$maturityMonthYear"));
@@ -697,7 +697,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         project.put("rptId", 1);
         project.put("bizDt", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoDayFormat).put("date", "$bizDt")));
         project.put("lastReportRequested", 1);
-        project.put("settlSesId", 1);
+        project.put("sesId", 1);
         project.put("symbol", 1);
         project.put("putCall", 1);
         project.put("maturityMonthYear", 1);
