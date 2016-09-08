@@ -116,6 +116,33 @@ public class ERSConnectorVerticleIT {
         sendErsBroadcast(context, "ABCFR.MessageType.Position", DummyData.positionReportXML);
     }
 
+    @Test
+    public void testMarginComponent(TestContext context) throws InterruptedException {
+        final Async asyncReceiver = context.async();
+        vertx.eventBus().consumer("ers.MarginComponent", msg -> {
+            JsonObject pos = (JsonObject)msg.body();
+
+            context.assertEquals(pos.getString("clearer"), "ABCFR");
+            context.assertEquals(pos.getString("member"), "DEFFR");
+            context.assertNull(pos.getString("reqID"));
+            context.assertEquals(pos.getString("account"), "A1");
+            context.assertEquals(pos.getJsonObject("bizDt"), new JsonObject().put("$date", "2009-12-16T00:00:00.000+01:00"));
+            context.assertEquals(pos.getJsonObject("txnTm"), new JsonObject().put("$date", "2009-12-16T14:46:18.550+01:00"));
+            context.assertEquals(pos.getString("sesId"), "ITD");
+            context.assertEquals(pos.getString("clss"), "BMW");
+            context.assertEquals(pos.getString("ccy"), "EUR");
+            context.assertEquals(pos.getString("rptId"), "13365938226624");
+            context.assertEquals(pos.getDouble("variationMargin"), 1714286.0);
+            context.assertEquals(pos.getDouble("premiumMargin"), 25539.0);
+            context.assertEquals(pos.getDouble("liquiMargin"), 0.0);
+            context.assertEquals(pos.getDouble("spreadMargin"), 0.0);
+            context.assertEquals(pos.getDouble("additionalMargin"), 20304.0);
+            asyncReceiver.complete();
+        });
+
+        sendErsBroadcast(context, "ABCFR.MessageType.MarginComponents", DummyData.marginComponentXML);
+    }
+
     @AfterClass
     public static void tearDown(TestContext context) {
         ERSConnectorVerticleIT.vertx.close(context.asyncAssertSuccess());
