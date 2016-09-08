@@ -143,6 +143,30 @@ public class ERSConnectorVerticleIT {
         sendErsBroadcast(context, "ABCFR.MessageType.MarginComponents", DummyData.marginComponentXML);
     }
 
+    @Test
+    public void testTotalMarginRequirement(TestContext context) throws InterruptedException {
+        final Async asyncReceiver = context.async();
+        vertx.eventBus().consumer("ers.TotalMarginRequirement", msg -> {
+            JsonObject pos = (JsonObject)msg.body();
+
+            context.assertEquals(pos.getString("clearer"), "ABCFR");
+            context.assertEquals(pos.getString("member"), "DEFFR");
+            context.assertNull(pos.getString("reqID"));
+            context.assertEquals(pos.getString("account"), "A1");
+            context.assertEquals(pos.getString("pool"), "ABCFRDEFM");
+            context.assertEquals(pos.getJsonObject("bizDt"), new JsonObject().put("$date", "2009-12-16T00:00:00.000+01:00"));
+            context.assertEquals(pos.getJsonObject("txnTm"), new JsonObject().put("$date", "2009-12-16T14:46:18.550+01:00"));
+            context.assertEquals(pos.getString("sesId"), "ITD");
+            context.assertEquals(pos.getString("ccy"), "EUR");
+            context.assertEquals(pos.getString("rptId"), "13365938226622");
+            context.assertEquals(pos.getDouble("adjustedMargin"), 58054385.7);
+            context.assertEquals(pos.getDouble("unadjustedMargin"), 58054385.7);
+            asyncReceiver.complete();
+        });
+
+        sendErsBroadcast(context, "ABCFR.MessageType.TotalMarginRequirement", DummyData.totalMarginRequirementXML);
+    }
+
     @AfterClass
     public static void tearDown(TestContext context) {
         ERSConnectorVerticleIT.vertx.close(context.asyncAssertSuccess());
