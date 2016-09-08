@@ -27,7 +27,7 @@ public class PositionReportProcessor extends AbstractProcessor implements Proces
         pr.put("rptId", prMessage.getRptID());
         pr.put("bizDt", new JsonObject().put("$date", AbstractProcessor.timestampFormatter.format(prMessage.getBizDt().toGregorianCalendar().getTime())));
         Optional.ofNullable(prMessage.getLastRptReqed()).ifPresent(lastReport -> pr.put("lastReportRequested", lastReport.value()));
-        pr.put("settlSesId", prMessage.getSetSesID().value());
+        pr.put("sesId", prMessage.getSetSesID().value());
 
         List<PartiesBlockT> parties = prMessage.getPty();
 

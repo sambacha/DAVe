@@ -98,7 +98,7 @@ public class ERSConnectorVerticleIT {
             context.assertNull(pos.getString("reqID"));
             context.assertEquals(pos.getString("account"), "A1");
             context.assertEquals(pos.getJsonObject("bizDt"), new JsonObject().put("$date", "2009-12-16T00:00:00.000+01:00"));
-            context.assertEquals(pos.getString("settlSesId"), "ITD");
+            context.assertEquals(pos.getString("sesId"), "ITD");
             context.assertEquals(pos.getString("rptId"), "13365938226608");
             context.assertEquals(pos.getString("putCall"), "C");
             context.assertEquals(pos.getString("maturityMonthYear"), "201001");
