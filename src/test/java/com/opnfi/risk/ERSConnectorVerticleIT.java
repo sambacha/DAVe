@@ -167,6 +167,34 @@ public class ERSConnectorVerticleIT {
         sendErsBroadcast(context, "ABCFR.MessageType.TotalMarginRequirement", DummyData.totalMarginRequirementXML);
     }
 
+    @Test
+    public void testMarginShortfallSurplus(TestContext context) throws InterruptedException {
+        final Async asyncReceiver = context.async();
+        vertx.eventBus().consumer("ers.MarginShortfallSurplus", msg -> {
+            JsonObject pos = (JsonObject)msg.body();
+
+            context.assertEquals(pos.getString("clearer"), "ABCFR");
+            context.assertEquals(pos.getString("member"), "DEFFR");
+            context.assertNull(pos.getString("reqID"));
+            context.assertEquals(pos.getString("pool"), "ABCFRDEFM");
+            context.assertEquals(pos.getString("poolType"), "Default");
+            context.assertEquals(pos.getJsonObject("bizDt"), new JsonObject().put("$date", "2009-12-16T00:00:00.000+01:00"));
+            context.assertEquals(pos.getJsonObject("txnTm"), new JsonObject().put("$date", "2009-12-16T14:46:18.550+01:00"));
+            context.assertEquals(pos.getString("sesId"), "ITD");
+            context.assertEquals(pos.getString("ccy"), "EUR");
+            context.assertEquals(pos.getString("clearingCcy"), "EUR");
+            context.assertEquals(pos.getString("rptId"), "13365938226618");
+            context.assertEquals(pos.getDouble("marginRequirement"), 5656891139.9);
+            context.assertEquals(pos.getDouble("securityCollateral"), 604369.0);
+            context.assertEquals(pos.getDouble("cashBalance"), 48017035.95);
+            context.assertEquals(pos.getDouble("shortfallSurplus"), -5603269734.95);
+            context.assertEquals(pos.getDouble("marginCall"), -5603269734.95);
+            asyncReceiver.complete();
+        });
+
+        sendErsBroadcast(context, "ABCFR.MessageType.MarginShortfallSurplus", DummyData.marginShortfallSurplusXML);
+    }
+
     @AfterClass
     public static void tearDown(TestContext context) {
         ERSConnectorVerticleIT.vertx.close(context.asyncAssertSuccess());
