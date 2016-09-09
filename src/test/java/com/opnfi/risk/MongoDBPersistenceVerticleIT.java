@@ -24,12 +24,45 @@ import org.junit.runner.RunWith;
 @RunWith(VertxUnitRunner.class)
 public class MongoDBPersistenceVerticleIT {
     private final DateFormat timestampFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+    private final DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
     private final DateFormat mongoTimestampFormatter;
     {
         mongoTimestampFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
         mongoTimestampFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
-    private final DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+
+    private final DateFormat mongoDateFormatter;
+    {
+        mongoDateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+        mongoDateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
+
+    private final static List<String> fields;
+    static {
+        fields = new ArrayList<>();
+        fields.add("reqId");
+        fields.add("sesId");
+        fields.add("stat");
+        fields.add("statRejRsn");
+        fields.add("txt");
+        //fields.add("received");
+        fields.add("clearer");
+        fields.add("member");
+        fields.add("account");
+        fields.add("clss");
+        fields.add("ccy");
+        //fields.add("txnTm");
+        //fields.add("bizDt");
+        fields.add("rptId");
+        fields.add("variationMargin");
+        fields.add("premiumMargin");
+        fields.add("liquiMargin");
+        fields.add("spreadMargin");
+        fields.add("additionalMargin");
+        //fields.add("");
+    }
+
+    //private final DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
     private static Vertx vertx;
     private static MongoClient mongoClient;
 
@@ -43,6 +76,62 @@ public class MongoDBPersistenceVerticleIT {
         MongoDBPersistenceVerticleIT.vertx.deployVerticle(MongoDBPersistenceVerticle.class.getName(), options, context.asyncAssertSuccess());
         MongoDBPersistenceVerticleIT.mongoClient = MongoClient.createShared(MongoDBPersistenceVerticleIT.vertx, config);
     }
+
+    private JsonObject transformDummyData(JsonObject data) throws ParseException {
+        /*System.out.println(Json.encodePrettily(data));
+
+        if (data.containsKey("received")) {
+            System.out.println(Json.encodePrettily(data.getJsonObject("received")));
+
+            data.put("received", patchTimestamp(data.getJsonObject("received")));
+        }
+
+        if (data.containsKey("txnTm")) {
+            System.out.println(Json.encodePrettily(data.getJsonObject("txnTm")));
+            data.put("txnTm", patchTimestamp(data.getJsonObject("txnTm")));
+        }
+
+        if (data.containsKey("bizDt")) {
+            data.put("bizDt", patchDate(data.getJsonObject("bizDt")));
+        }*/
+
+        return data;
+    }
+
+    private String patchTimestamp(JsonObject date) throws ParseException {
+        System.out.println(date.getString("$date"));
+        return mongoTimestampFormatter.format(timestampFormatter.parse(date.getString("$date")));
+    }
+
+    private String patchDate(JsonObject date) throws ParseException {
+        return mongoDateFormatter.format(dateFormatter.parse(date.getString("$date")));
+    }
+
+    private JsonObject transformQueryResult(JsonObject data)
+    {
+        /*if (data.containsKey("_id")) {
+            data.remove("_id");
+        }
+
+        if (data.containsKey("id")) {
+            data.remove("id");
+        }*/
+
+        return data;
+    }
+
+    private void compareMessages(TestContext context, JsonObject expected, JsonObject actual) throws ParseException {
+        JsonObject transformedExpected = transformDummyData(expected.copy());
+        JsonObject transformedActual = transformQueryResult(actual.copy());
+
+        fields.forEach(key -> {
+            if (transformedActual.containsKey(key))
+            {
+                context.assertEquals(transformedExpected.getValue(key), transformedActual.getValue(key));
+            }
+        });
+    }
+
 
     @Test
     public void checkCollectionsExist(TestContext context) {
@@ -68,63 +157,8 @@ public class MongoDBPersistenceVerticleIT {
         });
     }
 
-    /*@Test
-    public void testStoreTradingSessionStatus(TestContext context) {
-        final Async asyncStore = context.async();
-        JsonObject tradingSessionStatus = new JsonObject();
-        tradingSessionStatus.put("received", new JsonObject().put("$date", this.timestampFormatter.format(new Date())));
-        tradingSessionStatus.put("reqId", "REQID");
-        tradingSessionStatus.put("sesId", "SESID");
-        tradingSessionStatus.put("stat", "STAT");
-        tradingSessionStatus.put("statRejRsn", "STATREJRSN");
-        tradingSessionStatus.put("txt", "TXT");
-        MongoDBPersistenceVerticleIT.vertx.eventBus().send("ers.TradingSessionStatus", tradingSessionStatus, ar -> {
-            context.assertTrue(ar.succeeded());
-            asyncStore.complete();
-        });
-        asyncStore.awaitSuccess();
-        final Async asyncFind = context.async();
-        MongoDBPersistenceVerticleIT.mongoClient.findOne("ers.TradingSessionStatus", tradingSessionStatus, null, ar -> {
-            if (ar.succeeded()) {
-                context.assertEquals("REQID", ar.result().getString("reqId"));
-                context.assertEquals("SESID", ar.result().getString("sesId"));
-                context.assertEquals("STAT", ar.result().getString("stat"));
-                context.assertEquals("STATREJRSN", ar.result().getString("statRejRsn"));
-                context.assertEquals("TXT", ar.result().getString("txt"));
-                asyncFind.complete();
-            } else {
-                context.fail("Unable to find find TradingSessionStatus document");
-            }
-        });
-    }*/
-
-    private JsonObject transformDummyData(JsonObject data) throws ParseException {
-        if (data.containsKey("received")) {
-            data.put("received", patchDate(data.getJsonObject("received")));
-        }
-
-        return data;
-    }
-
-    private String patchDate(JsonObject date) throws ParseException {
-        return mongoTimestampFormatter.format(timestampFormatter.parse(date.getString("$date")));
-    }
-
-    private JsonObject transformQueryResult(JsonObject data)
-    {
-        if (data.containsKey("_id")) {
-            data.remove("_id");
-        }
-
-        if (data.containsKey("id")) {
-            data.remove("id");
-        }
-
-        return data;
-    }
-
     @Test
-    public void testTradingSessionStatus(TestContext context) {
+    public void testTradingSessionStatus(TestContext context) throws InterruptedException {
         // Feed the data into the store
         DummyData.tradingSessionStatusJson.forEach(tss -> {
             vertx.eventBus().publish("ers.TradingSessionStatus", tss);
@@ -138,7 +172,7 @@ public class MongoDBPersistenceVerticleIT {
                 try {
                     JsonObject response = new JsonObject((String) ar.result().body());
 
-                    context.assertEquals(transformDummyData(DummyData.tradingSessionStatusJson.get(DummyData.tradingSessionStatusJson.size()-1).copy()), transformQueryResult(response));
+                    compareMessages(context, DummyData.tradingSessionStatusJson.get(1), response);
                     asyncLatest.complete();
                 }
                 catch (Exception e)
@@ -161,8 +195,8 @@ public class MongoDBPersistenceVerticleIT {
                     JsonArray response = new JsonArray((String) ar.result().body());
 
                     context.assertEquals(2, response.size());
-                    context.assertEquals(transformDummyData(DummyData.tradingSessionStatusJson.get(0).copy()), transformQueryResult(response.getJsonObject(0)));
-                    context.assertEquals(transformDummyData(DummyData.tradingSessionStatusJson.get(1).copy()), transformQueryResult(response.getJsonObject(1)));
+                    compareMessages(context, DummyData.tradingSessionStatusJson.get(0), response.getJsonObject(0));
+                    compareMessages(context, DummyData.tradingSessionStatusJson.get(1), response.getJsonObject(1));
                     asyncHistory.complete();
                 }
                 catch (Exception e)
@@ -175,6 +209,68 @@ public class MongoDBPersistenceVerticleIT {
                 context.fail("Didn't received a response to query.historyTradingSessionStatus!");
             }
         });
+    }
+
+    @Test
+    public void testMarginComponent(TestContext context) throws InterruptedException {
+        // Feed the data into the store
+        DummyData.marginComponentsJson.forEach(tss -> {
+            vertx.eventBus().publish("ers.MarginComponent", tss);
+        });
+
+        // Test the latest query
+        final Async asyncLatest = context.async();
+        vertx.eventBus().send("query.latestMarginComponent", new JsonObject(), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
+
+                    compareMessages(context, DummyData.marginComponentsJson.get(2), response.getJsonObject(1));
+                    compareMessages(context, DummyData.marginComponentsJson.get(3), response.getJsonObject(0));
+                    asyncLatest.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.latestMarginComponent!");
+            }
+        });
+
+
+
+        // Test the latest query
+        final Async asyncHistory = context.async();
+        vertx.eventBus().send("query.historyMarginComponent", new JsonObject(), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
+
+                    context.assertEquals(4, response.size());
+
+                    compareMessages(context, DummyData.marginComponentsJson.get(0), response.getJsonObject(0));
+                    compareMessages(context, DummyData.marginComponentsJson.get(1), response.getJsonObject(1));
+                    compareMessages(context, DummyData.marginComponentsJson.get(2), response.getJsonObject(2));
+                    compareMessages(context, DummyData.marginComponentsJson.get(3), response.getJsonObject(3));
+                    asyncHistory.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.historyMarginComponent!");
+            }
+        });
+
+        asyncHistory.awaitSuccess();
     }
 
     @Test
@@ -236,7 +332,7 @@ public class MongoDBPersistenceVerticleIT {
         });
     }
 
-    @Test
+    /*@Test
     public void testStoreMarginComponent(TestContext context) {
         final Async asyncStore = context.async();
         JsonObject marginComponent = new JsonObject();
@@ -285,7 +381,7 @@ public class MongoDBPersistenceVerticleIT {
                 context.fail("Unable to find find MarginComponent document");
             }
         });
-    }
+    }*/
 
     @Test
     public void testStoreTotalMarginRequirement(TestContext context) {
