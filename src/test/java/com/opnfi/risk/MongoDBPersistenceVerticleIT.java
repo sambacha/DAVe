@@ -105,24 +105,19 @@ public class MongoDBPersistenceVerticleIT {
     }
 
     private JsonObject transformDummyData(JsonObject data) throws ParseException {
-        //System.out.println(Json.encodePrettily(data));
-
         if (data.containsKey("received")) {
             String timestamp = data.getJsonObject("received").getString("$date");
-            System.out.println(Json.encodePrettily(data.getJsonObject("received")));
             data.remove("received");
             data.put("received", patchTimestamp(timestamp));
         }
 
         if (data.containsKey("txnTm")) {
             String timestamp = data.getJsonObject("txnTm").getString("$date");
-            System.out.println(Json.encodePrettily(data.getJsonObject("txnTm")));
             data.remove("txnTm");
             data.put("txnTm", patchTimestamp(timestamp));
         }
 
         if (data.containsKey("bizDt")) {
-            System.out.println(Json.encodePrettily(data.getJsonObject("bizDt")));
             data.put("bizDt", patchDate(data.getJsonObject("bizDt")));
         }
 
@@ -130,7 +125,6 @@ public class MongoDBPersistenceVerticleIT {
     }
 
     private String patchTimestamp(String date) throws ParseException {
-        System.out.println(date);
         return mongoTimestampFormatter.format(timestampFormatter.parse(date));
     }
 
@@ -242,6 +236,8 @@ public class MongoDBPersistenceVerticleIT {
             }
         });
 
+        asyncLatest.awaitSuccess();
+
         // Test the latest query
         final Async asyncHistory = context.async();
         vertx.eventBus().send("query.historyTradingSessionStatus", new JsonObject(), ar -> {
@@ -265,6 +261,8 @@ public class MongoDBPersistenceVerticleIT {
                 context.fail("Didn't received a response to query.historyTradingSessionStatus!");
             }
         });
+
+        asyncHistory.awaitSuccess();
     }
 
     @Test
