@@ -105,29 +105,33 @@ public class MongoDBPersistenceVerticleIT {
     }
 
     private JsonObject transformDummyData(JsonObject data) throws ParseException {
-        /*System.out.println(Json.encodePrettily(data));
+        //System.out.println(Json.encodePrettily(data));
 
-        if (data.containsKey("received")) {
+        /*if (data.containsKey("received")) {
+            String timestamp = data.getJsonObject("received").getString("$date");
             System.out.println(Json.encodePrettily(data.getJsonObject("received")));
-
-            data.put("received", patchTimestamp(data.getJsonObject("received")));
+            data.remove("received");
+            data.put("received", patchTimestamp(timestamp));
         }
 
         if (data.containsKey("txnTm")) {
+            String timestamp = data.getJsonObject("txnTm").getString("$date");
             System.out.println(Json.encodePrettily(data.getJsonObject("txnTm")));
-            data.put("txnTm", patchTimestamp(data.getJsonObject("txnTm")));
+            data.remove("txnTm");
+            data.put("txnTm", patchTimestamp(timestamp));
         }
 
         if (data.containsKey("bizDt")) {
+            System.out.println(Json.encodePrettily(data.getJsonObject("bizDt")));
             data.put("bizDt", patchDate(data.getJsonObject("bizDt")));
         }*/
 
         return data;
     }
 
-    private String patchTimestamp(JsonObject date) throws ParseException {
-        System.out.println(date.getString("$date"));
-        return mongoTimestampFormatter.format(timestampFormatter.parse(date.getString("$date")));
+    private String patchTimestamp(String date) throws ParseException {
+        System.out.println(date);
+        return mongoTimestampFormatter.format(timestampFormatter.parse(date));
     }
 
     private String patchDate(JsonObject date) throws ParseException {
@@ -179,7 +183,6 @@ public class MongoDBPersistenceVerticleIT {
         });
     }
 
-
     @Test
     public void checkCollectionsExist(TestContext context) {
         List<String> requiredCollections = new ArrayList<>();
@@ -208,7 +211,13 @@ public class MongoDBPersistenceVerticleIT {
     public void testTradingSessionStatus(TestContext context) throws InterruptedException {
         // Feed the data into the store
         DummyData.tradingSessionStatusJson.forEach(tss -> {
-            vertx.eventBus().publish("ers.TradingSessionStatus", tss);
+            final Async asyncSend = context.async();
+            vertx.eventBus().send("ers.TradingSessionStatus", tss, ar -> {
+                context.assertTrue(ar.succeeded());
+                asyncSend.complete();
+                });
+
+            asyncSend.awaitSuccess();
         });
 
         // Test the latest query
@@ -262,7 +271,13 @@ public class MongoDBPersistenceVerticleIT {
     public void testPositionReport(TestContext context) throws InterruptedException {
         // Feed the data into the store
         DummyData.positionReportJson.forEach(pr -> {
-            vertx.eventBus().publish("ers.PositionReport", pr);
+            final Async asyncSend = context.async();
+            vertx.eventBus().send("ers.PositionReport", pr, ar -> {
+                context.assertTrue(ar.succeeded());
+                asyncSend.complete();
+            });
+
+            asyncSend.awaitSuccess();
         });
 
         // Test the latest query
@@ -371,7 +386,13 @@ public class MongoDBPersistenceVerticleIT {
     public void testMarginComponent(TestContext context) throws InterruptedException {
         // Feed the data into the store
         DummyData.marginComponentJson.forEach(mc -> {
-            vertx.eventBus().publish("ers.MarginComponent", mc);
+            final Async asyncSend = context.async();
+            vertx.eventBus().send("ers.MarginComponent", mc, ar -> {
+                context.assertTrue(ar.succeeded());
+                asyncSend.complete();
+            });
+
+            asyncSend.awaitSuccess();
         });
 
         // Test the latest query
@@ -481,7 +502,13 @@ public class MongoDBPersistenceVerticleIT {
     public void testTotalMarginRequirement(TestContext context) throws InterruptedException {
         // Feed the data into the store
         DummyData.totalMarginRequirementJson.forEach(tmr -> {
-            vertx.eventBus().publish("ers.TotalMarginRequirement", tmr);
+            final Async asyncSend = context.async();
+            vertx.eventBus().send("ers.TotalMarginRequirement", tmr, ar -> {
+                context.assertTrue(ar.succeeded());
+                asyncSend.complete();
+            });
+
+            asyncSend.awaitSuccess();
         });
 
         // Test the latest query
@@ -590,7 +617,13 @@ public class MongoDBPersistenceVerticleIT {
     public void testMarginShortfallSurplus(TestContext context) throws InterruptedException {
         // Feed the data into the store
         DummyData.marginShortfallSurplusJson.forEach(mss -> {
-            vertx.eventBus().publish("ers.MarginShortfallSurplus", mss);
+            final Async asyncSend = context.async();
+            vertx.eventBus().send("ers.MarginShortfallSurplus", mss, ar -> {
+                context.assertTrue(ar.succeeded());
+                asyncSend.complete();
+            });
+
+            asyncSend.awaitSuccess();
         });
 
         // Test the latest query
@@ -699,7 +732,13 @@ public class MongoDBPersistenceVerticleIT {
     public void testRiskLimit(TestContext context) throws InterruptedException {
         // Feed the data into the store
         DummyData.riskLimitJson.forEach(rl -> {
-            vertx.eventBus().publish("ers.RiskLimit", new JsonArray().add(rl));
+            final Async asyncSend = context.async();
+            vertx.eventBus().send("ers.RiskLimit", new JsonArray().add(rl), ar -> {
+                context.assertTrue(ar.succeeded());
+                asyncSend.complete();
+            });
+
+            asyncSend.awaitSuccess();
         });
 
         // Test the latest query
