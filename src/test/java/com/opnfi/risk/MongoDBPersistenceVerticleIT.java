@@ -13,7 +13,6 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.*;
 
 import org.junit.AfterClass;
@@ -71,11 +70,23 @@ public class MongoDBPersistenceVerticleIT {
         fields.add("optionAssignmentQty");
         fields.add("allocationTradeQty");
         fields.add("deliveryNoticeQty");
-        /*fields.add("");
-        fields.add("");
-        fields.add("");
-        fields.add("");*/
-        //fields.add("");
+        fields.add("pool");
+        fields.add("unadjustedMargin");
+        fields.add("adjustedMargin");
+        fields.add("poolType");
+        fields.add("clearingCcy");
+        fields.add("marginRequirement");
+        fields.add("securityCollateral");
+        fields.add("cashBalance");
+        fields.add("shortfallSurplus");
+        fields.add("marginCall");
+        fields.add("reqRslt");
+        fields.add("txt");
+        fields.add("limitType");
+        fields.add("utilization");
+        fields.add("warningLevel");
+        fields.add("throttleLevel");
+        fields.add("rejectLevel");
     }
 
     //private final DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
@@ -339,7 +350,7 @@ public class MongoDBPersistenceVerticleIT {
     @Test
     public void testMarginComponent(TestContext context) throws InterruptedException {
         // Feed the data into the store
-        DummyData.marginComponentsJson.forEach(mc -> {
+        DummyData.marginComponentJson.forEach(mc -> {
             vertx.eventBus().publish("ers.MarginComponent", mc);
         });
 
@@ -353,8 +364,8 @@ public class MongoDBPersistenceVerticleIT {
 
                     context.assertEquals(2, response.size());
 
-                    compareMessages(context, DummyData.marginComponentsJson.get(2), response.getJsonObject(1));
-                    compareMessages(context, DummyData.marginComponentsJson.get(3), response.getJsonObject(0));
+                    compareMessages(context, DummyData.marginComponentJson.get(2), response.getJsonObject(1));
+                    compareMessages(context, DummyData.marginComponentJson.get(3), response.getJsonObject(0));
                     asyncLatest.complete();
                 }
                 catch (Exception e)
@@ -378,7 +389,7 @@ public class MongoDBPersistenceVerticleIT {
 
                     context.assertEquals(1, response.size());
 
-                    compareMessages(context, DummyData.marginComponentsJson.get(2), response.getJsonObject(0));
+                    compareMessages(context, DummyData.marginComponentJson.get(2), response.getJsonObject(0));
                     asyncLatestFilter.complete();
                 }
                 catch (Exception e)
@@ -402,10 +413,10 @@ public class MongoDBPersistenceVerticleIT {
 
                     context.assertEquals(4, response.size());
 
-                    compareMessages(context, DummyData.marginComponentsJson.get(0), response.getJsonObject(0));
-                    compareMessages(context, DummyData.marginComponentsJson.get(1), response.getJsonObject(1));
-                    compareMessages(context, DummyData.marginComponentsJson.get(2), response.getJsonObject(2));
-                    compareMessages(context, DummyData.marginComponentsJson.get(3), response.getJsonObject(3));
+                    compareMessages(context, DummyData.marginComponentJson.get(0), response.getJsonObject(0));
+                    compareMessages(context, DummyData.marginComponentJson.get(1), response.getJsonObject(1));
+                    compareMessages(context, DummyData.marginComponentJson.get(2), response.getJsonObject(2));
+                    compareMessages(context, DummyData.marginComponentJson.get(3), response.getJsonObject(3));
                     asyncHistory.complete();
                 }
                 catch (Exception e)
@@ -429,8 +440,8 @@ public class MongoDBPersistenceVerticleIT {
 
                     context.assertEquals(2, response.size());
 
-                    compareMessages(context, DummyData.marginComponentsJson.get(0), response.getJsonObject(0));
-                    compareMessages(context, DummyData.marginComponentsJson.get(2), response.getJsonObject(1));
+                    compareMessages(context, DummyData.marginComponentJson.get(0), response.getJsonObject(0));
+                    compareMessages(context, DummyData.marginComponentJson.get(2), response.getJsonObject(1));
                     asyncHistoryFilter.complete();
                 }
                 catch (Exception e)
@@ -445,147 +456,330 @@ public class MongoDBPersistenceVerticleIT {
         });
     }
 
-    @Test
-    public void testStoreTotalMarginRequirement(TestContext context) {
-        final Async asyncStore = context.async();
-        JsonObject totalMarginRequirement = new JsonObject();
-        totalMarginRequirement.put("clearer", "CLEARER");
-        totalMarginRequirement.put("pool", "POOL");
-        totalMarginRequirement.put("member", "MEMBER");
-        totalMarginRequirement.put("account", "ACCOUNT");
-        totalMarginRequirement.put("ccy", "CURRENCY");
-        totalMarginRequirement.put("txnTm", new JsonObject().put("$date", "2013-12-18T14:56:58.100Z"));
-        totalMarginRequirement.put("bizDt", new JsonObject().put("$date", "2013-12-17T00:00:00.000Z"));
-        totalMarginRequirement.put("reqId", "REQID");
-        totalMarginRequirement.put("rptId", "RPTID");
-        totalMarginRequirement.put("sesId", "SESSID");
-        totalMarginRequirement.put("unadjustedMargin", 10.0);
-        totalMarginRequirement.put("adjustedMargin", 10.0);
-        totalMarginRequirement.put("received", new JsonObject().put("$date", this.timestampFormatter.format(new Date())));
 
-        MongoDBPersistenceVerticleIT.vertx.eventBus().send("ers.TotalMarginRequirement", totalMarginRequirement, ar -> {
-            context.assertTrue(ar.succeeded());
-            asyncStore.complete();
+    @Test
+    public void testTotalMarginRequirement(TestContext context) throws InterruptedException {
+        // Feed the data into the store
+        DummyData.totalMarginRequirementJson.forEach(tmr -> {
+            vertx.eventBus().publish("ers.TotalMarginRequirement", tmr);
         });
-        asyncStore.awaitSuccess();
-        final Async asyncFind = context.async();
-        MongoDBPersistenceVerticleIT.mongoClient.findOne("ers.TotalMarginRequirement", totalMarginRequirement, null, ar -> {
-            if (ar.succeeded()) {
-                context.assertEquals(ar.result().getString("clearer"), "CLEARER");
-                context.assertEquals(ar.result().getString("pool"), "POOL");
-                context.assertEquals(ar.result().getString("member"), "MEMBER");
-                context.assertEquals(ar.result().getString("account"), "ACCOUNT");
-                context.assertEquals(ar.result().getString("ccy"), "CURRENCY");
-                context.assertEquals(ar.result().getJsonObject("txnTm"), new JsonObject().put("$date", "2013-12-18T14:56:58.1Z"));
-                context.assertEquals(ar.result().getJsonObject("bizDt"), new JsonObject().put("$date", "2013-12-17T00:00:00Z"));
-                context.assertEquals(ar.result().getString("reqId"), "REQID");
-                context.assertEquals(ar.result().getString("rptId"), "RPTID");
-                context.assertEquals(ar.result().getString("sesId"), "SESSID");
-                context.assertEquals(ar.result().getDouble("unadjustedMargin"), 10.0);
-                context.assertEquals(ar.result().getDouble("adjustedMargin"), 10.0);
-                asyncFind.complete();
-            } else {
-                context.fail("Unable to find find TotalMarginRequirement document");
+
+        // Test the latest query
+        final Async asyncLatest = context.async();
+        vertx.eventBus().send("query.latestTotalMarginRequirement", new JsonObject(), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
+
+                    context.assertEquals(2, response.size());
+
+                    compareMessages(context, DummyData.totalMarginRequirementJson.get(2), response.getJsonObject(1));
+                    compareMessages(context, DummyData.totalMarginRequirementJson.get(3), response.getJsonObject(0));
+                    asyncLatest.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.latestTotalMarginRequirement!");
+            }
+        });
+
+        // Test the latest query with filter
+        final Async asyncLatestFilter = context.async();
+        vertx.eventBus().send("query.latestTotalMarginRequirement", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
+
+                    context.assertEquals(1, response.size());
+
+                    compareMessages(context, DummyData.totalMarginRequirementJson.get(2), response.getJsonObject(0));
+                    asyncLatestFilter.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.latestTotalMarginRequirement!");
+            }
+        });
+
+        // Test the history query
+        final Async asyncHistory = context.async();
+        vertx.eventBus().send("query.historyTotalMarginRequirement", new JsonObject(), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
+
+                    context.assertEquals(4, response.size());
+
+                    compareMessages(context, DummyData.totalMarginRequirementJson.get(0), response.getJsonObject(0));
+                    compareMessages(context, DummyData.totalMarginRequirementJson.get(1), response.getJsonObject(1));
+                    compareMessages(context, DummyData.totalMarginRequirementJson.get(2), response.getJsonObject(2));
+                    compareMessages(context, DummyData.totalMarginRequirementJson.get(3), response.getJsonObject(3));
+                    asyncHistory.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.historyTotalMarginRequirement!");
+            }
+        });
+
+        // Test the history query with filter
+        final Async asyncHistoryFilter = context.async();
+        vertx.eventBus().send("query.historyTotalMarginRequirement", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
+
+                    context.assertEquals(2, response.size());
+
+                    compareMessages(context, DummyData.totalMarginRequirementJson.get(0), response.getJsonObject(0));
+                    compareMessages(context, DummyData.totalMarginRequirementJson.get(2), response.getJsonObject(1));
+                    asyncHistoryFilter.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.historyTotalMarginRequirement!");
             }
         });
     }
 
     @Test
-    public void testStoreMarginShortfallSurplus(TestContext context) {
-        final Async asyncStore = context.async();
-        JsonObject totalMarginRequirement = new JsonObject();
-        totalMarginRequirement.put("clearer", "CLEARER");
-        totalMarginRequirement.put("pool", "POOL");
-        totalMarginRequirement.put("poolType", "POOLTYPE");
-        totalMarginRequirement.put("member", "MEMBER");
-        totalMarginRequirement.put("clearingCcy", "CLEARINGCURRENCY");
-        totalMarginRequirement.put("ccy", "CURRENCY");
-        totalMarginRequirement.put("txnTm", new JsonObject().put("$date", "2013-12-18T14:56:58.100Z"));
-        totalMarginRequirement.put("bizDt", new JsonObject().put("$date", "2013-12-17T00:00:00.000Z"));
-        totalMarginRequirement.put("reqId", "REQID");
-        totalMarginRequirement.put("rptId", "RPTID");
-        totalMarginRequirement.put("sesId", "SESSID");
-        totalMarginRequirement.put("marginRequirement", 10.0);
-        totalMarginRequirement.put("securityCollateral", 10.0);
-        totalMarginRequirement.put("cashBalance", 10.0);
-        totalMarginRequirement.put("shortfallSurplus", 10.0);
-        totalMarginRequirement.put("marginCall", 10.0);
-        totalMarginRequirement.put("received", new JsonObject().put("$date", this.timestampFormatter.format(new Date())));
-
-        MongoDBPersistenceVerticleIT.vertx.eventBus().send("ers.MarginShortfallSurplus", totalMarginRequirement, ar -> {
-            context.assertTrue(ar.succeeded());
-            asyncStore.complete();
+    public void testMarginShortfallSurplus(TestContext context) throws InterruptedException {
+        // Feed the data into the store
+        DummyData.marginShortfallSurplusJson.forEach(mss -> {
+            vertx.eventBus().publish("ers.MarginShortfallSurplus", mss);
         });
-        asyncStore.awaitSuccess();
-        final Async asyncFind = context.async();
-        MongoDBPersistenceVerticleIT.mongoClient.findOne("ers.MarginShortfallSurplus", totalMarginRequirement, null, ar -> {
-            if (ar.succeeded()) {
-                context.assertEquals(ar.result().getString("clearer"), "CLEARER");
-                context.assertEquals(ar.result().getString("pool"), "POOL");
-                context.assertEquals(ar.result().getString("poolType"), "POOLTYPE");
-                context.assertEquals(ar.result().getString("member"), "MEMBER");
-                context.assertEquals(ar.result().getString("clearingCcy"), "CLEARINGCURRENCY");
-                context.assertEquals(ar.result().getString("ccy"), "CURRENCY");
-                context.assertEquals(ar.result().getJsonObject("txnTm"), new JsonObject().put("$date", "2013-12-18T14:56:58.1Z"));
-                context.assertEquals(ar.result().getJsonObject("bizDt"), new JsonObject().put("$date", "2013-12-17T00:00:00Z"));
-                context.assertEquals(ar.result().getString("reqId"), "REQID");
-                context.assertEquals(ar.result().getString("rptId"), "RPTID");
-                context.assertEquals(ar.result().getString("sesId"), "SESSID");
-                context.assertEquals(ar.result().getDouble("marginRequirement"), 10.0);
-                context.assertEquals(ar.result().getDouble("securityCollateral"), 10.0);
-                context.assertEquals(ar.result().getDouble("cashBalance"), 10.0);
-                context.assertEquals(ar.result().getDouble("shortfallSurplus"), 10.0);
-                context.assertEquals(ar.result().getDouble("marginCall"), 10.0);
-                asyncFind.complete();
-            } else {
-                context.fail("Unable to find find MarginShortfallSurplus document");
+
+        // Test the latest query
+        final Async asyncLatest = context.async();
+        vertx.eventBus().send("query.latestMarginShortfallSurplus", new JsonObject(), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
+
+                    context.assertEquals(2, response.size());
+
+                    compareMessages(context, DummyData.marginShortfallSurplusJson.get(2), response.getJsonObject(1));
+                    compareMessages(context, DummyData.marginShortfallSurplusJson.get(3), response.getJsonObject(0));
+                    asyncLatest.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.latestMarginShortfallSurplus!");
+            }
+        });
+
+        // Test the latest query with filter
+        final Async asyncLatestFilter = context.async();
+        vertx.eventBus().send("query.latestMarginShortfallSurplus", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
+
+                    context.assertEquals(1, response.size());
+
+                    compareMessages(context, DummyData.marginShortfallSurplusJson.get(2), response.getJsonObject(0));
+                    asyncLatestFilter.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.latestMarginShortfallSurplus!");
+            }
+        });
+
+        // Test the history query
+        final Async asyncHistory = context.async();
+        vertx.eventBus().send("query.historyMarginShortfallSurplus", new JsonObject(), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
+
+                    context.assertEquals(4, response.size());
+
+                    compareMessages(context, DummyData.marginShortfallSurplusJson.get(0), response.getJsonObject(0));
+                    compareMessages(context, DummyData.marginShortfallSurplusJson.get(1), response.getJsonObject(1));
+                    compareMessages(context, DummyData.marginShortfallSurplusJson.get(2), response.getJsonObject(2));
+                    compareMessages(context, DummyData.marginShortfallSurplusJson.get(3), response.getJsonObject(3));
+                    asyncHistory.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.historyMarginShortfallSurplus!");
+            }
+        });
+
+        // Test the history query with filter
+        final Async asyncHistoryFilter = context.async();
+        vertx.eventBus().send("query.historyMarginShortfallSurplus", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
+
+                    context.assertEquals(2, response.size());
+
+                    compareMessages(context, DummyData.marginShortfallSurplusJson.get(0), response.getJsonObject(0));
+                    compareMessages(context, DummyData.marginShortfallSurplusJson.get(2), response.getJsonObject(1));
+                    asyncHistoryFilter.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.historyMarginShortfallSurplus!");
             }
         });
     }
 
     @Test
-    public void testStoreRiskLimit(TestContext context) {
-        final Async asyncStore = context.async();
-        JsonObject riskLimit = new JsonObject();
-        riskLimit.put("clearer", "CLEARER");
-        riskLimit.put("member", "MEMBER");
-        riskLimit.put("maintainer", "MAINTAINER");
-        riskLimit.put("txnTm", new JsonObject().put("$date", "2013-12-18T14:56:58.100Z"));
-        riskLimit.put("reqId", "REQID");
-        riskLimit.put("rptId", "RPTID");
-        riskLimit.put("reqRslt", "REQRSLT");
-        riskLimit.put("txt", "TXT");
-        riskLimit.put("limitType", "LIMITTYPE");
-        riskLimit.put("utilization", 10.0);
-        riskLimit.put("warningLevel", 10.0);
-        riskLimit.put("throttleLevel", 10.0);
-        riskLimit.put("rejectLevel", 10.0);
-        riskLimit.put("received", new JsonObject().put("$date", this.timestampFormatter.format(new Date())));
-
-        MongoDBPersistenceVerticleIT.vertx.eventBus().send("ers.RiskLimit", new JsonArray().add(riskLimit), ar -> {
-            context.assertTrue(ar.succeeded());
-            asyncStore.complete();
+    public void testRiskLimit(TestContext context) throws InterruptedException {
+        // Feed the data into the store
+        DummyData.riskLimitJson.forEach(rl -> {
+            vertx.eventBus().publish("ers.RiskLimit", new JsonArray().add(rl));
         });
-        asyncStore.awaitSuccess();
-        final Async asyncFind = context.async();
-        MongoDBPersistenceVerticleIT.mongoClient.findOne("ers.RiskLimit", riskLimit, null, ar -> {
-            if (ar.succeeded()) {
-                context.assertEquals(ar.result().getString("clearer"), "CLEARER");
-                context.assertEquals(ar.result().getString("member"), "MEMBER");
-                context.assertEquals(ar.result().getString("maintainer"), "MAINTAINER");
-                context.assertEquals(ar.result().getJsonObject("txnTm"), new JsonObject().put("$date", "2013-12-18T14:56:58.1Z"));
-                context.assertEquals(ar.result().getString("reqId"), "REQID");
-                context.assertEquals(ar.result().getString("rptId"), "RPTID");
-                context.assertEquals(ar.result().getString("reqRslt"), "REQRSLT");
-                context.assertEquals(ar.result().getString("txt"), "TXT");
-                context.assertEquals(ar.result().getString("limitType"), "LIMITTYPE");
-                context.assertEquals(ar.result().getDouble("utilization"), 10.0);
-                context.assertEquals(ar.result().getDouble("warningLevel"), 10.0);
-                context.assertEquals(ar.result().getDouble("throttleLevel"), 10.0);
-                context.assertEquals(ar.result().getDouble("rejectLevel"), 10.0);
-                asyncFind.complete();
-            } else {
-                context.fail("Unable to find find RiskLimit document");
+
+        // Test the latest query
+        final Async asyncLatest = context.async();
+        vertx.eventBus().send("query.latestRiskLimit", new JsonObject(), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
+
+                    context.assertEquals(2, response.size());
+
+                    compareMessages(context, DummyData.riskLimitJson.get(2), response.getJsonObject(1));
+                    compareMessages(context, DummyData.riskLimitJson.get(3), response.getJsonObject(0));
+                    asyncLatest.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.latestRiskLimit!");
+            }
+        });
+
+        // Test the latest query with filter
+        final Async asyncLatestFilter = context.async();
+        vertx.eventBus().send("query.latestRiskLimit", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
+
+                    context.assertEquals(1, response.size());
+
+                    compareMessages(context, DummyData.riskLimitJson.get(2), response.getJsonObject(0));
+                    asyncLatestFilter.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.latestRiskLimit!");
+            }
+        });
+
+        // Test the history query
+        final Async asyncHistory = context.async();
+        vertx.eventBus().send("query.historyRiskLimit", new JsonObject(), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
+
+                    context.assertEquals(4, response.size());
+
+                    compareMessages(context, DummyData.riskLimitJson.get(0), response.getJsonObject(0));
+                    compareMessages(context, DummyData.riskLimitJson.get(1), response.getJsonObject(1));
+                    compareMessages(context, DummyData.riskLimitJson.get(2), response.getJsonObject(2));
+                    compareMessages(context, DummyData.riskLimitJson.get(3), response.getJsonObject(3));
+                    asyncHistory.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.historyRiskLimit!");
+            }
+        });
+
+        // Test the history query with filter
+        final Async asyncHistoryFilter = context.async();
+        vertx.eventBus().send("query.historyRiskLimit", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
+
+                    context.assertEquals(2, response.size());
+
+                    compareMessages(context, DummyData.riskLimitJson.get(0), response.getJsonObject(0));
+                    compareMessages(context, DummyData.riskLimitJson.get(2), response.getJsonObject(1));
+                    asyncHistoryFilter.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.historyRiskLimit!");
             }
         });
     }
