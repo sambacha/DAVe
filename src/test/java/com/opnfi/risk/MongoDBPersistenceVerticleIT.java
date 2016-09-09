@@ -59,6 +59,22 @@ public class MongoDBPersistenceVerticleIT {
         fields.add("liquiMargin");
         fields.add("spreadMargin");
         fields.add("additionalMargin");
+        fields.add("lastReportRequested");
+        fields.add("symbol");
+        fields.add("putCall");
+        fields.add("maturityMonthYear");
+        fields.add("strikePrice");
+        fields.add("optAttribute");
+        fields.add("crossMarginLongQty");
+        fields.add("crossMarginShortQty");
+        fields.add("optionExcerciseQty");
+        fields.add("optionAssignmentQty");
+        fields.add("allocationTradeQty");
+        fields.add("deliveryNoticeQty");
+        /*fields.add("");
+        fields.add("");
+        fields.add("");
+        fields.add("");*/
         //fields.add("");
     }
 
@@ -127,7 +143,7 @@ public class MongoDBPersistenceVerticleIT {
         fields.forEach(key -> {
             if (transformedActual.containsKey(key))
             {
-                context.assertEquals(transformedExpected.getValue(key), transformedActual.getValue(key));
+                context.assertEquals(transformedExpected.getValue(key), transformedActual.getValue(key), key + " are not equal in " + Json.encodePrettily(transformedExpected) + " versus " + Json.encodePrettily(transformedActual));
             }
         });
     }
@@ -212,10 +228,119 @@ public class MongoDBPersistenceVerticleIT {
     }
 
     @Test
+    public void testPositionReport(TestContext context) throws InterruptedException {
+        // Feed the data into the store
+        DummyData.positionReportJson.forEach(pr -> {
+            vertx.eventBus().publish("ers.PositionReport", pr);
+        });
+
+        // Test the latest query
+        final Async asyncLatest = context.async();
+        vertx.eventBus().send("query.latestPositionReport", new JsonObject(), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
+
+                    context.assertEquals(2, response.size());
+
+                    compareMessages(context, DummyData.positionReportJson.get(2), response.getJsonObject(1));
+                    compareMessages(context, DummyData.positionReportJson.get(3), response.getJsonObject(0));
+                    asyncLatest.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.latestPositionReport!");
+            }
+        });
+
+        // Test the latest query with filter
+        final Async asyncLatestFilter = context.async();
+        vertx.eventBus().send("query.latestPositionReport", new JsonObject().put("clearer", "ABCFR").put("member", "ABCFR"), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
+
+                    context.assertEquals(1, response.size());
+
+                    compareMessages(context, DummyData.positionReportJson.get(3), response.getJsonObject(0));
+                    asyncLatestFilter.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.latestPositionReport!");
+            }
+        });
+
+        // Test the history query
+        final Async asyncHistory = context.async();
+        vertx.eventBus().send("query.historyPositionReport", new JsonObject(), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
+
+                    context.assertEquals(4, response.size());
+
+                    compareMessages(context, DummyData.positionReportJson.get(0), response.getJsonObject(0));
+                    compareMessages(context, DummyData.positionReportJson.get(1), response.getJsonObject(1));
+                    compareMessages(context, DummyData.positionReportJson.get(2), response.getJsonObject(2));
+                    compareMessages(context, DummyData.positionReportJson.get(3), response.getJsonObject(3));
+                    asyncHistory.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.historyPositionReport!");
+            }
+        });
+
+        // Test the history query with filter
+        final Async asyncHistoryFilter = context.async();
+        vertx.eventBus().send("query.historyPositionReport", new JsonObject().put("clearer", "ABCFR").put("member", "ABCFR"), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
+
+                    context.assertEquals(2, response.size());
+
+                    compareMessages(context, DummyData.positionReportJson.get(1), response.getJsonObject(0));
+                    compareMessages(context, DummyData.positionReportJson.get(3), response.getJsonObject(1));
+                    asyncHistoryFilter.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.historyPositionReport!");
+            }
+        });
+    }
+
+    @Test
     public void testMarginComponent(TestContext context) throws InterruptedException {
         // Feed the data into the store
-        DummyData.marginComponentsJson.forEach(tss -> {
-            vertx.eventBus().publish("ers.MarginComponent", tss);
+        DummyData.marginComponentsJson.forEach(mc -> {
+            vertx.eventBus().publish("ers.MarginComponent", mc);
         });
 
         // Test the latest query
@@ -225,6 +350,8 @@ public class MongoDBPersistenceVerticleIT {
             {
                 try {
                     JsonArray response = new JsonArray((String) ar.result().body());
+
+                    context.assertEquals(2, response.size());
 
                     compareMessages(context, DummyData.marginComponentsJson.get(2), response.getJsonObject(1));
                     compareMessages(context, DummyData.marginComponentsJson.get(3), response.getJsonObject(0));
@@ -241,9 +368,31 @@ public class MongoDBPersistenceVerticleIT {
             }
         });
 
+        // Test the latest query with filter
+        final Async asyncLatestFilter = context.async();
+        vertx.eventBus().send("query.latestMarginComponent", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
 
+                    context.assertEquals(1, response.size());
 
-        // Test the latest query
+                    compareMessages(context, DummyData.marginComponentsJson.get(2), response.getJsonObject(0));
+                    asyncLatestFilter.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.latestMarginComponent!");
+            }
+        });
+
+        // Test the history query
         final Async asyncHistory = context.async();
         vertx.eventBus().send("query.historyMarginComponent", new JsonObject(), ar -> {
             if (ar.succeeded())
@@ -270,118 +419,31 @@ public class MongoDBPersistenceVerticleIT {
             }
         });
 
-        asyncHistory.awaitSuccess();
-    }
+        // Test the history query with filter
+        final Async asyncHistoryFilter = context.async();
+        vertx.eventBus().send("query.historyMarginComponent", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
 
-    @Test
-    public void testStorePositionReport(TestContext context) {
-        final Async asyncStore = context.async();
-        JsonObject positionReport = new JsonObject();
-        positionReport.put("clearer", "CLEARER");
-        positionReport.put("member", "MEMBER");
-        positionReport.put("account", "ACCOUNT");
-        positionReport.put("txnTm", new JsonObject().put("$date", "2013-12-18T14:56:58.100Z"));
-        positionReport.put("bizDt", new JsonObject().put("$date", "2013-12-17T00:00:00.000Z"));
-        positionReport.put("reqId", "REQID");
-        positionReport.put("rptId", "RPTID");
-        positionReport.put("sesId", "SESSID");
-        positionReport.put("symbol", "SYMBOL");
-        positionReport.put("putCall", "PUTCALL");
-        positionReport.put("maturityMonthYear", "MMY");
-        positionReport.put("strikePrice", "STRIKE");
-        positionReport.put("optAttribute", "OPTAT");
-        positionReport.put("crossMarginLongQty", 10);
-        positionReport.put("crossMarginShortQty", 10);
-        positionReport.put("optionExcerciseQty", 10);
-        positionReport.put("optionAssignmentQty", 10);
-        positionReport.put("allocationTradeQty", 10);
-        positionReport.put("deliveryNoticeQty", 10);
-        positionReport.put("received", new JsonObject().put("$date", this.timestampFormatter.format(new Date())));
+                    context.assertEquals(2, response.size());
 
-        MongoDBPersistenceVerticleIT.vertx.eventBus().send("ers.PositionReport", positionReport, ar -> {
-            context.assertTrue(ar.succeeded());
-            asyncStore.complete();
-        });
-        asyncStore.awaitSuccess();
-        final Async asyncFind = context.async();
-        MongoDBPersistenceVerticleIT.mongoClient.findOne("ers.PositionReport", positionReport, null, ar -> {
-            if (ar.succeeded()) {
-                context.assertEquals(ar.result().getString("clearer"), "CLEARER");
-                context.assertEquals(ar.result().getString("member"), "MEMBER");
-                context.assertEquals(ar.result().getString("account"), "ACCOUNT");
-                context.assertEquals(ar.result().getJsonObject("txnTm"), new JsonObject().put("$date", "2013-12-18T14:56:58.1Z"));
-                context.assertEquals(ar.result().getJsonObject("bizDt"), new JsonObject().put("$date", "2013-12-17T00:00:00Z"));
-                context.assertEquals(ar.result().getString("reqId"), "REQID");
-                context.assertEquals(ar.result().getString("rptId"), "RPTID");
-                context.assertEquals(ar.result().getString("sesId"), "SESSID");
-                context.assertEquals(ar.result().getString("symbol"), "SYMBOL");
-                context.assertEquals(ar.result().getString("putCall"), "PUTCALL");
-                context.assertEquals(ar.result().getString("maturityMonthYear"), "MMY");
-                context.assertEquals(ar.result().getString("strikePrice"), "STRIKE");
-                context.assertEquals(ar.result().getString("optAttribute"), "OPTAT");
-                context.assertEquals(ar.result().getInteger("crossMarginLongQty"), 10);
-                context.assertEquals(ar.result().getInteger("crossMarginShortQty"), 10);
-                context.assertEquals(ar.result().getInteger("optionExcerciseQty"), 10);
-                context.assertEquals(ar.result().getInteger("optionAssignmentQty"), 10);
-                context.assertEquals(ar.result().getInteger("allocationTradeQty"), 10);
-                context.assertEquals(ar.result().getInteger("deliveryNoticeQty"), 10);
-                asyncFind.complete();
-            } else {
-                context.fail("Unable to find find PositionReport document");
+                    compareMessages(context, DummyData.marginComponentsJson.get(0), response.getJsonObject(0));
+                    compareMessages(context, DummyData.marginComponentsJson.get(2), response.getJsonObject(1));
+                    asyncHistoryFilter.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.historyMarginComponent!");
             }
         });
     }
-
-    /*@Test
-    public void testStoreMarginComponent(TestContext context) {
-        final Async asyncStore = context.async();
-        JsonObject marginComponent = new JsonObject();
-        marginComponent.put("clearer", "CLEARER");
-        marginComponent.put("member", "MEMBER");
-        marginComponent.put("account", "ACCOUNT");
-        marginComponent.put("clss", "CLASS");
-        marginComponent.put("ccy", "CURRENCY");
-        marginComponent.put("txnTm", new JsonObject().put("$date", "2013-12-18T14:56:58.100Z"));
-        marginComponent.put("bizDt", new JsonObject().put("$date", "2013-12-17T00:00:00.000Z"));
-        marginComponent.put("reqId", "REQID");
-        marginComponent.put("rptId", "RPTID");
-        marginComponent.put("sesId", "SESSID");
-        marginComponent.put("variationMargin", 10.0);
-        marginComponent.put("premiumMargin", 10.0);
-        marginComponent.put("liquiMargin", 10.0);
-        marginComponent.put("spreadMargin", 10.0);
-        marginComponent.put("additionalMargin", 10.0);
-        marginComponent.put("received", new JsonObject().put("$date", this.timestampFormatter.format(new Date())));
-
-        MongoDBPersistenceVerticleIT.vertx.eventBus().send("ers.MarginComponent", marginComponent, ar -> {
-            context.assertTrue(ar.succeeded());
-            asyncStore.complete();
-        });
-        asyncStore.awaitSuccess();
-        final Async asyncFind = context.async();
-        MongoDBPersistenceVerticleIT.mongoClient.findOne("ers.MarginComponent", marginComponent, null, ar -> {
-            if (ar.succeeded()) {
-                context.assertEquals(ar.result().getString("clearer"), "CLEARER");
-                context.assertEquals(ar.result().getString("member"), "MEMBER");
-                context.assertEquals(ar.result().getString("account"), "ACCOUNT");
-                context.assertEquals(ar.result().getString("clss"), "CLASS");
-                context.assertEquals(ar.result().getString("ccy"), "CURRENCY");
-                context.assertEquals(ar.result().getJsonObject("txnTm"), new JsonObject().put("$date", "2013-12-18T14:56:58.1Z"));
-                context.assertEquals(ar.result().getJsonObject("bizDt"), new JsonObject().put("$date", "2013-12-17T00:00:00Z"));
-                context.assertEquals(ar.result().getString("reqId"), "REQID");
-                context.assertEquals(ar.result().getString("rptId"), "RPTID");
-                context.assertEquals(ar.result().getString("sesId"), "SESSID");
-                context.assertEquals(ar.result().getDouble("variationMargin"), 10.0);
-                context.assertEquals(ar.result().getDouble("premiumMargin"), 10.0);
-                context.assertEquals(ar.result().getDouble("liquiMargin"), 10.0);
-                context.assertEquals(ar.result().getDouble("spreadMargin"), 10.0);
-                context.assertEquals(ar.result().getDouble("additionalMargin"), 10.0);
-                asyncFind.complete();
-            } else {
-                context.fail("Unable to find find MarginComponent document");
-            }
-        });
-    }*/
 
     @Test
     public void testStoreTotalMarginRequirement(TestContext context) {

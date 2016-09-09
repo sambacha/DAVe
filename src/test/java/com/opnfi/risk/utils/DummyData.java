@@ -23,6 +23,15 @@ public class DummyData {
         tradingSessionStatusJson.add(new JsonObject("{ \"reqId\" : null, \"sesId\" : \"1\", \"stat\" : \"2\", \"statRejRsn\" : null, \"txt\" : null, \"received\" : { \"$date\": \"2016-09-01T11:40:28.088Z\" } }"));
     }
 
+    public final static List<JsonObject> positionReportJson;
+    static {
+        positionReportJson = new ArrayList<>();
+        positionReportJson.add(new JsonObject("{ \"clearer\" : \"ABCFR\", \"member\" : \"DEFFR\", \"account\" : \"PP\", \"reqId\" : null, \"rptId\" : \"13198434645154\", \"bizDt\" : { \"$date\": \"2013-12-17T23:00:00Z\"}, \"lastReportRequested\" : null, \"settlSesId\" : \"ITD\", \"symbol\" : \"FGBL\", \"putCall\" : null, \"maturityMonthYear\" : \"201312\", \"strikePrice\" : null, \"optAttribute\" : null, \"crossMarginLongQty\" : 0, \"crossMarginShortQty\" : 600, \"optionExcerciseQty\" : null, \"optionAssignmentQty\" : null, \"allocationTradeQty\" : 0, \"deliveryNoticeQty\" : 0, \"received\" : { \"$date\": \"2016-09-02T08:36:27.771Z\"} }"));
+        positionReportJson.add(new JsonObject("{ \"clearer\" : \"ABCFR\", \"member\" : \"ABCFR\", \"account\" : \"A1\", \"reqId\" : null, \"rptId\" : \"13198434645156\", \"bizDt\" : { \"$date\": \"2013-12-17T23:00:00Z\"}, \"lastReportRequested\" : null, \"settlSesId\" : \"ITD\", \"symbol\" : \"OGBL\", \"putCall\" : \"C\", \"maturityMonthYear\" : \"201401\", \"strikePrice\" : \"10800\", \"optAttribute\" : \"0\", \"crossMarginLongQty\" : 600, \"crossMarginShortQty\" : 900, \"optionExcerciseQty\" : 0, \"optionAssignmentQty\" : 0, \"allocationTradeQty\" : null, \"deliveryNoticeQty\" : null, \"received\" : { \"$date\": \"2016-09-02T08:36:27.771Z\"} }"));
+        positionReportJson.add(new JsonObject("{ \"clearer\" : \"ABCFR\", \"member\" : \"DEFFR\", \"account\" : \"PP\", \"reqId\" : null, \"rptId\" : \"13198434645154\", \"bizDt\" : { \"$date\": \"2013-12-17T23:00:00Z\"}, \"lastReportRequested\" : null, \"settlSesId\" : \"ITD\", \"symbol\" : \"FGBL\", \"putCall\" : null, \"maturityMonthYear\" : \"201312\", \"strikePrice\" : null, \"optAttribute\" : null, \"crossMarginLongQty\" : 100, \"crossMarginShortQty\" : 700, \"optionExcerciseQty\" : null, \"optionAssignmentQty\" : null, \"allocationTradeQty\" : 0, \"deliveryNoticeQty\" : 0, \"received\" : { \"$date\": \"2016-09-02T08:37:27.771Z\"} }"));
+        positionReportJson.add(new JsonObject("{ \"clearer\" : \"ABCFR\", \"member\" : \"ABCFR\", \"account\" : \"A1\", \"reqId\" : null, \"rptId\" : \"13198434645156\", \"bizDt\" : { \"$date\": \"2013-12-17T23:00:00Z\"}, \"lastReportRequested\" : null, \"settlSesId\" : \"ITD\", \"symbol\" : \"OGBL\", \"putCall\" : \"C\", \"maturityMonthYear\" : \"201401\", \"strikePrice\" : \"10800\", \"optAttribute\" : \"0\", \"crossMarginLongQty\" : 700, \"crossMarginShortQty\" : 800, \"optionExcerciseQty\" : 0, \"optionAssignmentQty\" : 0, \"allocationTradeQty\" : null, \"deliveryNoticeQty\" : null, \"received\" : { \"$date\": \"2016-09-02T08:37:27.771Z\"} }"));
+    }
+
     public final static List<JsonObject> marginComponentsJson;
     static {
         marginComponentsJson = new ArrayList<>();
