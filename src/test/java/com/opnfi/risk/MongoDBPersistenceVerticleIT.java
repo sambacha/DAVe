@@ -154,7 +154,27 @@ public class MongoDBPersistenceVerticleIT {
         fields.forEach(key -> {
             if (transformedActual.containsKey(key))
             {
-                context.assertEquals(transformedExpected.getValue(key), transformedActual.getValue(key), key + " are not equal in " + Json.encodePrettily(transformedExpected) + " versus " + Json.encodePrettily(transformedActual));
+                if (transformedExpected.getValue(key) == null)
+                {
+                    context.assertNull(transformedExpected.getValue(key));
+                }
+                else if (transformedExpected.getValue(key) instanceof String)
+                {
+                    context.assertEquals(transformedExpected.getString(key), transformedActual.getString(key), key + " are not equal in " + Json.encodePrettily(transformedExpected) + " versus " + Json.encodePrettily(transformedActual));
+                }
+                else if (transformedExpected.getValue(key) instanceof Double)
+                {
+                    context.assertEquals(transformedExpected.getDouble(key), transformedActual.getDouble(key), key + " are not equal in " + Json.encodePrettily(transformedExpected) + " versus " + Json.encodePrettily(transformedActual));
+                }
+                else if (transformedExpected.getValue(key) instanceof Integer)
+                {
+                    context.assertEquals(transformedExpected.getInteger(key), transformedActual.getInteger(key), key + " are not equal in " + Json.encodePrettily(transformedExpected) + " versus " + Json.encodePrettily(transformedActual));
+                }
+                else
+                {
+                    context.fail("Found unknown type for key " + key + ": " + transformedExpected.getValue(key).getClass().getName());
+                }
+
             }
         });
     }
