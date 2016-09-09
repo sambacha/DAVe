@@ -1,7 +1,9 @@
 package com.opnfi.risk;
 
+import com.opnfi.risk.utils.DummyData;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
@@ -9,12 +11,11 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -23,6 +24,11 @@ import org.junit.runner.RunWith;
 @RunWith(VertxUnitRunner.class)
 public class MongoDBPersistenceVerticleIT {
     private final DateFormat timestampFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+    private final DateFormat mongoTimestampFormatter;
+    {
+        mongoTimestampFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+        mongoTimestampFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
     private final DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
     private static Vertx vertx;
     private static MongoClient mongoClient;
@@ -62,7 +68,7 @@ public class MongoDBPersistenceVerticleIT {
         });
     }
 
-    @Test
+    /*@Test
     public void testStoreTradingSessionStatus(TestContext context) {
         final Async asyncStore = context.async();
         JsonObject tradingSessionStatus = new JsonObject();
@@ -88,6 +94,85 @@ public class MongoDBPersistenceVerticleIT {
                 asyncFind.complete();
             } else {
                 context.fail("Unable to find find TradingSessionStatus document");
+            }
+        });
+    }*/
+
+    private JsonObject transformDummyData(JsonObject data) throws ParseException {
+        if (data.containsKey("received")) {
+            data.put("received", patchDate(data.getJsonObject("received")));
+        }
+
+        return data;
+    }
+
+    private String patchDate(JsonObject date) throws ParseException {
+        return mongoTimestampFormatter.format(timestampFormatter.parse(date.getString("$date")));
+    }
+
+    private JsonObject transformQueryResult(JsonObject data)
+    {
+        if (data.containsKey("_id")) {
+            data.remove("_id");
+        }
+
+        if (data.containsKey("id")) {
+            data.remove("id");
+        }
+
+        return data;
+    }
+
+    @Test
+    public void testTradingSessionStatus(TestContext context) {
+        // Feed the data into the store
+        DummyData.tradingSessionStatusJson.forEach(tss -> {
+            vertx.eventBus().publish("ers.TradingSessionStatus", tss);
+        });
+
+        // Test the latest query
+        final Async asyncLatest = context.async();
+        vertx.eventBus().send("query.latestTradingSessionStatus", new JsonObject(), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonObject response = new JsonObject((String) ar.result().body());
+
+                    context.assertEquals(transformDummyData(DummyData.tradingSessionStatusJson.get(DummyData.tradingSessionStatusJson.size()-1).copy()), transformQueryResult(response));
+                    asyncLatest.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.latestTradingSessionStatus!");
+            }
+        });
+
+        // Test the latest query
+        final Async asyncHistory = context.async();
+        vertx.eventBus().send("query.historyTradingSessionStatus", new JsonObject(), ar -> {
+            if (ar.succeeded())
+            {
+                try {
+                    JsonArray response = new JsonArray((String) ar.result().body());
+
+                    context.assertEquals(2, response.size());
+                    context.assertEquals(transformDummyData(DummyData.tradingSessionStatusJson.get(0).copy()), transformQueryResult(response.getJsonObject(0)));
+                    context.assertEquals(transformDummyData(DummyData.tradingSessionStatusJson.get(1).copy()), transformQueryResult(response.getJsonObject(1)));
+                    asyncHistory.complete();
+                }
+                catch (Exception e)
+                {
+                    context.fail(e);
+                }
+            }
+            else
+            {
+                context.fail("Didn't received a response to query.historyTradingSessionStatus!");
             }
         });
     }
