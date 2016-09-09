@@ -89,7 +89,6 @@ public class MongoDBPersistenceVerticleIT {
         fields.add("rejectLevel");
     }
 
-    //private final DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
     private static Vertx vertx;
     private static MongoClient mongoClient;
 
@@ -134,14 +133,7 @@ public class MongoDBPersistenceVerticleIT {
 
     private JsonObject transformQueryResult(JsonObject data)
     {
-        /*if (data.containsKey("_id")) {
-            data.remove("_id");
-        }
-
-        if (data.containsKey("id")) {
-            data.remove("id");
-        }*/
-
+        // Nothing to transform right now
         return data;
     }
 

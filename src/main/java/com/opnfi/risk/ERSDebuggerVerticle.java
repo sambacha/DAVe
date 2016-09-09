@@ -17,9 +17,6 @@ public class ERSDebuggerVerticle extends AbstractVerticle {
         EventBus eb = vertx.eventBus();
 
         eb.consumer("ers.TradingSessionStatus", message -> {
-            //LOG.debug("Received TSS message: " + message);
-            //LOG.info("TSS message body: " + message.body().getClass().getCanonicalName());
-            //LOG.info("TSS message body: " + message.body().getClass().getSimpleName());
             LOG.trace("Received TSS message with body: " + message.body().toString());
         });
 
