@@ -44,14 +44,14 @@ public class MongoDBPersistenceVerticleIT {
         fields.add("stat");
         fields.add("statRejRsn");
         fields.add("txt");
-        //fields.add("received");
+        fields.add("received");
         fields.add("clearer");
         fields.add("member");
         fields.add("account");
         fields.add("clss");
         fields.add("ccy");
-        //fields.add("txnTm");
-        //fields.add("bizDt");
+        fields.add("txnTm");
+        fields.add("bizDt");
         fields.add("rptId");
         fields.add("variationMargin");
         fields.add("premiumMargin");
@@ -107,7 +107,7 @@ public class MongoDBPersistenceVerticleIT {
     private JsonObject transformDummyData(JsonObject data) throws ParseException {
         //System.out.println(Json.encodePrettily(data));
 
-        /*if (data.containsKey("received")) {
+        if (data.containsKey("received")) {
             String timestamp = data.getJsonObject("received").getString("$date");
             System.out.println(Json.encodePrettily(data.getJsonObject("received")));
             data.remove("received");
@@ -124,7 +124,7 @@ public class MongoDBPersistenceVerticleIT {
         if (data.containsKey("bizDt")) {
             System.out.println(Json.encodePrettily(data.getJsonObject("bizDt")));
             data.put("bizDt", patchDate(data.getJsonObject("bizDt")));
-        }*/
+        }
 
         return data;
     }
@@ -305,6 +305,8 @@ public class MongoDBPersistenceVerticleIT {
             }
         });
 
+        asyncLatest.awaitSuccess();
+
         // Test the latest query with filter
         final Async asyncLatestFilter = context.async();
         vertx.eventBus().send("query.latestPositionReport", new JsonObject().put("clearer", "ABCFR").put("member", "ABCFR"), ar -> {
@@ -328,6 +330,8 @@ public class MongoDBPersistenceVerticleIT {
                 context.fail("Didn't received a response to query.latestPositionReport!");
             }
         });
+
+        asyncLatestFilter.awaitSuccess();
 
         // Test the history query
         final Async asyncHistory = context.async();
@@ -356,6 +360,8 @@ public class MongoDBPersistenceVerticleIT {
             }
         });
 
+        asyncHistory.awaitSuccess();
+
         // Test the history query with filter
         final Async asyncHistoryFilter = context.async();
         vertx.eventBus().send("query.historyPositionReport", new JsonObject().put("clearer", "ABCFR").put("member", "ABCFR"), ar -> {
@@ -380,6 +386,8 @@ public class MongoDBPersistenceVerticleIT {
                 context.fail("Didn't received a response to query.historyPositionReport!");
             }
         });
+
+        asyncHistoryFilter.awaitSuccess();
     }
 
     @Test
@@ -420,6 +428,8 @@ public class MongoDBPersistenceVerticleIT {
             }
         });
 
+        asyncLatest.awaitSuccess();
+
         // Test the latest query with filter
         final Async asyncLatestFilter = context.async();
         vertx.eventBus().send("query.latestMarginComponent", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
@@ -443,6 +453,8 @@ public class MongoDBPersistenceVerticleIT {
                 context.fail("Didn't received a response to query.latestMarginComponent!");
             }
         });
+
+        asyncLatestFilter.awaitSuccess();
 
         // Test the history query
         final Async asyncHistory = context.async();
@@ -471,6 +483,8 @@ public class MongoDBPersistenceVerticleIT {
             }
         });
 
+        asyncHistory.awaitSuccess();
+
         // Test the history query with filter
         final Async asyncHistoryFilter = context.async();
         vertx.eventBus().send("query.historyMarginComponent", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
@@ -495,6 +509,8 @@ public class MongoDBPersistenceVerticleIT {
                 context.fail("Didn't received a response to query.historyMarginComponent!");
             }
         });
+
+        asyncHistoryFilter.awaitSuccess();
     }
 
 
@@ -536,6 +552,8 @@ public class MongoDBPersistenceVerticleIT {
             }
         });
 
+        asyncLatest.awaitSuccess();
+
         // Test the latest query with filter
         final Async asyncLatestFilter = context.async();
         vertx.eventBus().send("query.latestTotalMarginRequirement", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
@@ -559,6 +577,8 @@ public class MongoDBPersistenceVerticleIT {
                 context.fail("Didn't received a response to query.latestTotalMarginRequirement!");
             }
         });
+
+        asyncLatestFilter.awaitSuccess();
 
         // Test the history query
         final Async asyncHistory = context.async();
@@ -587,6 +607,8 @@ public class MongoDBPersistenceVerticleIT {
             }
         });
 
+        asyncHistory.awaitSuccess();
+
         // Test the history query with filter
         final Async asyncHistoryFilter = context.async();
         vertx.eventBus().send("query.historyTotalMarginRequirement", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
@@ -611,6 +633,8 @@ public class MongoDBPersistenceVerticleIT {
                 context.fail("Didn't received a response to query.historyTotalMarginRequirement!");
             }
         });
+
+        asyncHistoryFilter.awaitSuccess();
     }
 
     @Test
@@ -651,6 +675,8 @@ public class MongoDBPersistenceVerticleIT {
             }
         });
 
+        asyncLatest.awaitSuccess();
+
         // Test the latest query with filter
         final Async asyncLatestFilter = context.async();
         vertx.eventBus().send("query.latestMarginShortfallSurplus", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
@@ -674,6 +700,8 @@ public class MongoDBPersistenceVerticleIT {
                 context.fail("Didn't received a response to query.latestMarginShortfallSurplus!");
             }
         });
+
+        asyncLatestFilter.awaitSuccess();
 
         // Test the history query
         final Async asyncHistory = context.async();
@@ -702,6 +730,8 @@ public class MongoDBPersistenceVerticleIT {
             }
         });
 
+        asyncHistory.awaitSuccess();
+
         // Test the history query with filter
         final Async asyncHistoryFilter = context.async();
         vertx.eventBus().send("query.historyMarginShortfallSurplus", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
@@ -726,6 +756,8 @@ public class MongoDBPersistenceVerticleIT {
                 context.fail("Didn't received a response to query.historyMarginShortfallSurplus!");
             }
         });
+
+        asyncHistoryFilter.awaitSuccess();
     }
 
     @Test
@@ -766,6 +798,8 @@ public class MongoDBPersistenceVerticleIT {
             }
         });
 
+        asyncLatest.awaitSuccess();
+
         // Test the latest query with filter
         final Async asyncLatestFilter = context.async();
         vertx.eventBus().send("query.latestRiskLimit", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
@@ -789,6 +823,8 @@ public class MongoDBPersistenceVerticleIT {
                 context.fail("Didn't received a response to query.latestRiskLimit!");
             }
         });
+
+        asyncLatestFilter.awaitSuccess();
 
         // Test the history query
         final Async asyncHistory = context.async();
@@ -817,6 +853,8 @@ public class MongoDBPersistenceVerticleIT {
             }
         });
 
+        asyncHistory.awaitSuccess();
+
         // Test the history query with filter
         final Async asyncHistoryFilter = context.async();
         vertx.eventBus().send("query.historyRiskLimit", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
@@ -841,6 +879,8 @@ public class MongoDBPersistenceVerticleIT {
                 context.fail("Didn't received a response to query.historyRiskLimit!");
             }
         });
+
+        asyncHistoryFilter.awaitSuccess();
     }
 
     @AfterClass
