@@ -21,12 +21,12 @@ public class MarginComponentProcesor extends AbstractProcessor implements Proces
         MarginRequirementReportMessageT mcMessage = (MarginRequirementReportMessageT) msg.getValue();
 
         JsonObject mc = new JsonObject();
-        mc.put("received", new JsonObject().put("$date", AbstractProcessor.timestampFormatter.format(new Date())));
+        mc.put("received", new JsonObject().put("$date", timestampFormatter.format(new Date())));
         mc.put("reqId", mcMessage.getID());
         mc.put("sesId", mcMessage.getSetSesID().toString());
         mc.put("rptId", mcMessage.getRptID());
-        mc.put("txnTm", new JsonObject().put("$date", AbstractProcessor.timestampFormatter.format(mcMessage.getTxnTm().toGregorianCalendar().getTime())));
-        mc.put("bizDt", new JsonObject().put("$date", AbstractProcessor.timestampFormatter.format(mcMessage.getBizDt().toGregorianCalendar().getTime())));
+        mc.put("txnTm", new JsonObject().put("$date", timestampFormatter.format(mcMessage.getTxnTm().toGregorianCalendar().getTime())));
+        mc.put("bizDt", new JsonObject().put("$date", timestampFormatter.format(mcMessage.getBizDt().toGregorianCalendar().getTime())));
         mc.put("clss", mcMessage.getClss());
 
         List<PartiesBlockT> parties = mcMessage.getPty();

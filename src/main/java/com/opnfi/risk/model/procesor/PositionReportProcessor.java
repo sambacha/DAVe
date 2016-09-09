@@ -22,10 +22,10 @@ public class PositionReportProcessor extends AbstractProcessor implements Proces
         PositionReportMessageT prMessage = (PositionReportMessageT) msg.getValue();
 
         JsonObject pr = new JsonObject();
-        pr.put("received", new JsonObject().put("$date", AbstractProcessor.timestampFormatter.format(new Date())));
+        pr.put("received", new JsonObject().put("$date", timestampFormatter.format(new Date())));
         pr.put("reqId", prMessage.getID());
         pr.put("rptId", prMessage.getRptID());
-        pr.put("bizDt", new JsonObject().put("$date", AbstractProcessor.timestampFormatter.format(prMessage.getBizDt().toGregorianCalendar().getTime())));
+        pr.put("bizDt", new JsonObject().put("$date", timestampFormatter.format(prMessage.getBizDt().toGregorianCalendar().getTime())));
         Optional.ofNullable(prMessage.getLastRptReqed()).ifPresent(lastReport -> pr.put("lastReportRequested", lastReport.value()));
         pr.put("sesId", prMessage.getSetSesID().value());
 

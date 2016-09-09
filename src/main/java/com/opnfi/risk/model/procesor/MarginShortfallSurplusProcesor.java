@@ -22,12 +22,12 @@ public class MarginShortfallSurplusProcesor extends AbstractProcessor implements
         MarginRequirementReportMessageT mrrMessage = (MarginRequirementReportMessageT) msg.getValue();
 
         JsonObject tss = new JsonObject();
-        tss.put("received", new JsonObject().put("$date", AbstractProcessor.timestampFormatter.format(new Date())));
+        tss.put("received", new JsonObject().put("$date", timestampFormatter.format(new Date())));
         tss.put("reqId", mrrMessage.getID());
         tss.put("sesId", mrrMessage.getSetSesID().toString());
         tss.put("rptId", mrrMessage.getRptID());
-        tss.put("txnTm", new JsonObject().put("$date", AbstractProcessor.timestampFormatter.format(mrrMessage.getTxnTm().toGregorianCalendar().getTime())));
-        tss.put("bizDt", new JsonObject().put("$date", AbstractProcessor.timestampFormatter.format(mrrMessage.getBizDt().toGregorianCalendar().getTime())));
+        tss.put("txnTm", new JsonObject().put("$date", timestampFormatter.format(mrrMessage.getTxnTm().toGregorianCalendar().getTime())));
+        tss.put("bizDt", new JsonObject().put("$date", timestampFormatter.format(mrrMessage.getBizDt().toGregorianCalendar().getTime())));
         tss.put("clearingCcy", mrrMessage.getCcy());
 
         List<PartiesBlockT> parties = mrrMessage.getPty();

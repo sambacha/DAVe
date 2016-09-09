@@ -61,11 +61,11 @@ public class RiskLimitProcessor extends AbstractProcessor implements Processor {
         for (RiskLimitTypesGrpBlockT limit : limits)
         {
             JsonObject rl = new JsonObject();
-            rl.put("received", new JsonObject().put("$date", AbstractProcessor.timestampFormatter.format(received)));
+            rl.put("received", new JsonObject().put("$date", timestampFormatter.format(received)));
             rl.put("clearer", clearer);
             rl.put("member", member);
             rl.put("maintainer", maintainer);
-            rl.put("txnTm", new JsonObject().put("$date", AbstractProcessor.timestampFormatter.format(txnTm)));
+            rl.put("txnTm", new JsonObject().put("$date", timestampFormatter.format(txnTm)));
             rl.put("reqId", reqId);
             rl.put("rptId", rptId);
             rl.put("reqRslt", reqRslt);

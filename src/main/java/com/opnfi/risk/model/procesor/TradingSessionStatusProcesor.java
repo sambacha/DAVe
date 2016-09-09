@@ -17,7 +17,7 @@ public class TradingSessionStatusProcesor extends AbstractProcessor implements P
         TradingSessionStatusMessageT tssMessage = (TradingSessionStatusMessageT) msg.getValue();
 
         JsonObject tss = new JsonObject();
-        tss.put("received", new JsonObject().put("$date", AbstractProcessor.timestampFormatter.format(new Date())));
+        tss.put("received", new JsonObject().put("$date", timestampFormatter.format(new Date())));
         tss.put("reqId", tssMessage.getReqID());
         tss.put("sesId", tssMessage.getSesID());
         tss.put("stat", tssMessage.getStat());

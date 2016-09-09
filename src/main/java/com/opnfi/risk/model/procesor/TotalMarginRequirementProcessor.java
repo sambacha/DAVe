@@ -21,12 +21,12 @@ public class TotalMarginRequirementProcessor extends AbstractProcessor implement
         MarginRequirementReportMessageT tmrMessage = (MarginRequirementReportMessageT) msg.getValue();
 
         JsonObject tmr = new JsonObject();
-        tmr.put("received", new JsonObject().put("$date", AbstractProcessor.timestampFormatter.format(new Date())));
+        tmr.put("received", new JsonObject().put("$date", timestampFormatter.format(new Date())));
         tmr.put("reqId", tmrMessage.getID());
         tmr.put("sesId", tmrMessage.getSetSesID().toString());
         tmr.put("rptId", tmrMessage.getRptID());
-        tmr.put("txnTm", new JsonObject().put("$date", AbstractProcessor.timestampFormatter.format(tmrMessage.getTxnTm().toGregorianCalendar().getTime())));
-        tmr.put("bizDt", new JsonObject().put("$date", AbstractProcessor.timestampFormatter.format(tmrMessage.getBizDt().toGregorianCalendar().getTime())));
+        tmr.put("txnTm", new JsonObject().put("$date", timestampFormatter.format(tmrMessage.getTxnTm().toGregorianCalendar().getTime())));
+        tmr.put("bizDt", new JsonObject().put("$date", timestampFormatter.format(tmrMessage.getBizDt().toGregorianCalendar().getTime())));
 
         List<PartiesBlockT> parties = tmrMessage.getPty();
 
