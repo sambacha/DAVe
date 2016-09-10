@@ -35,6 +35,9 @@
   "mongodb": {
     "db_name": "OpnFi-Risk",
     "connection_string": "mongodb://localhost:27017"
+  },
+  "ersDebugger":{
+    "enable": false
   }
 }
 
