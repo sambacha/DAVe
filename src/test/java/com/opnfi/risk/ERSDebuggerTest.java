@@ -167,7 +167,11 @@ public class ERSDebuggerTest {
         @Override
         protected void append(Object o) {
             if (o instanceof ILoggingEvent) {
-                lastLogMessage = (ILoggingEvent)o;
+                ILoggingEvent event = (ILoggingEvent)o;
+
+                if (event.getLoggerName().equals(ERSDebuggerVerticle.class.getName())) {
+                    lastLogMessage = event;
+                }
             }
         }
 
