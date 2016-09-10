@@ -60,9 +60,9 @@ public class UserManagerVerticle extends AbstractVerticle {
 
     private void connectDb(Handler<AsyncResult<Void>> completer) {
         JsonObject config = new JsonObject();
-        config.put("db_name", config().getJsonObject("web").getJsonObject("auth").getString("db_name", UserManagerVerticle.DEFAULT_DB_NAME));
+        config.put("db_name", config().getJsonObject("http").getJsonObject("auth").getString("db_name", UserManagerVerticle.DEFAULT_DB_NAME));
         config.put("useObjectId", true);
-        config.put("connection_string", config().getJsonObject("web").getJsonObject("auth").getString("connection_string", UserManagerVerticle.DEFAULT_CONNECTION_STRING));
+        config.put("connection_string", config().getJsonObject("http").getJsonObject("auth").getString("connection_string", UserManagerVerticle.DEFAULT_CONNECTION_STRING));
 
         mongo = MongoClient.createShared(vertx, config);
         completer.handle(Future.succeededFuture());
@@ -117,7 +117,7 @@ public class UserManagerVerticle extends AbstractVerticle {
         JsonObject authProperties = new JsonObject();
         MongoAuth authProvider = MongoAuth.create(mongo, authProperties);
         authProvider.getHashStrategy().setSaltStyle(HashSaltStyle.EXTERNAL);
-        authProvider.getHashStrategy().setExternalSalt(config().getJsonObject("web").getJsonObject("auth").getString("salt", UserManagerVerticle.DEFAULT_SALT));
+        authProvider.getHashStrategy().setExternalSalt(config().getJsonObject("http").getJsonObject("auth").getString("salt", UserManagerVerticle.DEFAULT_SALT));
         String userName = System.getProperty("userName");
         String userPassword = System.getProperty("userPassword");
         if (userName == null || userName.isEmpty()) {
