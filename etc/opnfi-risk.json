@@ -1,5 +1,5 @@
 {
-  "web": {
+  "http": {
     "httpPort": 8080,
     "ssl": {
       "enable": true,

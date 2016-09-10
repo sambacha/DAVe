@@ -47,7 +47,7 @@ public class MainVerticle extends AbstractVerticle {
                 ersDebbugerDeployment = v;
             }
 
-            DeploymentOptions webOptions = new DeploymentOptions().setConfig(config().getJsonObject("web"));
+            DeploymentOptions webOptions = new DeploymentOptions().setConfig(config().getJsonObject("http"));
             Future<String> httpVerticleFuture = Future.future();
             vertx.deployVerticle(HttpVerticle.class.getName(), webOptions, httpVerticleFuture.completer());
             return httpVerticleFuture;

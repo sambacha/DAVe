@@ -44,7 +44,7 @@ public class MainVerticleIT {
 
         JsonObject config = new JsonObject()
                 .put("ers", new JsonArray().add(new JsonObject().put("brokerHost", "localhost").put("brokerPort", sslPort).put("member", "ABCFR").put("sslCertAlias", "abcfr").put("truststore", MainVerticleIT.class.getResource("ers.truststore").getPath()).put("truststorePassword", "123456").put("keystore", MainVerticleIT.class.getResource("ers.keystore").getPath()).put("keystorePassword", "123456")))
-                .put("web", new JsonObject().put("httpPort", httpPort))
+                .put("http", new JsonObject().put("httpPort", httpPort))
                 .put("mongodb", new JsonObject().put("db_name", "OpnFi-Risk-MainVerticleTest").put("connection_string", "mongodb://localhost:" + mongoPort))
                 .put("ersDebugger", new JsonObject().put("enable", true));
 
