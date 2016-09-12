@@ -41,15 +41,11 @@ public class UserManagerVerticle extends AbstractVerticle {
         }).compose(v -> {
             LOG.info("Initialized MongoDB");
             Future<String> executeCommandFuture = Future.future();
-            System.out.println("Step A");
             executeCommand(executeCommandFuture.completer());
-            System.out.println("Step B");
             return executeCommandFuture;
         }).compose(v -> {
             LOG.info("Command executed");
-            System.out.println("Step BA");
             chainFuture.complete();
-            System.out.println("Step BB");
         }, chainFuture);
 
         chainFuture.setHandler(ar -> {
@@ -74,12 +70,9 @@ public class UserManagerVerticle extends AbstractVerticle {
     }
 
     private void initDb(Handler<AsyncResult<CompositeFuture>> completer) {
-        System.out.println("Step J");
         mongo.getCollections(ar -> {
             if (ar.succeeded()) {
-                System.out.println("Step JJ");
                 if (!ar.result().contains(UserManagerVerticle.DEFAULT_USER_COLLECTION_NAME)) {
-                    System.out.println("Step JJJ");
                     List<Future> futures = new ArrayList<>();
                     Future<Void> createCollectionFuture = Future.future();
                     mongo.createCollection(UserManagerVerticle.DEFAULT_USER_COLLECTION_NAME, createCollectionFuture.completer());
@@ -94,11 +87,9 @@ public class UserManagerVerticle extends AbstractVerticle {
 
                     CompositeFuture.all(futures).setHandler(completer);
                 } else {
-                    System.out.println("Step JJ*");
                     completer.handle(Future.succeededFuture());
                 }
             } else {
-                System.out.println("Step J*");
                 LOG.error("Failed to get collection list", ar.cause());
                 completer.handle(Future.failedFuture(ar.cause()));
             }
@@ -138,20 +129,17 @@ public class UserManagerVerticle extends AbstractVerticle {
             completer.handle(Future.failedFuture("User password not provided"));
             return;
         }
-        System.out.println("Step 2");
+
         authProvider.insertUser(userName, userPassword, Collections.emptyList(), Collections.emptyList(), res -> {
             if (res.succeeded())
             {
-                System.out.println("Step 21");
                 completer.handle(Future.succeededFuture());
             }
             else
             {
-                System.out.println("Step 22");
                 completer.handle(Future.failedFuture(res.cause()));
             }
         });
-        System.out.println("Step 3");
     }
 
     private void executeDelete(Handler<AsyncResult<String>> completer) {
@@ -161,14 +149,11 @@ public class UserManagerVerticle extends AbstractVerticle {
             return;
         }
         JsonObject query = new JsonObject().put("username", userName);
-        System.out.println("Step *");
         mongo.removeDocument(UserManagerVerticle.DEFAULT_USER_COLLECTION_NAME, query, ar -> {
             if (ar.succeeded()) {
-                System.out.println("Step *");
                 LOG.info("Record for user {} removed from the database", userName);
                 completer.handle(Future.succeededFuture());
             } else {
-                System.out.println("Step *#");
                 completer.handle(Future.failedFuture(ar.cause()));
             }
         });
