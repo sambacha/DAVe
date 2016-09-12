@@ -52,7 +52,6 @@ public class UserManagerVerticle extends AbstractVerticle {
                 LOG.error("Unable to deploy {}", UserManagerVerticle.class.getSimpleName());
                 fut.fail(chainFuture.cause());
             }
-            //vertx.close();
         });
     }
 
