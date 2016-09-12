@@ -4,8 +4,10 @@ import com.opnfi.risk.model.procesor.*;
 import io.vertx.camel.CamelBridge;
 import io.vertx.camel.CamelBridgeOptions;
 import io.vertx.camel.InboundMapping;
+import io.vertx.camel.OutboundMapping;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import java.util.UUID;
@@ -43,6 +45,8 @@ public class ERSConnectorVerticle extends AbstractVerticle {
         startCamelFuture.compose(v -> {
             return startCamelBridge();
         }).compose(v -> {
+            return requestInitialData();
+        }).compose(v -> {
             chainFuture.complete();
         }, chainFuture);
 
@@ -53,6 +57,16 @@ public class ERSConnectorVerticle extends AbstractVerticle {
                 startFuture.fail(chainFuture.cause());
             }
         });
+    }
+
+    public Future<Void> requestInitialData()
+    {
+        LOG.info("Requesting inital ERS data");
+
+        LOG.trace("Requesting initial TradingSessionStatus");
+        vertx.eventBus().publish("ers.TradingSessionStatusRequest", new JsonObject());
+
+        return Future.succeededFuture();
     }
 
     public Future<Void> startCamel()
@@ -98,12 +112,20 @@ public class ERSConnectorVerticle extends AbstractVerticle {
                     String rlBroadcastAddress = getBroadcastAddress("eurex.tmp." + member + ".opnfi_rl_" + addressSuffix,
                             member + ".MessageType.RiskLimits.#");
 
+                    String tssResponseAddress = getResponseAddress("eurex.tmp." + member + ".opnfi_resp_tss_" + addressSuffix,
+                            member + ".TradingSessionStatus");
+                    String tssReplyAddress = getReplyAddress(member + ".TradingSessionStatus");
+                    String tssRequestAddress = getRequestAddress(member);
+
                     from("amqp:" + tssBroadcastAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcesor()).to("direct:tss");
                     from("amqp:" + mcBroadcastAddress).unmarshal(ersDataModel).process(new MarginComponentProcesor()).to("direct:mc");
                     from("amqp:" + tmrBroadcastAddress).unmarshal(ersDataModel).process(new TotalMarginRequirementProcessor()).to("direct:tmr");
                     from("amqp:" + mssBroadcastAddress).unmarshal(ersDataModel).process(new MarginShortfallSurplusProcesor()).to("direct:mss");
                     from("amqp:" + prBroadcastAddress).unmarshal(ersDataModel).process(new PositionReportProcessor()).to("direct:pr");
                     from("amqp:" + rlBroadcastAddress).unmarshal(ersDataModel).process(new RiskLimitProcessor()).to("direct:rl");
+
+                    from("amqp:" + tssResponseAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcesor()).to("direct:tssResponse");
+                    from("direct:tssRequest").process(new TradingSessionStatusRequestProcesor(tssReplyAddress)).marshal(ersDataModel).to("amqp:" + tssRequestAddress + "?preserveMessageQos=true");
                 }
             });
         }
@@ -133,6 +155,24 @@ public class ERSConnectorVerticle extends AbstractVerticle {
                 + "queue: '%s', key: '%s' } ] } }", name, name, routingKey);
     }
 
+    private String getResponseAddress(String name, String routingKey) {
+        return String.format("%s; {create: receiver, assert: never, node: "
+                + "{ type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: "
+                + "{ 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, "
+                + "'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.response',"
+                + "queue: '%s', key: '%s' } ] } }", name, name, routingKey);
+    }
+
+    private String getReplyAddress(String routingKey)
+    {
+        return String.format("eurex.response/%s; { node: { type: topic }, assert: never, create: never}", routingKey);
+    }
+
+    private String getRequestAddress(String member)
+    {
+        return String.format("eurex.%s/%s.ERS; { node: { type: topic }, assert: never, create: never}", member, member);
+    }
+
     public Future<Void> startCamelBridge()
     {
         camelBridge = CamelBridge.create(vertx,
@@ -143,6 +183,8 @@ public class ERSConnectorVerticle extends AbstractVerticle {
                         .addInboundMapping(InboundMapping.fromCamel("direct:mss").toVertx("ers.MarginShortfallSurplus").usePublish())
                         .addInboundMapping(InboundMapping.fromCamel("direct:pr").toVertx("ers.PositionReport").usePublish())
                         .addInboundMapping(InboundMapping.fromCamel("direct:rl").toVertx("ers.RiskLimit").usePublish())
+                        .addInboundMapping(InboundMapping.fromCamel("direct:tssResponse").toVertx("ers.TradingSessionStatus").usePublish())
+                        .addOutboundMapping(OutboundMapping.fromVertx("ers.TradingSessionStatusRequest").toCamel("direct:tssRequest"))
         );
 
         camelBridge.start();

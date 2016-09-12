@@ -5,28 +5,25 @@ import com.opnfi.risk.utils.DummyData;
 import com.opnfi.risk.utils.Utils;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.net.JksOptions;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import org.apache.camel.component.jms.JmsMessage;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.jms.JMSException;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
+import javax.jms.*;
 import javax.naming.NamingException;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RunWith(VertxUnitRunner.class)
 public class ERSConnectorVerticleIT {
@@ -77,6 +74,79 @@ public class ERSConnectorVerticleIT {
         });
 
         asyncBroadcast.awaitSuccess();
+    }
+
+    @Test
+    public void testInitialRequests(TestContext context) throws JMSException {
+        Map<String, Message> messages = new HashMap<>();
+
+        // Collect request messages
+        final Async asyncRequests = context.async();
+
+        vertx.executeBlocking(future -> {
+            try {
+                Utils utils = new Utils();
+                AutoCloseableConnection conn = utils.getAdminConnection("localhost", tcpPort);
+                Session ses = conn.createSession(false, Session.CLIENT_ACKNOWLEDGE);
+                conn.start();
+                MessageConsumer consumer = ses.createConsumer(utils.getQueue("eurex.request.ABCFR"));
+
+                while (true)
+                {
+                    Message msg = consumer.receive(1000);
+
+                    if (msg != null) {
+                        if (msg instanceof TextMessage) {
+                            if (((TextMessage) msg).getText().contains("TrdgSesStatReq")) {
+                                messages.put("tss", msg);
+                            }
+                        }
+                        else if (msg instanceof BytesMessage)
+                        {
+                            BytesMessage byteMsg = (BytesMessage)msg;
+                            StringBuilder builder = new StringBuilder();
+                            for (int i = 0; i < byteMsg.getBodyLength(); i++)
+                            {
+                                builder.append((char)byteMsg.readByte());
+                            }
+
+                            if (builder.toString().contains("TrdgSesStatReq")) {
+                                messages.put("tss", msg);
+                            }
+                        }
+
+                        msg.acknowledge();
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                future.complete();
+            }
+            catch (NamingException | JMSException e)
+            {
+                System.out.println("I got an error: " + e.toString());
+                future.fail(e);
+            }
+        }, res -> {
+            if (res.succeeded())
+            {
+                asyncRequests.complete();
+            }
+            else
+            {
+                context.fail("Failed to receive request messages");
+            }
+        });
+
+        asyncRequests.awaitSuccess();
+
+        // TSS
+        context.assertNotNull(messages.get("tss"));
+        context.assertTrue(messages.get("tss").getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("tss").getJMSReplyTo().toString().contains("ABCFR.TradingSessionStatus"));
     }
 
     @Test
