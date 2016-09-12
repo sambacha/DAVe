@@ -99,44 +99,33 @@ public class UserManagerVerticleIT {
         final Async userExists = context.async();
         mongoClient.find(USER_COLLECTION_NAME, new JsonObject(), res -> {
             if (res.succeeded()) {
-                System.out.println("Step UA");
                 List<JsonObject> users = res.result();
                 context.assertEquals(1, users.size());
                 context.assertEquals(USER, users.get(0).getString("username"));
                 userExists.complete();
             } else {
-                System.out.println("Step UB");
                 context.fail(res.cause());
             }
         });
 
-        System.out.println("Step V");
         userExists.awaitSuccess();
-        System.out.println("Step W");
+
         System.setProperty("cmd", "delete");
         System.setProperty("userName", USER);
 
         JsonObject config = new JsonObject().put("http", new JsonObject().put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT)));
-        System.out.println("Step X");
         deployUserManagerVerticle(context, vertx, config);
 
-        System.out.println("Step Y");
         final Async query = context.async();
         mongoClient.find(USER_COLLECTION_NAME, new JsonObject(), res -> {
             if (res.succeeded()) {
-                System.out.println("Step YA");
                 List<JsonObject> users = res.result();
-                System.out.println("Step YAA");
                 context.assertEquals(0, users.size());
-                System.out.println("Step YAB");
                 query.complete();
-                System.out.println("Step YAC");
             } else {
-                System.out.println("Step YB");
                 context.fail(res.cause());
             }
         });
-        System.out.println("Step Z");
     }
 
     @After
