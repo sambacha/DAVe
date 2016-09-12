@@ -5,16 +5,10 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
-import ch.qos.logback.core.Context;
 import ch.qos.logback.core.UnsynchronizedAppenderBase;
-import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.net.JksOptions;
-import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.junit.After;
@@ -55,15 +49,12 @@ public class ERSDebuggerTest {
     @Test
     public void testTradingSessionStatusLogging(TestContext context) throws InterruptedException {
         testAppender.start();
-
         vertx.eventBus().publish("ers.TradingSessionStatus", testMessage);
-
-        Thread.sleep(1000);
-
+        ILoggingEvent logMessage = ((TestAppender)testAppender).getLastMessage();
         testAppender.stop();
 
-        ILoggingEvent logMessage = ((TestAppender)testAppender).getLastMessage();
         context.assertEquals(Level.TRACE, logMessage.getLevel());
+        System.out.println("MSG: " + logMessage.getFormattedMessage());
         context.assertTrue(logMessage.getFormattedMessage().contains(Json.encode(testMessage)));
         context.assertTrue(logMessage.getFormattedMessage().contains("Received TSS message with body:"));
     }
@@ -71,14 +62,10 @@ public class ERSDebuggerTest {
     @Test
     public void testPositionReportLogging(TestContext context) throws InterruptedException {
         testAppender.start();
-
         vertx.eventBus().publish("ers.PositionReport", testMessage);
-
-        Thread.sleep(1000);
-
+        ILoggingEvent logMessage = ((TestAppender)testAppender).getLastMessage();
         testAppender.stop();
 
-        ILoggingEvent logMessage = ((TestAppender)testAppender).getLastMessage();
         context.assertEquals(Level.TRACE, logMessage.getLevel());
         context.assertTrue(logMessage.getFormattedMessage().contains(Json.encode(testMessage)));
         context.assertTrue(logMessage.getFormattedMessage().contains("Received PR message with body:"));
@@ -87,14 +74,10 @@ public class ERSDebuggerTest {
     @Test
     public void testMarginComponentLogging(TestContext context) throws InterruptedException {
         testAppender.start();
-
         vertx.eventBus().publish("ers.MarginComponent", testMessage);
-
-        Thread.sleep(1000);
-
+        ILoggingEvent logMessage = ((TestAppender)testAppender).getLastMessage();
         testAppender.stop();
 
-        ILoggingEvent logMessage = ((TestAppender)testAppender).getLastMessage();
         context.assertEquals(Level.TRACE, logMessage.getLevel());
         context.assertTrue(logMessage.getFormattedMessage().contains(Json.encode(testMessage)));
         context.assertTrue(logMessage.getFormattedMessage().contains("Received MC message with body:"));
@@ -103,14 +86,10 @@ public class ERSDebuggerTest {
     @Test
     public void testTotalMarginRequirementLogging(TestContext context) throws InterruptedException {
         testAppender.start();
-
         vertx.eventBus().publish("ers.TotalMarginRequirement", testMessage);
-
-        Thread.sleep(1000);
-
+        ILoggingEvent logMessage = ((TestAppender)testAppender).getLastMessage();
         testAppender.stop();
 
-        ILoggingEvent logMessage = ((TestAppender)testAppender).getLastMessage();
         context.assertEquals(Level.TRACE, logMessage.getLevel());
         context.assertTrue(logMessage.getFormattedMessage().contains(Json.encode(testMessage)));
         context.assertTrue(logMessage.getFormattedMessage().contains("Received TMR message with body:"));
@@ -119,14 +98,10 @@ public class ERSDebuggerTest {
     @Test
     public void testMarginSortfallSurplusLogging(TestContext context) throws InterruptedException {
         testAppender.start();
-
         vertx.eventBus().publish("ers.MarginShortfallSurplus", testMessage);
-
-        Thread.sleep(1000);
-
+        ILoggingEvent logMessage = ((TestAppender)testAppender).getLastMessage();
         testAppender.stop();
 
-        ILoggingEvent logMessage = ((TestAppender)testAppender).getLastMessage();
         context.assertEquals(Level.TRACE, logMessage.getLevel());
         context.assertTrue(logMessage.getFormattedMessage().contains(Json.encode(testMessage)));
         context.assertTrue(logMessage.getFormattedMessage().contains("Received MSS message with body:"));
@@ -135,14 +110,10 @@ public class ERSDebuggerTest {
     @Test
     public void testRiskLimitLogging(TestContext context) throws InterruptedException {
         testAppender.start();
-
         vertx.eventBus().publish("ers.RiskLimit", testMessage);
-
-        Thread.sleep(1000);
-
+        ILoggingEvent logMessage = ((TestAppender)testAppender).getLastMessage();
         testAppender.stop();
 
-        ILoggingEvent logMessage = ((TestAppender)testAppender).getLastMessage();
         context.assertEquals(Level.TRACE, logMessage.getLevel());
         context.assertTrue(logMessage.getFormattedMessage().contains(Json.encode(testMessage)));
         context.assertTrue(logMessage.getFormattedMessage().contains("Received RiskLimit message with body:"));
@@ -170,14 +141,27 @@ public class ERSDebuggerTest {
                 ILoggingEvent event = (ILoggingEvent)o;
 
                 if (event.getLoggerName().equals(ERSDebuggerVerticle.class.getName())) {
-                    lastLogMessage = event;
+                    synchronized(this) {
+                        lastLogMessage = event;
+                        this.notify();
+                    }
                 }
             }
         }
 
-        public ILoggingEvent getLastMessage()
-        {
+        public ILoggingEvent getLastMessage() throws InterruptedException {
+            synchronized(this) {
+                while (this.lastLogMessage == null) {
+                    this.wait(5000);
+                }
+            }
             return lastLogMessage;
+        }
+
+        @Override
+        public void stop() {
+            lastLogMessage = null;
+            super.stop();
         }
     }
 }
