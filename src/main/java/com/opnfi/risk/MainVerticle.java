@@ -28,14 +28,26 @@ public class MainVerticle extends AbstractVerticle {
         mongoDbVerticleFuture.compose(v -> {
             LOG.info("Deployed MongoDBPersistenceVerticle with ID {}", v);
             mongoDbPersistenceDeployment = v;
-            DeploymentOptions ersDebuggerOptions = new DeploymentOptions().setConfig(config().getJsonObject("debug"));
+
             Future<String> ersDebuggerVerticleFuture = Future.future();
-            vertx.deployVerticle(ERSDebuggerVerticle.class.getName(), ersDebuggerOptions, ersDebuggerVerticleFuture.completer());
+
+            if (config().getJsonObject("ersDebugger", new JsonObject()).getBoolean("enable", false)) {
+                DeploymentOptions ersDebuggerOptions = new DeploymentOptions().setConfig(config().getJsonObject("ersDebugger"));
+                vertx.deployVerticle(ERSDebuggerVerticle.class.getName(), ersDebuggerOptions, ersDebuggerVerticleFuture.completer());
+            }
+            else
+            {
+                ersDebuggerVerticleFuture.complete();
+            }
+
             return ersDebuggerVerticleFuture;
         }).compose(v -> {
-            LOG.info("Deployed ERSDebuggerVerticle with ID {}", v);
-            ersDebbugerDeployment = v;
-            DeploymentOptions webOptions = new DeploymentOptions().setConfig(config().getJsonObject("web"));
+            if (config().getJsonObject("ersDebugger", new JsonObject()).getBoolean("enable", false)) {
+                LOG.info("Deployed ERSDebuggerVerticle with ID {}", v);
+                ersDebbugerDeployment = v;
+            }
+
+            DeploymentOptions webOptions = new DeploymentOptions().setConfig(config().getJsonObject("http"));
             Future<String> httpVerticleFuture = Future.future();
             vertx.deployVerticle(HttpVerticle.class.getName(), webOptions, httpVerticleFuture.completer());
             return httpVerticleFuture;

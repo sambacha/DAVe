@@ -14,6 +14,7 @@ public class ERSDebuggerVerticle extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> fut) {
+        LOG.info("Subscribing to ERS messages for debugging");
         EventBus eb = vertx.eventBus();
 
         eb.consumer("ers.TradingSessionStatus", message -> {

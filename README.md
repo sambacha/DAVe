@@ -37,9 +37,9 @@ The `mongodb` section contains the configuration of the MongoDB database where w
 | `db_name` | Name of the database which will be used | `OpnFi-Risk` |
 | `connection_string` | Connection URL to connect to the database | `mongodb://localhost:27017` |
 
-### Web
+### HTTP
 
-The `web` section configures the web based UI and the REST API.
+The `http` section configures the web based UI and the REST API.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
@@ -52,7 +52,7 @@ The `web` section configures the web based UI and the REST API.
 
 ### SSL
 
-The `ssl` section configures the web SSL/TLS support in the webserver.
+The `ssl` section configures the SSL/TLS support in the webserver.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
