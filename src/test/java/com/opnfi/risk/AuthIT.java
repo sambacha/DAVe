@@ -84,7 +84,6 @@ public class AuthIT {
         JsonObject command = new JsonObject()
                 .put("createIndexes", USER_COLLECTION_NAME)
                 .put("indexes", indexes);
-        Future<JsonObject> createIndexFuture = Future.future();
         mongoClient.runCommand("createIndexes", command, res -> {
             if (res.succeeded())
             {
