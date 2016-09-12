@@ -23,5 +23,11 @@ esac
 java \
   -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory \
   ${OPTIONS} \
-  -cp ${OPNFI_RISK_LIB}/risk-1.0-SNAPSHOT-fat.jar io.vertx.core.Launcher \
-  run com.opnfi.risk.util.UserManagerVerticle -conf ${OPNFI_RISK_ETC}/opnfi-risk.json
+  -cp ${OPNFI_RISK_LIB}/risk-1.0-SNAPSHOT-fat.jar com.opnfi.risk.util.UserManagerVerticle \
+  -conf ${OPNFI_RISK_ETC}/opnfi-risk.json
+
+#java \
+#  -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory \
+#  ${OPTIONS} \
+#  -cp ${OPNFI_RISK_LIB}/risk-1.0-SNAPSHOT-fat.jar io.vertx.core.Launcher \
+#  run com.opnfi.risk.util.UserManagerVerticle -conf ${OPNFI_RISK_ETC}/opnfi-risk.json

@@ -1,10 +1,7 @@
 package com.opnfi.risk.util;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.CompositeFuture;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
+import io.vertx.core.*;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -55,7 +52,7 @@ public class UserManagerVerticle extends AbstractVerticle {
                 LOG.error("Unable to deploy {}", UserManagerVerticle.class.getSimpleName());
                 fut.fail(chainFuture.cause());
             }
-            vertx.close();
+            //vertx.close();
         });
     }
 
@@ -178,4 +175,43 @@ public class UserManagerVerticle extends AbstractVerticle {
         this.mongo.close();
     }
 
+    public static void main(String[] args)
+    {
+        String configFile = "./etc/opnfi-risk.json";
+
+        if (args.length < 2)
+        {
+            System.out.println("Missing -conf option");
+            System.exit(1);
+        }
+        else
+        {
+            if (args[0].equals("-conf"))
+            {
+                configFile = args[1];
+            }
+            else
+            {
+                System.out.println("Missing -conf option");
+                System.exit(1);
+            }
+        }
+
+        Vertx vertx = Vertx.vertx();
+        Buffer configBuffer = vertx.fileSystem().readFileBlocking(configFile);
+        vertx.deployVerticle(UserManagerVerticle.class.getName(), new DeploymentOptions().setConfig(new JsonObject(configBuffer.getString(0, configBuffer.length()))), res -> {
+            if (res.succeeded())
+            {
+                // Command was executed successfully
+                vertx.close();
+                System.exit(0);
+            }
+            else
+            {
+                // Command probably failed
+                vertx.close();
+                System.exit(1);
+            }
+        });
+    }
 }
