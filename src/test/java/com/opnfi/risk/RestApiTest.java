@@ -1,19 +1,17 @@
 package com.opnfi.risk;
 
-import com.opnfi.risk.utils.DummyData;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.net.JksOptions;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
