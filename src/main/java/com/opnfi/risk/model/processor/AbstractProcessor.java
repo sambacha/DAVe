@@ -1,4 +1,4 @@
-package com.opnfi.risk.model.procesor;
+package com.opnfi.risk.model.processor;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

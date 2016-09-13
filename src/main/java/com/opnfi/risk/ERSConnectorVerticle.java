@@ -1,6 +1,6 @@
 package com.opnfi.risk;
 
-import com.opnfi.risk.model.procesor.*;
+import com.opnfi.risk.model.processor.*;
 import io.vertx.camel.CamelBridge;
 import io.vertx.camel.CamelBridgeOptions;
 import io.vertx.camel.InboundMapping;
@@ -10,7 +10,6 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import java.util.UUID;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.amqp.AMQPComponent;
@@ -18,6 +17,8 @@ import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.camel.model.dataformat.JaxbDataFormat;
 import org.apache.qpid.client.AMQConnectionFactory;
 import org.apache.qpid.url.URLSyntaxException;
+
+import java.util.UUID;
 
 
 /**
@@ -117,15 +118,15 @@ public class ERSConnectorVerticle extends AbstractVerticle {
                     String tssReplyAddress = getReplyAddress(member + ".TradingSessionStatus");
                     String tssRequestAddress = getRequestAddress(member);
 
-                    from("amqp:" + tssBroadcastAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcesor()).to("direct:tss");
-                    from("amqp:" + mcBroadcastAddress).unmarshal(ersDataModel).process(new MarginComponentProcesor()).to("direct:mc");
+                    from("amqp:" + tssBroadcastAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcessor()).to("direct:tss");
+                    from("amqp:" + mcBroadcastAddress).unmarshal(ersDataModel).process(new MarginComponentProcessor()).to("direct:mc");
                     from("amqp:" + tmrBroadcastAddress).unmarshal(ersDataModel).process(new TotalMarginRequirementProcessor()).to("direct:tmr");
-                    from("amqp:" + mssBroadcastAddress).unmarshal(ersDataModel).process(new MarginShortfallSurplusProcesor()).to("direct:mss");
+                    from("amqp:" + mssBroadcastAddress).unmarshal(ersDataModel).process(new MarginShortfallSurplusProcessor()).to("direct:mss");
                     from("amqp:" + prBroadcastAddress).unmarshal(ersDataModel).process(new PositionReportProcessor()).to("direct:pr");
                     from("amqp:" + rlBroadcastAddress).unmarshal(ersDataModel).process(new RiskLimitProcessor()).to("direct:rl");
 
-                    from("amqp:" + tssResponseAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcesor()).to("direct:tssResponse");
-                    from("direct:tssRequest").process(new TradingSessionStatusRequestProcesor(tssReplyAddress)).marshal(ersDataModel).to("amqp:" + tssRequestAddress + "?preserveMessageQos=true");
+                    from("amqp:" + tssResponseAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcessor()).to("direct:tssResponse");
+                    from("direct:tssRequest").process(new TradingSessionStatusRequestProcessor(tssReplyAddress)).marshal(ersDataModel).to("amqp:" + tssRequestAddress + "?preserveMessageQos=true");
                 }
             });
         }

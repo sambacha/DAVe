@@ -1,4 +1,4 @@
-package com.opnfi.risk.model.procesor;
+package com.opnfi.risk.model.processor;
 
 import com.opnfi.risk.model.jaxb.AbstractMessageT;
 import com.opnfi.risk.model.jaxb.FIXML;
@@ -10,7 +10,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
 
-public class TradingSessionStatusProcesor extends AbstractProcessor implements Processor {
+public class TradingSessionStatusProcessor extends AbstractProcessor implements Processor {
 
     private JsonObject parseFromFIXML(FIXML fixml) {
         JAXBElement<? extends AbstractMessageT> msg = fixml.getMessage();

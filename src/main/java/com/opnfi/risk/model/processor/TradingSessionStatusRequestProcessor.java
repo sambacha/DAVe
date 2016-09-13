@@ -1,19 +1,16 @@
-package com.opnfi.risk.model.procesor;
+package com.opnfi.risk.model.processor;
 
 import com.opnfi.risk.model.jaxb.*;
-import io.vertx.core.json.JsonObject;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
 
-import javax.xml.bind.JAXBElement;
-import java.util.Date;
 import java.util.UUID;
 
-public class TradingSessionStatusRequestProcesor extends AbstractProcessor implements Processor {
+public class TradingSessionStatusRequestProcessor extends AbstractProcessor implements Processor {
     private final String replyToAddress;
 
-    public TradingSessionStatusRequestProcesor(String replyToAddress)
+    public TradingSessionStatusRequestProcessor(String replyToAddress)
     {
         this.replyToAddress = replyToAddress;
     }
