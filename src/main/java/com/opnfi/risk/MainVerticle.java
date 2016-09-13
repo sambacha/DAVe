@@ -61,7 +61,7 @@ public class MainVerticle extends AbstractVerticle {
             deployErsVerticles(ersConnectorOptions, ersConnectorDeploymentFuture.completer());
             return ersConnectorDeploymentFuture;
         }).compose(v -> {
-            DeploymentOptions masterdataOptions = new DeploymentOptions().setConfig(config().getJsonObject("masterdata"));
+            DeploymentOptions masterdataOptions = new DeploymentOptions().setConfig(config().getJsonObject("masterdata", new JsonObject()));
             Future<String> masterdataVerticleFuture = Future.future();
             vertx.deployVerticle(MasterdataVerticle.class.getName(), masterdataOptions, masterdataVerticleFuture.completer());
             return masterdataVerticleFuture;
