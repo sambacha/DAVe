@@ -46,8 +46,8 @@ public class MainVerticleIT {
                 .put("ers", new JsonArray().add(new JsonObject().put("brokerHost", "localhost").put("brokerPort", sslPort).put("member", "ABCFR").put("sslCertAlias", "abcfr").put("truststore", MainVerticleIT.class.getResource("ers.truststore").getPath()).put("truststorePassword", "123456").put("keystore", MainVerticleIT.class.getResource("ers.keystore").getPath()).put("keystorePassword", "123456")))
                 .put("http", new JsonObject().put("httpPort", httpPort))
                 .put("mongodb", new JsonObject().put("db_name", "OpnFi-Risk-MainVerticleTest").put("connection_string", "mongodb://localhost:" + mongoPort))
-                .put("ersDebugger", new JsonObject().put("enable", true))
-                .put("masterdata", new JsonObject().put("clearers", new JsonArray()
+                .put("ersDebugger", new JsonObject().put("enable", true));
+                /*.put("masterdata", new JsonObject().put("clearers", new JsonArray()
                                 .add(new JsonObject().put("clearer", "ABCFR").put("members", new JsonArray()
                                         .add(new JsonObject().put("member", "ABCFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP")))
                                         .add(new JsonObject().put("member", "GHIFR").put("accounts", new JsonArray().add("PP").add("MY")))
@@ -55,7 +55,7 @@ public class MainVerticleIT {
                                 .add(new JsonObject().put("clearer", "DEFFR").put("members", new JsonArray()
                                         .add(new JsonObject().put("member", "DEFFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP")))
                                 ))
-                        ));
+                        ));*/
 
         vertx.deployVerticle(MainVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
     }
