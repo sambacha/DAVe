@@ -47,16 +47,11 @@ public class MainVerticleIT {
         config.put("http", new JsonObject().put("httpPort", httpPort));
         config.put("mongodb", new JsonObject().put("db_name", "OpnFi-Risk-MainVerticleTest").put("connection_string", "mongodb://localhost:" + mongoPort));
         config.put("ersDebugger", new JsonObject().put("enable", true));
+
         //config.put("masterdata", new JsonObject().put("clearers", new JsonArray()));
-        /*config.put("masterdata", new JsonObject().put("clearers", new JsonArray()
-                                .add(new JsonObject().put("clearer", "ABCFR").put("members", new JsonArray()
-                                        .add(new JsonObject().put("member", "ABCFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP")))
-                                        .add(new JsonObject().put("member", "GHIFR").put("accounts", new JsonArray().add("PP").add("MY")))
-                                ))
-                                .add(new JsonObject().put("clearer", "DEFFR").put("members", new JsonArray()
-                                        .add(new JsonObject().put("member", "DEFFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP")))
-                                ))
-                        ));*/
+        JsonObject clearerABCFR  =new JsonObject().put("clearer", "ABCFR").put("members", new JsonArray().add(new JsonObject().put("member", "ABCFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP"))).add(new JsonObject().put("member", "GHIFR").put("accounts", new JsonArray().add("PP").add("MY"))));
+        JsonObject clearerDEFFR = new JsonObject().put("clearer", "DEFFR").put("members", new JsonArray().add(new JsonObject().put("member", "DEFFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP"));
+        config.put("masterdata", new JsonObject().put("clearers", new JsonArray().add(clearerABCFR).add(clearerDEFFR)));
 
         vertx.deployVerticle(MainVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
     }
