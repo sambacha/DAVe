@@ -17,7 +17,8 @@ public class MainVerticle extends AbstractVerticle {
     private String mongoDbPersistenceDeployment;
     private String ersDebbugerDeployment;
     private List<String> ersConnectorDeployment = new ArrayList<>();
-    private String webInterfaceDeployment;
+    private String httpDeployment;
+    private String masterdataDeployment;
 
     @Override
     public void start(Future<Void> startFuture) {
@@ -53,13 +54,21 @@ public class MainVerticle extends AbstractVerticle {
             return httpVerticleFuture;
         }).compose(v -> {
             LOG.info("Deployed HttpVerticle with ID {}", v);
-            webInterfaceDeployment = v;
+            httpDeployment = v;
 
             JsonArray ersConnectorOptions = config().getJsonArray("ers");
             Future<Void> ersConnectorDeploymentFuture = Future.future();
             deployErsVerticles(ersConnectorOptions, ersConnectorDeploymentFuture.completer());
             return ersConnectorDeploymentFuture;
         }).compose(v -> {
+            DeploymentOptions masterdataOptions = new DeploymentOptions().setConfig(config().getJsonObject("masterdata"));
+            Future<String> masterdataVerticleFuture = Future.future();
+            vertx.deployVerticle(MasterdataVerticle.class.getName(), masterdataOptions, masterdataVerticleFuture.completer());
+            return masterdataVerticleFuture;
+        }).compose(v -> {
+            LOG.info("Deployed MasterdataVerticle with ID {}", v);
+            masterdataDeployment = v;
+
             chainFuture.complete();
         }, chainFuture);
 
@@ -122,7 +131,8 @@ public class MainVerticle extends AbstractVerticle {
             deployments.put("ERSConnector", id);
         });
         deployments.put("ERSDebugger", ersDebbugerDeployment);
-        deployments.put("WebInterface", webInterfaceDeployment);
+        deployments.put("HttpInterface", httpDeployment);
+        deployments.put("Masterdata", masterdataDeployment);
 
         List<Future> futures = new LinkedList<>();
         deployments.forEach((verticleName, deploymentID) -> {

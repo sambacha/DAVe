@@ -38,6 +38,29 @@
   },
   "ersDebugger":{
     "enable": false
+  },
+  "masterdata": {
+    "clearers":
+    [
+      {
+        "clearer": "CBKFR",
+        "members":
+        [
+          {
+            "member": "CBKFR",
+            "accounts": ["12345678901234567890123456789012", "A1", "A2", "AAA", "D5", "E", "EX", "PP"]
+          },
+          {
+            "member": "CISPA",
+            "accounts": ["A1", "PP"]
+          },
+          {
+            "member": "CARLO",
+            "accounts": ["12345678901234567890123456789012", "A1", "AAA", "PP"]
+          }
+        ]
+      }
+    ]
   }
 }
 
