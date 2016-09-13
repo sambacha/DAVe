@@ -35,6 +35,5 @@ public class TradingSessionStatusRequestProcesor extends AbstractProcessor imple
        Message out = exchange.getOut();
        out.setBody(createRequest());
        out.setHeader("JMSReplyTo", replyToAddress);
-       out.setHeader("preserveMessageQos", true);
     }
 }

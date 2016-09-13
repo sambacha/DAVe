@@ -76,6 +76,26 @@ public class ERSConnectorVerticleIT {
         asyncBroadcast.awaitSuccess();
     }
 
+    private String getMessagePayloadAsString(Message msg) throws JMSException {
+        if (msg instanceof TextMessage) {
+            return ((TextMessage)msg).getText();
+        }
+        else if (msg instanceof BytesMessage)
+        {
+            BytesMessage byteMsg = (BytesMessage)msg;
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < byteMsg.getBodyLength(); i++)
+            {
+                builder.append((char)byteMsg.readByte());
+            }
+
+            byteMsg.reset();
+            return builder.toString();
+        }
+
+        return null;
+    }
+
     @Test
     public void testInitialRequests(TestContext context) throws JMSException {
         Map<String, Message> messages = new HashMap<>();
@@ -96,23 +116,8 @@ public class ERSConnectorVerticleIT {
                     Message msg = consumer.receive(1000);
 
                     if (msg != null) {
-                        if (msg instanceof TextMessage) {
-                            if (((TextMessage) msg).getText().contains("TrdgSesStatReq")) {
-                                messages.put("tss", msg);
-                            }
-                        }
-                        else if (msg instanceof BytesMessage)
-                        {
-                            BytesMessage byteMsg = (BytesMessage)msg;
-                            StringBuilder builder = new StringBuilder();
-                            for (int i = 0; i < byteMsg.getBodyLength(); i++)
-                            {
-                                builder.append((char)byteMsg.readByte());
-                            }
-
-                            if (builder.toString().contains("TrdgSesStatReq")) {
-                                messages.put("tss", msg);
-                            }
+                        if (getMessagePayloadAsString(msg).contains("TrdgSesStatReq")) {
+                            messages.put("tss", msg);
                         }
 
                         msg.acknowledge();
@@ -147,6 +152,7 @@ public class ERSConnectorVerticleIT {
         context.assertNotNull(messages.get("tss"));
         context.assertTrue(messages.get("tss").getJMSReplyTo().toString().contains("eurex.response"));
         context.assertTrue(messages.get("tss").getJMSReplyTo().toString().contains("ABCFR.TradingSessionStatus"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("tss")).contains("SubReqTyp=\"0\""));
     }
 
     @Test
