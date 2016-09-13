@@ -21,14 +21,14 @@ public class MarginShortfallSurplusProcesor extends AbstractProcessor implements
         JAXBElement<? extends AbstractMessageT> msg = fixml.getMessage();
         MarginRequirementReportMessageT mrrMessage = (MarginRequirementReportMessageT) msg.getValue();
 
-        JsonObject tss = new JsonObject();
-        tss.put("received", new JsonObject().put("$date", timestampFormatter.format(new Date())));
-        tss.put("reqId", mrrMessage.getID());
-        tss.put("sesId", mrrMessage.getSetSesID().toString());
-        tss.put("rptId", mrrMessage.getRptID());
-        tss.put("txnTm", new JsonObject().put("$date", timestampFormatter.format(mrrMessage.getTxnTm().toGregorianCalendar().getTime())));
-        tss.put("bizDt", new JsonObject().put("$date", timestampFormatter.format(mrrMessage.getBizDt().toGregorianCalendar().getTime())));
-        tss.put("clearingCcy", mrrMessage.getCcy());
+        JsonObject mss = new JsonObject();
+        mss.put("received", new JsonObject().put("$date", timestampFormatter.format(new Date())));
+        mss.put("reqId", mrrMessage.getID());
+        mss.put("sesId", mrrMessage.getSetSesID().toString());
+        mss.put("rptId", mrrMessage.getRptID());
+        mss.put("txnTm", new JsonObject().put("$date", timestampFormatter.format(mrrMessage.getTxnTm().toGregorianCalendar().getTime())));
+        mss.put("bizDt", new JsonObject().put("$date", timestampFormatter.format(mrrMessage.getBizDt().toGregorianCalendar().getTime())));
+        mss.put("clearingCcy", mrrMessage.getCcy());
 
         List<PartiesBlockT> parties = mrrMessage.getPty();
 
@@ -36,24 +36,24 @@ public class MarginShortfallSurplusProcesor extends AbstractProcessor implements
         {
             if (party.getR().intValue() == 4)
             {
-                tss.put("clearer", party.getID());
+                mss.put("clearer", party.getID());
 
                 List<PtysSubGrpBlockT> pools = party.getSub();
                 for (PtysSubGrpBlockT pool : pools)
                 {
                     if ("4000".equals(pool.getTyp()))
                     {
-                        tss.put("pool", pool.getID());
+                        mss.put("pool", pool.getID());
                     }
                     else if ("4001".equals(pool.getTyp()))
                     {
-                        tss.put("poolType", pool.getID());
+                        mss.put("poolType", pool.getID());
                     }
                 }
             }
             else if (party.getR().intValue() == 1)
             {
-                tss.put("member", party.getID());
+                mss.put("member", party.getID());
             }
         }
 
@@ -64,29 +64,32 @@ public class MarginShortfallSurplusProcesor extends AbstractProcessor implements
             switch (margin.getTyp())
             {
                 case "22":
-                    tss.put("marginRequirement", margin.getAmt().doubleValue());
+                    mss.put("marginRequirement", margin.getAmt().doubleValue());
+                    mss.put("ccy", margin.getCcy());
                     break;
                 case "19":
-                    tss.put("securityCollateral", margin.getAmt().doubleValue());
+                    mss.put("securityCollateral", margin.getAmt().doubleValue());
+                    mss.put("ccy", margin.getCcy());
                     break;
                 case "5":
-                    tss.put("cashBalance", margin.getAmt().doubleValue());
+                    mss.put("cashBalance", margin.getAmt().doubleValue());
+                    mss.put("ccy", margin.getCcy());
                     break;
                 case "14":
-                    tss.put("shortfallSurplus", margin.getAmt().multiply(BigDecimal.valueOf(-1)).doubleValue());
+                    mss.put("shortfallSurplus", margin.getAmt().multiply(BigDecimal.valueOf(-1)).doubleValue());
+                    mss.put("ccy", margin.getCcy());
                     break;
                 case "15":
-                    tss.put("shortfallSurplus", margin.getAmt().doubleValue());
+                    mss.put("shortfallSurplus", margin.getAmt().doubleValue());
+                    mss.put("ccy", margin.getCcy());
                     break;
                 case "13":
-                    tss.put("marginCall", margin.getAmt().doubleValue());
+                    mss.put("marginCall", margin.getAmt().doubleValue());
                     break;
             }
-
-            tss.put("ccy", margin.getCcy());
         }
 
-        return tss;
+        return mss;
     }
 
    @Override

@@ -292,7 +292,7 @@ public class ERSConnectorVerticleIT {
                 context.assertEquals(mss.getJsonObject("bizDt"), new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T00:00:00.000"))));
                 context.assertEquals(mss.getJsonObject("txnTm"), new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T14:46:18.550+01:00"))));
                 context.assertEquals(mss.getString("sesId"), "ITD");
-                context.assertEquals(mss.getString("ccy"), "EUR");
+                context.assertEquals(mss.getString("ccy"), "CHF");
                 context.assertEquals(mss.getString("clearingCcy"), "EUR");
                 context.assertEquals(mss.getString("rptId"), "13365938226618");
                 context.assertEquals(mss.getDouble("marginRequirement"), 5656891139.9);
