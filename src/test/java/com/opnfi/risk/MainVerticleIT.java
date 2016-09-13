@@ -47,7 +47,7 @@ public class MainVerticleIT {
         config.put("http", new JsonObject().put("httpPort", httpPort));
         config.put("mongodb", new JsonObject().put("db_name", "OpnFi-Risk-MainVerticleTest").put("connection_string", "mongodb://localhost:" + mongoPort));
         config.put("ersDebugger", new JsonObject().put("enable", true));
-        config.put("masterdata", new JsonObject().put("clearers", new JsonArray()));
+        //config.put("masterdata", new JsonObject().put("clearers", new JsonArray()));
         /*config.put("masterdata", new JsonObject().put("clearers", new JsonArray()
                                 .add(new JsonObject().put("clearer", "ABCFR").put("members", new JsonArray()
                                         .add(new JsonObject().put("member", "ABCFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP")))

@@ -1,29 +1,14 @@
 package com.opnfi.risk;
 
-import com.opnfi.risk.auth.ApiAuthHandler;
-import com.opnfi.risk.restapi.ers.*;
-import com.opnfi.risk.restapi.user.UserApi;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
-import io.vertx.core.http.ClientAuth;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.core.net.JksOptions;
-import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.auth.mongo.HashSaltStyle;
-import io.vertx.ext.auth.mongo.MongoAuth;
-import io.vertx.ext.mongo.MongoClient;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.sstore.LocalSessionStore;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,7 +49,7 @@ public class MasterdataVerticle extends AbstractVerticle {
 
     private Future<Void> processMemberMasterdata()
     {
-        JsonArray clearers = config().getJsonArray("clearers");
+        JsonArray clearers = config().getJsonArray("clearers", new JsonArray());
         clearers.forEach(clr -> {
             JsonObject clearer = (JsonObject)clr;
             String clearerId = clearer.getString("clearer");
