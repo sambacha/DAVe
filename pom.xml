@@ -9,7 +9,7 @@
   <version>1.0-SNAPSHOT</version>
 
   <properties>
-    <vertx.version>3.3.2</vertx.version>
+    <vertx.version>3.3.3</vertx.version>
     <camel.version>2.16.3</camel.version>
     <junit.version>4.12</junit.version>
     <h2.version>1.4.192</h2.version>
