@@ -6,7 +6,7 @@ machine:
 
 test:
   override:
-    - mvn -DrepoToken=${COVERALLS_TOKEN} -Ddocker.keepContainer verify coveralls:report
+    - mvn -DrepoToken=${COVERALLS_TOKEN} -Ddocker.keepContainer clean verify coveralls:report
   post:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
     - find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
