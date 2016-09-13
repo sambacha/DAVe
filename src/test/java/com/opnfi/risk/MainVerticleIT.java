@@ -91,6 +91,8 @@ public class MainVerticleIT {
     public void testPositionReport(TestContext context) throws InterruptedException {
         sendErsBroadcast(context, "ABCFR.MessageType.Position", DummyData.positionReportXML);
 
+        Thread.sleep(5000);
+
         final Async asyncRest = context.async();
         vertx.createHttpClient().getNow(httpPort, "localhost", "/api/v1.0/pr/latest/ABCFR/DEFFR/A1/BMW/C/3500/1/201001", res -> {
             context.assertEquals(res.statusCode(), 200);
