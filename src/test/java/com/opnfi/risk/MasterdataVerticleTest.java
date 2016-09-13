@@ -20,16 +20,10 @@ public class MasterdataVerticleTest {
     @BeforeClass
     public static void setUp(TestContext context) {
         MasterdataVerticleTest.vertx = Vertx.vertx();
-        JsonObject config = new JsonObject()
-                 .put("clearers", new JsonArray()
-                         .add(new JsonObject().put("clearer", "ABCFR").put("members", new JsonArray()
-                                 .add(new JsonObject().put("member", "ABCFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP")))
-                                 .add(new JsonObject().put("member", "GHIFR").put("accounts", new JsonArray().add("PP").add("MY")))
-                         ))
-                         .add(new JsonObject().put("clearer", "DEFFR").put("members", new JsonArray()
-                                 .add(new JsonObject().put("member", "DEFFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP")))
-                         ))
-                 );
+
+        JsonObject clearerABCFR = new JsonObject().put("clearer", "ABCFR").put("members", new JsonArray().add(new JsonObject().put("member", "ABCFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP"))).add(new JsonObject().put("member", "GHIFR").put("accounts", new JsonArray().add("PP").add("MY"))));
+        JsonObject clearerDEFFR = new JsonObject().put("clearer", "DEFFR").put("members", new JsonArray().add(new JsonObject().put("member", "DEFFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP"))));
+        JsonObject config = new JsonObject().put("clearers", new JsonArray().add(clearerABCFR).add(clearerDEFFR));
 
         DeploymentOptions options = new DeploymentOptions().setConfig(config);
         MasterdataVerticleTest.vertx.deployVerticle(MasterdataVerticle.class.getName(), options, context.asyncAssertSuccess());
@@ -73,9 +67,7 @@ public class MasterdataVerticleTest {
     public void testRequestGCM(TestContext context)
     {
         JsonObject request = new JsonObject().put("member", "ABCFR");
-        JsonArray expected = new JsonArray()
-                .add(new JsonObject().put("member", "ABCFR").put("clearer", "ABCFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP")))
-                .add(new JsonObject().put("member", "GHIFR").put("clearer", "ABCFR").put("accounts", new JsonArray().add("PP").add("MY")));
+        JsonArray expected = new JsonArray().add(new JsonObject().put("member", "ABCFR").put("clearer", "ABCFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP"))).add(new JsonObject().put("member", "GHIFR").put("clearer", "ABCFR").put("accounts", new JsonArray().add("PP").add("MY")));
         requestAndCompare(context, request, expected);
     }
 
