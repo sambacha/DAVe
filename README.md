@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/scholzj/opnfi-risk.svg?style=svg)](https://circleci.com/gh/scholzj/opnfi-risk) [![Coverage Status](https://coveralls.io/repos/github/scholzj/opnfi-risk/badge.svg?branch=master)](https://coveralls.io/github/scholzj/opnfi-risk?branch=master)
+[![CircleCI](https://circleci.com/gh/deutsche-boerse-risk/dave.svg?style=svg)](https://circleci.com/gh/deutsche-boerse-risk/dave) [![Coverage Status](https://coveralls.io/repos/github/deutsche-boerse-risk/dave/badge.svg?branch=master)](https://coveralls.io/github/deutsche-boerse-risk/dave?branch=master)
 
 # DAVe
 
