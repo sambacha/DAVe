@@ -2,9 +2,9 @@
  * Created by jakub on 15.12.14.
  */
 
-var opnFiRiskDirectives = angular.module('opnFiRiskDirectives', []);
+var daveDirectives = angular.module('daveDirectives', []);
 
-opnFiRiskDirectives.directive('highlighter', ['$timeout', function($timeout) {
+daveDirectives.directive('highlighter', ['$timeout', function($timeout) {
     return {
         restrict: 'A',
         link: function(scope, element, attrs) {
@@ -23,7 +23,7 @@ opnFiRiskDirectives.directive('highlighter', ['$timeout', function($timeout) {
     };
 }]);
 
-opnFiRiskDirectives.directive('rowHighlighter', ['$timeout', function($timeout) {
+daveDirectives.directive('rowHighlighter', ['$timeout', function($timeout) {
     return {
         restrict: 'A',
         link: function(scope, element, attrs) {
@@ -41,7 +41,7 @@ opnFiRiskDirectives.directive('rowHighlighter', ['$timeout', function($timeout) 
     };
 }]);
 
-opnFiRiskDirectives.directive('repeatDone', function() {
+daveDirectives.directive('repeatDone', function() {
     return {
         restrict: 'A',
         link: function(scope, element, attrs) {

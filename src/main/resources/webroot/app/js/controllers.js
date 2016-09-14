@@ -2,9 +2,9 @@
  * Created by jakub on 15.12.14.
  */
 
-var opnFiRiskControllers = angular.module('opnFiRiskControllers', ['angular.morris']);
+var daveControllers = angular.module('daveControllers', ['angular.morris']);
 
-opnFiRiskControllers.controller('Login', ['$scope', '$http', '$interval', '$rootScope', '$location',
+daveControllers.controller('Login', ['$scope', '$http', '$interval', '$rootScope', '$location',
     function($scope, $http, $interval, $rootScope, $location) {
         $rootScope.authStatus = false;
         $rootScope.authUsername = "";
@@ -107,7 +107,7 @@ opnFiRiskControllers.controller('Login', ['$scope', '$http', '$interval', '$root
         });
     }]);
 
-opnFiRiskControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$http', '$interval', '$filter',
+daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$http', '$interval', '$filter',
     function($scope, $routeParams, $http, $interval, $filter) {
         $scope.refresh = null;
         $scope.sorting = false;
@@ -171,7 +171,7 @@ opnFiRiskControllers.controller('PositionReportLatest', ['$scope', '$routeParams
         });
     }]);
 
-opnFiRiskControllers.controller('PositionReportHistory', ['$scope', '$routeParams', '$http', '$interval', '$filter',
+daveControllers.controller('PositionReportHistory', ['$scope', '$routeParams', '$http', '$interval', '$filter',
     function($scope, $routeParams, $http, $interval, $filter) {
         $scope.refresh = null;
 
@@ -248,7 +248,7 @@ opnFiRiskControllers.controller('PositionReportHistory', ['$scope', '$routeParam
         }
     }]);
 
-opnFiRiskControllers.controller('MarginComponentLatest', ['$scope', '$routeParams', '$http', '$interval', '$filter',
+daveControllers.controller('MarginComponentLatest', ['$scope', '$routeParams', '$http', '$interval', '$filter',
     function($scope, $routeParams, $http, $interval, $filter) {
         $scope.refresh = null;
         $scope.sorting = false;
@@ -308,7 +308,7 @@ opnFiRiskControllers.controller('MarginComponentLatest', ['$scope', '$routeParam
         });
     }]);
 
-opnFiRiskControllers.controller('MarginComponentHistory', ['$scope', '$routeParams', '$http', '$interval', '$filter',
+daveControllers.controller('MarginComponentHistory', ['$scope', '$routeParams', '$http', '$interval', '$filter',
     function($scope, $routeParams, $http, $interval, $filter) {
         $scope.refresh = null;
 
@@ -381,7 +381,7 @@ opnFiRiskControllers.controller('MarginComponentHistory', ['$scope', '$routePara
         }
     }]);
 
-opnFiRiskControllers.controller('TotalMarginRequirementLatest', ['$scope', '$routeParams', '$http', '$interval', '$filter',
+daveControllers.controller('TotalMarginRequirementLatest', ['$scope', '$routeParams', '$http', '$interval', '$filter',
     function($scope, $routeParams, $http, $interval, $filter) {
         $scope.refresh = null;
         $scope.sorting = false;
@@ -441,7 +441,7 @@ opnFiRiskControllers.controller('TotalMarginRequirementLatest', ['$scope', '$rou
         });
     }]);
 
-opnFiRiskControllers.controller('TotalMarginRequirementHistory', ['$scope', '$routeParams', '$http', '$interval', '$filter',
+daveControllers.controller('TotalMarginRequirementHistory', ['$scope', '$routeParams', '$http', '$interval', '$filter',
     function($scope, $routeParams, $http, $interval, $filter) {
         $scope.refresh = null;
 
@@ -511,7 +511,7 @@ opnFiRiskControllers.controller('TotalMarginRequirementHistory', ['$scope', '$ro
         }
     }]);
 
-opnFiRiskControllers.controller('MarginShortfallSurplusLatest', ['$scope', '$routeParams', '$http', '$interval', '$filter',
+daveControllers.controller('MarginShortfallSurplusLatest', ['$scope', '$routeParams', '$http', '$interval', '$filter',
     function($scope, $routeParams, $http, $interval, $filter) {
         $scope.refresh = null;
         $scope.sorting = false;
@@ -571,7 +571,7 @@ opnFiRiskControllers.controller('MarginShortfallSurplusLatest', ['$scope', '$rou
         });
     }]);
 
-opnFiRiskControllers.controller('MarginShortfallSurplusHistory', ['$scope', '$routeParams', '$http', '$interval', '$filter',
+daveControllers.controller('MarginShortfallSurplusHistory', ['$scope', '$routeParams', '$http', '$interval', '$filter',
     function($scope, $routeParams, $http, $interval, $filter) {
         $scope.refresh = null;
 
@@ -643,7 +643,7 @@ opnFiRiskControllers.controller('MarginShortfallSurplusHistory', ['$scope', '$ro
         }
     }]);
 
-opnFiRiskControllers.controller('RiskLimitLatest', ['$scope', '$routeParams', '$http', '$interval', '$filter',
+daveControllers.controller('RiskLimitLatest', ['$scope', '$routeParams', '$http', '$interval', '$filter',
     function($scope, $routeParams, $http, $interval, $filter) {
         $scope.refresh = null;
         $scope.sorting = false;
@@ -703,7 +703,7 @@ opnFiRiskControllers.controller('RiskLimitLatest', ['$scope', '$routeParams', '$
         });
     }]);
 
-opnFiRiskControllers.controller('RiskLimitHistory', ['$scope', '$routeParams', '$http', '$interval', '$filter',
+daveControllers.controller('RiskLimitHistory', ['$scope', '$routeParams', '$http', '$interval', '$filter',
     function($scope, $routeParams, $http, $interval, $filter) {
         $scope.refresh = null;
 
@@ -773,7 +773,7 @@ opnFiRiskControllers.controller('RiskLimitHistory', ['$scope', '$routeParams', '
         }
     }]);
 
-opnFiRiskControllers.controller('Dashboard', ['$scope', '$routeParams', '$http', '$interval', '$filter',
+daveControllers.controller('Dashboard', ['$scope', '$routeParams', '$http', '$interval', '$filter',
     function($scope, $routeParams, $http, $interval, $filter) {
         $scope.chartMarginRequirementData = [];
         $scope.chartMarginShortfallSurplusData = [];
@@ -833,7 +833,7 @@ opnFiRiskControllers.controller('Dashboard', ['$scope', '$routeParams', '$http',
         }
     }]);
 
-opnFiRiskControllers.controller('TssCtrl', ['$scope', '$http', '$interval', '$rootScope',
+daveControllers.controller('TssCtrl', ['$scope', '$http', '$interval', '$rootScope',
     function($scope, $http, $interval, $rootScope) {
         $scope.refresh = null;
         $scope.tss = null;
@@ -860,7 +860,7 @@ opnFiRiskControllers.controller('TssCtrl', ['$scope', '$http', '$interval', '$ro
         });
     }]);
 
-opnFiRiskControllers.controller('MenuCtrl', ['$scope', "$location",
+daveControllers.controller('MenuCtrl', ['$scope', "$location",
     function($scope, $location) {
         $scope.amIActive = function(item) {
             //console.log("Item: " + item + ", location.url: " + $location.url() + " ... result is: " + $location.url().indexOf(item));

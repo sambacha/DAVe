@@ -2,9 +2,9 @@
  * Created by jakub on 15.12.14.
  */
 
-var opnFiRiskFilters = angular.module('opnFiRiskFilters', []);
+var daveFilters = angular.module('daveFilters', []);
 
-opnFiRiskFilters.filter('spacedFilter', function() {
+daveFilters.filter('spacedFilter', function() {
     return function(items, filter) {
         if (filter) {
             var filters = filter.toLowerCase().split(" ");
@@ -35,7 +35,7 @@ opnFiRiskFilters.filter('spacedFilter', function() {
     };
 });
 
-opnFiRiskFilters.filter('nullHandler', function() {
+daveFilters.filter('nullHandler', function() {
     return function(item, subst) {
         subst = subst || "null";
         item = item || subst;

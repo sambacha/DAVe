@@ -2,14 +2,14 @@
  * Created by jakub on 15.12.14.
  */
 
-var opnFiRisk = angular.module('opnFiRisk', [
+var dave = angular.module('dave', [
     'ngRoute',
-    'opnFiRiskControllers',
-    'opnFiRiskFilters',
-    'opnFiRiskDirectives'
+    'daveControllers',
+    'daveFilters',
+    'daveDirectives'
 ]);
 
-opnFiRisk.config(['$routeProvider',
+dave.config(['$routeProvider',
     function($routeProvider) {
         $routeProvider.
             when('/login', {

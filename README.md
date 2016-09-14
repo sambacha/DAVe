@@ -1,8 +1,8 @@
 [![CircleCI](https://circleci.com/gh/scholzj/opnfi-risk.svg?style=svg)](https://circleci.com/gh/scholzj/opnfi-risk) [![Coverage Status](https://coveralls.io/repos/github/scholzj/opnfi-risk/badge.svg?branch=master)](https://coveralls.io/github/scholzj/opnfi-risk?branch=master)
 
-# OpnFi Risk
+# DAVe
 
-OpnFi Risk is free open source client for [Eurex Clearing Enhanced Risk Interface](http://www.eurexclearing.com/clearing-en/risk-management/system-based-risk-controls/post-trade-risk-control/enhanced-risk-interface) interface AMQP interface (ERS). It provides a UI and REST interface to acces lastest as well as historical data data received over ERS.
+**DAVe** is **D**ata **A**nalytics and **V**isualisation S**e**rvice. It is free open source client which connects to [Eurex Clearing Enhanced Risk Interface](http://www.eurexclearing.com/clearing-en/risk-management/system-based-risk-controls/post-trade-risk-control/enhanced-risk-interface) AMQP interface (ERS). It provides a UI and REST interface to access latest as well as historical data data received over ERS.
 
 ## Build
     mvn clean package
@@ -11,7 +11,7 @@ The shippable artifact will be built in `target/risk-VERSION` directory.
 
 ## Configure
 
-Configuration is stored in `opnfi-risk.json` file in JSON format. Configuration is split into several sections:
+Configuration is stored in `dave.json` file in JSON format. Configuration is split into several sections:
 
 ### ERS
 
@@ -34,7 +34,7 @@ The `mongodb` section contains the configuration of the MongoDB database where w
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `db_name` | Name of the database which will be used | `OpnFi-Risk` |
+| `db_name` | Name of the database which will be used | `DAVe` |
 | `connection_string` | Connection URL to connect to the database | `mongodb://localhost:27017` |
 
 ### HTTP
@@ -70,7 +70,7 @@ The `auth` subsection configures authentication to the UI and REST interface. Th
 | Option | Explanation | Example |
 |--------|-------------|---------|
 | `enable` | Disables or enables authetication | `true` |
-| `db_name` | Name of the database which will be used | `OpnFi-Risk` |
+| `db_name` | Name of the database which will be used | `DAVe-Risk` |
 | `connection_string` | Connection URL to connect to the database | `mongodb://localhost:27017` |
 | `salt` | Salt string used in hashed passwords | `sdf8hdgss3_a` |
 | `checkUserAgainstCertificate` | Validate username against the CN from the TLS client certificate subject. Unless the CN is equal to the username, authentication will be refused. _*)_ | `false` |
@@ -88,7 +88,7 @@ The `CORS` subsection configures Cross-origin resource sharing (CORS), which all
 
 ## Run
 
-Use script `start_opnfi_risk.sh` to start the application. The scirpt works on Linux and MacOS. 
+Use script `start_dave.sh` to start the application. The scirpt works on Linux and MacOS. 
 
 ## Managing user database
 

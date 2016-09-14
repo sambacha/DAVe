@@ -10,7 +10,7 @@
   </appender>
 
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${OPNFI_RISK_LOG}/opnfi_risk.log</file>
+    <file>${DAVE_LOG}/dave.log</file>
     <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
       <Pattern>
         %d{yyyy-MM-dd HH:mm:ss} - %msg%n
@@ -19,7 +19,7 @@
 
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <!-- rollover daily -->
-      <fileNamePattern>${OPNFI_RISK_LOG}/archived/opnfi_risk.%d{yyyy-MM-dd}.%i.log
+      <fileNamePattern>${DAVE_LOG}/archived/dave.%d{yyyy-MM-dd}.%i.log
       </fileNamePattern>
       <timeBasedFileNamingAndTriggeringPolicy
         class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
