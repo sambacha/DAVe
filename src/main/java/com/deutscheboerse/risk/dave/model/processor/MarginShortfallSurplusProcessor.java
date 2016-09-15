@@ -7,10 +7,16 @@ import com.deutscheboerse.risk.dave.model.jaxb.MarginAmountBlockT;
 import com.deutscheboerse.risk.dave.model.jaxb.PartiesBlockT;
 import com.deutscheboerse.risk.dave.model.jaxb.PtysSubGrpBlockT;
 import io.vertx.core.json.JsonObject;
+
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import javax.xml.bind.JAXBElement;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
@@ -58,36 +64,14 @@ public class MarginShortfallSurplusProcessor extends AbstractProcessor implement
         }
 
         List<MarginAmountBlockT> margins = mrrMessage.getMgnAmt();
-
-        for (MarginAmountBlockT margin : margins)
-        {
-            switch (margin.getTyp())
-            {
-                case "22":
-                    mss.put("marginRequirement", margin.getAmt().doubleValue());
-                    mss.put("ccy", margin.getCcy());
-                    break;
-                case "19":
-                    mss.put("securityCollateral", margin.getAmt().doubleValue());
-                    mss.put("ccy", margin.getCcy());
-                    break;
-                case "5":
-                    mss.put("cashBalance", margin.getAmt().doubleValue());
-                    mss.put("ccy", margin.getCcy());
-                    break;
-                case "14":
-                    mss.put("shortfallSurplus", margin.getAmt().multiply(BigDecimal.valueOf(-1)).doubleValue());
-                    mss.put("ccy", margin.getCcy());
-                    break;
-                case "15":
-                    mss.put("shortfallSurplus", margin.getAmt().doubleValue());
-                    mss.put("ccy", margin.getCcy());
-                    break;
-                case "13":
-                    mss.put("marginCall", margin.getAmt().doubleValue());
-                    break;
-            }
-        }
+        Set<String> typs = new HashSet<>();
+        typs.add("5");
+        typs.add("13");
+        typs.add("14");
+        typs.add("15");
+        typs.add("19");
+        typs.add("22");
+        processMarginBlocks(margins, Collections.unmodifiableSet(typs), mss);
 
         return mss;
     }

@@ -1,5 +1,7 @@
 package com.deutscheboerse.risk.dave.model.processor;
 
+import java.util.Collections;
+
 import com.deutscheboerse.risk.dave.model.jaxb.MarginAmountBlockT;
 import com.deutscheboerse.risk.dave.model.jaxb.MarginRequirementReportMessageT;
 import com.deutscheboerse.risk.dave.model.jaxb.PtysSubGrpBlockT;
@@ -7,9 +9,14 @@ import com.deutscheboerse.risk.dave.model.jaxb.AbstractMessageT;
 import com.deutscheboerse.risk.dave.model.jaxb.FIXML;
 import com.deutscheboerse.risk.dave.model.jaxb.PartiesBlockT;
 import io.vertx.core.json.JsonObject;
+
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import javax.xml.bind.JAXBElement;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
@@ -53,29 +60,14 @@ public class MarginComponentProcessor extends AbstractProcessor implements Proce
         }
 
         List<MarginAmountBlockT> margins = mcMessage.getMgnAmt();
+        Set<String> typs = new HashSet<>();
+        typs.add("1");
+        typs.add("10");
+        typs.add("12");
+        typs.add("17");
+        typs.add("23");
+        processMarginBlocks(margins, Collections.unmodifiableSet(typs), mc);
 
-        for (MarginAmountBlockT margin : margins)
-        {
-            switch (margin.getTyp())
-            {
-                case "23":
-                    mc.put("variationMargin", margin.getAmt().doubleValue());
-                    break;
-                case "17":
-                    mc.put("premiumMargin", margin.getAmt().doubleValue());
-                    break;
-                case "12":
-                    mc.put("liquiMargin", margin.getAmt().doubleValue());
-                    break;
-                case "10":
-                    mc.put("spreadMargin", margin.getAmt().doubleValue());
-                    break;
-                case "1":
-                    mc.put("additionalMargin", margin.getAmt().doubleValue());
-                    break;
-            }
-            mc.put("ccy", margin.getCcy());
-        }
         return mc;
     }
 

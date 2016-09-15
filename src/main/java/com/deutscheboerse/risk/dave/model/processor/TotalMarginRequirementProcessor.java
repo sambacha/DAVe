@@ -1,5 +1,7 @@
 package com.deutscheboerse.risk.dave.model.processor;
 
+import java.util.Collections;
+
 import com.deutscheboerse.risk.dave.model.jaxb.AbstractMessageT;
 import com.deutscheboerse.risk.dave.model.jaxb.FIXML;
 import com.deutscheboerse.risk.dave.model.jaxb.MarginAmountBlockT;
@@ -7,9 +9,14 @@ import com.deutscheboerse.risk.dave.model.jaxb.MarginRequirementReportMessageT;
 import com.deutscheboerse.risk.dave.model.jaxb.PartiesBlockT;
 import com.deutscheboerse.risk.dave.model.jaxb.PtysSubGrpBlockT;
 import io.vertx.core.json.JsonObject;
+
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import javax.xml.bind.JAXBElement;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
@@ -61,21 +68,10 @@ public class TotalMarginRequirementProcessor extends AbstractProcessor implement
         }
 
         List<MarginAmountBlockT> margins = tmrMessage.getMgnAmt();
-
-        for (MarginAmountBlockT margin : margins)
-        {
-            switch (margin.getTyp())
-            {
-                case "2":
-                    tmr.put("adjustedMargin", margin.getAmt().doubleValue());
-                    break;
-                case "3":
-                    tmr.put("unadjustedMargin", margin.getAmt().doubleValue());
-                    break;
-            }
-
-            tmr.put("ccy", margin.getCcy());
-        }
+        Set<String> typs = new HashSet<>();
+        typs.add("2");
+        typs.add("3");
+        processMarginBlocks(margins, Collections.unmodifiableSet(typs), tmr);
 
         return tmr;
     }
