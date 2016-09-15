@@ -10,6 +10,7 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.amqp.AMQPComponent;
@@ -43,13 +44,10 @@ public class ERSConnectorVerticle extends AbstractVerticle {
         LOG.info("Starting {} with configuration: {}", ERSConnectorVerticle.class.getSimpleName(), config().encodePrettily());
         Future<Void> chainFuture = Future.future();
         Future<Void> startCamelFuture = startCamel();
-        startCamelFuture.compose(v -> {
-            return startCamelBridge();
-        }).compose(v -> {
-            return requestInitialData();
-        }).compose(v -> {
-            chainFuture.complete();
-        }, chainFuture);
+        startCamelFuture
+                .compose(this::startCamelBridge)
+                .compose(this::requestInitialData)
+                .compose(chainFuture::complete, chainFuture);
 
         chainFuture.setHandler(ar -> {
             if (ar.succeeded()) {
@@ -60,7 +58,7 @@ public class ERSConnectorVerticle extends AbstractVerticle {
         });
     }
 
-    public Future<Void> requestInitialData()
+    public Future<Void> requestInitialData(Void unused)
     {
         LOG.info("Requesting inital ERS data");
 
@@ -74,78 +72,72 @@ public class ERSConnectorVerticle extends AbstractVerticle {
     {
         Future<Void> startCamelFuture = Future.future();
         camelCtx = new DefaultCamelContext();
-
         try {
-            String connectionAddress = String.format("amqp://:@MyCamelApp/?brokerlist='%s:%d?tcp_nodelay='true'&ssl='true'&ssl_cert_alias='%s'&sasl_mechs='EXTERNAL'&trust_store='%s'&trust_store_password='%s'&key_store='%s'&key_store_password='%s'&ssl_verify_hostname='false''&sync_publish='all'",
-                    config().getString("brokerHost", ERSConnectorVerticle.DEFAULT_BROKER_HOST),
-                    config().getInteger("brokerPort", ERSConnectorVerticle.DEFAULT_BROKER_PORT),
-                    config().getString("sslCertAlias", ERSConnectorVerticle.DEFAULT_SSL_CERT_ALIAS),
-                    config().getString("truststore", ERSConnectorVerticle.DEFAULT_TRUSTSTORE),
-                    config().getString("truststorePassword", ERSConnectorVerticle.DEFAULT_TRUSTSTORE_PASSWORD),
-                    config().getString("keystore", ERSConnectorVerticle.DEFAULT_KEYSTORE),
-                    config().getString("keystorePassword", ERSConnectorVerticle.DEFAULT_KEYSTORE_PASSWORD));
-            AMQConnectionFactory amqpFact = new AMQConnectionFactory(connectionAddress);
-            camelCtx.addComponent("amqp", new AMQPComponent(amqpFact));
+            camelCtx.addComponent("amqp", new AMQPComponent(this.createAMQConnectionFactory()));
+            camelCtx.addRoutes(this.createRouteBuilder());
+            camelCtx.start();
+            startCamelFuture.complete();
         } catch (URLSyntaxException e) {
             LOG.error("Failed to create AMQP Connection Factory", e);
             startCamelFuture.failed();
-        }
-
-        try {
-            camelCtx.addRoutes(new RouteBuilder() {
-                @Override
-                public void configure() {
-                    final JaxbDataFormat ersDataModel = new JaxbDataFormat(true);
-                    final UUID addressSuffix = UUID.randomUUID();
-                    final String member = config().getString("member", ERSConnectorVerticle.DEFAULT_MEMBER);
-                    ersDataModel.setContextPath("com.deutscheboerse.risk.dave.model.jaxb");
-
-                    String tssBroadcastAddress = getBroadcastAddress("eurex.tmp." + member + ".dave_tss_" + addressSuffix,
-                            "public.MessageType.TradingSessionStatus.#");
-                    String mcBroadcastAddress = getBroadcastAddress("eurex.tmp." + member + ".dave_mc_" + addressSuffix,
-                            member + ".MessageType.MarginComponents.#");
-                    String tmrBroadcastAddress = getBroadcastAddress("eurex.tmp." + member + ".dave_tmr_" + addressSuffix,
-                            member + ".MessageType.TotalMarginRequirement.#");
-                    String mssBroadcastAddress = getBroadcastAddress("eurex.tmp." + member + ".dave_mss_" + addressSuffix,
-                            member + ".MessageType.MarginShortfallSurplus.#");
-                    String prBroadcastAddress = getBroadcastAddress("eurex.tmp." + member + ".dave_pr_" + addressSuffix,
-                            member + ".MessageType.Position.#");
-                    String rlBroadcastAddress = getBroadcastAddress("eurex.tmp." + member + ".dave_rl_" + addressSuffix,
-                            member + ".MessageType.RiskLimits.#");
-
-                    String tssResponseAddress = getResponseAddress("eurex.tmp." + member + ".dave_resp_tss_" + addressSuffix,
-                            member + ".TradingSessionStatus");
-                    String tssReplyAddress = getReplyAddress(member + ".TradingSessionStatus");
-                    String tssRequestAddress = getRequestAddress(member);
-
-                    from("amqp:" + tssBroadcastAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcessor()).to("direct:tss");
-                    from("amqp:" + mcBroadcastAddress).unmarshal(ersDataModel).process(new MarginComponentProcessor()).to("direct:mc");
-                    from("amqp:" + tmrBroadcastAddress).unmarshal(ersDataModel).process(new TotalMarginRequirementProcessor()).to("direct:tmr");
-                    from("amqp:" + mssBroadcastAddress).unmarshal(ersDataModel).process(new MarginShortfallSurplusProcessor()).to("direct:mss");
-                    from("amqp:" + prBroadcastAddress).unmarshal(ersDataModel).process(new PositionReportProcessor()).to("direct:pr");
-                    from("amqp:" + rlBroadcastAddress).unmarshal(ersDataModel).process(new RiskLimitProcessor()).to("direct:rl");
-
-                    from("amqp:" + tssResponseAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcessor()).to("direct:tssResponse");
-                    from("direct:tssRequest").process(new TradingSessionStatusRequestProcessor(tssReplyAddress)).marshal(ersDataModel).to("amqp:" + tssRequestAddress + "?preserveMessageQos=true");
-                }
-            });
-        }
-        catch (Exception e)
-        {
-            LOG.error("Failed to add Camel routes", e);
-            startCamelFuture.failed();
-        }
-
-        try {
-            camelCtx.start();
-            startCamelFuture.complete();
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             LOG.error("Failed to start Camel", e);
             startCamelFuture.failed();
         }
         return startCamelFuture;
+    }
+    
+    private AMQConnectionFactory createAMQConnectionFactory() throws URLSyntaxException {
+        String connectionAddress = String.format("amqp://:@MyCamelApp/?brokerlist='%s:%d?tcp_nodelay='true'&ssl='true'&ssl_cert_alias='%s'&sasl_mechs='EXTERNAL'&trust_store='%s'&trust_store_password='%s'&key_store='%s'&key_store_password='%s'&ssl_verify_hostname='false''&sync_publish='all'",
+                config().getString("brokerHost", ERSConnectorVerticle.DEFAULT_BROKER_HOST),
+                config().getInteger("brokerPort", ERSConnectorVerticle.DEFAULT_BROKER_PORT),
+                config().getString("sslCertAlias", ERSConnectorVerticle.DEFAULT_SSL_CERT_ALIAS),
+                config().getString("truststore", ERSConnectorVerticle.DEFAULT_TRUSTSTORE),
+                config().getString("truststorePassword", ERSConnectorVerticle.DEFAULT_TRUSTSTORE_PASSWORD),
+                config().getString("keystore", ERSConnectorVerticle.DEFAULT_KEYSTORE),
+                config().getString("keystorePassword", ERSConnectorVerticle.DEFAULT_KEYSTORE_PASSWORD));
+        AMQConnectionFactory amqpFact = new AMQConnectionFactory(connectionAddress);
+        return amqpFact;
+    }
+    
+    private RouteBuilder createRouteBuilder() {
+        return new RouteBuilder() {
+            @Override
+            public void configure() {
+                final JaxbDataFormat ersDataModel = new JaxbDataFormat(true);
+                final UUID addressSuffix = UUID.randomUUID();
+                final String member = config().getString("member", ERSConnectorVerticle.DEFAULT_MEMBER);
+                ersDataModel.setContextPath("com.deutscheboerse.risk.dave.model.jaxb");
+                
+                String tssBroadcastAddress = getBroadcastAddress(String.format("eurex.tmp.%s.dave_tss_%s", member, addressSuffix),
+                        "public.MessageType.TradingSessionStatus.#");
+                String mcBroadcastAddress = getBroadcastAddress(String.format("eurex.tmp.%s.dave_mc_", member, addressSuffix),
+                        member + ".MessageType.MarginComponents.#");
+                String tmrBroadcastAddress = getBroadcastAddress(String.format("eurex.tmp.%s.dave_tmr_", member, addressSuffix),
+                        member + ".MessageType.TotalMarginRequirement.#");
+                String mssBroadcastAddress = getBroadcastAddress(String.format("eurex.tmp.%s.dave_mss_", member, addressSuffix),
+                        member + ".MessageType.MarginShortfallSurplus.#");
+                String prBroadcastAddress = getBroadcastAddress(String.format("eurex.tmp.%s.dave_pr_", member, addressSuffix),
+                        member + ".MessageType.Position.#");
+                String rlBroadcastAddress = getBroadcastAddress(String.format("eurex.tmp.%s.dave_rl_", member, addressSuffix),
+                        member + ".MessageType.RiskLimits.#");
+                
+                String tssResponseAddress = getResponseAddress(String.format("eurex.tmp.%s.dave_resp_tss_", member, addressSuffix),
+                        member + ".TradingSessionStatus");
+                String tssReplyAddress = getReplyAddress(member + ".TradingSessionStatus");
+                String tssRequestAddress = getRequestAddress(member);
+                
+                from("amqp:" + tssBroadcastAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcessor()).to("direct:tss");
+                from("amqp:" + mcBroadcastAddress).unmarshal(ersDataModel).process(new MarginComponentProcessor()).to("direct:mc");
+                from("amqp:" + tmrBroadcastAddress).unmarshal(ersDataModel).process(new TotalMarginRequirementProcessor()).to("direct:tmr");
+                from("amqp:" + mssBroadcastAddress).unmarshal(ersDataModel).process(new MarginShortfallSurplusProcessor()).to("direct:mss");
+                from("amqp:" + prBroadcastAddress).unmarshal(ersDataModel).process(new PositionReportProcessor()).to("direct:pr");
+                from("amqp:" + rlBroadcastAddress).unmarshal(ersDataModel).process(new RiskLimitProcessor()).to("direct:rl");
+                
+                from("amqp:" + tssResponseAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcessor()).to("direct:tssResponse");
+                from("direct:tssRequest").process(new TradingSessionStatusRequestProcessor(tssReplyAddress)).marshal(ersDataModel).to("amqp:" + tssRequestAddress + "?preserveMessageQos=true");
+            }
+        };
     }
 
     private String getBroadcastAddress(String name, String routingKey) {
@@ -174,7 +166,7 @@ public class ERSConnectorVerticle extends AbstractVerticle {
         return String.format("eurex.%s/%s.ERS; { node: { type: topic }, assert: never, create: never}", member, member);
     }
 
-    public Future<Void> startCamelBridge()
+    public Future<Void> startCamelBridge(Void unused)
     {
         camelBridge = CamelBridge.create(vertx,
                 new CamelBridgeOptions(camelCtx)
