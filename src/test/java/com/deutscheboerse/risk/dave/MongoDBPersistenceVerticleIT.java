@@ -212,9 +212,11 @@ public class MongoDBPersistenceVerticleIT {
             if (ar.succeeded())
             {
                 try {
-                    JsonObject response = new JsonObject((String) ar.result().body());
+                    JsonArray response = new JsonArray((String) ar.result().body());
 
-                    compareMessages(context, DummyData.tradingSessionStatusJson.get(1), response);
+                    context.assertEquals(1, response.size());
+
+                    compareMessages(context, DummyData.tradingSessionStatusJson.get(1), response.getJsonObject(0));
                     asyncLatest.complete();
                 }
                 catch (Exception e)
