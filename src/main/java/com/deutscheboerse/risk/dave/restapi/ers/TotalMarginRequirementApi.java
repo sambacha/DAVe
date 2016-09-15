@@ -1,6 +1,9 @@
 package com.deutscheboerse.risk.dave.restapi.ers;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.ext.web.Router;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,8 +12,8 @@ import java.util.List;
  */
 public class TotalMarginRequirementApi extends AbstractErsApi {
 
-    public TotalMarginRequirementApi(EventBus eb) {
-        super(eb, "query.latestTotalMarginRequirement", "query.historyTotalMarginRequirement", "tmr");
+    public TotalMarginRequirementApi(Vertx vertx) {
+        super(vertx, "query.latestTotalMarginRequirement", "query.historyTotalMarginRequirement", "tmr");
     }
 
     @Override
@@ -22,5 +25,25 @@ public class TotalMarginRequirementApi extends AbstractErsApi {
         parameters.add("account");
         parameters.add("ccy");
         return parameters;
+    }
+
+    public Router getRoutes()
+    {
+        Router router = Router.router(vertx);
+
+        router.get("/latest").handler(this::latestCall);
+        router.get("/latest/:clearer").handler(this::latestCall);
+        router.get("/latest/:clearer/:pool").handler(this::latestCall);
+        router.get("/latest/:clearer/:pool/:member").handler(this::latestCall);
+        router.get("/latest/:clearer/:pool/:member/:account").handler(this::latestCall);
+        router.get("/latest/:clearer/:pool/:member/:account/:ccy").handler(this::latestCall);
+        router.get("/history").handler(this::historyCall);
+        router.get("/history/:clearer").handler(this::historyCall);
+        router.get("/history/:clearer/:pool").handler(this::historyCall);
+        router.get("/history/:clearer/:pool/:member").handler(this::historyCall);
+        router.get("/history/:clearer/:pool/:member/:account").handler(this::historyCall);
+        router.get("/history/:clearer/:pool/:member/:account/:ccy").handler(this::historyCall);
+
+        return router;
     }
 }

@@ -162,13 +162,13 @@ public class HttpVerticle extends AbstractVerticle {
 
         LOG.info("Adding route REST API");
         router.route("/api/v1.0/*").handler(BodyHandler.create());
-        router.mountSubRouter("/api/v1.0/user", this.createUserSubRoutes(userApi));
-        router.mountSubRouter("/api/v1.0/tss", this.createTssSubRoutes());
-        router.mountSubRouter("/api/v1.0/mc", this.createMcSubRoutes());
-        router.mountSubRouter("/api/v1.0/tmr", this.createTmrSubRoutes());
-        router.mountSubRouter("/api/v1.0/mss", this.createMssSubRoutes());
-        router.mountSubRouter("/api/v1.0/pr", this.createPrSubRoutes());
-        router.mountSubRouter("/api/v1.0/rl", this.createRlSubRoutes());
+        router.mountSubRouter("/api/v1.0/user", userApi.getRoutes());
+        router.mountSubRouter("/api/v1.0/tss", new TradingSessionStatusApi(vertx).getRoutes());
+        router.mountSubRouter("/api/v1.0/mc", new MarginComponentApi(vertx).getRoutes());
+        router.mountSubRouter("/api/v1.0/tmr", new TotalMarginRequirementApi(vertx).getRoutes());
+        router.mountSubRouter("/api/v1.0/mss", new MarginShortfallSurplusApi(vertx).getRoutes());
+        router.mountSubRouter("/api/v1.0/pr", new PositionReportApi(vertx).getRoutes());
+        router.mountSubRouter("/api/v1.0/rl", new RiskLimitApi(vertx).getRoutes());
 
         router.route("/*").handler(StaticHandler.create("webroot"));
 
@@ -210,124 +210,14 @@ public class HttpVerticle extends AbstractVerticle {
             router.route().handler(UserSessionHandler.create(authenticationProvider));
             router.routeWithRegex("^/api/v1.0/(?!user/login).*$").handler(ApiAuthHandler.create(authenticationProvider));
 
-            userApi = new UserApi(authenticationProvider, config().getJsonObject("auth").getBoolean("checkUserAgainstCertificate", HttpVerticle.DEFAULT_AUTH_CHECK_USER_AGAINST_CERTIFICATE));
+            userApi = new UserApi(vertx, authenticationProvider, config().getJsonObject("auth").getBoolean("checkUserAgainstCertificate", HttpVerticle.DEFAULT_AUTH_CHECK_USER_AGAINST_CERTIFICATE));
         }
         else
         {
-            userApi = new UserApi(null, false);
+            userApi = new UserApi(vertx, null, false);
         }
 
         return userApi;
-    }
-
-    private Router createUserSubRoutes(UserApi userApi) {
-        Router router = Router.router(vertx);
-        router.post("/login").handler(userApi::login);
-        router.get("/logout").handler(userApi::logout);
-        router.get("/loginStatus").handler(userApi::loginStatus);
-        return router;
-    }
-
-    private Router createTssSubRoutes() {
-        Router router = Router.router(vertx);
-        TradingSessionStatusApi tssApi = new TradingSessionStatusApi(eb);
-        router.get("/latest").handler(tssApi::latestCall);
-        router.get("/history").handler(tssApi::historyCall);
-        return router;
-    }
-
-    private Router createMcSubRoutes() {
-        Router router = Router.router(vertx);
-        MarginComponentApi mcApi = new MarginComponentApi(eb);
-        router.get("/latest").handler(mcApi::latestCall);
-        router.get("/latest/:clearer").handler(mcApi::latestCall);
-        router.get("/latest/:clearer/:member").handler(mcApi::latestCall);
-        router.get("/latest/:clearer/:member/:account").handler(mcApi::latestCall);
-        router.get("/latest/:clearer/:member/:account/:clss").handler(mcApi::latestCall);
-        router.get("/latest/:clearer/:member/:account/:clss/:ccy").handler(mcApi::latestCall);
-        router.get("/history").handler(mcApi::historyCall);
-        router.get("/history/:clearer").handler(mcApi::historyCall);
-        router.get("/history/:clearer/:member").handler(mcApi::historyCall);
-        router.get("/history/:clearer/:member/:account").handler(mcApi::historyCall);
-        router.get("/history/:clearer/:member/:account/:clss").handler(mcApi::historyCall);
-        router.get("/history/:clearer/:member/:account/:clss/:ccy").handler(mcApi::historyCall);
-        return router;
-    }
-
-    private Router createTmrSubRoutes() {
-        Router router = Router.router(vertx);
-        TotalMarginRequirementApi tmrApi = new TotalMarginRequirementApi(eb);
-        router.get("/latest").handler(tmrApi::latestCall);
-        router.get("/latest/:clearer").handler(tmrApi::latestCall);
-        router.get("/latest/:clearer/:pool").handler(tmrApi::latestCall);
-        router.get("/latest/:clearer/:pool/:member").handler(tmrApi::latestCall);
-        router.get("/latest/:clearer/:pool/:member/:account").handler(tmrApi::latestCall);
-        router.get("/latest/:clearer/:pool/:member/:account/:ccy").handler(tmrApi::latestCall);
-        router.get("/history").handler(tmrApi::historyCall);
-        router.get("/history/:clearer").handler(tmrApi::historyCall);
-        router.get("/history/:clearer/:pool").handler(tmrApi::historyCall);
-        router.get("/history/:clearer/:pool/:member").handler(tmrApi::historyCall);
-        router.get("/history/:clearer/:pool/:member/:account").handler(tmrApi::historyCall);
-        router.get("/history/:clearer/:pool/:member/:account/:ccy").handler(tmrApi::historyCall);
-        return router;
-    }
-
-    private Router createMssSubRoutes() {
-        Router router = Router.router(vertx);
-        MarginShortfallSurplusApi mssApi = new MarginShortfallSurplusApi(eb);
-        router.get("/latest").handler(mssApi::latestCall);
-        router.get("/latest/:clearer").handler(mssApi::latestCall);
-        router.get("/latest/:clearer/:pool").handler(mssApi::latestCall);
-        router.get("/latest/:clearer/:pool/:member").handler(mssApi::latestCall);
-        router.get("/latest/:clearer/:pool/:member/:clearingCcy").handler(mssApi::latestCall);
-        router.get("/latest/:clearer/:pool/:member/:clearingCcy/:ccy").handler(mssApi::latestCall);
-        router.get("/history").handler(mssApi::historyCall);
-        router.get("/history/:clearer").handler(mssApi::historyCall);
-        router.get("/history/:clearer/:pool").handler(mssApi::historyCall);
-        router.get("/history/:clearer/:pool/:member").handler(mssApi::historyCall);
-        router.get("/history/:clearer/:pool/:member/:clearingCcy").handler(mssApi::historyCall);
-        router.get("/history/:clearer/:pool/:member/:clearingCcy/:ccy").handler(mssApi::historyCall);
-        return router;
-    }
-
-    private Router createPrSubRoutes() {
-        Router router = Router.router(vertx);
-        PositionReportApi prApi = new PositionReportApi(eb);
-        router.get("/latest").handler(prApi::latestCall);
-        router.get("/latest/:clearer").handler(prApi::latestCall);
-        router.get("/latest/:clearer/:member").handler(prApi::latestCall);
-        router.get("/latest/:clearer/:member/:account").handler(prApi::latestCall);
-        router.get("/latest/:clearer/:member/:account/:symbol").handler(prApi::latestCall);
-        router.get("/latest/:clearer/:member/:account/:symbol/:putCall").handler(prApi::latestCall);
-        router.get("/latest/:clearer/:member/:account/:symbol/:putCall/:strikePrice").handler(prApi::latestCall);
-        router.get("/latest/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute").handler(prApi::latestCall);
-        router.get("/latest/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute/:maturityMonthYear").handler(prApi::latestCall);
-        router.get("/history").handler(prApi::historyCall);
-        router.get("/history/:clearer").handler(prApi::historyCall);
-        router.get("/history/:clearer/:member").handler(prApi::historyCall);
-        router.get("/history/:clearer/:member/:account").handler(prApi::historyCall);
-        router.get("/history/:clearer/:member/:account/:symbol").handler(prApi::historyCall);
-        router.get("/history/:clearer/:member/:account/:symbol/:putCall").handler(prApi::historyCall);
-        router.get("/history/:clearer/:member/:account/:symbol/:putCall/:strikePrice").handler(prApi::historyCall);
-        router.get("/history/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute").handler(prApi::historyCall);
-        router.get("/history/:clearer/:member/:account/:symbol/:putCall/:strikePrice/:optAttribute/:maturityMonthYear").handler(prApi::historyCall);
-        return router;
-    }
-
-    private Router createRlSubRoutes() {
-        Router router = Router.router(vertx);
-        RiskLimitApi rlApi = new RiskLimitApi(eb);
-        router.get("/latest").handler(rlApi::latestCall);
-        router.get("/latest/:clearer").handler(rlApi::latestCall);
-        router.get("/latest/:clearer/:member").handler(rlApi::latestCall);
-        router.get("/latest/:clearer/:member/:maintainer").handler(rlApi::latestCall);
-        router.get("/latest/:clearer/:member/:maintainer/:limitType").handler(rlApi::latestCall);
-        router.get("/history").handler(rlApi::historyCall);
-        router.get("/history/:clearer").handler(rlApi::historyCall);
-        router.get("/history/:clearer/:member").handler(rlApi::historyCall);
-        router.get("/history/:clearer/:member/:maintainer").handler(rlApi::historyCall);
-        router.get("/history/:clearer/:member/:maintainer/:limitType").handler(rlApi::historyCall);
-        return router;
     }
 
     @Override

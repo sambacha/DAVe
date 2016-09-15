@@ -1,6 +1,7 @@
 package com.deutscheboerse.risk.dave.restapi.user;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.core.Vertx;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -8,6 +9,7 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
 import javax.naming.InvalidNameException;
@@ -21,10 +23,12 @@ import javax.security.cert.X509Certificate;
  */
 public class UserApi {
     private static final Logger LOG = LoggerFactory.getLogger(UserApi.class);
+    private final Vertx vertx;
     private final AuthProvider authProvider;
     private final Boolean checkUserAgainstCertificate;
 
-    public UserApi(AuthProvider ap, Boolean checkUserAgainstCertificate) {
+    public UserApi(Vertx vertx, AuthProvider ap, Boolean checkUserAgainstCertificate) {
+        this.vertx = vertx;
         this.checkUserAgainstCertificate = checkUserAgainstCertificate;
         this.authProvider = ap;
     }
@@ -155,5 +159,16 @@ public class UserApi {
         routingContext.response()
                 .putHeader("content-type", "application/json; charset=utf-8")
                 .end(response.encodePrettily());
+    }
+
+    public Router getRoutes()
+    {
+        Router router = Router.router(vertx);
+
+        router.post("/login").handler(this::login);
+        router.get("/logout").handler(this::logout);
+        router.get("/loginStatus").handler(this::loginStatus);
+
+        return router;
     }
 }

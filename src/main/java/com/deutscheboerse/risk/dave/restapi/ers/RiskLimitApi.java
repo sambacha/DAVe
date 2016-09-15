@@ -1,6 +1,8 @@
 package com.deutscheboerse.risk.dave.restapi.ers;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.ext.web.Router;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,8 +12,8 @@ import java.util.List;
  */
 public class RiskLimitApi extends AbstractErsApi {
 
-    public RiskLimitApi(EventBus eb) {
-        super(eb, "query.latestRiskLimit", "query.historyRiskLimit", "rl");
+    public RiskLimitApi(Vertx vertx) {
+        super(vertx, "query.latestRiskLimit", "query.historyRiskLimit", "rl");
     }
 
     @Override
@@ -24,4 +26,21 @@ public class RiskLimitApi extends AbstractErsApi {
         return parameters;
     }
 
+    public Router getRoutes()
+    {
+        Router router = Router.router(vertx);
+
+        router.get("/latest").handler(this::latestCall);
+        router.get("/latest/:clearer").handler(this::latestCall);
+        router.get("/latest/:clearer/:member").handler(this::latestCall);
+        router.get("/latest/:clearer/:member/:maintainer").handler(this::latestCall);
+        router.get("/latest/:clearer/:member/:maintainer/:limitType").handler(this::latestCall);
+        router.get("/history").handler(this::historyCall);
+        router.get("/history/:clearer").handler(this::historyCall);
+        router.get("/history/:clearer/:member").handler(this::historyCall);
+        router.get("/history/:clearer/:member/:maintainer").handler(this::historyCall);
+        router.get("/history/:clearer/:member/:maintainer/:limitType").handler(this::historyCall);
+
+        return router;
+    }
 }

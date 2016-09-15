@@ -1,6 +1,7 @@
 package com.deutscheboerse.risk.dave.restapi.ers;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -12,12 +13,14 @@ public abstract class AbstractErsApi {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractErsApi.class);
 
     private final EventBus eb;
+    protected final Vertx vertx;
     private final String latestEbAddress;
     private final String historyEbAddress;
     private final String requestName;
 
-    public AbstractErsApi(EventBus eb, String latestAddress, String historyAddress, String requestName) {
-        this.eb = eb;
+    public AbstractErsApi(Vertx vertx, String latestAddress, String historyAddress, String requestName) {
+        this.eb = vertx.eventBus();
+        this.vertx = vertx;
         this.latestEbAddress = latestAddress;
         this.historyEbAddress = historyAddress;
         this.requestName = requestName;
