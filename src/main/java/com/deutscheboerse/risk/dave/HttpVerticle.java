@@ -120,20 +120,25 @@ public class HttpVerticle extends AbstractVerticle {
             LOG.info("Enabling SSL on webserver");
             httpOptions.setSsl(true).setKeyStoreOptions(new JksOptions().setPassword(config().getJsonObject("ssl").getString("keystorePassword")).setPath(config().getJsonObject("ssl").getString("keystore")));
 
-            if (config().getJsonObject("ssl", new JsonObject()).getString("truststore") != null && config().getJsonObject("ssl", new JsonObject()).getString("truststorePassword") != null)
-            {
-                LOG.info("Enabling SSL Client Authentication on webserver");
-                httpOptions.setTrustStoreOptions(new JksOptions().setPassword(config().getJsonObject("ssl").getString("truststorePassword")).setPath(config().getJsonObject("ssl").getString("truststore")));
+            setSslClientAuthentication(httpOptions);
+        }
+    }
 
-                if (config().getJsonObject("ssl").getBoolean("requireTLSClientAuth", DEFAULT_SSL_REQUIRE_CLIENT_AUTH))
-                {
-                    LOG.info("Setting SSL Client Authentication as required");
-                    httpOptions.setClientAuth(ClientAuth.REQUIRED);
-                }
-                else
-                {
-                    httpOptions.setClientAuth(ClientAuth.REQUEST);
-                }
+    private void setSslClientAuthentication(HttpServerOptions httpOptions)
+    {
+        if (config().getJsonObject("ssl", new JsonObject()).getString("truststore") != null && config().getJsonObject("ssl", new JsonObject()).getString("truststorePassword") != null)
+        {
+            LOG.info("Enabling SSL Client Authentication on webserver");
+            httpOptions.setTrustStoreOptions(new JksOptions().setPassword(config().getJsonObject("ssl").getString("truststorePassword")).setPath(config().getJsonObject("ssl").getString("truststore")));
+
+            if (config().getJsonObject("ssl").getBoolean("requireTLSClientAuth", DEFAULT_SSL_REQUIRE_CLIENT_AUTH))
+            {
+                LOG.info("Setting SSL Client Authentication as required");
+                httpOptions.setClientAuth(ClientAuth.REQUIRED);
+            }
+            else
+            {
+                httpOptions.setClientAuth(ClientAuth.REQUEST);
             }
         }
     }
