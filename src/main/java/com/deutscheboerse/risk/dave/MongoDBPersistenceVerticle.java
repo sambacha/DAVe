@@ -1,5 +1,6 @@
 package com.deutscheboerse.risk.dave;
 
+import com.deutscheboerse.risk.dave.model.*;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
@@ -123,121 +124,80 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         EventBus eb = vertx.eventBus();
 
         // Camel consumers
-        eb.consumer("ers.TradingSessionStatus", message -> storeTradingSessionStatus(message));
-        eb.consumer("ers.MarginComponent", message -> storeMarginComponent(message));
-        eb.consumer("ers.TotalMarginRequirement", message -> storeTotalMarginRequirement(message));
-        eb.consumer("ers.MarginShortfallSurplus", message -> storeMarginShortfallSurplus(message));
-        eb.consumer("ers.PositionReport", message -> storePositionReport(message));
+        eb.consumer("ers.TradingSessionStatus", message -> store(message));
+        eb.consumer("ers.MarginComponent", message -> store(message));
+        eb.consumer("ers.TotalMarginRequirement", message -> store(message));
+        eb.consumer("ers.MarginShortfallSurplus", message -> store(message));
+        eb.consumer("ers.PositionReport", message -> store(message));
+        // TODO: Use JsonObjects for risk limits and move it to store(message) method as well
         eb.consumer("ers.RiskLimit", message -> storeRiskLimit(message));
 
         // Query endpoints
-        eb.consumer("query.latestTradingSessionStatus", message -> queryLatestTradingSessionStatus(message));
-        eb.consumer("query.historyTradingSessionStatus", message -> queryHistoryTradingSessionStatus(message));
-        eb.consumer("query.latestMarginComponent", message -> queryLatestMarginComponent(message));
-        eb.consumer("query.historyMarginComponent", message -> queryHistoryMarginComponent(message));
-        eb.consumer("query.latestTotalMarginRequirement", message -> queryLatestTotalMarginRequirement(message));
-        eb.consumer("query.historyTotalMarginRequirement", message -> queryHistoryTotalMarginRequirement(message));
-        eb.consumer("query.latestMarginShortfallSurplus", message -> queryLatestMarginShortfallSurplus(message));
-        eb.consumer("query.historyMarginShortfallSurplus", message -> queryHistoryMarginShortfallSurplus(message));
-        eb.consumer("query.latestPositionReport", message -> queryLatestPositionReport(message));
-        eb.consumer("query.historyPositionReport", message -> queryHistoryPositionReport(message));
-        eb.consumer("query.latestRiskLimit", message -> queryLatestRiskLimit(message));
-        eb.consumer("query.historyRiskLimit", message -> queryHistoryRiskLimit(message));
+        eb.consumer("query.latestTradingSessionStatus", message -> queryLatest(message, new TradingSessionStatusModel()));
+        eb.consumer("query.historyTradingSessionStatus", message -> queryHistory(message, new TradingSessionStatusModel()));
+        eb.consumer("query.latestMarginComponent", message -> queryLatest(message, new MarginComponentModel()));
+        eb.consumer("query.historyMarginComponent", message -> queryHistory(message, new MarginComponentModel()));
+        eb.consumer("query.latestTotalMarginRequirement", message -> queryLatest(message, new TotalMarginRequirementModel()));
+        eb.consumer("query.historyTotalMarginRequirement", message -> queryHistory(message, new TotalMarginRequirementModel()));
+        eb.consumer("query.latestMarginShortfallSurplus", message -> queryLatest(message, new MarginShortfallSurplusModel()));
+        eb.consumer("query.historyMarginShortfallSurplus", message -> queryHistory(message, new MarginShortfallSurplusModel()));
+        eb.consumer("query.latestPositionReport", message -> queryLatest(message, new PositionReportModel()));
+        eb.consumer("query.historyPositionReport", message -> queryHistory(message, new PositionReportModel()));
+        eb.consumer("query.latestRiskLimit", message -> queryLatest(message, new RiskLimitModel()));
+        eb.consumer("query.historyRiskLimit", message -> queryHistory(message, new RiskLimitModel()));
 
         completer.handle(Future.succeededFuture());
     }
 
-    private void storeTradingSessionStatus(Message msg)
+    private void queryLatest(Message msg, AbstractModel model)
     {
-        LOG.trace("Storing TradingSessionStatus message with body: " + msg.body().toString());
-        JsonObject jsonTss = (JsonObject)msg.body();
+        LOG.trace("Received {} query with message {}", msg.address(), msg.body());
 
-        mongo.insert("ers.TradingSessionStatus", jsonTss, res -> {
-           if (res.succeeded())
-           {
-               LOG.trace("Stored TradingSessionStatus into DB");
-               msg.reply(new JsonObject());
-           }
-           else
-           {
-               LOG.error("Failed to store TradingSessionStatus into DB " + res.cause());
-               msg.fail(1, res.cause().getMessage());
-           }
-        });
-    }
+        JsonObject params = (JsonObject)msg.body();
 
-    private void storeMarginComponent(Message msg)
-    {
-        LOG.trace("Storing MC message with body: " + msg.body().toString());
-        JsonObject jsonMc = (JsonObject)msg.body();
-
-        mongo.insert("ers.MarginComponent", jsonMc, res -> {
-            if (res.succeeded())
-            {
-                LOG.trace("Stored MarginComponent into DB");
-                msg.reply(new JsonObject());
-            }
-            else
-            {
-                LOG.error("Failed to store MarginComponent into DB " + res.cause());
-                msg.fail(1, res.cause().getMessage());
-            }
-        });
-    }
-
-    private void storeTotalMarginRequirement(Message msg)
-    {
-        LOG.trace("Storing TMR message with body: " + msg.body().toString());
-        JsonObject jsonTmr = (JsonObject)msg.body();
-
-        mongo.insert("ers.TotalMarginRequirement", jsonTmr, res -> {
-            if (res.succeeded())
-            {
-                LOG.trace("Stored TotalMarginRequirement into DB");
-                msg.reply(new JsonObject());
-            }
-            else
-            {
-                LOG.error("Failed to store TotalMarginRequirement into DB " + res.cause());
-                msg.fail(1, res.cause().getMessage());
-            }
-        });
-    }
-
-    private void storeMarginShortfallSurplus(Message msg)
-    {
-        LOG.trace("Storing MarginShortfallSurplus message with body: " + msg.body().toString());
-        JsonObject jsonMss = (JsonObject)msg.body();
-
-        mongo.insert("ers.MarginShortfallSurplus", jsonMss, res -> {
-            if (res.succeeded())
-            {
-                LOG.trace("Stored MarginShortfallSurplus into DB");
-                msg.reply(new JsonObject());
-            }
-            else
-            {
-                LOG.error("Failed to store MarginShortfallSurplus into DB " + res.cause());
-                msg.fail(1, res.cause().getMessage());
-            }
-        });
-    }
-
-    private void storePositionReport(Message msg)
-    {
-        LOG.trace("Storing PositionReport message with body: " + msg.body().toString());
-        JsonObject jsonPr = (JsonObject)msg.body();
-
-        mongo.insert("ers.PositionReport", jsonPr, res -> {
+        mongo.runCommand("aggregate", model.getLatestCommand(params), res -> {
             if (res.succeeded()) {
-                LOG.trace("Stored PositionReport into DB");
-                msg.reply(new JsonObject());
+                msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
             } else {
-                LOG.error("Failed to store PositionReport into DB " + res.cause());
+                LOG.error("{} query failed", msg.address(), res.cause());
+            }
+        });
+    }
+
+    private void queryHistory(Message msg, AbstractModel model)
+    {
+        LOG.trace("Received {} query with message {}", msg.address(), msg.body());
+
+        JsonObject params = (JsonObject)msg.body();
+
+        mongo.runCommand("aggregate", model.getHistoryCommand(params), res -> {
+            if (res.succeeded()) {
+                msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
+            } else {
+                LOG.error("{} query failed", msg.address(), res.cause());
+            }
+        });
+    }
+
+    private void store(Message msg)
+    {
+        LOG.trace("Storing message {} with body {}", msg.address(), msg.body().toString());
+        JsonObject json = (JsonObject)msg.body();
+
+        mongo.insert(msg.address(), json, res -> {
+            if (res.succeeded())
+            {
+                LOG.trace("Stored {} into DB", msg.address());
+                msg.reply(new JsonObject());
+            }
+            else
+            {
+                LOG.error("Failed to store {} into DB ", msg.address(), res.cause());
                 msg.fail(1, res.cause().getMessage());
             }
         });
     }
+
 
     private void storeRiskLimit(Message msg)
     {
@@ -276,545 +236,6 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
             {
                 LOG.trace("Failed to store complete RiskLimit message into DB");
                 msg.fail(1, ar.cause().getMessage());
-            }
-        });
-    }
-
-    private void queryLatestTradingSessionStatus(Message msg)
-    {
-        LOG.trace("Received latest/tss query");
-
-        JsonObject sort = new JsonObject();
-        sort.put("received", 1);
-
-        JsonObject group = new JsonObject();
-        group.put("_id", new JsonObject().put("sesId", "$sesId"));
-        group.put("id", new JsonObject().put("$last", "$_id"));
-        group.put("reqId", new JsonObject().put("$last", "$reqId"));
-        group.put("sesId", new JsonObject().put("$last", "$sesId"));
-        group.put("stat", new JsonObject().put("$last", "$stat"));
-        group.put("statRejRsn", new JsonObject().put("$last", "$statRejRsn"));
-        group.put("txt", new JsonObject().put("$last", "$txt"));
-        group.put("received", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received"))));
-
-        JsonArray pipeline = new JsonArray();
-        pipeline.add(new JsonObject().put("$sort", sort));
-        pipeline.add(new JsonObject().put("$group", group));
-
-        JsonObject command = new JsonObject()
-                .put("aggregate", "ers.TradingSessionStatus")
-                .put("pipeline", pipeline);
-
-        mongo.runCommand("aggregate", command, res -> {
-            if (res.succeeded()) {
-                if (res.result().getJsonArray("result").size() > 0) {
-                    msg.reply(Json.encodePrettily(res.result().getJsonArray("result").getJsonObject(0)));
-                }
-                else
-                {
-                    msg.reply(Json.encodePrettily(new JsonObject()));
-                }
-            } else {
-                LOG.error("latest/tss query failed", res.cause());
-            }
-        });
-    }
-
-    private void queryHistoryTradingSessionStatus(Message msg)
-    {
-        LOG.trace("Received history/tss query");
-
-        JsonObject sort = new JsonObject();
-        sort.put("received", 1);
-
-        JsonObject project = new JsonObject();
-        project.put("_id", 0);
-        project.put("id", "$_id");
-        project.put("reqId", 1);
-        project.put("sesId", 1);
-        project.put("stat", 1);
-        project.put("statRejRsn", 1);
-        project.put("txt", 1);
-        project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received")));
-
-        JsonArray pipeline = new JsonArray();
-        pipeline.add(new JsonObject().put("$sort", sort));
-        pipeline.add(new JsonObject().put("$project", project));
-
-        JsonObject command = new JsonObject()
-                .put("aggregate", "ers.TradingSessionStatus")
-                .put("pipeline", pipeline);
-
-        mongo.runCommand("aggregate", command, res -> {
-            if (res.succeeded()) {
-                msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
-            } else {
-                LOG.error("history/tss query failed", res.cause());
-            }
-        });
-    }
-
-    private void queryLatestMarginComponent(Message msg)
-    {
-        JsonObject params = (JsonObject)msg.body();
-        LOG.trace("Received latest/mc query with parameters " + params);
-
-        JsonObject sort = new JsonObject();
-        sort.put("received", 1);
-
-        JsonObject group = new JsonObject();
-        group.put("_id", new JsonObject().put("clearer", "$clearer").put("member", "$member").put("account", "$account").put("clss", "$clss").put("ccy", "$ccy"));
-        group.put("id", new JsonObject().put("$last", "$_id"));
-        group.put("clearer", new JsonObject().put("$last", "$clearer"));
-        group.put("member", new JsonObject().put("$last", "$member"));
-        group.put("account", new JsonObject().put("$last", "$account"));
-        group.put("clss", new JsonObject().put("$last", "$clss"));
-        group.put("ccy", new JsonObject().put("$last", "$ccy"));
-        group.put("txnTm", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$txnTm"))));
-        group.put("bizDt", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoDayFormat).put("date", "$bizDt"))));
-        group.put("reqId", new JsonObject().put("$last", "$reqId"));
-        group.put("rptId", new JsonObject().put("$last", "$rptId"));
-        group.put("sesId", new JsonObject().put("$last", "$sesId"));
-        group.put("variationMargin", new JsonObject().put("$last", "$variationMargin"));
-        group.put("premiumMargin", new JsonObject().put("$last", "$premiumMargin"));
-        group.put("liquiMargin", new JsonObject().put("$last", "$liquiMargin"));
-        group.put("spreadMargin", new JsonObject().put("$last", "$spreadMargin"));
-        group.put("additionalMargin", new JsonObject().put("$last", "$additionalMargin"));
-        group.put("received", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received"))));
-
-        JsonArray pipeline = new JsonArray();
-        pipeline.add(new JsonObject().put("$sort", sort));
-        pipeline.add(new JsonObject().put("$match", params));
-        pipeline.add(new JsonObject().put("$group", group));
-
-        JsonObject command = new JsonObject()
-                .put("aggregate", "ers.MarginComponent")
-                .put("pipeline", pipeline);
-
-        mongo.runCommand("aggregate", command, res -> {
-            if (res.succeeded()) {
-                msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
-            } else {
-                LOG.error("latest/mc query failed", res.cause());
-            }
-        });
-    }
-
-    private void queryHistoryMarginComponent(Message msg)
-    {
-        JsonObject params = (JsonObject)msg.body();
-        LOG.trace("Received history/mc query with parameters " + params);
-
-        JsonObject sort = new JsonObject();
-        sort.put("received", 1);
-
-        JsonObject project = new JsonObject();
-        project.put("_id", 0);
-        project.put("id", "$_id");
-        project.put("clearer", 1);
-        project.put("member", 1);
-        project.put("account", 1);
-        project.put("clss", 1);
-        project.put("ccy", 1);
-        project.put("txnTm", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$txnTm")));
-        project.put("bizDt", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoDayFormat).put("date", "$bizDt")));
-        project.put("reqId", 1);
-        project.put("rptId", 1);
-        project.put("sesId", 1);
-        project.put("variationMargin", 1);
-        project.put("premiumMargin", 1);
-        project.put("liquiMargin", 1);
-        project.put("spreadMargin", 1);
-        project.put("additionalMargin", 1);
-        project.put("received",new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received")));
-
-        JsonArray pipeline = new JsonArray();
-        pipeline.add(new JsonObject().put("$sort", sort));
-        pipeline.add(new JsonObject().put("$match", params));
-        pipeline.add(new JsonObject().put("$project", project));
-
-        JsonObject command = new JsonObject()
-                .put("aggregate", "ers.MarginComponent")
-                .put("pipeline", pipeline);
-
-        mongo.runCommand("aggregate", command, res -> {
-            if (res.succeeded()) {
-                msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
-            } else {
-                LOG.error("history/mc query failed", res.cause());
-            }
-        });
-    }
-
-    private void queryLatestTotalMarginRequirement(Message msg)
-    {
-        JsonObject params = (JsonObject)msg.body();
-        LOG.trace("Received latest/tmr query with parameters " + params);
-
-        JsonObject sort = new JsonObject();
-        sort.put("received", 1);
-
-        JsonObject group = new JsonObject();
-        group.put("_id", new JsonObject().put("clearer", "$clearer").put("pool", "$pool").put("member", "$member").put("account", "$account").put("ccy", "$ccy"));
-        group.put("id", new JsonObject().put("$last", "$_id"));
-        group.put("clearer", new JsonObject().put("$last", "$clearer"));
-        group.put("pool", new JsonObject().put("$last", "$pool"));
-        group.put("member", new JsonObject().put("$last", "$member"));
-        group.put("account", new JsonObject().put("$last", "$account"));
-        group.put("ccy", new JsonObject().put("$last", "$ccy"));
-        group.put("txnTm", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$txnTm"))));
-        group.put("bizDt", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoDayFormat).put("date", "$bizDt"))));
-        group.put("reqId", new JsonObject().put("$last", "$reqId"));
-        group.put("rptId", new JsonObject().put("$last", "$rptId"));
-        group.put("sesId", new JsonObject().put("$last", "$sesId"));
-        group.put("unadjustedMargin", new JsonObject().put("$last", "$unadjustedMargin"));
-        group.put("adjustedMargin", new JsonObject().put("$last", "$adjustedMargin"));
-        group.put("received", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received"))));
-
-        JsonArray pipeline = new JsonArray();
-        pipeline.add(new JsonObject().put("$sort", sort));
-        pipeline.add(new JsonObject().put("$match", params));
-        pipeline.add(new JsonObject().put("$group", group));
-
-        JsonObject command = new JsonObject()
-                .put("aggregate", "ers.TotalMarginRequirement")
-                .put("pipeline", pipeline);
-
-        mongo.runCommand("aggregate", command, res -> {
-            if (res.succeeded()) {
-                msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
-            } else {
-                LOG.error("latest/tmr query failed", res.cause());
-            }
-        });
-    }
-
-    private void queryHistoryTotalMarginRequirement(Message msg)
-    {
-        JsonObject params = (JsonObject)msg.body();
-        LOG.trace("Received history/tmr query with parameters " + params);
-
-        JsonObject sort = new JsonObject();
-        sort.put("received", 1);
-
-        JsonObject project = new JsonObject();
-        project.put("_id", 0);
-        project.put("id", "$_id");
-        project.put("clearer", 1);
-        project.put("pool", 1);
-        project.put("member", 1);
-        project.put("account", 1);
-        project.put("ccy", 1);
-        project.put("txnTm", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$txnTm")));
-        project.put("bizDt", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoDayFormat).put("date", "$bizDt")));
-        project.put("reqId", 1);
-        project.put("rptId", 1);
-        project.put("sesId", 1);
-        project.put("unadjustedMargin", 1);
-        project.put("adjustedMargin", 1);
-        project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received")));
-
-        JsonArray pipeline = new JsonArray();
-        pipeline.add(new JsonObject().put("$sort", sort));
-        pipeline.add(new JsonObject().put("$match", params));
-        pipeline.add(new JsonObject().put("$project", project));
-
-        JsonObject command = new JsonObject()
-                .put("aggregate", "ers.TotalMarginRequirement")
-                .put("pipeline", pipeline);
-
-        mongo.runCommand("aggregate", command, res -> {
-            if (res.succeeded()) {
-                msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
-            } else {
-                LOG.error("history/tmr query failed", res.cause());
-            }
-        });
-    }
-
-    private void queryLatestMarginShortfallSurplus(Message msg)
-    {
-        JsonObject params = (JsonObject)msg.body();
-        LOG.trace("Received latest/mss query with parameters " + params);
-
-        JsonObject sort = new JsonObject();
-        sort.put("received", 1);
-
-        JsonObject group = new JsonObject();
-        group.put("_id", new JsonObject().put("clearer", "$clearer").put("pool", "$pool").put("member", "$member").put("clearingCcy", "$clearingCcy").put("ccy", "$ccy"));
-        group.put("id", new JsonObject().put("$last", "$_id"));
-        group.put("clearer", new JsonObject().put("$last", "$clearer"));
-        group.put("pool", new JsonObject().put("$last", "$pool"));
-        group.put("poolType", new JsonObject().put("$last", "$poolType"));
-        group.put("member", new JsonObject().put("$last", "$member"));
-        group.put("clearingCcy", new JsonObject().put("$last", "$clearingCcy"));
-        group.put("ccy", new JsonObject().put("$last", "$ccy"));
-        group.put("txnTm", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$txnTm"))));
-        group.put("bizDt", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoDayFormat).put("date", "$bizDt"))));
-        group.put("reqId", new JsonObject().put("$last", "$reqId"));
-        group.put("rptId", new JsonObject().put("$last", "$rptId"));
-        group.put("sesId", new JsonObject().put("$last", "$sesId"));
-        group.put("marginRequirement", new JsonObject().put("$last", "$marginRequirement"));
-        group.put("securityCollateral", new JsonObject().put("$last", "$securityCollateral"));
-        group.put("cashBalance", new JsonObject().put("$last", "$cashBalance"));
-        group.put("shortfallSurplus", new JsonObject().put("$last", "$shortfallSurplus"));
-        group.put("marginCall", new JsonObject().put("$last", "$marginCall"));
-        group.put("received", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received"))));
-
-        JsonArray pipeline = new JsonArray();
-        pipeline.add(new JsonObject().put("$sort", sort));
-        pipeline.add(new JsonObject().put("$match", params));
-        pipeline.add(new JsonObject().put("$group", group));
-
-        JsonObject command = new JsonObject()
-                .put("aggregate", "ers.MarginShortfallSurplus")
-                .put("pipeline", pipeline);
-
-        mongo.runCommand("aggregate", command, res -> {
-            if (res.succeeded()) {
-                msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
-            } else {
-                LOG.error("latest/mss query failed", res.cause());
-            }
-        });
-    }
-
-    private void queryHistoryMarginShortfallSurplus(Message msg)
-    {
-        JsonObject params = (JsonObject)msg.body();
-        LOG.trace("Received history/mss query with parameters " + params);
-
-        JsonObject sort = new JsonObject();
-        sort.put("received", 1);
-
-        JsonObject project = new JsonObject();
-        project.put("_id", 0);
-        project.put("id", "$_id");
-        project.put("clearer", 1);
-        project.put("pool", 1);
-        project.put("poolType", 1);
-        project.put("member", 1);
-        project.put("clearingCcy", 1);
-        project.put("ccy", 1);
-        project.put("txnTm", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$txnTm")));
-        project.put("bizDt", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoDayFormat).put("date", "$bizDt")));
-        project.put("reqId", 1);
-        project.put("rptId", 1);
-        project.put("sesId", 1);
-        project.put("marginRequirement", 1);
-        project.put("securityCollateral", 1);
-        project.put("cashBalance", 1);
-        project.put("shortfallSurplus", 1);
-        project.put("marginCall", 1);
-        project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received")));
-
-        JsonArray pipeline = new JsonArray();
-        pipeline.add(new JsonObject().put("$sort", sort));
-        pipeline.add(new JsonObject().put("$match", params));
-        pipeline.add(new JsonObject().put("$project", project));
-
-        JsonObject command = new JsonObject()
-                .put("aggregate", "ers.MarginShortfallSurplus")
-                .put("pipeline", pipeline);
-
-        mongo.runCommand("aggregate", command, res -> {
-            if (res.succeeded()) {
-                msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
-            } else {
-                LOG.error("history/mss query failed", res.cause());
-            }
-        });
-    }
-
-    private void queryLatestPositionReport(Message msg)
-    {
-        JsonObject params = (JsonObject)msg.body();
-        LOG.trace("Received latest/pr query with parameters " + params);
-
-        JsonObject sort = new JsonObject();
-        sort.put("received", 1);
-
-        JsonObject group = new JsonObject();
-        group.put("_id", new JsonObject()
-                .put("clearer", "$clearer").put("member", "$member").put("account", "$account")
-                .put("symbol", "$symbol").put("putCall", "$putCall").put("strikePrice", "$strikePrice")
-                .put("optAttribute", "$optAttribute").put("maturityMonthYear", "$maturityMonthYear"));
-        group.put("id", new JsonObject().put("$last", "$_id"));
-        group.put("clearer", new JsonObject().put("$last", "$clearer"));
-        group.put("member", new JsonObject().put("$last", "$member"));
-        group.put("account", new JsonObject().put("$last", "$account"));
-        group.put("reqId", new JsonObject().put("$last", "$reqId"));
-        group.put("rptId", new JsonObject().put("$last", "$rptId"));
-        group.put("bizDt", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoDayFormat).put("date", "$bizDt"))));
-        group.put("lastReportRequested", new JsonObject().put("$last", "$lastReportRequested"));
-        group.put("sesId", new JsonObject().put("$last", "$sesId"));
-        group.put("symbol", new JsonObject().put("$last", "$symbol"));
-        group.put("putCall", new JsonObject().put("$last", "$putCall"));
-        group.put("maturityMonthYear", new JsonObject().put("$last", "$maturityMonthYear"));
-        group.put("strikePrice", new JsonObject().put("$last", "$strikePrice"));
-        group.put("optAttribute", new JsonObject().put("$last", "$optAttribute"));
-        group.put("crossMarginLongQty", new JsonObject().put("$last", "$crossMarginLongQty"));
-        group.put("crossMarginShortQty", new JsonObject().put("$last", "$crossMarginShortQty"));
-        group.put("optionExcerciseQty", new JsonObject().put("$last", "$optionExcerciseQty"));
-        group.put("optionAssignmentQty", new JsonObject().put("$last", "$optionAssignmentQty"));
-        group.put("allocationTradeQty", new JsonObject().put("$last", "$allocationTradeQty"));
-        group.put("deliveryNoticeQty", new JsonObject().put("$last", "$deliveryNoticeQty"));
-        group.put("received", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received"))));
-
-        JsonArray pipeline = new JsonArray();
-        pipeline.add(new JsonObject().put("$sort", sort));
-        pipeline.add(new JsonObject().put("$match", params));
-        pipeline.add(new JsonObject().put("$group", group));
-
-        JsonObject command = new JsonObject()
-                .put("aggregate", "ers.PositionReport")
-                .put("pipeline", pipeline);
-
-        mongo.runCommand("aggregate", command, res -> {
-            if (res.succeeded()) {
-                msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
-            } else {
-                LOG.error("latest/pr query failed", res.cause());
-            }
-        });
-    }
-
-    private void queryHistoryPositionReport(Message msg)
-    {
-        JsonObject params = (JsonObject)msg.body();
-        LOG.trace("Received history/pr query with parameters " + params);
-
-        JsonObject sort = new JsonObject();
-        sort.put("received", 1);
-
-        JsonObject project = new JsonObject();
-        project.put("_id", 0);
-        project.put("id", "$_id");
-        project.put("clearer", 1);
-        project.put("member", 1);
-        project.put("account", 1);
-        project.put("reqId", 1);
-        project.put("rptId", 1);
-        project.put("bizDt", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoDayFormat).put("date", "$bizDt")));
-        project.put("lastReportRequested", 1);
-        project.put("sesId", 1);
-        project.put("symbol", 1);
-        project.put("putCall", 1);
-        project.put("maturityMonthYear", 1);
-        project.put("strikePrice", 1);
-        project.put("optAttribute", 1);
-        project.put("crossMarginLongQty", 1);
-        project.put("crossMarginShortQty", 1);
-        project.put("optionExcerciseQty", 1);
-        project.put("optionAssignmentQty", 1);
-        project.put("allocationTradeQty", 1);
-        project.put("deliveryNoticeQty", 1);
-        project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received")));
-
-        JsonArray pipeline = new JsonArray();
-        pipeline.add(new JsonObject().put("$sort", sort));
-        pipeline.add(new JsonObject().put("$match", params));
-        pipeline.add(new JsonObject().put("$project", project));
-
-        JsonObject command = new JsonObject()
-                .put("aggregate", "ers.PositionReport")
-                .put("pipeline", pipeline);
-
-        mongo.runCommand("aggregate", command, res -> {
-            if (res.succeeded()) {
-                msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
-            } else {
-                LOG.error("history/pr query failed", res.cause());
-            }
-        });
-    }
-
-    private void queryLatestRiskLimit(Message msg)
-    {
-        JsonObject params = (JsonObject)msg.body();
-        LOG.trace("Received latest/rl query with parameters " + params);
-
-        JsonObject sort = new JsonObject();
-        sort.put("received", 1);
-
-        JsonObject group = new JsonObject();
-        group.put("_id", new JsonObject()
-                .put("clearer", "$clearer").put("member", "$member").put("maintainer", "$maintainer")
-                .put("limitType", "$limitType"));
-        group.put("id", new JsonObject().put("$last", "$_id"));
-        group.put("clearer", new JsonObject().put("$last", "$clearer"));
-        group.put("member", new JsonObject().put("$last", "$member"));
-        group.put("maintainer", new JsonObject().put("$last", "$maintainer"));
-        group.put("reqId", new JsonObject().put("$last", "$reqId"));
-        group.put("rptId", new JsonObject().put("$last", "$rptId"));
-        group.put("txnTm", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$txnTm"))));
-        group.put("reqRslt", new JsonObject().put("$last", "$reqRslt"));
-        group.put("txt", new JsonObject().put("$last", "$txt"));
-        group.put("limitType", new JsonObject().put("$last", "$limitType"));
-        group.put("utilization", new JsonObject().put("$last", "$utilization"));
-        group.put("warningLevel", new JsonObject().put("$last", "$warningLevel"));
-        group.put("throttleLevel", new JsonObject().put("$last", "$throttleLevel"));
-        group.put("rejectLevel", new JsonObject().put("$last", "$rejectLevel"));
-        group.put("received", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received"))));
-
-        JsonArray pipeline = new JsonArray();
-        pipeline.add(new JsonObject().put("$sort", sort));
-        pipeline.add(new JsonObject().put("$match", params));
-        pipeline.add(new JsonObject().put("$group", group));
-
-        JsonObject command = new JsonObject()
-                .put("aggregate", "ers.RiskLimit")
-                .put("pipeline", pipeline);
-
-        mongo.runCommand("aggregate", command, res -> {
-            if (res.succeeded()) {
-                msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
-            } else {
-                LOG.error("latest/rl query failed", res.cause());
-            }
-        });
-    }
-
-    private void queryHistoryRiskLimit(Message msg)
-    {
-        JsonObject params = (JsonObject)msg.body();
-        LOG.trace("Received history/rl query with parameters " + params);
-
-        JsonObject sort = new JsonObject();
-        sort.put("received", 1);
-
-        JsonObject project = new JsonObject();
-        project.put("_id", 0);
-        project.put("id", "$_id");
-        project.put("clearer", 1);
-        project.put("member", 1);
-        project.put("maintainer", 1);
-        project.put("reqId", 1);
-        project.put("rptId", 1);
-        project.put("txnTm", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$txnTm")));
-        project.put("reqRslt", 1);
-        project.put("txt", 1);
-        project.put("limitType", 1);
-        project.put("utilization", 1);
-        project.put("warningLevel", 1);
-        project.put("throttleLevel", 1);
-        project.put("rejectLevel", 1);
-        project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received")));
-
-        JsonArray pipeline = new JsonArray();
-        pipeline.add(new JsonObject().put("$sort", sort));
-        pipeline.add(new JsonObject().put("$match", params));
-        pipeline.add(new JsonObject().put("$project", project));
-
-        JsonObject command = new JsonObject()
-                .put("aggregate", "ers.RiskLimit")
-                .put("pipeline", pipeline);
-
-        mongo.runCommand("aggregate", command, res -> {
-            if (res.succeeded()) {
-                msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
-            } else {
-                LOG.error("history/rl query failed", res.cause());
             }
         });
     }
