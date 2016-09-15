@@ -47,11 +47,16 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
             return initDbFuture;
         }).compose(v -> {
             LOG.info("Initialized MongoDB");
-            Future<Void> startEventBusFuture = Future.future();
-            startEventBus(startEventBusFuture.completer());
-            return startEventBusFuture;
+            Future<Void> startStoreHandlersFuture = Future.future();
+            startStoreHandlers(startStoreHandlersFuture.completer());
+            return startStoreHandlersFuture;
         }).compose(v -> {
-            LOG.info("Event bus started and subscribed");
+            LOG.info("Event bus store handlers subscribed");
+            Future<Void> startQueryHandlersFuture = Future.future();
+            startQueryHandlers(startQueryHandlersFuture.completer());
+            return startQueryHandlersFuture;
+        }).compose(v -> {
+            LOG.info("Event bus query handlers subscribed");
             chainFuture.complete();
         }, chainFuture);
 
@@ -119,7 +124,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         });
     }
 
-    private void startEventBus(Handler<AsyncResult<Void>> completer)
+    private void startStoreHandlers(Handler<AsyncResult<Void>> completer)
     {
         EventBus eb = vertx.eventBus();
 
@@ -131,6 +136,13 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         eb.consumer("ers.PositionReport", message -> store(message));
         // TODO: Use JsonObjects for risk limits and move it to store(message) method as well
         eb.consumer("ers.RiskLimit", message -> storeRiskLimit(message));
+
+        completer.handle(Future.succeededFuture());
+    }
+
+    private void startQueryHandlers(Handler<AsyncResult<Void>> completer)
+    {
+        EventBus eb = vertx.eventBus();
 
         // Query endpoints
         eb.consumer("query.latestTradingSessionStatus", message -> queryLatest(message, new TradingSessionStatusModel()));
