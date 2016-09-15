@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/Deutsche-Boerse-Risk/DAVe.svg?style=svg)](https://circleci.com/gh/Deutsche-Boerse-Risk/DAVe) [![Coverage Status](https://coveralls.io/repos/github/Deutsche-Boerse-Risk/DAVe/badge.svg?branch=master)](https://coveralls.io/github/Deutsche-Boerse-Risk/DAVe?branch=master)
+[![CircleCI](https://circleci.com/gh/Deutsche-Boerse-Risk/DAVe.svg?style=svg)](https://circleci.com/gh/Deutsche-Boerse-Risk/DAVe) [![Coverage Status](https://coveralls.io/repos/github/Deutsche-Boerse-Risk/DAVe/badge.svg?branch=master)](https://coveralls.io/github/Deutsche-Boerse-Risk/DAVe?branch=master) [![codebeat badge](https://codebeat.co/badges/54fe7c25-2329-4b95-8172-f80a01611474)](https://codebeat.co/projects/github-com-deutsche-boerse-risk-dave)
 
 # DAVe
 
