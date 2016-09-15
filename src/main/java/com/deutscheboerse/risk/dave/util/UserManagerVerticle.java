@@ -1,5 +1,10 @@
 package com.deutscheboerse.risk.dave.util;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
@@ -9,6 +14,7 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.auth.mongo.HashSaltStyle;
 import io.vertx.ext.auth.mongo.MongoAuth;
 import io.vertx.ext.mongo.MongoClient;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -173,43 +179,21 @@ public class UserManagerVerticle extends AbstractVerticle {
         this.mongo.close();
     }
 
-    public static void main(String[] args)
+    public static void main(String[] args) throws IOException
     {
-        String configFile = "./etc/dave.json";
-
-        if (args.length < 2)
-        {
+        if (args.length < 2 || !args[0].equals("-conf")) {
             System.out.println("Missing -conf option");
             System.exit(1);
         }
-        else
-        {
-            if (args[0].equals("-conf"))
-            {
-                configFile = args[1];
-            }
-            else
-            {
-                System.out.println("Missing -conf option");
-                System.exit(1);
-            }
-        }
+        
+        final String configFile = args[1];
+        final byte[] configFileEncoded = Files.readAllBytes(Paths.get(configFile));
+        final String configContent = new String(configFileEncoded, Charset.defaultCharset());
 
         Vertx vertx = Vertx.vertx();
-        Buffer configBuffer = vertx.fileSystem().readFileBlocking(configFile);
-        vertx.deployVerticle(UserManagerVerticle.class.getName(), new DeploymentOptions().setConfig(new JsonObject(configBuffer.getString(0, configBuffer.length()))), res -> {
-            if (res.succeeded())
-            {
-                // Command was executed successfully
-                vertx.close();
-                System.exit(0);
-            }
-            else
-            {
-                // Command probably failed
-                vertx.close();
-                System.exit(1);
-            }
+        vertx.deployVerticle(UserManagerVerticle.class.getName(), new DeploymentOptions().setConfig(new JsonObject(configContent)), res -> {
+            vertx.close();
+            System.exit(res.succeeded() ? 0 : 1);
         });
     }
 }
