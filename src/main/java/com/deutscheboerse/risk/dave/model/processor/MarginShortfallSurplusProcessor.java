@@ -8,7 +8,6 @@ import com.deutscheboerse.risk.dave.model.jaxb.PartiesBlockT;
 import com.deutscheboerse.risk.dave.model.jaxb.PtysSubGrpBlockT;
 import io.vertx.core.json.JsonObject;
 
-import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;

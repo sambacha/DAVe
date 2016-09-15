@@ -4,7 +4,6 @@ import java.util.Collections;
 
 import com.deutscheboerse.risk.dave.model.jaxb.MarginAmountBlockT;
 import com.deutscheboerse.risk.dave.model.jaxb.MarginRequirementReportMessageT;
-import com.deutscheboerse.risk.dave.model.jaxb.PtysSubGrpBlockT;
 import com.deutscheboerse.risk.dave.model.jaxb.AbstractMessageT;
 import com.deutscheboerse.risk.dave.model.jaxb.FIXML;
 import com.deutscheboerse.risk.dave.model.jaxb.PartiesBlockT;
@@ -38,26 +37,17 @@ public class MarginComponentProcessor extends AbstractProcessor implements Proce
 
         List<PartiesBlockT> parties = mcMessage.getPty();
 
-        for (PartiesBlockT party : parties)
-        {
-            if (party.getR().intValue() == 4)
-            {
+        parties.stream().forEach(party -> {
+            if (party.getR().intValue() == 4) {
                 mc.put("clearer", party.getID());
-            }
-            else if (party.getR().intValue() == 1)
-            {
+            } else if (party.getR().intValue() == 1) {
                 mc.put("member", party.getID());
-
-                List<PtysSubGrpBlockT> accounts = party.getSub();
-                for (PtysSubGrpBlockT account : accounts)
-                {
-                    if ("26".equals(account.getTyp()))
-                    {
-                        mc.put("account", account.getID());
-                    }
-                }
+                party.getSub().stream()
+                        .filter(account -> "26".equals(account.getTyp()))
+                        .findFirst()
+                        .ifPresent(account -> mc.put("account", account.getID()));
             }
-        }
+        });
 
         List<MarginAmountBlockT> margins = mcMessage.getMgnAmt();
         Set<String> typs = new HashSet<>();

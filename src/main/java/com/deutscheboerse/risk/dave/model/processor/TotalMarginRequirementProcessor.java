@@ -7,7 +7,6 @@ import com.deutscheboerse.risk.dave.model.jaxb.FIXML;
 import com.deutscheboerse.risk.dave.model.jaxb.MarginAmountBlockT;
 import com.deutscheboerse.risk.dave.model.jaxb.MarginRequirementReportMessageT;
 import com.deutscheboerse.risk.dave.model.jaxb.PartiesBlockT;
-import com.deutscheboerse.risk.dave.model.jaxb.PtysSubGrpBlockT;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Date;
@@ -37,35 +36,21 @@ public class TotalMarginRequirementProcessor extends AbstractProcessor implement
 
         List<PartiesBlockT> parties = tmrMessage.getPty();
 
-        for (PartiesBlockT party : parties)
-        {
-            if (party.getR().intValue() == 4)
-            {
+        parties.stream().forEach(party -> {
+            if (party.getR().intValue() == 4) {
                 tmr.put("clearer", party.getID());
-
-                List<PtysSubGrpBlockT> pools = party.getSub();
-                for (PtysSubGrpBlockT pool : pools)
-                {
-                    if ("4000".equals(pool.getTyp()))
-                    {
-                        tmr.put("pool", pool.getID());
-                    }
-                }
-            }
-            else if (party.getR().intValue() == 1)
-            {
+                party.getSub().stream()
+                        .filter(pool -> "4000".equals(pool.getTyp()))
+                        .findFirst()
+                        .ifPresent(pool -> tmr.put("pool", pool.getID()));
+            } else if (party.getR().intValue() == 1) {
                 tmr.put("member", party.getID());
-
-                List<PtysSubGrpBlockT> accounts = party.getSub();
-                for (PtysSubGrpBlockT account : accounts)
-                {
-                    if ("26".equals(account.getTyp()))
-                    {
-                        tmr.put("account", account.getID());
-                    }
-                }
+                party.getSub().stream()
+                        .filter(account -> "26".equals(account.getTyp()))
+                        .findFirst()
+                        .ifPresent(account -> tmr.put("account", account.getID()));
             }
-        }
+        });
 
         List<MarginAmountBlockT> margins = tmrMessage.getMgnAmt();
         Set<String> typs = new HashSet<>();
