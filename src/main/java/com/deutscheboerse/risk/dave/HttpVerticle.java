@@ -94,61 +94,27 @@ public class HttpVerticle extends AbstractVerticle {
 
     private Future<HttpServer> startHttpServer() {
         Future<HttpServer> webServerFuture = Future.future();
-        Router router = Router.router(vertx);
-
-        if (config().getJsonObject("CORS", new JsonObject()).getBoolean("enable", HttpVerticle.DEFAULT_CORS)) {
-            LOG.info("Enabling CORS handler");
-
-            //Wildcard(*) not allowed if allowCredentials is true
-            CorsHandler corsHandler = CorsHandler.create(config().getJsonObject("CORS", new JsonObject()).getString("origin", HttpVerticle.DEFAULT_CORS_ORIGIN));
-            corsHandler.allowCredentials(true);
-            corsHandler.allowedMethod(HttpMethod.OPTIONS);
-            corsHandler.allowedMethod(HttpMethod.GET);
-            corsHandler.allowedMethod(HttpMethod.POST);
-            corsHandler.allowedMethod(HttpMethod.DELETE);
-            corsHandler.allowedHeader("Authorization");
-            corsHandler.allowedHeader("www-authenticate");
-            corsHandler.allowedHeader("Content-Type");
-
-            router.route().handler(corsHandler);
-        }
-
-        UserApi userApi;
-
-        if (config().getJsonObject("auth", new JsonObject()).getBoolean("enable", HttpVerticle.DEFAULT_AUTH_ENABLED)) {
-            LOG.info("Enabling authentication");
-
-            AuthProvider authenticationProvider = this.createAuthenticationProvider();
-
-            router.route().handler(CookieHandler.create());
-            router.route().handler(BodyHandler.create());
-            router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
-            router.route().handler(UserSessionHandler.create(authenticationProvider));
-            router.routeWithRegex("^/api/v1.0/(?!user/login).*$").handler(ApiAuthHandler.create(authenticationProvider));
-
-            userApi = new UserApi(authenticationProvider, config().getJsonObject("auth").getBoolean("checkUserAgainstCertificate", HttpVerticle.DEFAULT_AUTH_CHECK_USER_AGAINST_CERTIFICATE));
-        }
-        else
-        {
-            userApi = new UserApi(null, false);
-        }
-
-        LOG.info("Adding route REST API");
-        router.route("/api/v1.0/*").handler(BodyHandler.create());
-        router.mountSubRouter("/api/v1.0/user", this.createUserSubRoutes(userApi));
-        router.mountSubRouter("/api/v1.0/tss", this.createTssSubRoutes());
-        router.mountSubRouter("/api/v1.0/mc", this.createMcSubRoutes());
-        router.mountSubRouter("/api/v1.0/tmr", this.createTmrSubRoutes());
-        router.mountSubRouter("/api/v1.0/mss", this.createMssSubRoutes());
-        router.mountSubRouter("/api/v1.0/pr", this.createPrSubRoutes());
-        router.mountSubRouter("/api/v1.0/rl", this.createRlSubRoutes());
-
-        router.route("/*").handler(StaticHandler.create("webroot"));
+        Router router = configureRouter();
+        HttpServerOptions httpOptions = configureWebServer();
 
         LOG.info("Starting web server on port {}", config().getInteger("httpPort", HttpVerticle.DEFAULT_HTTP_PORT));
+        server = vertx.createHttpServer(httpOptions)
+                .requestHandler(router::accept)
+                .listen(config().getInteger("httpPort", HttpVerticle.DEFAULT_HTTP_PORT), webServerFuture.completer());
 
+        return webServerFuture;
+    }
+
+    private HttpServerOptions configureWebServer()
+    {
         HttpServerOptions httpOptions = new HttpServerOptions();
+        setSsl(httpOptions);
+        setCompression(httpOptions);
+        return httpOptions;
+    }
 
+    private void setSsl(HttpServerOptions httpOptions)
+    {
         if (config().getJsonObject("ssl", new JsonObject()).getBoolean("enable", DEFAULT_SSL) && config().getJsonObject("ssl", new JsonObject()).getString("keystore") != null && config().getJsonObject("ssl", new JsonObject()).getString("keystorePassword") != null)
         {
             LOG.info("Enabling SSL on webserver");
@@ -170,17 +136,83 @@ public class HttpVerticle extends AbstractVerticle {
                 }
             }
         }
+    }
 
+    private void setCompression(HttpServerOptions httpOptions)
+    {
         if (config().getBoolean("compression", DEFAULT_COMPRESSION))
         {
             LOG.info("Enabling compression on webserver");
             httpOptions.setCompressionSupported(true);
         }
 
-        server = vertx.createHttpServer(httpOptions)
-                .requestHandler(router::accept)
-                .listen(config().getInteger("httpPort", HttpVerticle.DEFAULT_HTTP_PORT), webServerFuture.completer());
-        return webServerFuture;
+    }
+
+    private Router configureRouter()
+    {
+        Router router = Router.router(vertx);
+
+        setCorsHandler(router);
+        UserApi userApi = setAuthHandler(router);
+
+        LOG.info("Adding route REST API");
+        router.route("/api/v1.0/*").handler(BodyHandler.create());
+        router.mountSubRouter("/api/v1.0/user", this.createUserSubRoutes(userApi));
+        router.mountSubRouter("/api/v1.0/tss", this.createTssSubRoutes());
+        router.mountSubRouter("/api/v1.0/mc", this.createMcSubRoutes());
+        router.mountSubRouter("/api/v1.0/tmr", this.createTmrSubRoutes());
+        router.mountSubRouter("/api/v1.0/mss", this.createMssSubRoutes());
+        router.mountSubRouter("/api/v1.0/pr", this.createPrSubRoutes());
+        router.mountSubRouter("/api/v1.0/rl", this.createRlSubRoutes());
+
+        router.route("/*").handler(StaticHandler.create("webroot"));
+
+        return router;
+    }
+
+    private void setCorsHandler(Router router)
+    {
+        if (config().getJsonObject("CORS", new JsonObject()).getBoolean("enable", HttpVerticle.DEFAULT_CORS)) {
+            LOG.info("Enabling CORS handler");
+
+            //Wildcard(*) not allowed if allowCredentials is true
+            CorsHandler corsHandler = CorsHandler.create(config().getJsonObject("CORS", new JsonObject()).getString("origin", HttpVerticle.DEFAULT_CORS_ORIGIN));
+            corsHandler.allowCredentials(true);
+            corsHandler.allowedMethod(HttpMethod.OPTIONS);
+            corsHandler.allowedMethod(HttpMethod.GET);
+            corsHandler.allowedMethod(HttpMethod.POST);
+            corsHandler.allowedMethod(HttpMethod.DELETE);
+            corsHandler.allowedHeader("Authorization");
+            corsHandler.allowedHeader("www-authenticate");
+            corsHandler.allowedHeader("Content-Type");
+
+            router.route().handler(corsHandler);
+        }
+    }
+
+    private UserApi setAuthHandler(Router router)
+    {
+        UserApi userApi;
+
+        if (config().getJsonObject("auth", new JsonObject()).getBoolean("enable", HttpVerticle.DEFAULT_AUTH_ENABLED)) {
+            LOG.info("Enabling authentication");
+
+            AuthProvider authenticationProvider = this.createAuthenticationProvider();
+
+            router.route().handler(CookieHandler.create());
+            router.route().handler(BodyHandler.create());
+            router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+            router.route().handler(UserSessionHandler.create(authenticationProvider));
+            router.routeWithRegex("^/api/v1.0/(?!user/login).*$").handler(ApiAuthHandler.create(authenticationProvider));
+
+            userApi = new UserApi(authenticationProvider, config().getJsonObject("auth").getBoolean("checkUserAgainstCertificate", HttpVerticle.DEFAULT_AUTH_CHECK_USER_AGAINST_CERTIFICATE));
+        }
+        else
+        {
+            userApi = new UserApi(null, false);
+        }
+
+        return userApi;
     }
 
     private Router createUserSubRoutes(UserApi userApi) {
