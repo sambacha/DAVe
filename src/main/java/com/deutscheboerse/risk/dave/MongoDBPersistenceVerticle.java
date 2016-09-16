@@ -35,31 +35,12 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
     public void start(Future<Void> fut) throws Exception {
         LOG.info("Starting {} with configuration: {}", MongoDBPersistenceVerticle.class.getSimpleName(), config().encodePrettily());
 
-        Future<String> chainFuture = Future.future();
-
-        Future<Void> connectDbFuture = Future.future();
-        connectDb(connectDbFuture.completer());
-
-        connectDbFuture.compose(v -> {
-            LOG.info("Connected to MongoDB");
-            Future<Void> initDbFuture = Future.future();
-            initDb(initDbFuture.completer());
-            return initDbFuture;
-        }).compose(v -> {
-            LOG.info("Initialized MongoDB");
-            Future<Void> startStoreHandlersFuture = Future.future();
-            startStoreHandlers(startStoreHandlersFuture.completer());
-            return startStoreHandlersFuture;
-        }).compose(v -> {
-            LOG.info("Event bus store handlers subscribed");
-            Future<Void> startQueryHandlersFuture = Future.future();
-            startQueryHandlers(startQueryHandlersFuture.completer());
-            return startQueryHandlersFuture;
-        }).compose(v -> {
-            LOG.info("Event bus query handlers subscribed");
-            chainFuture.complete();
-        }, chainFuture);
-
+        Future<Void> chainFuture = Future.future();
+        connectDb()
+                .compose(this::initDb)
+                .compose(this::startStoreHandlers)
+                .compose(this::startQueryHandlers)
+                .compose(chainFuture::complete, chainFuture);
         chainFuture.setHandler(ar -> {
             if (ar.succeeded()) {
                 LOG.info("MongoDB verticle started");
@@ -71,17 +52,19 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         });
     }
 
-    private void connectDb(Handler<AsyncResult<Void>> completer) {
+    private Future<Void> connectDb() {
         JsonObject config = new JsonObject();
         config.put("db_name", config().getString("db_name", MongoDBPersistenceVerticle.DEFAULT_DB_NAME));
         config.put("useObjectId", true);
         config.put("connection_string", config().getString("connection_string", MongoDBPersistenceVerticle.DEFAULT_CONNECTION_STRING));
 
         mongo = MongoClient.createShared(vertx, config);
-        completer.handle(Future.succeededFuture());
+        LOG.info("Connected to MongoDB");
+        return Future.succeededFuture();
     }
 
-    private void initDb(Handler<AsyncResult<Void>> completer) {
+    private Future<Void> initDb(Void unused) {
+        Future<Void> initDbFuture = Future.future();
         mongo.getCollections(res -> {
             if (res.succeeded()) {
                 List<String> mongoCollections = res.result();
@@ -109,22 +92,24 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
                     if (ar.succeeded())
                     {
                         LOG.info("Mongo has all needed collections for ERS");
-                        completer.handle(Future.succeededFuture());
+                        LOG.info("Initialized MongoDB");
+                        initDbFuture.complete();
                     }
                     else
                     {
                         LOG.error("Failed to add all collections needed for ERS to Mongo", ar.cause());
-                        completer.handle(Future.failedFuture(ar.cause()));
+                        initDbFuture.fail(ar.cause());
                     }
                 });
             } else {
                 LOG.error("Failed to get collection list", res.cause());
-                completer.handle(Future.failedFuture(res.cause()));
+                initDbFuture.fail(res.cause());
             }
         });
+        return initDbFuture;
     }
 
-    private void startStoreHandlers(Handler<AsyncResult<Void>> completer)
+    private Future<Void> startStoreHandlers(Void unused)
     {
         EventBus eb = vertx.eventBus();
 
@@ -137,10 +122,11 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         // TODO: Use JsonObjects for risk limits and move it to store(message) method as well
         eb.consumer("ers.RiskLimit", message -> storeRiskLimit(message));
 
-        completer.handle(Future.succeededFuture());
+        LOG.info("Event bus store handlers subscribed");
+        return Future.succeededFuture();
     }
 
-    private void startQueryHandlers(Handler<AsyncResult<Void>> completer)
+    private Future<Void> startQueryHandlers(Void unused)
     {
         EventBus eb = vertx.eventBus();
 
@@ -158,7 +144,8 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         eb.consumer("query.latestRiskLimit", message -> queryLatest(message, new RiskLimitModel()));
         eb.consumer("query.historyRiskLimit", message -> queryHistory(message, new RiskLimitModel()));
 
-        completer.handle(Future.succeededFuture());
+        LOG.info("Event bus query handlers subscribed");
+        return Future.succeededFuture();
     }
 
     private void queryLatest(Message msg, AbstractModel model)

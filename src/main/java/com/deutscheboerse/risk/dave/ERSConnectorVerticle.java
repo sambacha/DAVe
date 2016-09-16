@@ -43,8 +43,7 @@ public class ERSConnectorVerticle extends AbstractVerticle {
     public void start(Future<Void> startFuture) {
         LOG.info("Starting {} with configuration: {}", ERSConnectorVerticle.class.getSimpleName(), config().encodePrettily());
         Future<Void> chainFuture = Future.future();
-        Future<Void> startCamelFuture = startCamel();
-        startCamelFuture
+        startCamel()
                 .compose(this::startCamelBridge)
                 .compose(this::requestInitialData)
                 .compose(chainFuture::complete, chainFuture);
@@ -86,7 +85,7 @@ public class ERSConnectorVerticle extends AbstractVerticle {
         }
         return startCamelFuture;
     }
-    
+
     private AMQConnectionFactory createAMQConnectionFactory() throws URLSyntaxException {
         String connectionAddress = String.format("amqp://:@MyCamelApp/?brokerlist='%s:%d?tcp_nodelay='true'&ssl='true'&ssl_cert_alias='%s'&sasl_mechs='EXTERNAL'&trust_store='%s'&trust_store_password='%s'&key_store='%s'&key_store_password='%s'&ssl_verify_hostname='false''&sync_publish='all'",
                 config().getString("brokerHost", ERSConnectorVerticle.DEFAULT_BROKER_HOST),
@@ -99,7 +98,7 @@ public class ERSConnectorVerticle extends AbstractVerticle {
         AMQConnectionFactory amqpFact = new AMQConnectionFactory(connectionAddress);
         return amqpFact;
     }
-    
+
     private RouteBuilder createRouteBuilder() {
         return new RouteBuilder() {
             @Override
@@ -108,7 +107,7 @@ public class ERSConnectorVerticle extends AbstractVerticle {
                 final UUID addressSuffix = UUID.randomUUID();
                 final String member = config().getString("member", ERSConnectorVerticle.DEFAULT_MEMBER);
                 ersDataModel.setContextPath("com.deutscheboerse.risk.dave.model.jaxb");
-                
+
                 String tssBroadcastAddress = getBroadcastAddress(String.format("eurex.tmp.%s.dave_tss_%s", member, addressSuffix),
                         "public.MessageType.TradingSessionStatus.#");
                 String mcBroadcastAddress = getBroadcastAddress(String.format("eurex.tmp.%s.dave_mc_", member, addressSuffix),
@@ -121,19 +120,19 @@ public class ERSConnectorVerticle extends AbstractVerticle {
                         member + ".MessageType.Position.#");
                 String rlBroadcastAddress = getBroadcastAddress(String.format("eurex.tmp.%s.dave_rl_", member, addressSuffix),
                         member + ".MessageType.RiskLimits.#");
-                
+
                 String tssResponseAddress = getResponseAddress(String.format("eurex.tmp.%s.dave_resp_tss_", member, addressSuffix),
                         member + ".TradingSessionStatus");
                 String tssReplyAddress = getReplyAddress(member + ".TradingSessionStatus");
                 String tssRequestAddress = getRequestAddress(member);
-                
+
                 from("amqp:" + tssBroadcastAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcessor()).to("direct:tss");
                 from("amqp:" + mcBroadcastAddress).unmarshal(ersDataModel).process(new MarginComponentProcessor()).to("direct:mc");
                 from("amqp:" + tmrBroadcastAddress).unmarshal(ersDataModel).process(new TotalMarginRequirementProcessor()).to("direct:tmr");
                 from("amqp:" + mssBroadcastAddress).unmarshal(ersDataModel).process(new MarginShortfallSurplusProcessor()).to("direct:mss");
                 from("amqp:" + prBroadcastAddress).unmarshal(ersDataModel).process(new PositionReportProcessor()).to("direct:pr");
                 from("amqp:" + rlBroadcastAddress).unmarshal(ersDataModel).process(new RiskLimitProcessor()).to("direct:rl");
-                
+
                 from("amqp:" + tssResponseAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcessor()).to("direct:tssResponse");
                 from("direct:tssRequest").process(new TradingSessionStatusRequestProcessor(tssReplyAddress)).marshal(ersDataModel).to("amqp:" + tssRequestAddress + "?preserveMessageQos=true");
             }
