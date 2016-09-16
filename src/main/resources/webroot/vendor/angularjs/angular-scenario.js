@@ -27732,7 +27732,7 @@ function FormController(element, attrs, $scope, $animate, $interpolate) {
         </form>
       </file>
       <file name="protractor.js" type="protractor">
-        it('should initialize to model', function() {
+        it(ers, function() {
           var userType = element(by.binding('userType'));
           var valid = element(by.binding('myForm.input.$valid'));
 

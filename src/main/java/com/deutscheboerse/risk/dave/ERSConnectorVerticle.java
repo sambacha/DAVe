@@ -1,6 +1,6 @@
 package com.deutscheboerse.risk.dave;
 
-import com.deutscheboerse.risk.dave.model.processor.*;
+import com.deutscheboerse.risk.dave.ers.processor.*;
 import io.vertx.camel.CamelBridge;
 import io.vertx.camel.CamelBridgeOptions;
 import io.vertx.camel.InboundMapping;
@@ -101,30 +101,24 @@ public class ERSConnectorVerticle extends AbstractVerticle {
 
     private RouteBuilder createRouteBuilder() {
         return new RouteBuilder() {
+            final UUID addressSuffix = UUID.randomUUID();
+            final String member = config().getString("member", ERSConnectorVerticle.DEFAULT_MEMBER);
+
             @Override
             public void configure() {
                 final JaxbDataFormat ersDataModel = new JaxbDataFormat(true);
-                final UUID addressSuffix = UUID.randomUUID();
-                final String member = config().getString("member", ERSConnectorVerticle.DEFAULT_MEMBER);
-                ersDataModel.setContextPath("com.deutscheboerse.risk.dave.model.jaxb");
+                ersDataModel.setContextPath("com.deutscheboerse.risk.dave.ers.jaxb");
 
-                String tssBroadcastAddress = getBroadcastAddress(String.format("eurex.tmp.%s.dave_tss_%s", member, addressSuffix),
-                        "public.MessageType.TradingSessionStatus.#");
-                String mcBroadcastAddress = getBroadcastAddress(String.format("eurex.tmp.%s.dave_mc_", member, addressSuffix),
-                        member + ".MessageType.MarginComponents.#");
-                String tmrBroadcastAddress = getBroadcastAddress(String.format("eurex.tmp.%s.dave_tmr_", member, addressSuffix),
-                        member + ".MessageType.TotalMarginRequirement.#");
-                String mssBroadcastAddress = getBroadcastAddress(String.format("eurex.tmp.%s.dave_mss_", member, addressSuffix),
-                        member + ".MessageType.MarginShortfallSurplus.#");
-                String prBroadcastAddress = getBroadcastAddress(String.format("eurex.tmp.%s.dave_pr_", member, addressSuffix),
-                        member + ".MessageType.Position.#");
-                String rlBroadcastAddress = getBroadcastAddress(String.format("eurex.tmp.%s.dave_rl_", member, addressSuffix),
-                        member + ".MessageType.RiskLimits.#");
+                String tssBroadcastAddress = getBroadcastAddress("tss", "public.MessageType.TradingSessionStatus.#");
+                String mcBroadcastAddress = getBroadcastAddress("mc", member + ".MessageType.MarginComponents.#");
+                String tmrBroadcastAddress = getBroadcastAddress("tmr", member + ".MessageType.TotalMarginRequirement.#");
+                String mssBroadcastAddress = getBroadcastAddress("mss", member + ".MessageType.MarginShortfallSurplus.#");
+                String prBroadcastAddress = getBroadcastAddress("pr", member + ".MessageType.Position.#");
+                String rlBroadcastAddress = getBroadcastAddress("rl", member + ".MessageType.RiskLimits.#");
 
-                String tssResponseAddress = getResponseAddress(String.format("eurex.tmp.%s.dave_resp_tss_", member, addressSuffix),
-                        member + ".TradingSessionStatus");
+                String tssResponseAddress = getResponseAddress("tss", member + ".TradingSessionStatus");
                 String tssReplyAddress = getReplyAddress(member + ".TradingSessionStatus");
-                String tssRequestAddress = getRequestAddress(member);
+                String tssRequestAddress = getRequestAddress();
 
                 from("amqp:" + tssBroadcastAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcessor()).to("direct:tss");
                 from("amqp:" + mcBroadcastAddress).unmarshal(ersDataModel).process(new MarginComponentProcessor()).to("direct:mc");
@@ -136,33 +130,37 @@ public class ERSConnectorVerticle extends AbstractVerticle {
                 from("amqp:" + tssResponseAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcessor()).to("direct:tssResponse");
                 from("direct:tssRequest").process(new TradingSessionStatusRequestProcessor(tssReplyAddress)).marshal(ersDataModel).to("amqp:" + tssRequestAddress + "?preserveMessageQos=true");
             }
+
+            private String getBroadcastAddress(String type, String routingKey) {
+                String queueName = String.format("eurex.tmp.%s.dave_%s_%s", member, type, addressSuffix);
+
+                return String.format("%s; {create: receiver, assert: never, node: "
+                        + "{ type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: "
+                        + "{ 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, "
+                        + "'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.broadcast',"
+                        + "queue: '%s', key: '%s' } ] } }", queueName, queueName, routingKey);
+            }
+
+            private String getResponseAddress(String type, String routingKey) {
+                String queueName = String.format("eurex.tmp.%s.dave_resp_%s_%s", member, type, addressSuffix);
+
+                return String.format("%s; {create: receiver, assert: never, node: "
+                        + "{ type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: "
+                        + "{ 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, "
+                        + "'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.response',"
+                        + "queue: '%s', key: '%s' } ] } }", queueName, queueName, routingKey);
+            }
+
+            private String getReplyAddress(String routingKey)
+            {
+                return String.format("eurex.response/%s; { node: { type: topic }, assert: never, create: never}", routingKey);
+            }
+
+            private String getRequestAddress()
+            {
+                return String.format("eurex.%s/%s.ERS; { node: { type: topic }, assert: never, create: never}", member, member);
+            }
         };
-    }
-
-    private String getBroadcastAddress(String name, String routingKey) {
-        return String.format("%s; {create: receiver, assert: never, node: "
-                + "{ type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: "
-                + "{ 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, "
-                + "'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.broadcast',"
-                + "queue: '%s', key: '%s' } ] } }", name, name, routingKey);
-    }
-
-    private String getResponseAddress(String name, String routingKey) {
-        return String.format("%s; {create: receiver, assert: never, node: "
-                + "{ type: queue, x-declare: { auto-delete: true, exclusive: false, arguments: "
-                + "{ 'qpid.policy_type': ring, 'qpid.max_count': 1000, 'qpid.max_size': 1000000, "
-                + "'qpid.auto_delete_timeout': 60 } }, x-bindings: [ { exchange: 'eurex.response',"
-                + "queue: '%s', key: '%s' } ] } }", name, name, routingKey);
-    }
-
-    private String getReplyAddress(String routingKey)
-    {
-        return String.format("eurex.response/%s; { node: { type: topic }, assert: never, create: never}", routingKey);
-    }
-
-    private String getRequestAddress(String member)
-    {
-        return String.format("eurex.%s/%s.ERS; { node: { type: topic }, assert: never, create: never}", member, member);
     }
 
     public Future<Void> startCamelBridge(Void unused)

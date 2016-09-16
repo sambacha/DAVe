@@ -1,11 +1,10 @@
 package com.deutscheboerse.risk.dave;
 
-import com.deutscheboerse.risk.dave.model.*;
+import com.deutscheboerse.risk.dave.ers.model.*;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
