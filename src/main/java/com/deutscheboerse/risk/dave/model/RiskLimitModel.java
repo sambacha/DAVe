@@ -1,22 +1,24 @@
 package com.deutscheboerse.risk.dave.model;
 
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
  * Created by schojak on 15.9.16.
  */
 public class RiskLimitModel extends AbstractModel {
-    private final String mongoCollection = "ers.RiskLimit";
+    private static final String MONGO_COLLECTION = "ers.RiskLimit";
+    private static final AbstractModel INSTANCE = new RiskLimitModel();
 
-    public JsonObject getLatestCommand(JsonObject params)
-    {
-        return getCommand(mongoCollection, getLatestPipeline(params));
+    protected RiskLimitModel() {
     }
 
-    public JsonObject getHistoryCommand(JsonObject params)
+    public static JsonObject getLatestCommand(JsonObject params) {
+        return INSTANCE.getCommand(MONGO_COLLECTION, INSTANCE.getLatestPipeline(params));
+    }
+
+    public static JsonObject getHistoryCommand(JsonObject params)
     {
-        return getCommand(mongoCollection, getHistoryPipeline(params));
+        return INSTANCE.getCommand(MONGO_COLLECTION, INSTANCE.getHistoryPipeline(params));
     }
 
     protected JsonObject getGroup()
@@ -63,7 +65,7 @@ public class RiskLimitModel extends AbstractModel {
         project.put("throttleLevel", 1);
         project.put("rejectLevel", 1);
         project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received")));
-        
+
         return project;
     }
 }

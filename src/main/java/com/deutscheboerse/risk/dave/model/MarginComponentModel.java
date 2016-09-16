@@ -1,22 +1,24 @@
 package com.deutscheboerse.risk.dave.model;
 
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
  * Created by schojak on 15.9.16.
  */
 public class MarginComponentModel extends AbstractModel {
-    private final String mongoCollection = "ers.MarginComponent";
+    private static final String MONGO_COLLECTION = "ers.MarginComponent";
+    private static final AbstractModel INSTANCE = new MarginComponentModel();
 
-    public JsonObject getLatestCommand(JsonObject params)
-    {
-        return getCommand(mongoCollection, getLatestPipeline(params));
+    protected MarginComponentModel() {
     }
 
-    public JsonObject getHistoryCommand(JsonObject params)
+    public static JsonObject getLatestCommand(JsonObject params) {
+        return INSTANCE.getCommand(MONGO_COLLECTION, INSTANCE.getLatestPipeline(params));
+    }
+
+    public static JsonObject getHistoryCommand(JsonObject params)
     {
-        return getCommand(mongoCollection, getHistoryPipeline(params));
+        return INSTANCE.getCommand(MONGO_COLLECTION, INSTANCE.getHistoryPipeline(params));
     }
 
     protected JsonObject getGroup()

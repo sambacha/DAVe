@@ -10,8 +10,6 @@ public abstract class AbstractModel {
     final String mongoTimestampFormat = "%Y-%m-%dT%H:%M:%S.%L";
     final String mongoDayFormat = "%Y-%m-%d";
 
-    public abstract JsonObject getLatestCommand(JsonObject params);
-    public abstract JsonObject getHistoryCommand(JsonObject params);
     protected abstract JsonObject getGroup();
     protected abstract JsonObject getProject();
 

@@ -131,30 +131,30 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         EventBus eb = vertx.eventBus();
 
         // Query endpoints
-        eb.consumer("query.latestTradingSessionStatus", message -> query(message, (new TradingSessionStatusModel())::getLatestCommand));
-        eb.consumer("query.historyTradingSessionStatus", message -> query(message, (new TradingSessionStatusModel())::getHistoryCommand));
-        eb.consumer("query.latestMarginComponent", message -> query(message, (new MarginComponentModel())::getLatestCommand));
-        eb.consumer("query.historyMarginComponent", message -> query(message, (new MarginComponentModel())::getHistoryCommand));
-        eb.consumer("query.latestTotalMarginRequirement", message -> query(message, (new TotalMarginRequirementModel())::getLatestCommand));
-        eb.consumer("query.historyTotalMarginRequirement", message -> query(message, (new TotalMarginRequirementModel())::getHistoryCommand));
-        eb.consumer("query.latestMarginShortfallSurplus", message -> query(message, (new MarginShortfallSurplusModel())::getLatestCommand));
-        eb.consumer("query.historyMarginShortfallSurplus", message -> query(message, (new MarginShortfallSurplusModel())::getHistoryCommand));
-        eb.consumer("query.latestPositionReport", message -> query(message, (new PositionReportModel())::getLatestCommand));
-        eb.consumer("query.historyPositionReport", message -> query(message, (new PositionReportModel())::getHistoryCommand));
-        eb.consumer("query.latestRiskLimit", message -> query(message, (new RiskLimitModel())::getLatestCommand));
-        eb.consumer("query.historyRiskLimit", message -> query(message, (new RiskLimitModel())::getHistoryCommand));
+        eb.consumer("query.latestTradingSessionStatus", message -> query(message, TradingSessionStatusModel::getLatestCommand));
+        eb.consumer("query.historyTradingSessionStatus", message -> query(message, TradingSessionStatusModel::getHistoryCommand));
+        eb.consumer("query.latestMarginComponent", message -> query(message, MarginComponentModel::getLatestCommand));
+        eb.consumer("query.historyMarginComponent", message -> query(message, MarginComponentModel::getHistoryCommand));
+        eb.consumer("query.latestTotalMarginRequirement", message -> query(message, TotalMarginRequirementModel::getLatestCommand));
+        eb.consumer("query.historyTotalMarginRequirement", message -> query(message, TotalMarginRequirementModel::getHistoryCommand));
+        eb.consumer("query.latestMarginShortfallSurplus", message -> query(message, MarginShortfallSurplusModel::getLatestCommand));
+        eb.consumer("query.historyMarginShortfallSurplus", message -> query(message, MarginShortfallSurplusModel::getHistoryCommand));
+        eb.consumer("query.latestPositionReport", message -> query(message, PositionReportModel::getLatestCommand));
+        eb.consumer("query.historyPositionReport", message -> query(message, PositionReportModel::getHistoryCommand));
+        eb.consumer("query.latestRiskLimit", message -> query(message, RiskLimitModel::getLatestCommand));
+        eb.consumer("query.historyRiskLimit", message -> query(message, RiskLimitModel::getHistoryCommand));
 
         LOG.info("Event bus query handlers subscribed");
         return Future.succeededFuture();
     }
 
-    private void query(Message msg, Function<JsonObject, JsonObject> command)
+    private void query(Message msg, Function<JsonObject, JsonObject> commandFnc)
     {
         LOG.trace("Received {} query with message {}", msg.address(), msg.body());
 
         JsonObject params = (JsonObject)msg.body();
 
-        mongo.runCommand("aggregate", command.apply(params), res -> {
+        mongo.runCommand("aggregate", commandFnc.apply(params), res -> {
             if (res.succeeded()) {
                 msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
             } else {

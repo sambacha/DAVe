@@ -1,22 +1,24 @@
 package com.deutscheboerse.risk.dave.model;
 
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
  * Created by schojak on 15.9.16.
  */
 public class PositionReportModel extends AbstractModel {
-    private final String mongoCollection = "ers.PositionReport";
+    private static final String MONGO_COLLECTION = "ers.PositionReport";
+    private static final AbstractModel INSTANCE = new PositionReportModel();
 
-    public JsonObject getLatestCommand(JsonObject params)
-    {
-        return getCommand(mongoCollection, getLatestPipeline(params));
+    protected PositionReportModel() {
     }
 
-    public JsonObject getHistoryCommand(JsonObject params)
+    public static JsonObject getLatestCommand(JsonObject params) {
+        return INSTANCE.getCommand(MONGO_COLLECTION, INSTANCE.getLatestPipeline(params));
+    }
+
+    public static JsonObject getHistoryCommand(JsonObject params)
     {
-        return getCommand(mongoCollection, getHistoryPipeline(params));
+        return INSTANCE.getCommand(MONGO_COLLECTION, INSTANCE.getHistoryPipeline(params));
     }
 
     protected JsonObject getGroup()
@@ -73,7 +75,7 @@ public class PositionReportModel extends AbstractModel {
         project.put("allocationTradeQty", 1);
         project.put("deliveryNoticeQty", 1);
         project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received")));
-        
+
         return project;
     }
 }
