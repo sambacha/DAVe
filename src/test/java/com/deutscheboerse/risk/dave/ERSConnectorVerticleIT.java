@@ -310,45 +310,39 @@ public class ERSConnectorVerticleIT {
 
     @Test
     public void testRiskLimit(TestContext context) throws InterruptedException {
-        final Async asyncReceiver = context.async();
+        final Async asyncReceiver = context.async(2);
         vertx.eventBus().consumer("ers.RiskLimit", msg -> {
             try
             {
-                JsonArray limits = (JsonArray)msg.body();
-                context.assertEquals(limits.size(), 2);
+                JsonObject rl = (JsonObject)msg.body();
+                context.assertEquals(rl.getString("clearer"), "ABCFR");
+                context.assertEquals(rl.getString("member"), "DEFFR");
+                context.assertEquals(rl.getString("maintainer"), "ABCFR");
+                context.assertNull(rl.getString("reqID"));
+                context.assertEquals(rl.getString("reqRslt"), "0");
+                context.assertNull(rl.getString("txt"));
+                context.assertEquals(rl.getJsonObject("txnTm"), new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T14:46:18.550+01:00"))));
+                context.assertEquals(rl.getString("rptId"), "13365938226620");
 
-                for (Object member : limits.getList()) {
-                    JsonObject rl = (JsonObject)member;
-
-                    context.assertEquals(rl.getString("clearer"), "ABCFR");
-                    context.assertEquals(rl.getString("member"), "DEFFR");
-                    context.assertEquals(rl.getString("maintainer"), "ABCFR");
-                    context.assertNull(rl.getString("reqID"));
-                    context.assertEquals(rl.getString("reqRslt"), "0");
-                    context.assertNull(rl.getString("txt"));
-                    context.assertEquals(rl.getJsonObject("txnTm"), new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T14:46:18.550+01:00"))));
-                    context.assertEquals(rl.getString("rptId"), "13365938226620");
-
-                    switch (rl.getString("limitType"))
-                    {
-                        case "TMR":
-                            context.assertEquals(rl.getDouble("utilization"), 2838987418.92);
-                            context.assertEquals(rl.getDouble("warningLevel"), 1000.0);
-                            context.assertEquals(rl.getDouble("throttleLevel"), 10000.0);
-                            context.assertEquals(rl.getDouble("rejectLevel"), 100000.0);
-                            break;
-                        case "NDM":
-                            context.assertEquals(rl.getDouble("utilization"), 2480888829.87);
-                            context.assertEquals(rl.getDouble("warningLevel"), 2000.0);
-                            context.assertEquals(rl.getDouble("throttleLevel"), 20000.0);
-                            context.assertEquals(rl.getDouble("rejectLevel"), 200000.0);
-                            break;
-                        default:
-                            context.fail("Got unexpected limit type!");
-                    }
+                switch (rl.getString("limitType"))
+                {
+                    case "TMR":
+                        context.assertEquals(rl.getDouble("utilization"), 2838987418.92);
+                        context.assertEquals(rl.getDouble("warningLevel"), 1000.0);
+                        context.assertEquals(rl.getDouble("throttleLevel"), 10000.0);
+                        context.assertEquals(rl.getDouble("rejectLevel"), 100000.0);
+                        break;
+                    case "NDM":
+                        context.assertEquals(rl.getDouble("utilization"), 2480888829.87);
+                        context.assertEquals(rl.getDouble("warningLevel"), 2000.0);
+                        context.assertEquals(rl.getDouble("throttleLevel"), 20000.0);
+                        context.assertEquals(rl.getDouble("rejectLevel"), 200000.0);
+                        break;
+                    default:
+                        context.fail("Got unexpected limit type!");
                 }
 
-                asyncReceiver.complete();
+                asyncReceiver.countDown();
             }
             catch (Exception e)
             {
@@ -357,6 +351,7 @@ public class ERSConnectorVerticleIT {
         });
 
         sendErsBroadcast(context, "ABCFR.MessageType.RiskLimits", DummyData.riskLimitXML);
+        asyncReceiver.awaitSuccess();
     }
 
     @AfterClass

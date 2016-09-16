@@ -121,7 +121,8 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         eb.consumer("ers.MarginShortfallSurplus", message -> store(message));
         eb.consumer("ers.PositionReport", message -> store(message));
         // TODO: Use JsonObjects for risk limits and move it to store(message) method as well
-        eb.consumer("ers.RiskLimit", message -> storeRiskLimit(message));
+        //eb.consumer("ers.RiskLimit", message -> storeRiskLimit(message));
+        eb.consumer("ers.RiskLimit", message -> store(message));
 
         LOG.info("Event bus store handlers subscribed");
         return Future.succeededFuture();
@@ -179,48 +180,6 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
             {
                 LOG.error("Failed to store {} into DB ", msg.address(), res.cause());
                 msg.fail(1, res.cause().getMessage());
-            }
-        });
-    }
-
-
-    private void storeRiskLimit(Message msg)
-    {
-        LOG.trace("Storing RL message with body: " + msg.body().toString());
-
-        List<Future> storeTasks = new ArrayList<>();
-        JsonArray jsonMsg = (JsonArray)msg.body();
-
-        for (int i = 0; i < jsonMsg.size(); i++)
-        {
-            Future storeTask = Future.future();
-            storeTasks.add(storeTask);
-
-            JsonObject jsonRl = jsonMsg.getJsonObject(i);
-            mongo.insert("ers.RiskLimit", jsonRl, res -> {
-                if (res.succeeded())
-                {
-                    LOG.trace("Stored RiskLimit into DB {}", jsonRl);
-                    storeTask.complete();
-                }
-                else
-                {
-                    LOG.error("Failed to store RiskLimit {} into DB", res.cause(), jsonRl);
-                    storeTask.fail(res.cause());
-                }
-            });
-        }
-
-        CompositeFuture.all(storeTasks).setHandler(ar -> {
-            if (ar.succeeded())
-            {
-                LOG.trace("Complete RiskLimit message stored in DB");
-                msg.reply(new JsonObject());
-            }
-            else
-            {
-                LOG.trace("Failed to store complete RiskLimit message into DB");
-                msg.fail(1, ar.cause().getMessage());
             }
         });
     }

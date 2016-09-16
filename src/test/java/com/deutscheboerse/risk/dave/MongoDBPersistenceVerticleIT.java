@@ -757,7 +757,7 @@ public class MongoDBPersistenceVerticleIT {
         // Feed the data into the store
         DummyData.riskLimitJson.forEach(rl -> {
             final Async asyncSend = context.async();
-            vertx.eventBus().send("ers.RiskLimit", new JsonArray().add(rl), ar -> {
+            vertx.eventBus().send("ers.RiskLimit", rl, ar -> {
                 context.assertTrue(ar.succeeded());
                 asyncSend.complete();
             });
