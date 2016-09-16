@@ -120,8 +120,6 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         eb.consumer("ers.TotalMarginRequirement", message -> store(message));
         eb.consumer("ers.MarginShortfallSurplus", message -> store(message));
         eb.consumer("ers.PositionReport", message -> store(message));
-        // TODO: Use JsonObjects for risk limits and move it to store(message) method as well
-        //eb.consumer("ers.RiskLimit", message -> storeRiskLimit(message));
         eb.consumer("ers.RiskLimit", message -> store(message));
 
         LOG.info("Event bus store handlers subscribed");
