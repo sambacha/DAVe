@@ -6,7 +6,6 @@ import com.deutscheboerse.risk.dave.ers.jaxb.AbstractMessageT;
 import com.deutscheboerse.risk.dave.ers.jaxb.FIXML;
 import com.deutscheboerse.risk.dave.ers.jaxb.MarginAmountBlockT;
 import com.deutscheboerse.risk.dave.ers.jaxb.MarginRequirementReportMessageT;
-import com.deutscheboerse.risk.dave.ers.jaxb.PartiesBlockT;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Date;
@@ -34,23 +33,7 @@ public class TotalMarginRequirementProcessor extends AbstractProcessor implement
         tmr.put("txnTm", new JsonObject().put("$date", timestampFormatter.format(tmrMessage.getTxnTm().toGregorianCalendar().getTime())));
         tmr.put("bizDt", new JsonObject().put("$date", timestampFormatter.format(tmrMessage.getBizDt().toGregorianCalendar().getTime())));
 
-        List<PartiesBlockT> parties = tmrMessage.getPty();
-
-        parties.stream().forEach(party -> {
-            if (party.getR().intValue() == 4) {
-                tmr.put("clearer", party.getID());
-                party.getSub().stream()
-                        .filter(pool -> "4000".equals(pool.getTyp()))
-                        .findFirst()
-                        .ifPresent(pool -> tmr.put("pool", pool.getID()));
-            } else if (party.getR().intValue() == 1) {
-                tmr.put("member", party.getID());
-                party.getSub().stream()
-                        .filter(account -> "26".equals(account.getTyp()))
-                        .findFirst()
-                        .ifPresent(account -> tmr.put("account", account.getID()));
-            }
-        });
+        processParties(tmrMessage.getPty(), tmr);
 
         List<MarginAmountBlockT> margins = tmrMessage.getMgnAmt();
         Set<String> typs = new HashSet<>();

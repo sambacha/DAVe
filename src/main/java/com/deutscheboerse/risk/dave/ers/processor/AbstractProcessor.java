@@ -7,17 +7,44 @@ import java.util.List;
 import java.util.Set;
 
 import com.deutscheboerse.risk.dave.ers.jaxb.MarginAmountBlockT;
+import com.deutscheboerse.risk.dave.ers.jaxb.PartiesBlockT;
+import com.deutscheboerse.risk.dave.ers.jaxb.PtysSubGrpBlockT;
 import io.vertx.core.json.JsonObject;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AbstractProcessor {
     protected final DateFormat timestampFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-    
+
+    protected void processParties(List<PartiesBlockT> parties, JsonObject data) {
+        Map<Integer, String> partyKeys = new HashMap<>();
+        partyKeys.put(1, "member");
+        partyKeys.put(4, "clearer");
+        parties.stream()
+                .filter(party -> partyKeys.containsKey(party.getR().intValue()))
+                .forEach(party -> {
+                    data.put(partyKeys.get(party.getR().intValue()), party.getID());
+                    processSubParties(party.getSub(), data);
+                });
+    }
+
+    private void processSubParties(List<PtysSubGrpBlockT> subParties, JsonObject data) {
+        if (subParties == null) return;
+        Map<String, String> subPartyKeys = new HashMap<>();
+        subPartyKeys.put("26", "account");
+        subPartyKeys.put("4000", "pool");
+        subPartyKeys.put("4001", "poolType");
+        subParties.stream()
+                .filter(subParty -> subPartyKeys.containsKey(subParty.getTyp()))
+                .forEach(subParty -> data.put(subPartyKeys.get(subParty.getTyp()), subParty.getID()));
+    }
+
     protected void processMarginBlocks(List<MarginAmountBlockT> margins, Set<String> typs, JsonObject data) {
         margins.stream()
                 .filter(margin -> typs.contains(margin.getTyp()))
                 .forEach(margin -> processMarginBlock(margin, data));
     }
-    
+
     private void processMarginBlock(MarginAmountBlockT margin, JsonObject data) {
         switch (margin.getTyp()) {
             case "1":

@@ -4,8 +4,6 @@ import com.deutscheboerse.risk.dave.ers.jaxb.MarginRequirementReportMessageT;
 import com.deutscheboerse.risk.dave.ers.jaxb.AbstractMessageT;
 import com.deutscheboerse.risk.dave.ers.jaxb.FIXML;
 import com.deutscheboerse.risk.dave.ers.jaxb.MarginAmountBlockT;
-import com.deutscheboerse.risk.dave.ers.jaxb.PartiesBlockT;
-import com.deutscheboerse.risk.dave.ers.jaxb.PtysSubGrpBlockT;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Collections;
@@ -35,32 +33,7 @@ public class MarginShortfallSurplusProcessor extends AbstractProcessor implement
         mss.put("bizDt", new JsonObject().put("$date", timestampFormatter.format(mrrMessage.getBizDt().toGregorianCalendar().getTime())));
         mss.put("clearingCcy", mrrMessage.getCcy());
 
-        List<PartiesBlockT> parties = mrrMessage.getPty();
-
-        for (PartiesBlockT party : parties)
-        {
-            if (party.getR().intValue() == 4)
-            {
-                mss.put("clearer", party.getID());
-
-                List<PtysSubGrpBlockT> pools = party.getSub();
-                for (PtysSubGrpBlockT pool : pools)
-                {
-                    if ("4000".equals(pool.getTyp()))
-                    {
-                        mss.put("pool", pool.getID());
-                    }
-                    else if ("4001".equals(pool.getTyp()))
-                    {
-                        mss.put("poolType", pool.getID());
-                    }
-                }
-            }
-            else if (party.getR().intValue() == 1)
-            {
-                mss.put("member", party.getID());
-            }
-        }
+        processParties(mrrMessage.getPty(), mss);
 
         List<MarginAmountBlockT> margins = mrrMessage.getMgnAmt();
         Set<String> typs = new HashSet<>();
