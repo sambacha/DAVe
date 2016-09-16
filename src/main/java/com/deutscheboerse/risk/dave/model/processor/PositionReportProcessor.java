@@ -3,12 +3,10 @@ package com.deutscheboerse.risk.dave.model.processor;
 import com.deutscheboerse.risk.dave.model.jaxb.InstrumentBlockT;
 import com.deutscheboerse.risk.dave.model.jaxb.AbstractMessageT;
 import com.deutscheboerse.risk.dave.model.jaxb.FIXML;
-import com.deutscheboerse.risk.dave.model.jaxb.PartiesBlockT;
 import com.deutscheboerse.risk.dave.model.jaxb.PositionReportMessageT;
 import io.vertx.core.json.JsonObject;
 import java.math.BigInteger;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 import javax.xml.bind.JAXBElement;
 import org.apache.camel.Exchange;
@@ -29,19 +27,8 @@ public class PositionReportProcessor extends AbstractProcessor implements Proces
         Optional.ofNullable(prMessage.getLastRptReqed()).ifPresent(lastReport -> pr.put("lastReportRequested", lastReport.value()));
         pr.put("sesId", prMessage.getSetSesID().value());
 
-        List<PartiesBlockT> parties = prMessage.getPty();
+        processParties(prMessage.getPty(), pr);
 
-        for (PartiesBlockT party : parties) {
-            if (party.getR().intValue() == 4) {
-                pr.put("clearer", party.getID());
-            } else if (party.getR().intValue() == 1) {
-                pr.put("member", party.getID());
-                party.getSub().stream()
-                        .filter(account -> "26".equals(account.getTyp()))
-                        .findFirst()
-                        .ifPresent(account -> pr.put("account", account.getID()));
-            }
-        }
         InstrumentBlockT instrument = prMessage.getInstrmt();
         pr.put("symbol", instrument.getSym().trim());
         if (instrument.getPutCall() != null) {

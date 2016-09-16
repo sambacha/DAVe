@@ -6,7 +6,6 @@ import com.deutscheboerse.risk.dave.model.jaxb.MarginAmountBlockT;
 import com.deutscheboerse.risk.dave.model.jaxb.MarginRequirementReportMessageT;
 import com.deutscheboerse.risk.dave.model.jaxb.AbstractMessageT;
 import com.deutscheboerse.risk.dave.model.jaxb.FIXML;
-import com.deutscheboerse.risk.dave.model.jaxb.PartiesBlockT;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Date;
@@ -35,19 +34,7 @@ public class MarginComponentProcessor extends AbstractProcessor implements Proce
         mc.put("bizDt", new JsonObject().put("$date", timestampFormatter.format(mcMessage.getBizDt().toGregorianCalendar().getTime())));
         mc.put("clss", mcMessage.getClss());
 
-        List<PartiesBlockT> parties = mcMessage.getPty();
-
-        parties.stream().forEach(party -> {
-            if (party.getR().intValue() == 4) {
-                mc.put("clearer", party.getID());
-            } else if (party.getR().intValue() == 1) {
-                mc.put("member", party.getID());
-                party.getSub().stream()
-                        .filter(account -> "26".equals(account.getTyp()))
-                        .findFirst()
-                        .ifPresent(account -> mc.put("account", account.getID()));
-            }
-        });
+        processParties(mcMessage.getPty(), mc);
 
         List<MarginAmountBlockT> margins = mcMessage.getMgnAmt();
         Set<String> typs = new HashSet<>();
