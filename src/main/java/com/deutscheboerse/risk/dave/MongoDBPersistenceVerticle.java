@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Created by schojak on 19.8.16.
@@ -131,45 +132,30 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         EventBus eb = vertx.eventBus();
 
         // Query endpoints
-        eb.consumer("query.latestTradingSessionStatus", message -> queryLatest(message, new TradingSessionStatusModel()));
-        eb.consumer("query.historyTradingSessionStatus", message -> queryHistory(message, new TradingSessionStatusModel()));
-        eb.consumer("query.latestMarginComponent", message -> queryLatest(message, new MarginComponentModel()));
-        eb.consumer("query.historyMarginComponent", message -> queryHistory(message, new MarginComponentModel()));
-        eb.consumer("query.latestTotalMarginRequirement", message -> queryLatest(message, new TotalMarginRequirementModel()));
-        eb.consumer("query.historyTotalMarginRequirement", message -> queryHistory(message, new TotalMarginRequirementModel()));
-        eb.consumer("query.latestMarginShortfallSurplus", message -> queryLatest(message, new MarginShortfallSurplusModel()));
-        eb.consumer("query.historyMarginShortfallSurplus", message -> queryHistory(message, new MarginShortfallSurplusModel()));
-        eb.consumer("query.latestPositionReport", message -> queryLatest(message, new PositionReportModel()));
-        eb.consumer("query.historyPositionReport", message -> queryHistory(message, new PositionReportModel()));
-        eb.consumer("query.latestRiskLimit", message -> queryLatest(message, new RiskLimitModel()));
-        eb.consumer("query.historyRiskLimit", message -> queryHistory(message, new RiskLimitModel()));
+        eb.consumer("query.latestTradingSessionStatus", message -> query(message, (new TradingSessionStatusModel())::getLatestCommand));
+        eb.consumer("query.historyTradingSessionStatus", message -> query(message, (new TradingSessionStatusModel())::getHistoryCommand));
+        eb.consumer("query.latestMarginComponent", message -> query(message, (new MarginComponentModel())::getLatestCommand));
+        eb.consumer("query.historyMarginComponent", message -> query(message, (new MarginComponentModel())::getHistoryCommand));
+        eb.consumer("query.latestTotalMarginRequirement", message -> query(message, (new TotalMarginRequirementModel())::getLatestCommand));
+        eb.consumer("query.historyTotalMarginRequirement", message -> query(message, (new TotalMarginRequirementModel())::getHistoryCommand));
+        eb.consumer("query.latestMarginShortfallSurplus", message -> query(message, (new MarginShortfallSurplusModel())::getLatestCommand));
+        eb.consumer("query.historyMarginShortfallSurplus", message -> query(message, (new MarginShortfallSurplusModel())::getHistoryCommand));
+        eb.consumer("query.latestPositionReport", message -> query(message, (new PositionReportModel())::getLatestCommand));
+        eb.consumer("query.historyPositionReport", message -> query(message, (new PositionReportModel())::getHistoryCommand));
+        eb.consumer("query.latestRiskLimit", message -> query(message, (new RiskLimitModel())::getLatestCommand));
+        eb.consumer("query.historyRiskLimit", message -> query(message, (new RiskLimitModel())::getHistoryCommand));
 
         LOG.info("Event bus query handlers subscribed");
         return Future.succeededFuture();
     }
 
-    private void queryLatest(Message msg, AbstractModel model)
+    private void query(Message msg, Function<JsonObject, JsonObject> command)
     {
         LOG.trace("Received {} query with message {}", msg.address(), msg.body());
 
         JsonObject params = (JsonObject)msg.body();
 
-        mongo.runCommand("aggregate", model.getLatestCommand(params), res -> {
-            if (res.succeeded()) {
-                msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
-            } else {
-                LOG.error("{} query failed", msg.address(), res.cause());
-            }
-        });
-    }
-
-    private void queryHistory(Message msg, AbstractModel model)
-    {
-        LOG.trace("Received {} query with message {}", msg.address(), msg.body());
-
-        JsonObject params = (JsonObject)msg.body();
-
-        mongo.runCommand("aggregate", model.getHistoryCommand(params), res -> {
+        mongo.runCommand("aggregate", command.apply(params), res -> {
             if (res.succeeded()) {
                 msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
             } else {
