@@ -333,7 +333,7 @@
         <artifactId>jacoco-maven-plugin</artifactId>
         <configuration>
           <excludes>
-            <exclude>com/deutscheboerse/risk/dave/model/jaxb/*.class</exclude>
+            <exclude>com/deutscheboerse/risk/dave/ers/jaxb/*.class</exclude>
           </excludes>
         </configuration>
         <executions>
