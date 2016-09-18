@@ -5,7 +5,6 @@ import com.deutscheboerse.risk.dave.utils.DummyData;
 import com.deutscheboerse.risk.dave.utils.Utils;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -160,8 +159,8 @@ public class ERSConnectorVerticleIT {
             {
                 JsonObject tss = (JsonObject)msg.body();
 
-                context.assertEquals(tss.getString("sesId"), "1");
-                context.assertEquals(tss.getString("stat"), "2");
+                context.assertEquals("1", tss.getString("sesId"));
+                context.assertEquals("2", tss.getString("stat"));
                 context.assertNull(tss.getString("reqID"));
                 asyncReceiver.complete();
             }
@@ -181,21 +180,21 @@ public class ERSConnectorVerticleIT {
             try {
                 JsonObject pos = (JsonObject) msg.body();
 
-                context.assertEquals(pos.getString("clearer"), "ABCFR");
-                context.assertEquals(pos.getString("member"), "DEFFR");
+                context.assertEquals("ABCFR", pos.getString("clearer"));
+                context.assertEquals("DEFFR", pos.getString("member"));
                 context.assertNull(pos.getString("reqID"));
-                context.assertEquals(pos.getString("account"), "A1");
-                context.assertEquals(pos.getJsonObject("bizDt"), new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T00:00:00.000"))));
-                context.assertEquals(pos.getString("sesId"), "ITD");
-                context.assertEquals(pos.getString("rptId"), "13365938226608");
-                context.assertEquals(pos.getString("putCall"), "C");
-                context.assertEquals(pos.getString("maturityMonthYear"), "201001");
-                context.assertEquals(pos.getString("strikePrice"), "3500");
-                context.assertEquals(pos.getString("symbol"), "BMW");
-                context.assertEquals(pos.getDouble("crossMarginLongQty"), 0.0);
-                context.assertEquals(pos.getDouble("crossMarginShortQty"), 100.0);
-                context.assertEquals(pos.getDouble("optionExcerciseQty"), 0.0);
-                context.assertEquals(pos.getDouble("optionAssignmentQty"), 0.0);
+                context.assertEquals("A1", pos.getString("account"));
+                context.assertEquals(new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T00:00:00.000"))), pos.getJsonObject("bizDt"));
+                context.assertEquals("ITD", pos.getString("sesId"));
+                context.assertEquals("13365938226608", pos.getString("rptId"));
+                context.assertEquals("C", pos.getString("putCall"));
+                context.assertEquals("201001", pos.getString("maturityMonthYear"));
+                context.assertEquals("3500", pos.getString("strikePrice"));
+                context.assertEquals("BMW", pos.getString("symbol"));
+                context.assertEquals(0.0, pos.getDouble("crossMarginLongQty"));
+                context.assertEquals(100.0, pos.getDouble("crossMarginShortQty"));
+                context.assertEquals(0.0, pos.getDouble("optionExcerciseQty"));
+                context.assertEquals(0.0, pos.getDouble("optionAssignmentQty"));
                 context.assertNull(pos.getDouble("allocationTradeQty"));
                 context.assertNull(pos.getDouble("deliveryNoticeQty"));
                 asyncReceiver.complete();
@@ -217,21 +216,21 @@ public class ERSConnectorVerticleIT {
             {
                 JsonObject mc = (JsonObject)msg.body();
 
-                context.assertEquals(mc.getString("clearer"), "ABCFR");
-                context.assertEquals(mc.getString("member"), "DEFFR");
+                context.assertEquals("ABCFR", mc.getString("clearer"));
+                context.assertEquals("DEFFR", mc.getString("member"));
                 context.assertNull(mc.getString("reqID"));
-                context.assertEquals(mc.getString("account"), "A1");
-                context.assertEquals(mc.getJsonObject("bizDt"), new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T00:00:00.000"))));
-                context.assertEquals(mc.getJsonObject("txnTm"), new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T14:46:18.550+01:00"))));
-                context.assertEquals(mc.getString("sesId"), "ITD");
-                context.assertEquals(mc.getString("clss"), "BMW");
-                context.assertEquals(mc.getString("ccy"), "EUR");
-                context.assertEquals(mc.getString("rptId"), "13365938226624");
-                context.assertEquals(mc.getDouble("variationMargin"), 1714286.0);
-                context.assertEquals(mc.getDouble("premiumMargin"), 25539.0);
-                context.assertEquals(mc.getDouble("liquiMargin"), 0.0);
-                context.assertEquals(mc.getDouble("spreadMargin"), 0.0);
-                context.assertEquals(mc.getDouble("additionalMargin"), 20304.0);
+                context.assertEquals("A1", mc.getString("account"));
+                context.assertEquals(new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T00:00:00.000"))), mc.getJsonObject("bizDt"));
+                context.assertEquals(new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T14:46:18.550+01:00"))), mc.getJsonObject("txnTm"));
+                context.assertEquals("ITD", mc.getString("sesId"));
+                context.assertEquals("BMW", mc.getString("clss"));
+                context.assertEquals("EUR", mc.getString("ccy"));
+                context.assertEquals("13365938226624", mc.getString("rptId"));
+                context.assertEquals(1714286.0, mc.getDouble("variationMargin"));
+                context.assertEquals(25539.0, mc.getDouble("premiumMargin"));
+                context.assertEquals(0.0, mc.getDouble("liquiMargin"));
+                context.assertEquals(0.0, mc.getDouble("spreadMargin"));
+                context.assertEquals(20304.0, mc.getDouble("additionalMargin"));
                 asyncReceiver.complete();
             }
             catch (Exception e)
@@ -250,18 +249,18 @@ public class ERSConnectorVerticleIT {
             try {
                 JsonObject tmr = (JsonObject) msg.body();
 
-                context.assertEquals(tmr.getString("clearer"), "ABCFR");
-                context.assertEquals(tmr.getString("member"), "DEFFR");
+                context.assertEquals("ABCFR", tmr.getString("clearer"));
+                context.assertEquals("DEFFR", tmr.getString("member"));
                 context.assertNull(tmr.getString("reqID"));
-                context.assertEquals(tmr.getString("account"), "A1");
-                context.assertEquals(tmr.getString("pool"), "ABCFRDEFM");
-                context.assertEquals(tmr.getJsonObject("bizDt"), new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T00:00:00.000"))));
-                context.assertEquals(tmr.getJsonObject("txnTm"), new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T14:46:18.550+01:00"))));
-                context.assertEquals(tmr.getString("sesId"), "ITD");
-                context.assertEquals(tmr.getString("ccy"), "EUR");
-                context.assertEquals(tmr.getString("rptId"), "13365938226622");
-                context.assertEquals(tmr.getDouble("adjustedMargin"), 58054385.7);
-                context.assertEquals(tmr.getDouble("unadjustedMargin"), 58054385.7);
+                context.assertEquals("A1", tmr.getString("account"));
+                context.assertEquals("ABCFRDEFM", tmr.getString("pool"));
+                context.assertEquals(new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T00:00:00.000"))), tmr.getJsonObject("bizDt"));
+                context.assertEquals(new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T14:46:18.550+01:00"))), tmr.getJsonObject("txnTm"));
+                context.assertEquals("ITD", tmr.getString("sesId"));
+                context.assertEquals("EUR", tmr.getString("ccy"));
+                context.assertEquals("13365938226622", tmr.getString("rptId"));
+                context.assertEquals(58054385.7, tmr.getDouble("adjustedMargin"));
+                context.assertEquals(58054385.7, tmr.getDouble("unadjustedMargin"));
                 asyncReceiver.complete();
             }
             catch (Exception e)
@@ -281,22 +280,22 @@ public class ERSConnectorVerticleIT {
             {
                 JsonObject mss = (JsonObject)msg.body();
 
-                context.assertEquals(mss.getString("clearer"), "ABCFR");
-                context.assertEquals(mss.getString("member"), "DEFFR");
+                context.assertEquals("ABCFR", mss.getString("clearer"));
+                context.assertEquals("DEFFR", mss.getString("member"));
                 context.assertNull(mss.getString("reqID"));
-                context.assertEquals(mss.getString("pool"), "ABCFRDEFM");
-                context.assertEquals(mss.getString("poolType"), "Default");
-                context.assertEquals(mss.getJsonObject("bizDt"), new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T00:00:00.000"))));
-                context.assertEquals(mss.getJsonObject("txnTm"), new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T14:46:18.550+01:00"))));
-                context.assertEquals(mss.getString("sesId"), "ITD");
-                context.assertEquals(mss.getString("ccy"), "CHF");
-                context.assertEquals(mss.getString("clearingCcy"), "EUR");
-                context.assertEquals(mss.getString("rptId"), "13365938226618");
-                context.assertEquals(mss.getDouble("marginRequirement"), 5656891139.9);
-                context.assertEquals(mss.getDouble("securityCollateral"), 604369.0);
-                context.assertEquals(mss.getDouble("cashBalance"), 48017035.95);
-                context.assertEquals(mss.getDouble("shortfallSurplus"), -5603269734.95);
-                context.assertEquals(mss.getDouble("marginCall"), -5603269734.95);
+                context.assertEquals("ABCFRDEFM", mss.getString("pool"));
+                context.assertEquals("Default", mss.getString("poolType"));
+                context.assertEquals(new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T00:00:00.000"))), mss.getJsonObject("bizDt"));
+                context.assertEquals(new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T14:46:18.550+01:00"))), mss.getJsonObject("txnTm"));
+                context.assertEquals("ITD", mss.getString("sesId"));
+                context.assertEquals("CHF", mss.getString("ccy"));
+                context.assertEquals("EUR", mss.getString("clearingCcy"));
+                context.assertEquals("13365938226618", mss.getString("rptId"));
+                context.assertEquals(5656891139.9, mss.getDouble("marginRequirement"));
+                context.assertEquals(604369.0, mss.getDouble("securityCollateral"));
+                context.assertEquals(48017035.95, mss.getDouble("cashBalance"));
+                context.assertEquals(-5603269734.95, mss.getDouble("shortfallSurplus"));
+                context.assertEquals(-5603269734.95, mss.getDouble("marginCall"));
                 asyncReceiver.complete();
             }
             catch (Exception e)
@@ -315,28 +314,28 @@ public class ERSConnectorVerticleIT {
             try
             {
                 JsonObject rl = (JsonObject)msg.body();
-                context.assertEquals(rl.getString("clearer"), "ABCFR");
-                context.assertEquals(rl.getString("member"), "DEFFR");
-                context.assertEquals(rl.getString("maintainer"), "ABCFR");
+                context.assertEquals("ABCFR", rl.getString("clearer"));
+                context.assertEquals("DEFFR", rl.getString("member"));
+                context.assertEquals("ABCFR", rl.getString("maintainer"));
                 context.assertNull(rl.getString("reqID"));
-                context.assertEquals(rl.getString("reqRslt"), "0");
+                context.assertEquals("0", rl.getString("reqRslt"));
                 context.assertNull(rl.getString("txt"));
-                context.assertEquals(rl.getJsonObject("txnTm"), new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T14:46:18.550+01:00"))));
-                context.assertEquals(rl.getString("rptId"), "13365938226620");
+                context.assertEquals(new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T14:46:18.550+01:00"))), rl.getJsonObject("txnTm"));
+                context.assertEquals("13365938226620", rl.getString("rptId"));
 
                 switch (rl.getString("limitType"))
                 {
                     case "TMR":
-                        context.assertEquals(rl.getDouble("utilization"), 2838987418.92);
-                        context.assertEquals(rl.getDouble("warningLevel"), 1000.0);
-                        context.assertEquals(rl.getDouble("throttleLevel"), 10000.0);
-                        context.assertEquals(rl.getDouble("rejectLevel"), 100000.0);
+                        context.assertEquals(2838987418.92, rl.getDouble("utilization"));
+                        context.assertEquals(1000.0, rl.getDouble("warningLevel"));
+                        context.assertEquals(10000.0, rl.getDouble("throttleLevel"));
+                        context.assertEquals(100000.0, rl.getDouble("rejectLevel"));
                         break;
                     case "NDM":
-                        context.assertEquals(rl.getDouble("utilization"), 2480888829.87);
-                        context.assertEquals(rl.getDouble("warningLevel"), 2000.0);
-                        context.assertEquals(rl.getDouble("throttleLevel"), 20000.0);
-                        context.assertEquals(rl.getDouble("rejectLevel"), 200000.0);
+                        context.assertEquals(2480888829.87, rl.getDouble("utilization"));
+                        context.assertEquals(2000.0, rl.getDouble("warningLevel"));
+                        context.assertEquals(20000.0, rl.getDouble("throttleLevel"));
+                        context.assertEquals(200000.0, rl.getDouble("rejectLevel"));
                         break;
                     default:
                         context.fail("Got unexpected limit type!");

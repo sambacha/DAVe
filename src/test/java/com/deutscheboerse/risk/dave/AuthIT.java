@@ -147,10 +147,10 @@ public class AuthIT {
         final Async asyncLoginStatus = context.async();
 
         vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
-            context.assertEquals(res.statusCode(), 200);
+            context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonObject bd = body.toJsonObject();
-                context.assertEquals(bd, new JsonObject().put("username", "Annonymous"));
+                context.assertEquals(new JsonObject().put("username", "Annonymous"), bd);
                 asyncLoginStatus.complete();
             });
         });
@@ -158,10 +158,10 @@ public class AuthIT {
         final Async asyncLogin = context.async();
 
         vertx.createHttpClient().post(port, "localhost", "/api/v1.0/user/login", res -> {
-            context.assertEquals(res.statusCode(), 200);
+            context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonObject bd = body.toJsonObject();
-                context.assertEquals(bd, new JsonObject().put("username", "Annonymous"));
+                context.assertEquals(new JsonObject().put("username", "Annonymous"), bd);
                 asyncLogin.complete();
             });
         }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
@@ -177,10 +177,10 @@ public class AuthIT {
         // Not logged in => loginStatus should return empty JsonObject
         final Async asyncNotLoggedIn = context.async();
         client.getNow(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
-            context.assertEquals(res.statusCode(), 200);
+            context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonObject bd = body.toJsonObject();
-                context.assertEquals(bd, new JsonObject());
+                context.assertEquals(new JsonObject(), bd);
                 asyncNotLoggedIn.complete();
             });
         });
@@ -196,7 +196,7 @@ public class AuthIT {
         // Not logged in => REST access should return
         final Async asyncUnauthorized = context.async();
         client.getNow(port, "localhost", "/api/v1.0/tss/latest", res -> {
-            context.assertEquals(res.statusCode(), 401);
+            context.assertEquals(401, res.statusCode());
             asyncUnauthorized.complete();
         });
     }
@@ -211,7 +211,7 @@ public class AuthIT {
         // Log in with wrong password
         final Async asyncLogin = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
-            context.assertEquals(res.statusCode(), 403);
+            context.assertEquals(403, res.statusCode());
             context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLogin.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", "wrongpassword")));
@@ -227,7 +227,7 @@ public class AuthIT {
         // Log in with some binary garbage
         final Async asyncLogin = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
-            context.assertEquals(res.statusCode(), HttpResponseStatus.BAD_REQUEST.code());
+            context.assertEquals(HttpResponseStatus.BAD_REQUEST.code(), res.statusCode());
             context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLogin.complete();
         }).end(Buffer.buffer(new byte[] {1, 3, 5, 7, 9}));
@@ -243,7 +243,7 @@ public class AuthIT {
         // Log in with wrong username
         final Async asyncLogin = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
-            context.assertEquals(res.statusCode(), 403);
+            context.assertEquals(403, res.statusCode());
             context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLogin.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", "idonotexist").put("password", PASSWORD)));
@@ -259,7 +259,7 @@ public class AuthIT {
         // Log in with wrong request
         final Async asyncLoginEmptyJson = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
-            context.assertEquals(res.statusCode(), 400);
+            context.assertEquals(400, res.statusCode());
             context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLoginEmptyJson.complete();
         }).end(Json.encodePrettily(new JsonObject()));
@@ -267,7 +267,7 @@ public class AuthIT {
         // Log in with wrong request
         final Async asyncLoginNoPassword = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
-            context.assertEquals(res.statusCode(), 400);
+            context.assertEquals(400, res.statusCode());
             context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLoginNoPassword.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER)));
@@ -275,7 +275,7 @@ public class AuthIT {
         // Log in with wrong request
         final Async asyncLoginNoUsername = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
-            context.assertEquals(res.statusCode(), 400);
+            context.assertEquals(400, res.statusCode());
             context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLoginNoUsername.complete();
         }).end(Json.encodePrettily(new JsonObject().put("password", PASSWORD)));
@@ -291,17 +291,17 @@ public class AuthIT {
         // Log in
         final Async asyncLogin = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
-            context.assertEquals(res.statusCode(), 200);
+            context.assertEquals(200, res.statusCode());
             context.assertNotNull(res.getHeader(HttpHeaders.SET_COOKIE));
             String sessionCookie = res.getHeader(HttpHeaders.SET_COOKIE);
 
             // Logged in => loginStatus should return JsonObject with username
             final Async asyncLoginStatus = context.async();
             client.get(port, "localhost", "/api/v1.0/user/loginStatus", statusRes -> {
-                context.assertEquals(statusRes.statusCode(), 200);
+                context.assertEquals(200, statusRes.statusCode());
                 statusRes.bodyHandler(body -> {
                     JsonObject bd = body.toJsonObject();
-                    context.assertEquals(bd, new JsonObject().put("username", "user1"));
+                    context.assertEquals(new JsonObject().put("username", "user1"), bd);
                     asyncLoginStatus.complete();
                 });
             }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
@@ -309,7 +309,7 @@ public class AuthIT {
             // Logged in => REST access should return 200
             final Async asyncAuthorized = context.async();
             client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
-                context.assertEquals(tssRes.statusCode(), 200);
+                context.assertEquals(200, tssRes.statusCode());
                 asyncAuthorized.complete();
             }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
 
@@ -330,7 +330,7 @@ public class AuthIT {
         // Log in with username not matching certificate subject
         final Async asyncLoginWithWrongUser = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
-            context.assertEquals(res.statusCode(), 403);
+            context.assertEquals(403, res.statusCode());
             context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLoginWithWrongUser.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER2).put("password", PASSWORD)));
@@ -338,17 +338,17 @@ public class AuthIT {
         // Log in with proper certificate subject
         final Async asyncLogin = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
-            context.assertEquals(res.statusCode(), 200);
+            context.assertEquals(200, res.statusCode());
             context.assertNotNull(res.getHeader(HttpHeaders.SET_COOKIE));
             String sessionCookie = res.getHeader(HttpHeaders.SET_COOKIE);
 
             // Logged in => loginStatus should return JsonObject with username
             final Async asyncLoginStatus = context.async();
             client.get(port, "localhost", "/api/v1.0/user/loginStatus", statusRes -> {
-                context.assertEquals(statusRes.statusCode(), 200);
+                context.assertEquals(200, statusRes.statusCode());
                 statusRes.bodyHandler(body -> {
                     JsonObject bd = body.toJsonObject();
-                    context.assertEquals(bd, new JsonObject().put("username", "user1"));
+                    context.assertEquals(new JsonObject().put("username", "user1"), bd);
                     asyncLoginStatus.complete();
                 });
             }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
@@ -356,7 +356,7 @@ public class AuthIT {
             // Logged in => REST access should return 200
             final Async asyncAuthorized = context.async();
             client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
-                context.assertEquals(tssRes.statusCode(), 200);
+                context.assertEquals(200, tssRes.statusCode());
                 asyncAuthorized.complete();
             }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
 
@@ -377,7 +377,7 @@ public class AuthIT {
         // Log in with username not matching certificate subject
         final Async asyncLoginWithoutSSL = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
-            context.assertEquals(res.statusCode(), 403);
+            context.assertEquals(403, res.statusCode());
             context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLoginWithoutSSL.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
@@ -395,7 +395,7 @@ public class AuthIT {
         // Log in with username not matching certificate subject
         final Async asyncLoginWithoutSSL = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
-            context.assertEquals(res.statusCode(), 403);
+            context.assertEquals(403, res.statusCode());
             context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLoginWithoutSSL.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
@@ -411,17 +411,17 @@ public class AuthIT {
         // Log in
         final Async asyncLogin = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
-            context.assertEquals(res.statusCode(), 200);
+            context.assertEquals(200, res.statusCode());
             context.assertNotNull(res.getHeader(HttpHeaders.SET_COOKIE));
             String sessionCookie = res.getHeader(HttpHeaders.SET_COOKIE);
 
             // Logged in => loginStatus should return JsonObject with username
             final Async asyncLoginStatus = context.async();
             client.get(port, "localhost", "/api/v1.0/user/loginStatus", statusRes -> {
-                context.assertEquals(statusRes.statusCode(), 200);
+                context.assertEquals(200, statusRes.statusCode());
                 statusRes.bodyHandler(body -> {
                     JsonObject bd = body.toJsonObject();
-                    context.assertEquals(bd, new JsonObject().put("username", "user1"));
+                    context.assertEquals(new JsonObject().put("username", "user1"), bd);
                     asyncLoginStatus.complete();
                 });
             }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
@@ -429,12 +429,12 @@ public class AuthIT {
             // Logout
             final Async asyncLogout = context.async();
             client.get(port, "localhost", "/api/v1.0/user/logout", logoutRes -> {
-                context.assertEquals(logoutRes.statusCode(), 200);
+                context.assertEquals(200, logoutRes.statusCode());
 
                 // Logged out in => REST access should return 401
                 final Async asyncUnauthorized = context.async();
                 client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
-                    context.assertEquals(tssRes.statusCode(), 401);
+                    context.assertEquals(401, tssRes.statusCode());
                     asyncUnauthorized.complete();
                 }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
 

@@ -95,29 +95,29 @@ public class MainVerticleIT {
 
         final Async asyncRest = context.async();
         vertx.createHttpClient().getNow(httpPort, "localhost", "/api/v1.0/pr/latest/ABCFR/DEFFR/A1/BMW/C/3500/1/201001", res -> {
-            context.assertEquals(res.statusCode(), 200);
+            context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 try {
                     JsonArray positions = body.toJsonArray();
 
-                    context.assertEquals(positions.size(), 1);
+                    context.assertEquals(1, positions.size());
 
                     JsonObject pos = positions.getJsonObject(0);
 
-                    context.assertEquals(pos.getString("clearer"), "ABCFR");
-                    context.assertEquals(pos.getString("member"), "DEFFR");
+                    context.assertEquals("ABCFR", pos.getString("clearer"));
+                    context.assertEquals("DEFFR", pos.getString("member"));
                     context.assertNull(pos.getString("reqID"));
-                    context.assertEquals(pos.getString("account"), "A1");
-                    context.assertEquals(pos.getString("sesId"), "ITD");
-                    context.assertEquals(pos.getString("rptId"), "13365938226608");
-                    context.assertEquals(pos.getString("putCall"), "C");
-                    context.assertEquals(pos.getString("maturityMonthYear"), "201001");
-                    context.assertEquals(pos.getString("strikePrice"), "3500");
-                    context.assertEquals(pos.getString("symbol"), "BMW");
-                    context.assertEquals(pos.getDouble("crossMarginLongQty"), 0.0);
-                    context.assertEquals(pos.getDouble("crossMarginShortQty"), 100.0);
-                    context.assertEquals(pos.getDouble("optionExcerciseQty"), 0.0);
-                    context.assertEquals(pos.getDouble("optionAssignmentQty"), 0.0);
+                    context.assertEquals("A1", pos.getString("account"));
+                    context.assertEquals("ITD", pos.getString("sesId"));
+                    context.assertEquals("13365938226608", pos.getString("rptId"));
+                    context.assertEquals("C", pos.getString("putCall"));
+                    context.assertEquals("201001", pos.getString("maturityMonthYear"));
+                    context.assertEquals("3500", pos.getString("strikePrice"));
+                    context.assertEquals("BMW", pos.getString("symbol"));
+                    context.assertEquals(0.0, pos.getDouble("crossMarginLongQty"));
+                    context.assertEquals(100.0, pos.getDouble("crossMarginShortQty"));
+                    context.assertEquals(0.0, pos.getDouble("optionExcerciseQty"));
+                    context.assertEquals(0.0, pos.getDouble("optionAssignmentQty"));
                     context.assertNull(pos.getDouble("allocationTradeQty"));
                     context.assertNull(pos.getDouble("deliveryNoticeQty"));
                     asyncRest.complete();
