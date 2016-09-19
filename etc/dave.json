@@ -18,7 +18,8 @@
       "db_name": "DAVe",
       "connection_string": "mongodb://localhost:27017",
       "salt": "DAVe",
-      "checkUserAgainstCertificate": false
+      "checkUserAgainstCertificate": false,
+      "sessionTimeout": 3600000
     },
     "compression": true
   },
