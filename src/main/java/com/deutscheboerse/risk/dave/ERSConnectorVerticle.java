@@ -1,7 +1,6 @@
 package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.ers.ERSRouteBuilder;
-import com.deutscheboerse.risk.dave.ers.processor.*;
 import io.vertx.camel.CamelBridge;
 import io.vertx.camel.CamelBridgeOptions;
 import io.vertx.camel.InboundMapping;
@@ -16,7 +15,6 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.amqp.AMQPComponent;
 import org.apache.camel.impl.DefaultCamelContext;
-import org.apache.camel.model.dataformat.JaxbDataFormat;
 import org.apache.qpid.client.AMQConnectionFactory;
 import org.apache.qpid.url.URLSyntaxException;
 
