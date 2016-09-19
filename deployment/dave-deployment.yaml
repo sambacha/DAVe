@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: dave-deployment
+  labels:
+    app: dave
+    project: dave
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: dave
+      labels:
+        name: dave
+        project: dave
+    spec:
+      containers:
+        - image: scholzj/dave:latest
+          name: dave
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: https

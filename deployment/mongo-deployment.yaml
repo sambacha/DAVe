@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: mongo-deployment
+  labels:
+    app: mongo
+    project: dave
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: mongo
+      labels:
+        name: mongo
+        project: dave
+    spec:
+      containers:
+        - image: mongo:3.2
+          name: mongo
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 27017
+              name: db
