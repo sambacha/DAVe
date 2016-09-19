@@ -52,6 +52,7 @@ public class HttpVerticle extends AbstractVerticle {
     private static final String DEFAULT_AUTH_CONNECTION_STRING = "mongodb://localhost:27017";
     private static final String DEFAULT_AUTH_SALT = "DAVe";
     private static final Integer DEFAULT_AUTH_SESSION_TIMEOUT = 60*60*1000;
+    private static final String DEFAULT_AUTH_SESSION_COOKIE_NAME = "dave-sess-id";
     private static final Boolean DEFAULT_AUTH_CHECK_USER_AGAINST_CERTIFICATE = false;
 
     private HttpServer server;
@@ -224,6 +225,7 @@ public class HttpVerticle extends AbstractVerticle {
     private SessionHandler getSessionHandler()
     {
         SessionHandler sesHandler = SessionHandler.create(LocalSessionStore.create(vertx));
+        sesHandler.setSessionCookieName(config().getJsonObject("auth", new JsonObject()).getString("sessionCookieName", HttpVerticle.DEFAULT_AUTH_SESSION_COOKIE_NAME));
         sesHandler.setCookieHttpOnlyFlag(true);
         sesHandler.setCookieSecureFlag(config().getJsonObject("ssl", new JsonObject()).getBoolean("enabled", HttpVerticle.DEFAULT_SSL));
         sesHandler.setNagHttps(true);
