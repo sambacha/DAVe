@@ -22,55 +22,13 @@ public class MainVerticle extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> startFuture) {
-        Future<String> chainFuture = Future.future();
-        DeploymentOptions mongoDbPersistenceOptions = new DeploymentOptions().setConfig(config().getJsonObject("mongodb"));
-        Future<String> mongoDbVerticleFuture = Future.future();
-        vertx.deployVerticle(MongoDBPersistenceVerticle.class.getName(), mongoDbPersistenceOptions, mongoDbVerticleFuture.completer());
-        mongoDbVerticleFuture.compose(v -> {
-            LOG.info("Deployed MongoDBPersistenceVerticle with ID {}", v);
-            mongoDbPersistenceDeployment = v;
-
-            Future<String> ersDebuggerVerticleFuture = Future.future();
-
-            if (config().getJsonObject("ersDebugger", new JsonObject()).getBoolean("enable", false)) {
-                DeploymentOptions ersDebuggerOptions = new DeploymentOptions().setConfig(config().getJsonObject("ersDebugger"));
-                vertx.deployVerticle(ERSDebuggerVerticle.class.getName(), ersDebuggerOptions, ersDebuggerVerticleFuture.completer());
-            }
-            else
-            {
-                ersDebuggerVerticleFuture.complete();
-            }
-
-            return ersDebuggerVerticleFuture;
-        }).compose(v -> {
-            if (config().getJsonObject("ersDebugger", new JsonObject()).getBoolean("enable", false)) {
-                LOG.info("Deployed ERSDebuggerVerticle with ID {}", v);
-                ersDebbugerDeployment = v;
-            }
-
-            DeploymentOptions webOptions = new DeploymentOptions().setConfig(config().getJsonObject("http"));
-            Future<String> httpVerticleFuture = Future.future();
-            vertx.deployVerticle(HttpVerticle.class.getName(), webOptions, httpVerticleFuture.completer());
-            return httpVerticleFuture;
-        }).compose(v -> {
-            LOG.info("Deployed HttpVerticle with ID {}", v);
-            httpDeployment = v;
-
-            JsonArray ersConnectorOptions = config().getJsonArray("ers");
-            Future<Void> ersConnectorDeploymentFuture = Future.future();
-            deployErsVerticles(ersConnectorOptions, ersConnectorDeploymentFuture.completer());
-            return ersConnectorDeploymentFuture;
-        }).compose(v -> {
-            DeploymentOptions masterdataOptions = new DeploymentOptions().setConfig(config().getJsonObject("masterdata", new JsonObject()));
-            Future<String> masterdataVerticleFuture = Future.future();
-            vertx.deployVerticle(MasterdataVerticle.class.getName(), masterdataOptions, masterdataVerticleFuture.completer());
-            return masterdataVerticleFuture;
-        }).compose(v -> {
-            LOG.info("Deployed MasterdataVerticle with ID {}", v);
-            masterdataDeployment = v;
-
-            chainFuture.complete();
-        }, chainFuture);
+        Future<Void> chainFuture = Future.future();
+        deployMongoDBVerticle()
+                .compose(this::deployERSDebuggerVerticle)
+                .compose(this::deployHttpVerticle)
+                .compose(this::deployErsVerticles)
+                .compose(this::deployMasterData)
+                .compose(chainFuture::complete, chainFuture);
 
         chainFuture.setHandler(ar -> {
             if (ar.succeeded()) {
@@ -84,25 +42,73 @@ public class MainVerticle extends AbstractVerticle {
         });
     }
 
-    private void deployErsVerticles(JsonArray ersOptions, Handler<AsyncResult<Void>> handler)
+    private Future<Void> deployMongoDBVerticle() {
+        Future<Void> mongoDbVerticleFuture = Future.future();
+        DeploymentOptions mongoDbPersistenceOptions = new DeploymentOptions().setConfig(config().getJsonObject("mongodb"));
+        vertx.deployVerticle(MongoDBPersistenceVerticle.class.getName(), mongoDbPersistenceOptions, ar -> {
+            if (ar.succeeded()) {
+                LOG.info("Deployed MongoDBPersistenceVerticle with ID {}", ar.result());
+                mongoDbPersistenceDeployment = ar.result();
+                mongoDbVerticleFuture.complete();
+            } else {
+                mongoDbVerticleFuture.fail(ar.cause());
+            }
+        });
+        return mongoDbVerticleFuture;
+    }
+
+    private Future<Void> deployERSDebuggerVerticle(Void unused) {
+        Future<Void> ersDebuggerVerticleFuture = Future.future();
+        if (config().getJsonObject("ersDebugger", new JsonObject()).getBoolean("enable", false)) {
+            DeploymentOptions ersDebuggerOptions = new DeploymentOptions().setConfig(config().getJsonObject("ersDebugger"));
+            vertx.deployVerticle(ERSDebuggerVerticle.class.getName(), ersDebuggerOptions, ar -> {
+                if (ar.succeeded()) {
+                    LOG.info("Deployed ERSDebuggerVerticle with ID {}", ar.result());
+                    ersDebbugerDeployment = ar.result();
+                    ersDebuggerVerticleFuture.complete();
+                } else {
+                    ersDebuggerVerticleFuture.fail(ar.cause());
+                }
+            });
+        } else {
+            ersDebuggerVerticleFuture.complete();
+        }
+        return ersDebuggerVerticleFuture;
+    }
+
+    private Future<Void> deployHttpVerticle(Void unused) {
+        Future<Void> httpVerticleFuture = Future.future();
+        DeploymentOptions webOptions = new DeploymentOptions().setConfig(config().getJsonObject("http"));
+        vertx.deployVerticle(HttpVerticle.class.getName(), webOptions, ar -> {
+            if (ar.succeeded()) {
+                LOG.info("Deployed HttpVerticle with ID {}", ar.result());
+                httpDeployment = ar.result();
+                httpVerticleFuture.complete();
+            } else  {
+                httpVerticleFuture.fail(ar.cause());
+            }
+        });
+        return httpVerticleFuture;
+    }
+
+    private Future<Void> deployErsVerticles(Void unused)
     {
+        Future<Void> ersConnectorDeploymentFuture = Future.future();
         List<Future> tasks = new ArrayList<>();
 
-        ersOptions.forEach( connectorOptions -> {
+        JsonArray ersConnectorOptions = config().getJsonArray("ers");
+        ersConnectorOptions.forEach( connectorOptions -> {
             LOG.info("Deploying ERS connector verticle {}", (JsonObject)connectorOptions);
 
             DeploymentOptions ersDeploymentOptions = new DeploymentOptions().setConfig((JsonObject)connectorOptions);
             Future<String> fut = Future.future();
 
             vertx.deployVerticle(ERSConnectorVerticle.class.getName(), ersDeploymentOptions, res -> {
-                if (res.succeeded())
-                {
+                if (res.succeeded()) {
                     LOG.info("Deployed ERSConnectorVerticle with ID {}", res.result());
                     ersConnectorDeployment.add(res.result());
                     fut.complete();
-                }
-                else
-                {
+                } else {
                     LOG.error("Failed to deployed ERSConnectorVerticle", res.cause());
                     fut.fail(res.cause());
                 }
@@ -110,18 +116,31 @@ public class MainVerticle extends AbstractVerticle {
             tasks.add(fut);
         });
 
-        CompositeFuture.all(tasks).setHandler(res -> {
-            if (res.succeeded())
-            {
+        CompositeFuture.all(tasks).setHandler(ar -> {
+            if (ar.succeeded()) {
                 LOG.info("Deployed all ERS verticles");
-                handler.handle(Future.succeededFuture());
-            }
-            else
-            {
+                ersConnectorDeploymentFuture.complete();
+            } else {
                 LOG.error("Failed to deploy some or all ERS verticles");
-                handler.handle(Future.failedFuture(res.cause()));
+                ersConnectorDeploymentFuture.fail(ar.cause());
             }
         });
+        return ersConnectorDeploymentFuture;
+    }
+
+    private Future<Void> deployMasterData(Void unused) {
+        Future<Void> masterdataVerticleFuture = Future.future();
+        DeploymentOptions masterdataOptions = new DeploymentOptions().setConfig(config().getJsonObject("masterdata", new JsonObject()));
+        vertx.deployVerticle(MasterdataVerticle.class.getName(), masterdataOptions, ar -> {
+            if (ar.succeeded()) {
+                LOG.info("Deployed MasterdataVerticle with ID {}", ar.result());
+                masterdataDeployment = ar.result();
+                masterdataVerticleFuture.complete();
+            } else {
+                masterdataVerticleFuture.fail(ar.cause());
+            }
+        });
+        return masterdataVerticleFuture;
     }
 
     private void closeAllDeployments() {
