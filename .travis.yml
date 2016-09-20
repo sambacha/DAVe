@@ -9,4 +9,4 @@ services:
   - docker
 
 script:
-   - mvn -Ddocker.keepContainer clean verify
+   - mvn -Ddocker.keepContainer clean verify coveralls:report
