@@ -6,7 +6,7 @@ machine:
 
 test:
   override:
-    - mvn -DrepoToken=${COVERALLS_TOKEN} -Ddocker.keepContainer clean verify coveralls:report
+    - mvn -Ddocker.keepContainer clean verify
   post:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
     - find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
@@ -16,5 +16,6 @@ deployment:
   staging:
     branch: master
     commands:
+      - mvn -DrepoToken=${COVERALLS_TOKEN} coveralls:report
       - ./dockerfile/create_docker.sh
       - ./deployment/kube_deploy.sh
