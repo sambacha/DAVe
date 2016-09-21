@@ -24,10 +24,10 @@ public class MainVerticle extends AbstractVerticle {
     public void start(Future<Void> startFuture) {
         Future<Void> chainFuture = Future.future();
         deployMongoDBVerticle()
+                .compose(this::deployMasterData)
                 .compose(this::deployERSDebuggerVerticle)
                 .compose(this::deployHttpVerticle)
                 .compose(this::deployErsVerticles)
-                .compose(this::deployMasterData)
                 .compose(chainFuture::complete, chainFuture);
 
         chainFuture.setHandler(ar -> {
