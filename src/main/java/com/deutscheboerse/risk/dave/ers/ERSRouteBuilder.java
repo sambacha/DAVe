@@ -33,6 +33,8 @@ public class ERSRouteBuilder extends RouteBuilder {
         String tssReplyAddress = getReplyAddress(member + ".TradingSessionStatus");
         String mssResponseAddress = getResponseAddress("mss", member + ".MarginShortfallSurplus");
         String mssReplyAddress = getReplyAddress(member + ".MarginShortfallSurplus");
+        String rlResponseAddress = getResponseAddress("mss", member + ".RiskLimits");
+        String rlReplyAddress = getReplyAddress(member + ".RiskLimits");
         String requestAddress = getRequestAddress();
 
         from("amqp:" + tssBroadcastAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcessor()).to("direct:tss");
@@ -47,6 +49,9 @@ public class ERSRouteBuilder extends RouteBuilder {
 
         from("amqp:" + mssResponseAddress).unmarshal(ersDataModel).process(new MarginShortfallSurplusProcessor()).to("direct:mssResponse");
         from("direct:mssRequest").process(new MarginShortfallSurplusRequestProcessor(mssReplyAddress)).marshal(ersDataModel).to("amqp:" + requestAddress + "?preserveMessageQos=true");
+
+        from("amqp:" + rlResponseAddress).unmarshal(ersDataModel).process(new RiskLimitProcessor()).to("direct:rlResponse");
+        from("direct:rlRequest").process(new RiskLimitRequestProcessor(rlReplyAddress)).marshal(ersDataModel).to("amqp:" + requestAddress + "?preserveMessageQos=true");
     }
 
     private String getBroadcastAddress(String type, String routingKey) {

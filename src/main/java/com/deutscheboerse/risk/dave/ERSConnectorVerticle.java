@@ -88,6 +88,7 @@ public class ERSConnectorVerticle extends AbstractVerticle {
         InitialLoad il = new InitialLoad(membership, vertx.eventBus());
         il.requestTradingSessionStatus();
         il.requestMarginShortfallSurplus();
+        il.requestRiskLimits();
 
         return Future.succeededFuture();
     }
@@ -141,6 +142,7 @@ public class ERSConnectorVerticle extends AbstractVerticle {
                         .addInboundMapping(InboundMapping.fromCamel("direct:tssResponse").toVertx("ers.TradingSessionStatus").usePublish())
                         .addOutboundMapping(OutboundMapping.fromVertx("ers.TradingSessionStatusRequest").toCamel("direct:tssRequest"))
                         .addOutboundMapping(OutboundMapping.fromVertx("ers.MarginShortfallSurplusRequest").toCamel("direct:mssRequest"))
+                        .addOutboundMapping(OutboundMapping.fromVertx("ers.RiskLimitRequest").toCamel("direct:rlRequest"))
         );
 
         camelBridge.start();

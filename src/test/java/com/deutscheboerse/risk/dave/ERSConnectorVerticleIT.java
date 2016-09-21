@@ -149,6 +149,18 @@ public class ERSConnectorVerticleIT {
                                 messages.put("mss", list);
                             }
                         }
+                        else if (getMessagePayloadAsString(msg).contains("PtyRiskLmtReq")) {
+                            if (messages.get("rl") != null)
+                            {
+                                messages.get("rl").add(msg);
+                            }
+                            else
+                            {
+                                List<Message> list = new ArrayList<Message>();
+                                list.add(msg);
+                                messages.put("rl", list);
+                            }
+                        }
 
                         msg.acknowledge();
                     }
@@ -196,6 +208,25 @@ public class ERSConnectorVerticleIT {
         context.assertTrue(messages.get("mss").get(1).getJMSReplyTo().toString().contains("ABCFR.MarginShortfallSurplus"));
         context.assertTrue(getMessagePayloadAsString(messages.get("mss").get(1)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
         context.assertTrue(getMessagePayloadAsString(messages.get("mss").get(1)).contains("Pty ID=\"GHIFR\" Src=\"D\" R=\"1\""));
+
+        // RL
+        context.assertNotNull(messages.get("rl"));
+        context.assertEquals(3, messages.get("rl").size());
+        context.assertTrue(messages.get("rl").get(0).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("rl").get(0).getJMSReplyTo().toString().contains("ABCFR.RiskLimits"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("rl").get(0)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("rl").get(0)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("rl").get(0)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"7\""));
+        context.assertTrue(messages.get("rl").get(1).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("rl").get(1).getJMSReplyTo().toString().contains("ABCFR.RiskLimits"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("rl").get(1)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("rl").get(1)).contains("Pty ID=\"GHIFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("rl").get(1)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"7\""));
+        context.assertTrue(messages.get("rl").get(2).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("rl").get(2).getJMSReplyTo().toString().contains("ABCFR.RiskLimits"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("rl").get(2)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("rl").get(2)).contains("Pty ID=\"GHIFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("rl").get(2)).contains("Pty ID=\"GHIFR\" Src=\"D\" R=\"7\""));
     }
 
     @Test

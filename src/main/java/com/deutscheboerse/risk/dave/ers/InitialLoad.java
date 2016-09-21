@@ -37,4 +37,21 @@ public class InitialLoad {
             eb.publish("ers.MarginShortfallSurplusRequest", request);
         });
     }
+
+    public void requestRiskLimits()
+    {
+        membership.forEach(member -> {
+            JsonObject mbr = (JsonObject)member;
+
+            JsonObject request1 = new JsonObject().put("member", mbr.getString("member")).put("clearer", mbr.getString("clearer")).put("maintainer", mbr.getString("clearer"));
+            LOG.info("Requesting initial MarginShortfallSurplusRequest: {}", request1);
+            eb.publish("ers.RiskLimitRequest", request1);
+
+            if (!mbr.getString("clearer").equals(mbr.getString("member"))) {
+                JsonObject request2 = new JsonObject().put("member", mbr.getString("member")).put("clearer", mbr.getString("clearer")).put("maintainer", mbr.getString("member"));
+                LOG.info("Requesting initial MarginShortfallSurplusRequest: {}", request2);
+                eb.publish("ers.RiskLimitRequest", request2);
+            }
+        });
+    }
 }
