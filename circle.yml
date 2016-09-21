@@ -16,6 +16,10 @@ deployment:
   staging:
     branch: master
     commands:
-      #- mvn -DrepoToken=${COVERALLS_TOKEN} coveralls:report
+      - ./dockerfile/create_docker.sh
+      - ./deployment/kube_deploy.sh
+  demo:
+    branch: demo
+    commands:
       - ./dockerfile/create_docker.sh
       - ./deployment/kube_deploy.sh
