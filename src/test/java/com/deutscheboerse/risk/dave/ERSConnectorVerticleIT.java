@@ -40,6 +40,8 @@ public class ERSConnectorVerticleIT {
         tcpPort = Integer.getInteger("ers.tcpport", 5672);
         sslPort = Integer.getInteger("ers.sslport", 5671);
 
+        emptyRequestQueue(context);
+
         JsonObject config = new JsonObject().put("brokerHost", "localhost").put("brokerPort", sslPort).put("member", "ABCFR").put("sslCertAlias", "abcfr").put("truststore", ERSConnectorVerticleIT.class.getResource("ers.truststore").getPath()).put("truststorePassword", "123456").put("keystore", ERSConnectorVerticleIT.class.getResource("ers.keystore").getPath()).put("keystorePassword", "123456");
         vertx.deployVerticle(ERSConnectorVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
 
@@ -50,6 +52,53 @@ public class ERSConnectorVerticleIT {
 
         DeploymentOptions options = new DeploymentOptions().setConfig(mdConfig);
         vertx.deployVerticle(MasterdataVerticle.class.getName(), options, context.asyncAssertSuccess());
+    }
+
+    private static void emptyRequestQueue(TestContext context)
+    {
+        Async asyncRequest = context.async();
+
+        vertx.executeBlocking(future -> {
+            try {
+                Utils utils = new Utils();
+                AutoCloseableConnection conn = utils.getAdminConnection("localhost", tcpPort);
+                Session ses = conn.createSession(false, Session.CLIENT_ACKNOWLEDGE);
+                conn.start();
+                MessageConsumer consumer = ses.createConsumer(utils.getQueue("eurex.request.ABCFR"));
+
+                while (true) {
+                    Message msg = consumer.receive(1000);
+
+                    if (msg != null) {
+                        msg.acknowledge();
+                    } else {
+                        break;
+                    }
+                }
+
+                consumer.close();
+                ses.close();
+                conn.close();
+
+                future.complete();
+            }
+            catch (NamingException | JMSException e)
+            {
+                System.out.println("I got an error: " + e.toString());
+                future.fail(e);
+            }
+        }, res -> {
+            if (res.succeeded())
+            {
+                asyncRequest.complete();
+            }
+            else
+            {
+                context.fail("Failed to receive request messages");
+            }
+        });
+
+        asyncRequest.awaitSuccess();
     }
 
     private void sendErsBroadcast(TestContext context, String routingKey, String messageBody) {
@@ -123,7 +172,7 @@ public class ERSConnectorVerticleIT {
                     Message msg = consumer.receive(1000);
 
                     if (msg != null) {
-                        System.out.println("Got message ... " + getMessagePayloadAsString(msg));
+                        //System.out.println("Got message ... " + getMessagePayloadAsString(msg));
 
                         if (getMessagePayloadAsString(msg).contains("TrdgSesStatReq")) {
                             if (messages.get("tss") != null)
@@ -181,6 +230,10 @@ public class ERSConnectorVerticleIT {
                         break;
                     }
                 }
+
+                consumer.close();
+                ses.close();
+                conn.close();
 
                 future.complete();
             }
