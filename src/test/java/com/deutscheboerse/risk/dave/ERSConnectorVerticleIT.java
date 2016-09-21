@@ -5,6 +5,7 @@ import com.deutscheboerse.risk.dave.utils.DummyData;
 import com.deutscheboerse.risk.dave.utils.Utils;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -18,7 +19,9 @@ import javax.jms.*;
 import javax.naming.NamingException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RunWith(VertxUnitRunner.class)
@@ -39,6 +42,14 @@ public class ERSConnectorVerticleIT {
 
         JsonObject config = new JsonObject().put("brokerHost", "localhost").put("brokerPort", sslPort).put("member", "ABCFR").put("sslCertAlias", "abcfr").put("truststore", ERSConnectorVerticleIT.class.getResource("ers.truststore").getPath()).put("truststorePassword", "123456").put("keystore", ERSConnectorVerticleIT.class.getResource("ers.keystore").getPath()).put("keystorePassword", "123456");
         vertx.deployVerticle(ERSConnectorVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
+
+        // Deploy also the MasterDataVerticle which is a dependency for ERSVerticle
+        JsonObject clearerABCFR = new JsonObject().put("clearer", "ABCFR").put("members", new JsonArray().add(new JsonObject().put("member", "ABCFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP"))).add(new JsonObject().put("member", "GHIFR").put("accounts", new JsonArray().add("PP").add("MY"))));
+        JsonObject clearerDEFFR = new JsonObject().put("clearer", "DEFFR").put("members", new JsonArray().add(new JsonObject().put("member", "DEFFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP"))));
+        JsonObject mdConfig = new JsonObject().put("clearers", new JsonArray().add(clearerABCFR).add(clearerDEFFR));
+
+        DeploymentOptions options = new DeploymentOptions().setConfig(mdConfig);
+        vertx.deployVerticle(MasterdataVerticle.class.getName(), options, context.asyncAssertSuccess());
     }
 
     private void sendErsBroadcast(TestContext context, String routingKey, String messageBody) {
@@ -94,7 +105,7 @@ public class ERSConnectorVerticleIT {
 
     @Test
     public void testInitialRequests(TestContext context) throws JMSException {
-        Map<String, Message> messages = new HashMap<>();
+        Map<String, List<Message>> messages = new HashMap<>();
 
         // Collect request messages
         final Async asyncRequests = context.async();
@@ -112,8 +123,31 @@ public class ERSConnectorVerticleIT {
                     Message msg = consumer.receive(1000);
 
                     if (msg != null) {
+                        System.out.println("Got message ... " + getMessagePayloadAsString(msg));
+
                         if (getMessagePayloadAsString(msg).contains("TrdgSesStatReq")) {
-                            messages.put("tss", msg);
+                            if (messages.get("tss") != null)
+                            {
+                                messages.get("tss").add(msg);
+                            }
+                            else
+                            {
+                                List<Message> list = new ArrayList<Message>();
+                                list.add(msg);
+                                messages.put("tss", list);
+                            }
+                        }
+                        else if (getMessagePayloadAsString(msg).contains("MgnReqmtInq") && getMessagePayloadAsString(msg).contains("Qual=\"2\"")) {
+                            if (messages.get("mss") != null)
+                            {
+                                messages.get("mss").add(msg);
+                            }
+                            else
+                            {
+                                List<Message> list = new ArrayList<Message>();
+                                list.add(msg);
+                                messages.put("mss", list);
+                            }
                         }
 
                         msg.acknowledge();
@@ -146,9 +180,22 @@ public class ERSConnectorVerticleIT {
 
         // TSS
         context.assertNotNull(messages.get("tss"));
-        context.assertTrue(messages.get("tss").getJMSReplyTo().toString().contains("eurex.response"));
-        context.assertTrue(messages.get("tss").getJMSReplyTo().toString().contains("ABCFR.TradingSessionStatus"));
-        context.assertTrue(getMessagePayloadAsString(messages.get("tss")).contains("SubReqTyp=\"0\""));
+        context.assertEquals(1, messages.get("tss").size());
+        context.assertTrue(messages.get("tss").get(0).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("tss").get(0).getJMSReplyTo().toString().contains("ABCFR.TradingSessionStatus"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("tss").get(0)).contains("SubReqTyp=\"0\""));
+
+        // MSS
+        context.assertNotNull(messages.get("mss"));
+        context.assertEquals(2, messages.get("mss").size());
+        context.assertTrue(messages.get("mss").get(0).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("mss").get(0).getJMSReplyTo().toString().contains("ABCFR.MarginShortfallSurplus"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("mss").get(0)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("mss").get(0)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(messages.get("mss").get(1).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("mss").get(1).getJMSReplyTo().toString().contains("ABCFR.MarginShortfallSurplus"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("mss").get(1)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("mss").get(1)).contains("Pty ID=\"GHIFR\" Src=\"D\" R=\"1\""));
     }
 
     @Test

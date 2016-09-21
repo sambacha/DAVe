@@ -1,6 +1,5 @@
 package com.deutscheboerse.risk.dave.ers;
 
-import com.deutscheboerse.risk.dave.ERSConnectorVerticle;
 import com.deutscheboerse.risk.dave.ers.processor.*;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JaxbDataFormat;
@@ -32,7 +31,9 @@ public class ERSRouteBuilder extends RouteBuilder {
 
         String tssResponseAddress = getResponseAddress("tss", member + ".TradingSessionStatus");
         String tssReplyAddress = getReplyAddress(member + ".TradingSessionStatus");
-        String tssRequestAddress = getRequestAddress();
+        String mssResponseAddress = getResponseAddress("mss", member + ".MarginShortfallSurplus");
+        String mssReplyAddress = getReplyAddress(member + ".MarginShortfallSurplus");
+        String requestAddress = getRequestAddress();
 
         from("amqp:" + tssBroadcastAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcessor()).to("direct:tss");
         from("amqp:" + mcBroadcastAddress).unmarshal(ersDataModel).process(new MarginComponentProcessor()).to("direct:mc");
@@ -42,7 +43,10 @@ public class ERSRouteBuilder extends RouteBuilder {
         from("amqp:" + rlBroadcastAddress).unmarshal(ersDataModel).process(new RiskLimitProcessor()).split(body()).to("direct:rl");
 
         from("amqp:" + tssResponseAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcessor()).to("direct:tssResponse");
-        from("direct:tssRequest").process(new TradingSessionStatusRequestProcessor(tssReplyAddress)).marshal(ersDataModel).to("amqp:" + tssRequestAddress + "?preserveMessageQos=true");
+        from("direct:tssRequest").process(new TradingSessionStatusRequestProcessor(tssReplyAddress)).marshal(ersDataModel).to("amqp:" + requestAddress + "?preserveMessageQos=true");
+
+        from("amqp:" + mssResponseAddress).unmarshal(ersDataModel).process(new MarginShortfallSurplusProcessor()).to("direct:mssResponse");
+        from("direct:mssRequest").process(new MarginShortfallSurplusRequestProcessor(mssReplyAddress)).marshal(ersDataModel).to("amqp:" + requestAddress + "?preserveMessageQos=true");
     }
 
     private String getBroadcastAddress(String type, String routingKey) {

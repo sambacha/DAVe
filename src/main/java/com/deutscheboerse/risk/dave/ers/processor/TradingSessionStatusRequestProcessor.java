@@ -7,8 +7,6 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
 
-import java.util.UUID;
-
 public class TradingSessionStatusRequestProcessor extends AbstractProcessor implements Processor {
     private final String replyToAddress;
 
@@ -20,13 +18,13 @@ public class TradingSessionStatusRequestProcessor extends AbstractProcessor impl
     private FIXML createRequest()
     {
         ObjectFactory of = new ObjectFactory();
-        FIXML request = new FIXML();
+        FIXML fixml = new FIXML();
         TradingSessionStatusRequestMessageT tssr = new TradingSessionStatusRequestMessageT();
-        tssr.setReqID(UUID.randomUUID().toString());
+        tssr.setReqID(getRequestId());
         tssr.setSubReqTyp("0");
-        request.setMessage(of.createTrdgSesStatReq(tssr));
+        fixml.setMessage(of.createTrdgSesStatReq(tssr));
 
-        return request;
+        return fixml;
     }
 
    @Override

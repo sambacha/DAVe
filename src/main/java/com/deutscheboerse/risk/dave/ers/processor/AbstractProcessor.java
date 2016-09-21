@@ -1,17 +1,14 @@
 package com.deutscheboerse.risk.dave.ers.processor;
 
-import java.math.BigDecimal;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.Set;
-
 import com.deutscheboerse.risk.dave.ers.jaxb.MarginAmountBlockT;
 import com.deutscheboerse.risk.dave.ers.jaxb.PartiesBlockT;
 import com.deutscheboerse.risk.dave.ers.jaxb.PtysSubGrpBlockT;
 import io.vertx.core.json.JsonObject;
-import java.util.HashMap;
-import java.util.Map;
+
+import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class AbstractProcessor {
     protected final DateFormat timestampFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
@@ -99,5 +96,10 @@ public class AbstractProcessor {
                 data.put("ccy", margin.getCcy());
                 break;
         }
+    }
+
+    protected String getRequestId()
+    {
+        return UUID.randomUUID().toString();
     }
 }

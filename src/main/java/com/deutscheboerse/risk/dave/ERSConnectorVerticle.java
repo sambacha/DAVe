@@ -1,24 +1,23 @@
 package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.ers.ERSRouteBuilder;
+import com.deutscheboerse.risk.dave.ers.InitialLoad;
 import io.vertx.camel.CamelBridge;
 import io.vertx.camel.CamelBridgeOptions;
 import io.vertx.camel.InboundMapping;
 import io.vertx.camel.OutboundMapping;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.amqp.AMQPComponent;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.qpid.client.AMQConnectionFactory;
 import org.apache.qpid.url.URLSyntaxException;
-
-import java.util.UUID;
 
 
 /**
@@ -38,12 +37,15 @@ public class ERSConnectorVerticle extends AbstractVerticle {
     private CamelContext camelCtx;
     private CamelBridge camelBridge;
 
+    private JsonArray membership = new JsonArray();
+
     @Override
     public void start(Future<Void> startFuture) {
         LOG.info("Starting {} with configuration: {}", ERSConnectorVerticle.class.getSimpleName(), config().encodePrettily());
         Future<Void> chainFuture = Future.future();
         startCamel()
                 .compose(this::startCamelBridge)
+                .compose(this::requestMasterData)
                 .compose(this::requestInitialData)
                 .compose(chainFuture::complete, chainFuture);
 
@@ -56,12 +58,36 @@ public class ERSConnectorVerticle extends AbstractVerticle {
         });
     }
 
+    public Future<Void> requestMasterData(Void unused)
+    {
+        LOG.info("Requesting master data");
+
+        Future<Void> fut = Future.future();
+
+        LOG.trace("Requesting initial membership masterdata");
+        vertx.eventBus().send("masterdata.getMembershipInfo", new JsonObject().put("member", config().getString("member")), ar -> {
+            if (ar.succeeded())
+            {
+                membership = (JsonArray)ar.result().body();
+                LOG.info("Received master data {}", membership);
+                fut.complete();
+            }
+            else
+            {
+                fut.fail(ar.cause());
+            }
+        });
+
+        return fut;
+    }
+
     public Future<Void> requestInitialData(Void unused)
     {
         LOG.info("Requesting inital ERS data");
 
-        LOG.trace("Requesting initial TradingSessionStatus");
-        vertx.eventBus().publish("ers.TradingSessionStatusRequest", new JsonObject());
+        InitialLoad il = new InitialLoad(membership, vertx.eventBus());
+        il.requestTradingSessionStatus();
+        il.requestMarginShortfallSurplus();
 
         return Future.succeededFuture();
     }
@@ -114,6 +140,7 @@ public class ERSConnectorVerticle extends AbstractVerticle {
                         .addInboundMapping(InboundMapping.fromCamel("direct:rl").toVertx("ers.RiskLimit").usePublish())
                         .addInboundMapping(InboundMapping.fromCamel("direct:tssResponse").toVertx("ers.TradingSessionStatus").usePublish())
                         .addOutboundMapping(OutboundMapping.fromVertx("ers.TradingSessionStatusRequest").toCamel("direct:tssRequest"))
+                        .addOutboundMapping(OutboundMapping.fromVertx("ers.MarginShortfallSurplusRequest").toCamel("direct:mssRequest"))
         );
 
         camelBridge.start();
