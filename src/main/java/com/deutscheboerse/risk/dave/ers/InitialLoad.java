@@ -27,6 +27,21 @@ public class InitialLoad {
         eb.publish("ers.TradingSessionStatusRequest", new JsonObject());
     }
 
+    public void requestTotalMarginRequirement()
+    {
+        membership.forEach(member -> {
+            JsonObject mbr = (JsonObject)member;
+            JsonObject request = new JsonObject().put("member", mbr.getString("member")).put("clearer", mbr.getString("clearer"));
+
+            mbr.getJsonArray("accounts").forEach(account -> {
+                request.put("account", (String)account);
+
+                LOG.info("Requesting initial TotalMarginRequirementRequest: {}", request);
+                eb.publish("ers.TotalMarginRequirementRequest", request);
+            });
+        });
+    }
+
     public void requestMarginShortfallSurplus()
     {
         membership.forEach(member -> {

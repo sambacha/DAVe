@@ -31,7 +31,9 @@ public class ERSRouteBuilder extends RouteBuilder {
 
         String tssResponseAddress = getResponseAddress("tss", member + ".TradingSessionStatus");
         String tssReplyAddress = getReplyAddress(member + ".TradingSessionStatus");
-        String mssResponseAddress = getResponseAddress("mss", member + ".MarginShortfallSurplus");
+        String tmrResponseAddress = getResponseAddress("mss", member + ".MarginShortfallSurplus");
+        String tmrReplyAddress = getReplyAddress(member + ".TotalMarginRequirement");
+        String mssResponseAddress = getResponseAddress("mss", member + ".TotalMarginRequirement");
         String mssReplyAddress = getReplyAddress(member + ".MarginShortfallSurplus");
         String rlResponseAddress = getResponseAddress("mss", member + ".RiskLimits");
         String rlReplyAddress = getReplyAddress(member + ".RiskLimits");
@@ -46,6 +48,9 @@ public class ERSRouteBuilder extends RouteBuilder {
 
         from("amqp:" + tssResponseAddress).unmarshal(ersDataModel).process(new TradingSessionStatusProcessor()).to("direct:tssResponse");
         from("direct:tssRequest").process(new TradingSessionStatusRequestProcessor(tssReplyAddress)).marshal(ersDataModel).to("amqp:" + requestAddress + "?preserveMessageQos=true");
+
+        from("amqp:" + tmrResponseAddress).unmarshal(ersDataModel).process(new TotalMarginRequirementProcessor()).to("direct:tmrResponse");
+        from("direct:tmrRequest").process(new TotalMarginRequirementRequestProcessor(tmrReplyAddress)).marshal(ersDataModel).to("amqp:" + requestAddress + "?preserveMessageQos=true");
 
         from("amqp:" + mssResponseAddress).unmarshal(ersDataModel).process(new MarginShortfallSurplusProcessor()).to("direct:mssResponse");
         from("direct:mssRequest").process(new MarginShortfallSurplusRequestProcessor(mssReplyAddress)).marshal(ersDataModel).to("amqp:" + requestAddress + "?preserveMessageQos=true");

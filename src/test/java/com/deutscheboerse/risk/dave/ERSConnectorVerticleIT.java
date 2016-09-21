@@ -137,6 +137,18 @@ public class ERSConnectorVerticleIT {
                                 messages.put("tss", list);
                             }
                         }
+                        else if (getMessagePayloadAsString(msg).contains("MgnReqmtInq") && getMessagePayloadAsString(msg).contains("Qual=\"0\"")) {
+                            if (messages.get("tmr") != null)
+                            {
+                                messages.get("tmr").add(msg);
+                            }
+                            else
+                            {
+                                List<Message> list = new ArrayList<Message>();
+                                list.add(msg);
+                                messages.put("tmr", list);
+                            }
+                        }
                         else if (getMessagePayloadAsString(msg).contains("MgnReqmtInq") && getMessagePayloadAsString(msg).contains("Qual=\"2\"")) {
                             if (messages.get("mss") != null)
                             {
@@ -197,6 +209,35 @@ public class ERSConnectorVerticleIT {
         context.assertTrue(messages.get("tss").get(0).getJMSReplyTo().toString().contains("ABCFR.TradingSessionStatus"));
         context.assertTrue(getMessagePayloadAsString(messages.get("tss").get(0)).contains("SubReqTyp=\"0\""));
 
+        // TMR
+        context.assertNotNull(messages.get("tmr"));
+        context.assertEquals(5, messages.get("tmr").size());
+        context.assertTrue(messages.get("tmr").get(0).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("tmr").get(0).getJMSReplyTo().toString().contains("ABCFR.TotalMarginRequirement"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("tmr").get(0)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("tmr").get(0)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("tmr").get(0)).contains("Sub ID=\"A1\" Typ=\"26\""));
+        context.assertTrue(messages.get("tmr").get(1).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("tmr").get(1).getJMSReplyTo().toString().contains("ABCFR.TotalMarginRequirement"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("tmr").get(1)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("tmr").get(1)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("tmr").get(1)).contains("Sub ID=\"A2\" Typ=\"26\""));
+        context.assertTrue(messages.get("tmr").get(2).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("tmr").get(2).getJMSReplyTo().toString().contains("ABCFR.TotalMarginRequirement"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("tmr").get(2)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("tmr").get(2)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("tmr").get(2)).contains("Sub ID=\"PP\" Typ=\"26\""));
+        context.assertTrue(messages.get("tmr").get(3).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("tmr").get(3).getJMSReplyTo().toString().contains("ABCFR.TotalMarginRequirement"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("tmr").get(3)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("tmr").get(3)).contains("Pty ID=\"GHIFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("tmr").get(3)).contains("Sub ID=\"PP\" Typ=\"26\""));
+        context.assertTrue(messages.get("tmr").get(4).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("tmr").get(4).getJMSReplyTo().toString().contains("ABCFR.TotalMarginRequirement"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("tmr").get(4)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("tmr").get(4)).contains("Pty ID=\"GHIFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("tmr").get(4)).contains("Sub ID=\"MY\" Typ=\"26\""));
+        
         // MSS
         context.assertNotNull(messages.get("mss"));
         context.assertEquals(2, messages.get("mss").size());
