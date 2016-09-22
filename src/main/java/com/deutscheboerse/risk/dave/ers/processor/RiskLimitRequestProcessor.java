@@ -8,7 +8,7 @@ import org.apache.camel.Processor;
 
 import java.math.BigInteger;
 
-public class RiskLimitRequestProcessor extends AbstractProcessor implements Processor {
+public class RiskLimitRequestProcessor extends AbstractRequestProcessor implements Processor {
     private final String replyToAddress;
 
     public RiskLimitRequestProcessor(String replyToAddress)
@@ -31,26 +31,6 @@ public class RiskLimitRequestProcessor extends AbstractProcessor implements Proc
         fixml.setMessage(of.createPtyRiskLmtReq(rlr));
 
         return fixml;
-    }
-
-    private PartiesBlockT getClearer(JsonObject request)
-    {
-        PartiesBlockT clearer = new PartiesBlockT();
-        clearer.setID(request.getString("clearer"));
-        clearer.setR(BigInteger.valueOf(4));
-        clearer.setSrc("D");
-
-        return clearer;
-    }
-
-    private PartiesBlockT getMember(JsonObject request)
-    {
-        PartiesBlockT member = new PartiesBlockT();
-        member.setID(request.getString("member"));
-        member.setR(BigInteger.valueOf(1));
-        member.setSrc("D");
-
-        return member;
     }
 
     private PartiesBlockT getMaintainer(JsonObject request)

@@ -97,9 +97,4 @@ public class AbstractProcessor {
                 break;
         }
     }
-
-    protected String getRequestId()
-    {
-        return UUID.randomUUID().toString();
-    }
 }

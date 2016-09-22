@@ -7,7 +7,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
 
-public class TradingSessionStatusRequestProcessor extends AbstractProcessor implements Processor {
+public class TradingSessionStatusRequestProcessor extends AbstractRequestProcessor implements Processor {
     private final String replyToAddress;
 
     public TradingSessionStatusRequestProcessor(String replyToAddress)
