@@ -1,16 +1,25 @@
 package com.deutscheboerse.risk.dave.ers.processor;
 
+import com.deutscheboerse.risk.dave.ers.jaxb.FIXML;
 import com.deutscheboerse.risk.dave.ers.jaxb.PartiesBlockT;
 import com.deutscheboerse.risk.dave.ers.jaxb.PtysSubGrpBlockT;
 import io.vertx.core.json.JsonObject;
+import org.apache.camel.Exchange;
+import org.apache.camel.Message;
 
 import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.UUID;
 
-public class AbstractRequestProcessor {
+abstract class AbstractRequestProcessor {
     protected final DateFormat timestampFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+    protected final String replyToAddress;
+
+    public AbstractRequestProcessor(String replyToAddress)
+    {
+        this.replyToAddress = replyToAddress;
+    }
 
     protected String getRequestId()
     {
@@ -48,5 +57,15 @@ public class AbstractRequestProcessor {
         account.setID(request.getString("account"));
 
         return account;
+    }
+
+    abstract FIXML createRequest(JsonObject request);
+
+    public void process(Exchange exchange) {
+        JsonObject request = (JsonObject)exchange.getIn().getBody();
+
+        Message out = exchange.getOut();
+        out.setBody(createRequest(request));
+        out.setHeader("JMSReplyTo", replyToAddress);
     }
 }

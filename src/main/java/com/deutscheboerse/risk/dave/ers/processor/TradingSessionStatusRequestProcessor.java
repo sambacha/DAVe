@@ -3,19 +3,16 @@ package com.deutscheboerse.risk.dave.ers.processor;
 import com.deutscheboerse.risk.dave.ers.jaxb.FIXML;
 import com.deutscheboerse.risk.dave.ers.jaxb.ObjectFactory;
 import com.deutscheboerse.risk.dave.ers.jaxb.TradingSessionStatusRequestMessageT;
-import org.apache.camel.Exchange;
-import org.apache.camel.Message;
+import io.vertx.core.json.JsonObject;
 import org.apache.camel.Processor;
 
 public class TradingSessionStatusRequestProcessor extends AbstractRequestProcessor implements Processor {
-    private final String replyToAddress;
-
     public TradingSessionStatusRequestProcessor(String replyToAddress)
     {
-        this.replyToAddress = replyToAddress;
+        super(replyToAddress);
     }
 
-    private FIXML createRequest()
+    protected FIXML createRequest(JsonObject request)
     {
         ObjectFactory of = new ObjectFactory();
         FIXML fixml = new FIXML();
@@ -25,12 +22,5 @@ public class TradingSessionStatusRequestProcessor extends AbstractRequestProcess
         fixml.setMessage(of.createTrdgSesStatReq(tssr));
 
         return fixml;
-    }
-
-   @Override
-   public void process(Exchange exchange) {
-       Message out = exchange.getOut();
-       out.setBody(createRequest());
-       out.setHeader("JMSReplyTo", replyToAddress);
     }
 }

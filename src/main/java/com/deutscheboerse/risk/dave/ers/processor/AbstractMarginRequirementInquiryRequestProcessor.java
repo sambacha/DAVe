@@ -5,7 +5,12 @@ import io.vertx.core.json.JsonObject;
 
 import java.math.BigInteger;
 
-public class AbstractMarginRequirementInquiryRequestProcessor extends AbstractRequestProcessor {
+abstract class AbstractMarginRequirementInquiryRequestProcessor extends AbstractRequestProcessor {
+    public AbstractMarginRequirementInquiryRequestProcessor(String replyToAddress)
+    {
+        super(replyToAddress);
+    }
+
     protected MarginReqmtInqQualGrpBlockT getQual(int qualTyp)
     {
         MarginReqmtInqQualGrpBlockT qual = new MarginReqmtInqQualGrpBlockT();
