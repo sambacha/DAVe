@@ -163,9 +163,9 @@ public class UserManagerVerticle extends AbstractVerticle {
     private void executeList(Handler<AsyncResult<String>> completer) {
         JsonObject query = new JsonObject();
         mongo.find(UserManagerVerticle.DEFAULT_USER_COLLECTION_NAME, query, ar -> {
-            LOG.info("Users records stored in the database:");
+            LOG.info("User records stored in the database:");
             if (ar.succeeded()) {
-                ar.result().forEach(json -> System.out.println(json.encodePrettily()));
+                ar.result().forEach(json -> LOG.info(json.encodePrettily()));
                 completer.handle(Future.succeededFuture());
             } else {
                 completer.handle(Future.failedFuture(ar.cause()));
