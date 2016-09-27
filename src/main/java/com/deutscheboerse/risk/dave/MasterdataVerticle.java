@@ -3,17 +3,19 @@ package com.deutscheboerse.risk.dave;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
+import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.net.ProxyOptions;
+import io.vertx.core.net.ProxyType;
+import io.vertx.core.parsetools.RecordParser;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by schojak on 19.8.16.
@@ -24,6 +26,7 @@ public class MasterdataVerticle extends AbstractVerticle {
     private EventBus eb;
     private Map<String, List<String>> clearerMemberRelationship = new HashMap<>();
     private Map<String, JsonObject> memberDetails = new HashMap<>();
+    private List<String> products = new LinkedList<>();
 
     @Override
     public void start(Future<Void> startFuture) throws Exception {
@@ -32,8 +35,7 @@ public class MasterdataVerticle extends AbstractVerticle {
 
         List<Future> futures = new ArrayList<>();
         futures.add(processMemberMasterdata());
-        // TODO: Load product data
-        //futures.add(loadProducts);
+        futures.add(loadProducts());
         // TODO: Load margin classes
         //futures.add(loadMarginClasses);
         futures.add(startListeners());
@@ -68,6 +70,56 @@ public class MasterdataVerticle extends AbstractVerticle {
         });
 
         return Future.succeededFuture();
+    }
+
+    private Future<Void> loadProducts()
+    {
+        String productListUrl = config().getString("productListUrl");
+
+        if (productListUrl != null) {
+            LOG.info("Downloading products from URL {}", productListUrl);
+
+            /*HttpClientOptions options = new HttpClientOptions()
+                    .setProxyOptions(new ProxyOptions().setType(ProxyType.HTTP)
+                            //.setHost("webproxy.deutsche-boerse.de").setPort(8080));
+                            .setHost("10.139.7.11").setPort(8080));*/
+
+            vertx.createHttpClient().getNow(productListUrl, res -> {
+                if (res.statusCode() == 200) {
+                    res.bodyHandler(body -> {
+                        parseProducts(body);
+                    });
+                }
+                else
+                {
+                    LOG.error("The product list URL doesn't seem to work! Status code {} returned with message {}.", res.statusCode(), res.statusMessage());
+                }
+            });
+
+            return Future.succeededFuture();
+        }
+        else
+        {
+            LOG.warn("No product list URL defined. Products will not be loaded");
+            return Future.succeededFuture();
+        }
+    }
+
+    private void parseProducts(Buffer body) {
+        LOG.info("Parsing product list");
+        LOG.trace("Parsing product list {}", body.toString());
+
+        final RecordParser parser = RecordParser.newDelimited("\n", line -> {
+            String[] productFields = line.toString().split(";");
+            String productId = productFields[0];
+            if (productId != null)
+            {
+                LOG.info("Adding product {} to the product database", productId.trim());
+                products.add(productId.trim());
+            }
+        });
+
+        parser.handle(body);
     }
 
     private Future<Void> startListeners()
