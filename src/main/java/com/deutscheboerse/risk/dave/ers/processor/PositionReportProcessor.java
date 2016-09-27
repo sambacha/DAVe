@@ -1,24 +1,34 @@
 package com.deutscheboerse.risk.dave.ers.processor;
 
-import com.deutscheboerse.risk.dave.ers.jaxb.InstrumentBlockT;
-import com.deutscheboerse.risk.dave.ers.jaxb.AbstractMessageT;
-import com.deutscheboerse.risk.dave.ers.jaxb.FIXML;
-import com.deutscheboerse.risk.dave.ers.jaxb.PositionReportMessageT;
+import com.deutscheboerse.risk.dave.ers.jaxb.*;
 import io.vertx.core.json.JsonObject;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.Optional;
 import javax.xml.bind.JAXBElement;
+
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
 
 public class PositionReportProcessor extends AbstractProcessor implements Processor {
+    private static final Logger LOG = LoggerFactory.getLogger(PositionReportProcessor.class);
 
-    private JsonObject parseFromFIXML(FIXML fixml) {
+    private JsonObject parseFromFIXML(FIXML fixml) throws Exception {
         JAXBElement<? extends AbstractMessageT> msg = fixml.getMessage();
-        PositionReportMessageT prMessage = (PositionReportMessageT) msg.getValue();
 
+        if (msg.getValue() instanceof PositionReportMessageT) {
+            return processPositionReport((PositionReportMessageT) msg.getValue());
+        } else {
+            processMarginRequirementInqAck((MarginRequirementInquiryAckMessageT) msg.getValue());
+            throw new Exception("Something went wrong");
+        }
+    }
+
+    private JsonObject processPositionReport(PositionReportMessageT prMessage)
+    {
         JsonObject pr = new JsonObject();
         pr.put("received", new JsonObject().put("$date", timestampFormatter.format(new Date())));
         pr.put("reqId", prMessage.getID());
@@ -67,9 +77,37 @@ public class PositionReportProcessor extends AbstractProcessor implements Proces
         return pr;
     }
 
+    private void processMarginRequirementInqAck(MarginRequirementInquiryAckMessageT ackMessage) throws Exception {
+        String result = ackMessage.getRslt();
+        String error = ackMessage.getTxt();
+
+        switch (result)
+        {
+            case "304":
+                // Unknown product -> E.g. running PROD data in TEST?
+                LOG.debug("Received MarginRequirementInquiryAcknowledgement with result {} and error message '{}'", result, error);
+                break;
+            case "801":
+                // No positions -> this is not really an error
+                LOG.trace("Received MarginRequirementInquiryAcknowledgement with result {} and error message '{}'", result, error);
+                break;
+            default:
+                LOG.error("Received MarginRequirementInquiryAcknowledgement with result {} and error message '{}'", result, error);
+                throw new Exception();
+        }
+    }
+
    @Override
    public void process(Exchange exchange) {
-        Message in = exchange.getIn();
-        in.setBody(this.parseFromFIXML((FIXML)in.getBody()));
+       Message in = exchange.getIn();
+
+       try {
+           in.setBody(parseFromFIXML((FIXML) in.getBody()));
+       }
+       catch (Exception e)
+       {
+           // Stop the exchange
+           exchange.setProperty(Exchange.ROUTE_STOP, Boolean.TRUE);
+       }
     }
 }

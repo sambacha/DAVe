@@ -13,13 +13,15 @@ public class InitialLoad {
     private static final Logger LOG = LoggerFactory.getLogger(InitialLoad.class);
 
     final private JsonArray membership;
+    final private JsonArray products;
     final private EventBus eb;
     final private String memberId;
 
-    public InitialLoad(String memberId, JsonArray membership, EventBus eb)
+    public InitialLoad(String memberId, JsonArray membership, JsonArray products, EventBus eb)
     {
         this.memberId = memberId;
         this.membership = membership;
+        this.products = products;
         this.eb = eb;
     }
 
@@ -27,6 +29,25 @@ public class InitialLoad {
     {
         LOG.trace("Requesting initial TradingSessionStatus");
         eb.publish("ers.TradingSessionStatusRequest", new JsonObject());
+    }
+
+    public void requestPositionReports()
+    {
+        membership.forEach(member -> {
+            JsonObject mbr = (JsonObject)member;
+            JsonObject request = new JsonObject().put("member", mbr.getString("member")).put("clearer", mbr.getString("clearer"));
+
+            mbr.getJsonArray("accounts").forEach(account -> {
+                request.put("account", (String)account);
+
+                products.forEach(product -> {
+                    request.put("product", (String)product);
+
+                    LOG.trace("Requesting initial TotalMarginRequirementRequest: {}", request);
+                    eb.publish("ers.PositionReportRequest", request);
+                });
+            });
+        });
     }
 
     public void requestTotalMarginRequirement()
@@ -38,7 +59,7 @@ public class InitialLoad {
             mbr.getJsonArray("accounts").forEach(account -> {
                 request.put("account", (String)account);
 
-                LOG.info("Requesting initial TotalMarginRequirementRequest: {}", request);
+                LOG.trace("Requesting initial TotalMarginRequirementRequest: {}", request);
                 eb.publish("ers.TotalMarginRequirementRequest", request);
             });
         });
@@ -50,7 +71,7 @@ public class InitialLoad {
             JsonObject mbr = (JsonObject)member;
             JsonObject request = new JsonObject().put("member", mbr.getString("member")).put("clearer", mbr.getString("clearer")).put("pool", "");
 
-            LOG.info("Requesting initial MarginShortfallSurplusRequest: {}", request);
+            LOG.trace("Requesting initial MarginShortfallSurplusRequest: {}", request);
             eb.publish("ers.MarginShortfallSurplusRequest", request);
         });
     }
@@ -61,7 +82,7 @@ public class InitialLoad {
             JsonObject mbr = (JsonObject)member;
 
             JsonObject request1 = new JsonObject().put("member", mbr.getString("member")).put("clearer", mbr.getString("clearer")).put("maintainer", memberId);
-            LOG.info("Requesting initial RiskLimitRequest: {}", request1);
+            LOG.trace("Requesting initial RiskLimitRequest: {}", request1);
             eb.publish("ers.RiskLimitRequest", request1);
         });
     }

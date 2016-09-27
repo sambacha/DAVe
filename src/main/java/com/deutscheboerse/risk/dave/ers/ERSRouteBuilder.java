@@ -55,11 +55,13 @@ public class ERSRouteBuilder extends RouteBuilder {
     {
         String requestAddress = getRequestAddress();
         String tssReplyAddress = getReplyAddress(member + ".TradingSessionStatus");
+        String prReplyAddress = getReplyAddress(member + ".PositionReport");
         String tmrReplyAddress = getReplyAddress(member + ".TotalMarginRequirement");
         String mssReplyAddress = getReplyAddress(member + ".MarginShortfallSurplus");
         String rlReplyAddress = getReplyAddress(member + ".RiskLimits");
 
         from("direct:tssRequest").process(new TradingSessionStatusRequestProcessor(tssReplyAddress)).marshal(dataModel).to("amqp:" + requestAddress + "?preserveMessageQos=true");
+        from("direct:prRequest").process(new PositionReportRequestProcessor(prReplyAddress)).marshal(dataModel).to("amqp:" + requestAddress + "?preserveMessageQos=true");
         from("direct:tmrRequest").process(new TotalMarginRequirementRequestProcessor(tmrReplyAddress)).marshal(dataModel).to("amqp:" + requestAddress + "?preserveMessageQos=true");
         from("direct:mssRequest").process(new MarginShortfallSurplusRequestProcessor(mssReplyAddress)).marshal(dataModel).to("amqp:" + requestAddress + "?preserveMessageQos=true");
         from("direct:rlRequest").process(new RiskLimitRequestProcessor(rlReplyAddress)).marshal(dataModel).to("amqp:" + requestAddress + "?preserveMessageQos=true");
@@ -68,11 +70,13 @@ public class ERSRouteBuilder extends RouteBuilder {
     private void configureResponses(JaxbDataFormat dataModel)
     {
         String tssResponseAddress = getResponseAddress("tss", member + ".TradingSessionStatus");
+        String prResponseAddress = getResponseAddress("pr", member + ".PositionReport");
         String tmrResponseAddress = getResponseAddress("tmr", member + ".TotalMarginRequirement");
         String mssResponseAddress = getResponseAddress("mss", member + ".MarginShortfallSurplus");
         String rlResponseAddress = getResponseAddress("rl", member + ".RiskLimits");
 
         from("amqp:" + tssResponseAddress).unmarshal(dataModel).process(new TradingSessionStatusProcessor()).to("direct:tssResponse");
+        from("amqp:" + prResponseAddress).unmarshal(dataModel).process(new PositionReportProcessor()).to("direct:prResponse");
         from("amqp:" + tmrResponseAddress).unmarshal(dataModel).process(new TotalMarginRequirementProcessor()).to("direct:tmrResponse");
         from("amqp:" + mssResponseAddress).unmarshal(dataModel).process(new MarginShortfallSurplusProcessor()).to("direct:mssResponse");
         from("amqp:" + rlResponseAddress).unmarshal(dataModel).process(new RiskLimitProcessor()).split(body()).to("direct:rlResponse");

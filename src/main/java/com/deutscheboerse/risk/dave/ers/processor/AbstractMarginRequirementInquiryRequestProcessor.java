@@ -23,14 +23,21 @@ abstract class AbstractMarginRequirementInquiryRequestProcessor extends Abstract
     {
         ObjectFactory of = new ObjectFactory();
         FIXML fixml = new FIXML();
-        MarginRequirementInquiryMessageT mssr = new MarginRequirementInquiryMessageT();
-        mssr.setSetSesID(SettlSessIDEnumT.ITD);
-        mssr.setID(getRequestId());
-        mssr.getMgnReqmtInqQual().add(getQual(qualTyp));
-        mssr.getPty().add(getClearer(request));
-        mssr.getPty().add(getMember(request));
+        MarginRequirementInquiryMessageT mrim = new MarginRequirementInquiryMessageT();
+        mrim.setSetSesID(SettlSessIDEnumT.ITD);
+        mrim.setID(getRequestId());
+        mrim.getMgnReqmtInqQual().add(getQual(qualTyp));
+        mrim.getPty().add(getClearer(request));
+        mrim.getPty().add(getMember(request));
 
-        fixml.setMessage(of.createMgnReqmtInq(mssr));
+        if (request.getString("product") != null)
+        {
+            InstrumentBlockT instrument = new InstrumentBlockT();
+            instrument.setSym(request.getString("product"));
+            mrim.setInstrmt(instrument);
+        }
+
+        fixml.setMessage(of.createMgnReqmtInq(mrim));
 
         return fixml;
     }

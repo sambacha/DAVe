@@ -152,7 +152,7 @@ public class MasterdataVerticle extends AbstractVerticle {
             String productId = productFields[0];
             if (productId != null && !productId.equals("PRODUCT_ID") && !productId.equals(""))
             {
-                LOG.info("Adding product {} to the product database", productId.trim());
+                LOG.trace("Adding product {} to the product database", productId.trim());
                 products.add(productId.trim());
             }
         });
