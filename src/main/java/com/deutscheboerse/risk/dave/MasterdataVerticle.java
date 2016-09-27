@@ -101,7 +101,7 @@ public class MasterdataVerticle extends AbstractVerticle {
                     port = 443;
                 }
 
-                vertx.createHttpClient().getNow(url.getPort(), url.getHost(), url.getPath(), res -> {
+                vertx.createHttpClient().getNow(port, url.getHost(), url.getPath(), res -> {
                     if (res.statusCode() == 200) {
                         res.bodyHandler(body -> {
                             parseProducts(body);
