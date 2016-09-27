@@ -17,7 +17,10 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.amqp.AMQPComponent;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.qpid.client.AMQConnectionFactory;
+import org.apache.qpid.client.PooledConnectionFactory;
 import org.apache.qpid.url.URLSyntaxException;
+
+import javax.jms.ConnectionFactory;
 
 
 /**
@@ -38,6 +41,7 @@ public class ERSConnectorVerticle extends AbstractVerticle {
     private CamelBridge camelBridge;
 
     private JsonArray membership = new JsonArray();
+    private JsonArray products = new JsonArray();
 
     @Override
     public void start(Future<Void> startFuture) {
@@ -45,7 +49,8 @@ public class ERSConnectorVerticle extends AbstractVerticle {
         Future<Void> chainFuture = Future.future();
         startCamel()
                 .compose(this::startCamelBridge)
-                .compose(this::requestMasterData)
+                .compose(this::requestMemberMasterData)
+                .compose(this::requestProductMasterData)
                 .compose(this::requestInitialData)
                 .compose(chainFuture::complete, chainFuture);
 
@@ -58,9 +63,9 @@ public class ERSConnectorVerticle extends AbstractVerticle {
         });
     }
 
-    public Future<Void> requestMasterData(Void unused)
+    public Future<Void> requestMemberMasterData(Void unused)
     {
-        LOG.info("Requesting master data");
+        LOG.info("Requesting member master data");
 
         Future<Void> fut = Future.future();
 
@@ -69,7 +74,30 @@ public class ERSConnectorVerticle extends AbstractVerticle {
             if (ar.succeeded())
             {
                 membership = (JsonArray)ar.result().body();
-                LOG.info("Received master data {}", membership);
+                LOG.info("Received member master data {}", membership);
+                fut.complete();
+            }
+            else
+            {
+                fut.fail(ar.cause());
+            }
+        });
+
+        return fut;
+    }
+
+    public Future<Void> requestProductMasterData(Void unused)
+    {
+        LOG.info("Requesting product master data");
+
+        Future<Void> fut = Future.future();
+
+        LOG.trace("Requesting initial product masterdata");
+        vertx.eventBus().send("masterdata.getProducts", new JsonObject(), ar -> {
+            if (ar.succeeded())
+            {
+                products = (JsonArray)ar.result().body();
+                LOG.info("Received product master data {}", membership);
                 fut.complete();
             }
             else
@@ -85,8 +113,9 @@ public class ERSConnectorVerticle extends AbstractVerticle {
     {
         LOG.info("Requesting inital ERS data");
 
-        InitialLoad il = new InitialLoad(config().getString("member"), membership, vertx.eventBus());
+        InitialLoad il = new InitialLoad(config().getString("member"), membership, products, vertx.eventBus());
         il.requestTradingSessionStatus();
+        il.requestPositionReports();
         il.requestTotalMarginRequirement();
         il.requestMarginShortfallSurplus();
         il.requestRiskLimits();
@@ -113,7 +142,7 @@ public class ERSConnectorVerticle extends AbstractVerticle {
         return startCamelFuture;
     }
 
-    private AMQConnectionFactory createAMQConnectionFactory() throws URLSyntaxException {
+    private ConnectionFactory createAMQConnectionFactory() throws URLSyntaxException {
         String connectionAddress = String.format("amqp://:@MyCamelApp/?brokerlist='%s:%d?tcp_nodelay='true'&ssl='true'&ssl_cert_alias='%s'&sasl_mechs='EXTERNAL'&trust_store='%s'&trust_store_password='%s'&key_store='%s'&key_store_password='%s'&ssl_verify_hostname='false''&sync_publish='all'",
                 config().getString("brokerHost", ERSConnectorVerticle.DEFAULT_BROKER_HOST),
                 config().getInteger("brokerPort", ERSConnectorVerticle.DEFAULT_BROKER_PORT),
@@ -122,7 +151,12 @@ public class ERSConnectorVerticle extends AbstractVerticle {
                 config().getString("truststorePassword", ERSConnectorVerticle.DEFAULT_TRUSTSTORE_PASSWORD),
                 config().getString("keystore", ERSConnectorVerticle.DEFAULT_KEYSTORE),
                 config().getString("keystorePassword", ERSConnectorVerticle.DEFAULT_KEYSTORE_PASSWORD));
-        AMQConnectionFactory amqpFact = new AMQConnectionFactory(connectionAddress);
+
+        //AMQConnectionFactory amqpFact = new AMQConnectionFactory(connectionAddress);
+        PooledConnectionFactory amqpFact = new PooledConnectionFactory();
+        amqpFact.setConnectionURLString(connectionAddress);
+        amqpFact.setMaxPoolSize(10);
+
         return amqpFact;
     }
 
@@ -141,10 +175,12 @@ public class ERSConnectorVerticle extends AbstractVerticle {
                         .addInboundMapping(InboundMapping.fromCamel("direct:pr").toVertx("ers.PositionReport").usePublish())
                         .addInboundMapping(InboundMapping.fromCamel("direct:rl").toVertx("ers.RiskLimit").usePublish())
                         .addInboundMapping(InboundMapping.fromCamel("direct:tssResponse").toVertx("ers.TradingSessionStatus").usePublish())
+                        .addInboundMapping(InboundMapping.fromCamel("direct:prResponse").toVertx("ers.PositionReport").usePublish())
                         .addInboundMapping(InboundMapping.fromCamel("direct:tmrResponse").toVertx("ers.TotalMarginRequirement").usePublish())
                         .addInboundMapping(InboundMapping.fromCamel("direct:mssResponse").toVertx("ers.MarginShortfallSurplus").usePublish())
                         .addInboundMapping(InboundMapping.fromCamel("direct:rlResponse").toVertx("ers.RiskLimit").usePublish())
                         .addOutboundMapping(OutboundMapping.fromVertx("ers.TradingSessionStatusRequest").toCamel("direct:tssRequest"))
+                        .addOutboundMapping(OutboundMapping.fromVertx("ers.PositionReportRequest").toCamel("direct:prRequest"))
                         .addOutboundMapping(OutboundMapping.fromVertx("ers.TotalMarginRequirementRequest").toCamel("direct:tmrRequest"))
                         .addOutboundMapping(OutboundMapping.fromVertx("ers.MarginShortfallSurplusRequest").toCamel("direct:mssRequest"))
                         .addOutboundMapping(OutboundMapping.fromVertx("ers.RiskLimitRequest").toCamel("direct:rlRequest"))
