@@ -68,7 +68,7 @@ public class ERSConnectorVerticleIT {
         testAppender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
         Logger logger = (Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
         logger.addAppender(testAppender);
-        logger.setLevel(Level.TRACE);
+        logger.setLevel(Level.INFO);
     }
 
     private static void emptyRequestQueue(TestContext context)
