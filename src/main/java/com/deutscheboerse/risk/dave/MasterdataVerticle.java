@@ -89,6 +89,18 @@ public class MasterdataVerticle extends AbstractVerticle {
 
             try {
                 URL url = new URL(productListUrl);
+
+                int port = url.getPort();
+
+                if (port == -1 && url.getProtocol().equals("http"))
+                {
+                    port = 80;
+                }
+                else if (port == -1 && url.getProtocol().equals("https"))
+                {
+                    port = 443;
+                }
+
                 vertx.createHttpClient().getNow(url.getPort(), url.getHost(), url.getPath(), res -> {
                     if (res.statusCode() == 200) {
                         res.bodyHandler(body -> {
