@@ -14,9 +14,11 @@ public class InitialLoad {
 
     final private JsonArray membership;
     final private EventBus eb;
+    final private String memberId;
 
-    public InitialLoad(JsonArray membership, EventBus eb)
+    public InitialLoad(String memberId, JsonArray membership, EventBus eb)
     {
+        this.memberId = memberId;
         this.membership = membership;
         this.eb = eb;
     }
@@ -31,7 +33,7 @@ public class InitialLoad {
     {
         membership.forEach(member -> {
             JsonObject mbr = (JsonObject)member;
-            JsonObject request = new JsonObject().put("member", mbr.getString("member")).put("clearer", mbr.getString("clearer"));
+            JsonObject request = new JsonObject().put("member", mbr.getString("member")).put("clearer", mbr.getString("clearer")).put("pool", "");
 
             mbr.getJsonArray("accounts").forEach(account -> {
                 request.put("account", (String)account);
@@ -46,7 +48,7 @@ public class InitialLoad {
     {
         membership.forEach(member -> {
             JsonObject mbr = (JsonObject)member;
-            JsonObject request = new JsonObject().put("member", mbr.getString("member")).put("clearer", mbr.getString("clearer"));
+            JsonObject request = new JsonObject().put("member", mbr.getString("member")).put("clearer", mbr.getString("clearer")).put("pool", "");
 
             LOG.info("Requesting initial MarginShortfallSurplusRequest: {}", request);
             eb.publish("ers.MarginShortfallSurplusRequest", request);
@@ -58,15 +60,9 @@ public class InitialLoad {
         membership.forEach(member -> {
             JsonObject mbr = (JsonObject)member;
 
-            JsonObject request1 = new JsonObject().put("member", mbr.getString("member")).put("clearer", mbr.getString("clearer")).put("maintainer", mbr.getString("clearer"));
-            LOG.info("Requesting initial MarginShortfallSurplusRequest: {}", request1);
+            JsonObject request1 = new JsonObject().put("member", mbr.getString("member")).put("clearer", mbr.getString("clearer")).put("maintainer", memberId);
+            LOG.info("Requesting initial RiskLimitRequest: {}", request1);
             eb.publish("ers.RiskLimitRequest", request1);
-
-            if (!mbr.getString("clearer").equals(mbr.getString("member"))) {
-                JsonObject request2 = new JsonObject().put("member", mbr.getString("member")).put("clearer", mbr.getString("clearer")).put("maintainer", mbr.getString("member"));
-                LOG.info("Requesting initial MarginShortfallSurplusRequest: {}", request2);
-                eb.publish("ers.RiskLimitRequest", request2);
-            }
         });
     }
 }

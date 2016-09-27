@@ -21,7 +21,7 @@ public class RiskLimitRequestProcessor extends AbstractRequestProcessor implemen
         FIXML fixml = new FIXML();
         PartyRiskLimitsRequestMessageT rlr = new PartyRiskLimitsRequestMessageT();
         rlr.setReqID(getRequestId());
-        rlr.setSubReqTyp("3");
+        rlr.setReqTyp(BigInteger.valueOf(3));
 
         rlr.getPty().add(getClearer(request));
         rlr.getPty().add(getMember(request));

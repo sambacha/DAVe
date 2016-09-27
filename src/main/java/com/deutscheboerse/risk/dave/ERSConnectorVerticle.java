@@ -85,7 +85,7 @@ public class ERSConnectorVerticle extends AbstractVerticle {
     {
         LOG.info("Requesting inital ERS data");
 
-        InitialLoad il = new InitialLoad(membership, vertx.eventBus());
+        InitialLoad il = new InitialLoad(config().getString("member"), membership, vertx.eventBus());
         il.requestTradingSessionStatus();
         il.requestTotalMarginRequirement();
         il.requestMarginShortfallSurplus();
@@ -141,6 +141,9 @@ public class ERSConnectorVerticle extends AbstractVerticle {
                         .addInboundMapping(InboundMapping.fromCamel("direct:pr").toVertx("ers.PositionReport").usePublish())
                         .addInboundMapping(InboundMapping.fromCamel("direct:rl").toVertx("ers.RiskLimit").usePublish())
                         .addInboundMapping(InboundMapping.fromCamel("direct:tssResponse").toVertx("ers.TradingSessionStatus").usePublish())
+                        .addInboundMapping(InboundMapping.fromCamel("direct:tmrResponse").toVertx("ers.TotalMarginRequirement").usePublish())
+                        .addInboundMapping(InboundMapping.fromCamel("direct:mssResponse").toVertx("ers.MarginShortfallSurplus").usePublish())
+                        .addInboundMapping(InboundMapping.fromCamel("direct:rlResponse").toVertx("ers.RiskLimit").usePublish())
                         .addOutboundMapping(OutboundMapping.fromVertx("ers.TradingSessionStatusRequest").toCamel("direct:tssRequest"))
                         .addOutboundMapping(OutboundMapping.fromVertx("ers.TotalMarginRequirementRequest").toCamel("direct:tmrRequest"))
                         .addOutboundMapping(OutboundMapping.fromVertx("ers.MarginShortfallSurplusRequest").toCamel("direct:mssRequest"))

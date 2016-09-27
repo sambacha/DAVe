@@ -33,6 +33,10 @@ abstract class AbstractRequestProcessor {
         clearer.setR(BigInteger.valueOf(4));
         clearer.setSrc("D");
 
+        if (request.getString("pool") != null) {
+            clearer.getSub().add(getPool(request));
+        }
+
         return clearer;
     }
 
@@ -55,6 +59,15 @@ abstract class AbstractRequestProcessor {
         PtysSubGrpBlockT account = new PtysSubGrpBlockT();
         account.setTyp("26");
         account.setID(request.getString("account"));
+
+        return account;
+    }
+
+    protected PtysSubGrpBlockT getPool(JsonObject request)
+    {
+        PtysSubGrpBlockT account = new PtysSubGrpBlockT();
+        account.setTyp("4000");
+        account.setID(request.getString("poolId", ""));
 
         return account;
     }
