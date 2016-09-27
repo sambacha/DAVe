@@ -82,11 +82,6 @@ public class MasterdataVerticle extends AbstractVerticle {
             Future<Void> productLoad = Future.future();
             LOG.info("Downloading products from URL {}", productListUrl);
 
-            /*HttpClientOptions options = new HttpClientOptions()
-                    .setProxyOptions(new ProxyOptions().setType(ProxyType.HTTP)
-                            //.setHost("webproxy.deutsche-boerse.de").setPort(8080));
-                            .setHost("10.139.7.11").setPort(8080));*/
-
             try {
                 URL url = new URL(productListUrl);
 
@@ -101,7 +96,9 @@ public class MasterdataVerticle extends AbstractVerticle {
                     port = 443;
                 }
 
-                vertx.createHttpClient().getNow(port, url.getHost(), url.getPath(), res -> {
+                HttpClientOptions options = new HttpClientOptions();
+                configureProxy(options);
+                vertx.createHttpClient(options).getNow(port, url.getHost(), url.getPath(), res -> {
                     if (res.statusCode() == 200) {
                         res.bodyHandler(body -> {
                             parseProducts(body);
@@ -124,6 +121,13 @@ public class MasterdataVerticle extends AbstractVerticle {
         {
             LOG.warn("No product list URL defined. Products will not be loaded");
             return Future.succeededFuture();
+        }
+    }
+
+    private void configureProxy(HttpClientOptions options) {
+        if (config().getJsonObject("httpProxy") != null) {
+            options.setProxyOptions(new ProxyOptions().setType(ProxyType.HTTP)
+                    .setHost(config().getJsonObject("httpProxy").getString("host")).setPort(config().getJsonObject("httpProxy").getInteger("port")));
         }
     }
 

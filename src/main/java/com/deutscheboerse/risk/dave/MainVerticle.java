@@ -130,7 +130,14 @@ public class MainVerticle extends AbstractVerticle {
 
     private Future<Void> deployMasterData(Void unused) {
         Future<Void> masterdataVerticleFuture = Future.future();
-        DeploymentOptions masterdataOptions = new DeploymentOptions().setConfig(config().getJsonObject("masterdata", new JsonObject()));
+        JsonObject config = config().getJsonObject("masterdata", new JsonObject());
+
+        if (config().getJsonObject("httpProxy") != null)
+        {
+            config.put("httpProxy", config().getJsonObject("httpProxy"));
+        }
+
+        DeploymentOptions masterdataOptions = new DeploymentOptions().setConfig(config);
         vertx.deployVerticle(MasterdataVerticle.class.getName(), masterdataOptions, ar -> {
             if (ar.succeeded()) {
                 LOG.info("Deployed MasterdataVerticle with ID {}", ar.result());

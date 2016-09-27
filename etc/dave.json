@@ -64,6 +64,10 @@
       }
     ],
     "productListUrl": "http://www.eurexchange.com/blob/272096/0817fa1b6ee9bf3ba822c303f1b249ac/data/productlist.csv"
+  },
+  "httpProxy":  {
+    "host": "10.139.7.11",
+    "port": 8080
   }
 }
 
