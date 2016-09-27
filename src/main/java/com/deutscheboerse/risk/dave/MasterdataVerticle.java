@@ -79,48 +79,60 @@ public class MasterdataVerticle extends AbstractVerticle {
         String productListUrl = config().getString("productListUrl");
 
         if (productListUrl != null) {
-            Future<Void> productLoad = Future.future();
-            LOG.info("Downloading products from URL {}", productListUrl);
-
-            try {
-                URL url = new URL(productListUrl);
-
-                int port = url.getPort();
-
-                if (port == -1 && url.getProtocol().equals("http"))
-                {
-                    port = 80;
-                }
-                else if (port == -1 && url.getProtocol().equals("https"))
-                {
-                    port = 443;
-                }
-
-                HttpClientOptions options = new HttpClientOptions();
-                configureProxy(options);
-                vertx.createHttpClient(options).getNow(port, url.getHost(), url.getPath(), res -> {
-                    if (res.statusCode() == 200) {
-                        res.bodyHandler(body -> {
-                            parseProducts(body);
-                            productLoad.complete();
-                        });
-                    } else {
-                        LOG.error("The product list URL doesn't seem to work! Status code {} returned with message {}.", res.statusCode(), res.statusMessage());
-                        productLoad.fail("The product list URL doesn't seem to work! Status code " + res.statusCode() + " returned with message " + res.statusMessage());
-                    }
-                });
-            }
-            catch (MalformedURLException e)
-            {
-                LOG.error("Failed to parse the product list URL", e);
-            }
-
-            return productLoad;
+            return loadProductsFromUrl(productListUrl);
         }
         else
         {
             LOG.warn("No product list URL defined. Products will not be loaded");
             return Future.succeededFuture();
+        }
+    }
+
+    private Future<Void> loadProductsFromUrl(String productListUrl)
+    {
+        Future<Void> productLoad = Future.future();
+        LOG.info("Downloading products from URL {}", productListUrl);
+
+        try {
+            URL url = new URL(productListUrl);
+
+            HttpClientOptions options = new HttpClientOptions();
+            configureProxy(options);
+            vertx.createHttpClient(options).getNow(getPortFromUrl(url), url.getHost(), url.getPath(), res -> {
+                if (res.statusCode() == 200) {
+                    res.bodyHandler(body -> {
+                        parseProducts(body);
+                        productLoad.complete();
+                    });
+                } else {
+                    LOG.error("The product list URL doesn't seem to work! Status code {} returned with message {}.", res.statusCode(), res.statusMessage());
+                    productLoad.fail("The product list URL doesn't seem to work! Status code " + res.statusCode() + " returned with message " + res.statusMessage());
+                }
+            });
+        }
+        catch (MalformedURLException e)
+        {
+            LOG.error("Failed to parse the product list URL", e);
+        }
+
+        return productLoad;
+    }
+
+    private int getPortFromUrl(URL url)
+    {
+        if (url.getPort() == -1) {
+            switch (url.getProtocol())
+            {
+                case "https":
+                    return 443;
+                case "http":
+                default:
+                    return 80;
+            }
+        }
+        else
+        {
+            return url.getPort();
         }
     }
 
