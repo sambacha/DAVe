@@ -1,10 +1,18 @@
 package com.deutscheboerse.risk.dave;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
+import ch.qos.logback.core.UnsynchronizedAppenderBase;
+import com.deutscheboerse.risk.dave.ers.processor.MarginShortfallSurplusProcessor;
 import com.deutscheboerse.risk.dave.utils.AutoCloseableConnection;
 import com.deutscheboerse.risk.dave.utils.DummyData;
 import com.deutscheboerse.risk.dave.utils.Utils;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
@@ -14,6 +22,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.LoggerFactory;
 
 import javax.jms.*;
 import javax.naming.NamingException;
@@ -32,6 +41,8 @@ public class ERSConnectorVerticleIT {
     private static Vertx vertx;
     private static int tcpPort;
     private static int sslPort;
+
+    private static Appender<ILoggingEvent> testAppender;
 
     @BeforeClass
     public static void setUp(TestContext context) {
@@ -52,6 +63,12 @@ public class ERSConnectorVerticleIT {
 
         DeploymentOptions options = new DeploymentOptions().setConfig(mdConfig);
         vertx.deployVerticle(MasterdataVerticle.class.getName(), options, context.asyncAssertSuccess());
+
+        testAppender = new TestAppender<>();
+        testAppender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
+        Logger logger = (Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        logger.addAppender(testAppender);
+        logger.setLevel(Level.TRACE);
     }
 
     private static void emptyRequestQueue(TestContext context)
@@ -477,6 +494,28 @@ public class ERSConnectorVerticleIT {
     }
 
     @Test
+    public void testMarginShortfallSurplusInqAck307(TestContext context) throws InterruptedException {
+        testAppender.start();
+        sendErsBroadcast(context, "ABCFR.MessageType.MarginShortfallSurplus", DummyData.marginShortfallSurplusInqAck307XML);
+        ILoggingEvent logMessage = ((TestAppender)testAppender).getLastMessage();
+        testAppender.stop();
+
+        context.assertEquals(Level.INFO, logMessage.getLevel());
+        context.assertTrue(logMessage.getFormattedMessage().contains("Received MarginRequirementInquiryAcknowledgement with result 307 and error message 'Unknown pool ID.'"));
+    }
+
+    @Test
+    public void testMarginShortfallSurplusInqAckUnknown(TestContext context) throws InterruptedException {
+        testAppender.start();
+        sendErsBroadcast(context, "ABCFR.MessageType.MarginShortfallSurplus", DummyData.marginShortfallSurplusInqAckUnknownXML);
+        ILoggingEvent logMessage = ((TestAppender)testAppender).getLastMessage();
+        testAppender.stop();
+
+        context.assertEquals(Level.ERROR, logMessage.getLevel());
+        context.assertTrue(logMessage.getFormattedMessage().contains("Received MarginRequirementInquiryAcknowledgement with result XXXXX and error message 'Some error message.'"));
+    }
+
+    @Test
     public void testRiskLimit(TestContext context) throws InterruptedException {
         final Async asyncReceiver = context.async(2);
         vertx.eventBus().consumer("ers.RiskLimit", msg -> {
@@ -525,5 +564,40 @@ public class ERSConnectorVerticleIT {
     @AfterClass
     public static void tearDown(TestContext context) {
         ERSConnectorVerticleIT.vertx.close(context.asyncAssertSuccess());
+    }
+
+    static class TestAppender<E> extends UnsynchronizedAppenderBase<E>
+    {
+        private String name = "TestLogger";
+        private ILoggingEvent lastLogMessage;
+
+        @Override
+        protected void append(Object o) {
+            if (o instanceof ILoggingEvent) {
+                ILoggingEvent event = (ILoggingEvent)o;
+
+                if (event.getLoggerName().equals(MarginShortfallSurplusProcessor.class.getName())) {
+                    synchronized(this) {
+                        lastLogMessage = event;
+                        this.notify();
+                    }
+                }
+            }
+        }
+
+        public ILoggingEvent getLastMessage() throws InterruptedException {
+            synchronized(this) {
+                while (this.lastLogMessage == null) {
+                    this.wait(5000);
+                }
+            }
+            return lastLogMessage;
+        }
+
+        @Override
+        public void stop() {
+            lastLogMessage = null;
+            super.stop();
+        }
     }
 }
