@@ -15,6 +15,8 @@ import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import io.vertx.core.parsetools.RecordParser;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 
 /**
@@ -77,6 +79,7 @@ public class MasterdataVerticle extends AbstractVerticle {
         String productListUrl = config().getString("productListUrl");
 
         if (productListUrl != null) {
+            Future<Void> productLoad = Future.future();
             LOG.info("Downloading products from URL {}", productListUrl);
 
             /*HttpClientOptions options = new HttpClientOptions()
@@ -84,19 +87,26 @@ public class MasterdataVerticle extends AbstractVerticle {
                             //.setHost("webproxy.deutsche-boerse.de").setPort(8080));
                             .setHost("10.139.7.11").setPort(8080));*/
 
-            vertx.createHttpClient().getNow(productListUrl, res -> {
-                if (res.statusCode() == 200) {
-                    res.bodyHandler(body -> {
-                        parseProducts(body);
-                    });
-                }
-                else
-                {
-                    LOG.error("The product list URL doesn't seem to work! Status code {} returned with message {}.", res.statusCode(), res.statusMessage());
-                }
-            });
+            try {
+                URL url = new URL(productListUrl);
+                vertx.createHttpClient().getNow(url.getPort(), url.getHost(), url.getPath(), res -> {
+                    if (res.statusCode() == 200) {
+                        res.bodyHandler(body -> {
+                            parseProducts(body);
+                            productLoad.complete();
+                        });
+                    } else {
+                        LOG.error("The product list URL doesn't seem to work! Status code {} returned with message {}.", res.statusCode(), res.statusMessage());
+                        productLoad.fail("The product list URL doesn't seem to work! Status code " + res.statusCode() + " returned with message " + res.statusMessage());
+                    }
+                });
+            }
+            catch (MalformedURLException e)
+            {
+                LOG.error("Failed to parse the product list URL", e);
+            }
 
-            return Future.succeededFuture();
+            return productLoad;
         }
         else
         {
@@ -112,19 +122,20 @@ public class MasterdataVerticle extends AbstractVerticle {
         final RecordParser parser = RecordParser.newDelimited("\n", line -> {
             String[] productFields = line.toString().split(";");
             String productId = productFields[0];
-            if (productId != null)
+            if (productId != null && !productId.equals("PRODUCT_ID") && !productId.equals(""))
             {
                 LOG.info("Adding product {} to the product database", productId.trim());
                 products.add(productId.trim());
             }
         });
 
-        parser.handle(body);
+        parser.handle(body.appendString("\n"));
     }
 
     private Future<Void> startListeners()
     {
         eb.consumer("masterdata.getMembershipInfo", message -> getMembershipInfo(message));
+        eb.consumer("masterdata.getProducts", message -> getProducts(message));
 
         return Future.succeededFuture();
     }
@@ -149,6 +160,14 @@ public class MasterdataVerticle extends AbstractVerticle {
         {
             response.add(memberDetails.get(memberId));
         }
+
+        msg.reply(response);
+    }
+
+    private void getProducts(Message msg)
+    {
+        LOG.trace("Received getProducts request");
+        JsonArray response = new JsonArray(products);
 
         msg.reply(response);
     }
