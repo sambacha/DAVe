@@ -7,11 +7,14 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import com.deutscheboerse.risk.dave.ers.processor.MarginShortfallSurplusProcessor;
+import com.deutscheboerse.risk.dave.ers.processor.PositionReportProcessor;
 import com.deutscheboerse.risk.dave.utils.AutoCloseableConnection;
 import com.deutscheboerse.risk.dave.utils.DummyData;
+import com.deutscheboerse.risk.dave.utils.DummyWebServer;
 import com.deutscheboerse.risk.dave.utils.Utils;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -42,6 +45,9 @@ public class ERSConnectorVerticleIT {
     private static int tcpPort;
     private static int sslPort;
 
+    private static int httpPort;
+    private static HttpServer server;
+
     private static Appender<ILoggingEvent> testAppender;
 
     @BeforeClass
@@ -50,6 +56,7 @@ public class ERSConnectorVerticleIT {
 
         tcpPort = Integer.getInteger("ers.tcpport", 5672);
         sslPort = Integer.getInteger("ers.sslport", 5671);
+        httpPort = Integer.getInteger("http.port", 8080);
 
         emptyRequestQueue(context);
 
@@ -59,7 +66,9 @@ public class ERSConnectorVerticleIT {
         // Deploy also the MasterDataVerticle which is a dependency for ERSVerticle
         JsonObject clearerABCFR = new JsonObject().put("clearer", "ABCFR").put("members", new JsonArray().add(new JsonObject().put("member", "ABCFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP"))).add(new JsonObject().put("member", "GHIFR").put("accounts", new JsonArray().add("PP").add("MY"))));
         JsonObject clearerDEFFR = new JsonObject().put("clearer", "DEFFR").put("members", new JsonArray().add(new JsonObject().put("member", "DEFFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP"))));
-        JsonObject mdConfig = new JsonObject().put("clearers", new JsonArray().add(clearerABCFR).add(clearerDEFFR));
+        JsonObject mdConfig = new JsonObject().put("clearers", new JsonArray().add(clearerABCFR).add(clearerDEFFR)).put("productListUrl", "http://localhost:" + httpPort + "/productlist.csv");
+
+        server = DummyWebServer.startWebserver(context, vertx, httpPort, "/productlist.csv", DummyData.productList);
 
         DeploymentOptions options = new DeploymentOptions().setConfig(mdConfig);
         vertx.deployVerticle(MasterdataVerticle.class.getName(), options, context.asyncAssertSuccess());
@@ -227,6 +236,18 @@ public class ERSConnectorVerticleIT {
                                 messages.put("mss", list);
                             }
                         }
+                        else if (getMessagePayloadAsString(msg).contains("MgnReqmtInq") && getMessagePayloadAsString(msg).contains("Qual=\"3\"")) {
+                            if (messages.get("pr") != null)
+                            {
+                                messages.get("pr").add(msg);
+                            }
+                            else
+                            {
+                                List<Message> list = new ArrayList<Message>();
+                                list.add(msg);
+                                messages.put("pr", list);
+                            }
+                        }
                         else if (getMessagePayloadAsString(msg).contains("PtyRiskLmtReq")) {
                             if (messages.get("rl") != null)
                             {
@@ -279,6 +300,100 @@ public class ERSConnectorVerticleIT {
         context.assertTrue(messages.get("tss").get(0).getJMSReplyTo().toString().contains("ABCFR.TradingSessionStatus"));
         context.assertTrue(getMessagePayloadAsString(messages.get("tss").get(0)).contains("SubReqTyp=\"0\""));
 
+        // PR
+        context.assertNotNull(messages.get("pr"));
+        context.assertEquals(15, messages.get("pr").size());
+        context.assertTrue(messages.get("pr").get(0).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("pr").get(0).getJMSReplyTo().toString().contains("ABCFR.PositionReport"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(0)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(0)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(0)).contains("Sub ID=\"A1\" Typ=\"26\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(0)).contains("Instrmt Sym=\"JUN3\""));
+        context.assertTrue(messages.get("pr").get(1).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("pr").get(1).getJMSReplyTo().toString().contains("ABCFR.PositionReport"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(1)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(1)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(1)).contains("Sub ID=\"A1\" Typ=\"26\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(1)).contains("Instrmt Sym=\"1COF\""));
+        context.assertTrue(messages.get("pr").get(2).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("pr").get(2).getJMSReplyTo().toString().contains("ABCFR.PositionReport"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(2)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(2)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(2)).contains("Sub ID=\"A1\" Typ=\"26\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(2)).contains("Instrmt Sym=\"1COV\""));
+        context.assertTrue(messages.get("pr").get(3).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("pr").get(3).getJMSReplyTo().toString().contains("ABCFR.PositionReport"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(3)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(3)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(3)).contains("Sub ID=\"A2\" Typ=\"26\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(3)).contains("Instrmt Sym=\"JUN3\""));
+        context.assertTrue(messages.get("pr").get(4).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("pr").get(4).getJMSReplyTo().toString().contains("ABCFR.PositionReport"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(4)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(4)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(4)).contains("Sub ID=\"A2\" Typ=\"26\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(4)).contains("Instrmt Sym=\"1COF\""));
+        context.assertTrue(messages.get("pr").get(5).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("pr").get(5).getJMSReplyTo().toString().contains("ABCFR.PositionReport"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(5)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(5)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(5)).contains("Sub ID=\"A2\" Typ=\"26\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(5)).contains("Instrmt Sym=\"1COV\""));
+        context.assertTrue(messages.get("pr").get(6).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("pr").get(6).getJMSReplyTo().toString().contains("ABCFR.PositionReport"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(6)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(6)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(6)).contains("Sub ID=\"PP\" Typ=\"26\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(6)).contains("Instrmt Sym=\"JUN3\""));
+        context.assertTrue(messages.get("pr").get(7).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("pr").get(7).getJMSReplyTo().toString().contains("ABCFR.PositionReport"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(7)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(7)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(7)).contains("Sub ID=\"PP\" Typ=\"26\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(7)).contains("Instrmt Sym=\"1COF\""));
+        context.assertTrue(messages.get("pr").get(8).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("pr").get(8).getJMSReplyTo().toString().contains("ABCFR.PositionReport"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(8)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(8)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(8)).contains("Sub ID=\"PP\" Typ=\"26\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(8)).contains("Instrmt Sym=\"1COV\""));
+        context.assertTrue(messages.get("pr").get(9).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("pr").get(9).getJMSReplyTo().toString().contains("ABCFR.PositionReport"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(9)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(9)).contains("Pty ID=\"GHIFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(9)).contains("Sub ID=\"PP\" Typ=\"26\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(9)).contains("Instrmt Sym=\"JUN3\""));
+        context.assertTrue(messages.get("pr").get(10).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("pr").get(10).getJMSReplyTo().toString().contains("ABCFR.PositionReport"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(10)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(10)).contains("Pty ID=\"GHIFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(10)).contains("Sub ID=\"PP\" Typ=\"26\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(10)).contains("Instrmt Sym=\"1COF\""));
+        context.assertTrue(messages.get("pr").get(11).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("pr").get(11).getJMSReplyTo().toString().contains("ABCFR.PositionReport"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(11)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(11)).contains("Pty ID=\"GHIFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(11)).contains("Sub ID=\"PP\" Typ=\"26\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(11)).contains("Instrmt Sym=\"1COV\""));
+        context.assertTrue(messages.get("pr").get(12).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("pr").get(12).getJMSReplyTo().toString().contains("ABCFR.PositionReport"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(12)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(12)).contains("Pty ID=\"GHIFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(12)).contains("Sub ID=\"MY\" Typ=\"26\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(12)).contains("Instrmt Sym=\"JUN3\""));
+        context.assertTrue(messages.get("pr").get(13).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("pr").get(13).getJMSReplyTo().toString().contains("ABCFR.PositionReport"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(13)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(13)).contains("Pty ID=\"GHIFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(13)).contains("Sub ID=\"MY\" Typ=\"26\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(13)).contains("Instrmt Sym=\"1COF\""));
+        context.assertTrue(messages.get("pr").get(14).getJMSReplyTo().toString().contains("eurex.response"));
+        context.assertTrue(messages.get("pr").get(14).getJMSReplyTo().toString().contains("ABCFR.PositionReport"));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(14)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(14)).contains("Pty ID=\"GHIFR\" Src=\"D\" R=\"1\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(14)).contains("Sub ID=\"MY\" Typ=\"26\""));
+        context.assertTrue(getMessagePayloadAsString(messages.get("pr").get(14)).contains("Instrmt Sym=\"1COV\""));
+        
         // TMR
         context.assertNotNull(messages.get("tmr"));
         context.assertEquals(5, messages.get("tmr").size());
@@ -495,6 +610,7 @@ public class ERSConnectorVerticleIT {
 
     @Test
     public void testMarginShortfallSurplusInqAck307(TestContext context) throws InterruptedException {
+        ((TestAppender)testAppender).setClassName(MarginShortfallSurplusProcessor.class.getName());
         testAppender.start();
         sendErsBroadcast(context, "ABCFR.MessageType.MarginShortfallSurplus", DummyData.marginShortfallSurplusInqAck307XML);
         ILoggingEvent logMessage = ((TestAppender)testAppender).getLastMessage();
@@ -506,6 +622,7 @@ public class ERSConnectorVerticleIT {
 
     @Test
     public void testMarginShortfallSurplusInqAckUnknown(TestContext context) throws InterruptedException {
+        ((TestAppender)testAppender).setClassName(MarginShortfallSurplusProcessor.class.getName());
         testAppender.start();
         sendErsBroadcast(context, "ABCFR.MessageType.MarginShortfallSurplus", DummyData.marginShortfallSurplusInqAckUnknownXML);
         ILoggingEvent logMessage = ((TestAppender)testAppender).getLastMessage();
@@ -513,6 +630,34 @@ public class ERSConnectorVerticleIT {
 
         context.assertEquals(Level.ERROR, logMessage.getLevel());
         context.assertTrue(logMessage.getFormattedMessage().contains("Received MarginRequirementInquiryAcknowledgement with result XXXXX and error message 'Some error message.'"));
+    }
+
+    @Test
+    public void testPositionReportInqAck304(TestContext context) throws InterruptedException {
+        ((TestAppender)testAppender).setClassName(PositionReportProcessor.class.getName());
+        ((Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.DEBUG);
+        testAppender.start();
+        sendErsBroadcast(context, "ABCFR.MessageType.Position", DummyData.marginShortfallSurplusInqAck304XML);
+        ILoggingEvent logMessage = ((TestAppender)testAppender).getLastMessage();
+        testAppender.stop();
+        ((Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.INFO);
+
+        context.assertEquals(Level.DEBUG, logMessage.getLevel());
+        context.assertTrue(logMessage.getFormattedMessage().contains("Received MarginRequirementInquiryAcknowledgement with result 304 and error message 'Unknown Instrument; (ABCD).'"));
+    }
+
+    @Test
+    public void testPositionReportInqAck801(TestContext context) throws InterruptedException {
+        ((Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.TRACE);
+        ((TestAppender)testAppender).setClassName(PositionReportProcessor.class.getName());
+        testAppender.start();
+        sendErsBroadcast(context, "ABCFR.MessageType.Position", DummyData.marginShortfallSurplusInqAck801XML);
+        ILoggingEvent logMessage = ((TestAppender)testAppender).getLastMessage();
+        testAppender.stop();
+        ((Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.INFO);
+
+        context.assertEquals(Level.TRACE, logMessage.getLevel());
+        context.assertTrue(logMessage.getFormattedMessage().contains("Received MarginRequirementInquiryAcknowledgement with result 801 and error message 'No data matching request criteria.'"));
     }
 
     @Test
@@ -563,12 +708,14 @@ public class ERSConnectorVerticleIT {
 
     @AfterClass
     public static void tearDown(TestContext context) {
+        DummyWebServer.stopWebserver(context, server);
         ERSConnectorVerticleIT.vertx.close(context.asyncAssertSuccess());
     }
 
     static class TestAppender<E> extends UnsynchronizedAppenderBase<E>
     {
         private String name = "TestLogger";
+        private String className;
         private ILoggingEvent lastLogMessage;
 
         @Override
@@ -576,7 +723,7 @@ public class ERSConnectorVerticleIT {
             if (o instanceof ILoggingEvent) {
                 ILoggingEvent event = (ILoggingEvent)o;
 
-                if (event.getLoggerName().equals(MarginShortfallSurplusProcessor.class.getName())) {
+                if (event.getLoggerName().equals(className)) {
                     synchronized(this) {
                         lastLogMessage = event;
                         this.notify();
@@ -592,6 +739,11 @@ public class ERSConnectorVerticleIT {
                 }
             }
             return lastLogMessage;
+        }
+
+        public void setClassName(String className)
+        {
+            this.className = className;
         }
 
         @Override
