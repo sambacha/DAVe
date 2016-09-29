@@ -29,6 +29,7 @@ The `ers` section configures the Enhanced Risk Solution connection. It is an arr
 | `keystore` | JKS file with the private key |  |
 | `keystorePassword` | Password to the JKS file containing the private key |  |
 | `sslCertAlias` | Alias of the private key which should be used for the connection |  |
+| `connectionPoolSize` | Defines the pool size of the connection factory | `10` |
 
 ### MongoDB
 

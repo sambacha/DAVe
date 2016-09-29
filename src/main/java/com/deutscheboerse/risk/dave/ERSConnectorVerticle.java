@@ -36,6 +36,7 @@ public class ERSConnectorVerticle extends AbstractVerticle {
     private static final String DEFAULT_KEYSTORE = "keystore";
     private static final String DEFAULT_KEYSTORE_PASSWORD = "123456";
     private static final String DEFAULT_MEMBER = "ABCFR";
+    private static final Integer DEFAULT_CONNECTION_POOL_SIZE = 10;
 
     private CamelContext camelCtx;
     private CamelBridge camelBridge;
@@ -152,10 +153,10 @@ public class ERSConnectorVerticle extends AbstractVerticle {
                 config().getString("keystore", ERSConnectorVerticle.DEFAULT_KEYSTORE),
                 config().getString("keystorePassword", ERSConnectorVerticle.DEFAULT_KEYSTORE_PASSWORD));
 
-        //AMQConnectionFactory amqpFact = new AMQConnectionFactory(connectionAddress);
         PooledConnectionFactory amqpFact = new PooledConnectionFactory();
         amqpFact.setConnectionURLString(connectionAddress);
-        amqpFact.setMaxPoolSize(10);
+        LOG.info("Setting connection pool size to {} connections", config().getInteger("connectionPoolSize", ERSConnectorVerticle.DEFAULT_CONNECTION_POOL_SIZE));
+        amqpFact.setMaxPoolSize(config().getInteger("connectionPoolSize", ERSConnectorVerticle.DEFAULT_CONNECTION_POOL_SIZE));
 
         return amqpFact;
     }

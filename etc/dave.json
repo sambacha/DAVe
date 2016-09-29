@@ -32,7 +32,8 @@
     "truststore": "truststore",
     "truststorePassword": "123456",
     "keystore": "cbkfr.keystore",
-    "keystorePassword": "123456"
+    "keystorePassword": "123456",
+    "connectionPoolSize": 10
   } ],
   "mongodb": {
     "db_name": "DAVe",
@@ -63,7 +64,7 @@
         ]
       }
     ],
-    "productListUrl": "http://www.eurexchange.com/blob/272096/0817fa1b6ee9bf3ba822c303f1b249ac/data/productlist.csv"
+    "productListUrl": "http://www.eurexchange.com/blob/272096/d3e3e1d6fcdcd1f76ce42f6e9f1afc43/data/productlist.csv"
   },
   "httpProxy":  {
     "host": "10.139.7.11",
