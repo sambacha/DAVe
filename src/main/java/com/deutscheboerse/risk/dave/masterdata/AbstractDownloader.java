@@ -56,6 +56,7 @@ public class AbstractDownloader {
                     redirects++;
 
                     try {
+                        LOG.info("Redirecting to {}. Maybe you should check the product list URL.", res.getHeader("Location"));
                         URL newUrl = new URL(res.getHeader("Location"));
                         downloadNow(client, newUrl, handler);
                     }

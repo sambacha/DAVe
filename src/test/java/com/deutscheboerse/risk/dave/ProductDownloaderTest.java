@@ -33,7 +33,6 @@ public class ProductDownloaderTest {
     {
         vertx = Vertx.vertx();
         port = Integer.getInteger("http.port", 8080);
-        //server = DummyWebServer.startWebserver(context, vertx, port, "/productlist.csv", DummyData.productList, "/302/productlist.csv");
     }
 
     @Test
