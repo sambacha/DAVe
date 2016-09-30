@@ -4,7 +4,9 @@ import com.deutscheboerse.risk.dave.ers.jaxb.TradingSessionStatusMessageT;
 import com.deutscheboerse.risk.dave.ers.jaxb.AbstractMessageT;
 import com.deutscheboerse.risk.dave.ers.jaxb.FIXML;
 import io.vertx.core.json.JsonObject;
-import java.util.Date;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import javax.xml.bind.JAXBElement;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
@@ -17,7 +19,7 @@ public class TradingSessionStatusProcessor extends AbstractProcessor implements 
         TradingSessionStatusMessageT tssMessage = (TradingSessionStatusMessageT) msg.getValue();
 
         JsonObject tss = new JsonObject();
-        tss.put("received", new JsonObject().put("$date", timestampFormatter.format(new Date())));
+        tss.put("received", new JsonObject().put("$date", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
         tss.put("reqId", tssMessage.getReqID());
         tss.put("sesId", tssMessage.getSesID());
         tss.put("stat", tssMessage.getStat());

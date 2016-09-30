@@ -6,13 +6,9 @@ import com.deutscheboerse.risk.dave.ers.jaxb.PtysSubGrpBlockT;
 import io.vertx.core.json.JsonObject;
 
 import java.math.BigDecimal;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class AbstractProcessor {
-    protected final DateFormat timestampFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-
     protected void processParties(List<PartiesBlockT> parties, JsonObject data) {
         Map<Integer, String> partyKeys = new HashMap<>();
         partyKeys.put(1, "member");

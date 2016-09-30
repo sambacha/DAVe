@@ -33,7 +33,7 @@ public class MarginShortfallSurplusModel extends AbstractModel {
         group.put("clearingCcy", new JsonObject().put("$last", "$clearingCcy"));
         group.put("ccy", new JsonObject().put("$last", "$ccy"));
         group.put("txnTm", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$txnTm"))));
-        group.put("bizDt", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoDayFormat).put("date", "$bizDt"))));
+        group.put("bizDt", new JsonObject().put("$last", "$bizDt"));
         group.put("reqId", new JsonObject().put("$last", "$reqId"));
         group.put("rptId", new JsonObject().put("$last", "$rptId"));
         group.put("sesId", new JsonObject().put("$last", "$sesId"));
@@ -59,7 +59,7 @@ public class MarginShortfallSurplusModel extends AbstractModel {
         project.put("clearingCcy", 1);
         project.put("ccy", 1);
         project.put("txnTm", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$txnTm")));
-        project.put("bizDt", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoDayFormat).put("date", "$bizDt")));
+        project.put("bizDt", 1);
         project.put("reqId", 1);
         project.put("rptId", 1);
         project.put("sesId", 1);

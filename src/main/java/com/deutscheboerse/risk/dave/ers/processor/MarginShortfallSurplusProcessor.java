@@ -2,9 +2,11 @@ package com.deutscheboerse.risk.dave.ers.processor;
 
 import com.deutscheboerse.risk.dave.ers.jaxb.*;
 import io.vertx.core.json.JsonObject;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -13,8 +15,9 @@ import javax.xml.bind.JAXBElement;
 
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 import org.apache.camel.Exchange;
-import org.apache.camel.ExchangePattern;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
 
@@ -37,12 +40,14 @@ public class MarginShortfallSurplusProcessor extends AbstractProcessor implement
     private JsonObject processMarginRequirementReport(MarginRequirementReportMessageT mrrMessage)
     {
         JsonObject mss = new JsonObject();
-        mss.put("received", new JsonObject().put("$date", timestampFormatter.format(new Date())));
+        mss.put("received", new JsonObject().put("$date", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
         mss.put("reqId", mrrMessage.getID());
         mss.put("sesId", mrrMessage.getSetSesID().toString());
         mss.put("rptId", mrrMessage.getRptID());
-        mss.put("txnTm", new JsonObject().put("$date", timestampFormatter.format(mrrMessage.getTxnTm().toGregorianCalendar().getTime())));
-        mss.put("bizDt", new JsonObject().put("$date", timestampFormatter.format(mrrMessage.getBizDt().toGregorianCalendar().getTime())));
+        GregorianCalendar txnTmInFrankfurtZone = mrrMessage.getTxnTm().toGregorianCalendar();
+        txnTmInFrankfurtZone.setTimeZone(TimeZone.getTimeZone("Europe/Paris"));
+        mss.put("txnTm", new JsonObject().put("$date", txnTmInFrankfurtZone.toZonedDateTime().withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
+        mss.put("bizDt", mrrMessage.getBizDt().toGregorianCalendar().toZonedDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE));
         mss.put("clearingCcy", mrrMessage.getCcy());
 
         processParties(mrrMessage.getPty(), mss);

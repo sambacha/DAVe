@@ -31,7 +31,7 @@ public class PositionReportModel extends AbstractModel {
         group.put("account", new JsonObject().put("$last", "$account"));
         group.put("reqId", new JsonObject().put("$last", "$reqId"));
         group.put("rptId", new JsonObject().put("$last", "$rptId"));
-        group.put("bizDt", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoDayFormat).put("date", "$bizDt"))));
+        group.put("bizDt", new JsonObject().put("$last", "$bizDt"));
         group.put("lastReportRequested", new JsonObject().put("$last", "$lastReportRequested"));
         group.put("sesId", new JsonObject().put("$last", "$sesId"));
         group.put("symbol", new JsonObject().put("$last", "$symbol"));
@@ -60,7 +60,7 @@ public class PositionReportModel extends AbstractModel {
         project.put("account", 1);
         project.put("reqId", 1);
         project.put("rptId", 1);
-        project.put("bizDt", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoDayFormat).put("date", "$bizDt")));
+        project.put("bizDt", 1);
         project.put("lastReportRequested", 1);
         project.put("sesId", 1);
         project.put("symbol", 1);

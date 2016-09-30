@@ -3,7 +3,9 @@ package com.deutscheboerse.risk.dave.ers.processor;
 import com.deutscheboerse.risk.dave.ers.jaxb.*;
 import io.vertx.core.json.JsonObject;
 import java.math.BigInteger;
-import java.util.Date;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import javax.xml.bind.JAXBElement;
 
@@ -30,10 +32,10 @@ public class PositionReportProcessor extends AbstractProcessor implements Proces
     private JsonObject processPositionReport(PositionReportMessageT prMessage)
     {
         JsonObject pr = new JsonObject();
-        pr.put("received", new JsonObject().put("$date", timestampFormatter.format(new Date())));
+        pr.put("received", new JsonObject().put("$date", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
         pr.put("reqId", prMessage.getID());
         pr.put("rptId", prMessage.getRptID());
-        pr.put("bizDt", new JsonObject().put("$date", timestampFormatter.format(prMessage.getBizDt().toGregorianCalendar().getTime())));
+        pr.put("bizDt", prMessage.getBizDt().toGregorianCalendar().toZonedDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE));
         Optional.ofNullable(prMessage.getLastRptReqed()).ifPresent(lastReport -> pr.put("lastReportRequested", lastReport.value()));
         pr.put("sesId", prMessage.getSetSesID().value());
 
