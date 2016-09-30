@@ -29,8 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.jms.*;
 import javax.naming.NamingException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,9 +36,6 @@ import java.util.Map;
 
 @RunWith(VertxUnitRunner.class)
 public class ERSConnectorVerticleIT {
-    protected static final DateFormat timestampFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-    protected static final DateFormat timestampFormatterTimezone = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-
     private static Vertx vertx;
     private static int tcpPort;
     private static int sslPort;
@@ -422,7 +417,7 @@ public class ERSConnectorVerticleIT {
         context.assertTrue(getMessagePayloadAsString(messages.get("tmr").get(4)).contains("Pty ID=\"ABCFR\" Src=\"D\" R=\"4\""));
         context.assertTrue(getMessagePayloadAsString(messages.get("tmr").get(4)).contains("Pty ID=\"GHIFR\" Src=\"D\" R=\"1\""));
         context.assertTrue(getMessagePayloadAsString(messages.get("tmr").get(4)).contains("Sub ID=\"MY\" Typ=\"26\""));
-        
+
         // MSS
         context.assertNotNull(messages.get("mss"));
         context.assertEquals(2, messages.get("mss").size());
@@ -485,7 +480,7 @@ public class ERSConnectorVerticleIT {
                 context.assertEquals("DEFFR", pos.getString("member"));
                 context.assertNull(pos.getString("reqID"));
                 context.assertEquals("A1", pos.getString("account"));
-                context.assertEquals(new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T00:00:00.000"))), pos.getJsonObject("bizDt"));
+                context.assertEquals("2009-12-16", pos.getString("bizDt"));
                 context.assertEquals("ITD", pos.getString("sesId"));
                 context.assertEquals("13365938226608", pos.getString("rptId"));
                 context.assertEquals("C", pos.getString("putCall"));
@@ -521,8 +516,8 @@ public class ERSConnectorVerticleIT {
                 context.assertEquals("DEFFR", mc.getString("member"));
                 context.assertNull(mc.getString("reqID"));
                 context.assertEquals("A1", mc.getString("account"));
-                context.assertEquals(new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T00:00:00.000"))), mc.getJsonObject("bizDt"));
-                context.assertEquals(new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T14:46:18.550+01:00"))), mc.getJsonObject("txnTm"));
+                context.assertEquals("2009-12-16", mc.getString("bizDt"));
+                context.assertEquals(new JsonObject().put("$date", "2009-12-16T13:46:18.55Z"), mc.getJsonObject("txnTm"));
                 context.assertEquals("ITD", mc.getString("sesId"));
                 context.assertEquals("BMW", mc.getString("clss"));
                 context.assertEquals("EUR", mc.getString("ccy"));
@@ -555,8 +550,8 @@ public class ERSConnectorVerticleIT {
                 context.assertNull(tmr.getString("reqID"));
                 context.assertEquals("A1", tmr.getString("account"));
                 context.assertEquals("ABCFRDEFM", tmr.getString("pool"));
-                context.assertEquals(new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T00:00:00.000"))), tmr.getJsonObject("bizDt"));
-                context.assertEquals(new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T14:46:18.550+01:00"))), tmr.getJsonObject("txnTm"));
+                context.assertEquals("2009-12-16", tmr.getString("bizDt"));
+                context.assertEquals(new JsonObject().put("$date", "2009-12-16T13:46:18.55Z"), tmr.getJsonObject("txnTm"));
                 context.assertEquals("ITD", tmr.getString("sesId"));
                 context.assertEquals("EUR", tmr.getString("ccy"));
                 context.assertEquals("13365938226622", tmr.getString("rptId"));
@@ -586,8 +581,8 @@ public class ERSConnectorVerticleIT {
                 context.assertNull(mss.getString("reqID"));
                 context.assertEquals("ABCFRDEFM", mss.getString("pool"));
                 context.assertEquals("Default", mss.getString("poolType"));
-                context.assertEquals(new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T00:00:00.000"))), mss.getJsonObject("bizDt"));
-                context.assertEquals(new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T14:46:18.550+01:00"))), mss.getJsonObject("txnTm"));
+                context.assertEquals("2009-12-16", mss.getString("bizDt"));
+                context.assertEquals(new JsonObject().put("$date", "2009-12-16T13:46:18.55Z"), mss.getJsonObject("txnTm"));
                 context.assertEquals("ITD", mss.getString("sesId"));
                 context.assertEquals("CHF", mss.getString("ccy"));
                 context.assertEquals("EUR", mss.getString("clearingCcy"));
@@ -673,7 +668,7 @@ public class ERSConnectorVerticleIT {
                 context.assertNull(rl.getString("reqID"));
                 context.assertEquals("0", rl.getString("reqRslt"));
                 context.assertNull(rl.getString("txt"));
-                context.assertEquals(new JsonObject().put("$date", timestampFormatterTimezone.format(timestampFormatter.parse("2009-12-16T14:46:18.550+01:00"))), rl.getJsonObject("txnTm"));
+                context.assertEquals(new JsonObject().put("$date", "2009-12-16T13:46:18.55Z"), rl.getJsonObject("txnTm"));
                 context.assertEquals("13365938226620", rl.getString("rptId"));
 
                 switch (rl.getString("limitType"))

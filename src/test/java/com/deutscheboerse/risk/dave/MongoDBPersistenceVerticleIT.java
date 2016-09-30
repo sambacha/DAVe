@@ -10,9 +10,10 @@ import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import org.junit.AfterClass;
@@ -22,19 +23,6 @@ import org.junit.runner.RunWith;
 
 @RunWith(VertxUnitRunner.class)
 public class MongoDBPersistenceVerticleIT {
-    private final DateFormat timestampFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-    private final DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
-    private final DateFormat mongoTimestampFormatter;
-    {
-        mongoTimestampFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-        mongoTimestampFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-    }
-
-    private final DateFormat mongoDateFormatter;
-    {
-        mongoDateFormatter = new SimpleDateFormat("yyyy-MM-dd");
-        mongoDateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-    }
 
     private final static List<String> fields;
     static {
@@ -103,43 +91,34 @@ public class MongoDBPersistenceVerticleIT {
         MongoDBPersistenceVerticleIT.mongoClient = MongoClient.createShared(MongoDBPersistenceVerticleIT.vertx, config);
     }
 
-    private JsonObject transformDummyData(JsonObject data) throws ParseException {
-        if (data.containsKey("received")) {
-            String timestamp = data.getJsonObject("received").getString("$date");
-            data.remove("received");
-            data.put("received", patchTimestamp(timestamp));
+    private JsonObject transformDatesInDummyData(JsonObject data) throws ParseException {
+        String[] dateKeys = {"received", "txnTm"};
+        for (String key : dateKeys) {
+            if (data.containsKey(key)) {
+                String timestamp = data.getJsonObject(key).getString("$date");
+                ZonedDateTime zonedDateTime = ZonedDateTime.parse(timestamp, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+                data.remove(key);
+                data.put(key, zonedDateTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+            }
         }
-
-        if (data.containsKey("txnTm")) {
-            String timestamp = data.getJsonObject("txnTm").getString("$date");
-            data.remove("txnTm");
-            data.put("txnTm", patchTimestamp(timestamp));
-        }
-
-        if (data.containsKey("bizDt")) {
-            data.put("bizDt", patchDate(data.getJsonObject("bizDt")));
-        }
-
         return data;
     }
 
-    private String patchTimestamp(String date) throws ParseException {
-        return mongoTimestampFormatter.format(timestampFormatter.parse(date));
-    }
-
-    private String patchDate(JsonObject date) throws ParseException {
-        return mongoDateFormatter.format(dateFormatter.parse(date.getString("$date")));
-    }
-
-    private JsonObject transformQueryResult(JsonObject data)
-    {
-        // Nothing to transform right now
+    private JsonObject transformDatesInActualData(JsonObject data) throws ParseException {
+        String[] dateKeys = {"received", "txnTm"};
+        for (String key : dateKeys) {
+            if (data.containsKey(key)) {
+                ZonedDateTime zonedDateTime = ZonedDateTime.parse(data.getString(key), DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneOffset.UTC));
+                data.remove(key);
+                data.put(key, zonedDateTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+            }
+        }
         return data;
     }
 
     private void compareMessages(TestContext context, JsonObject expected, JsonObject actual) throws ParseException {
-        JsonObject transformedExpected = transformDummyData(expected.copy());
-        JsonObject transformedActual = transformQueryResult(actual.copy());
+        JsonObject transformedExpected = transformDatesInDummyData(expected.copy());
+        JsonObject transformedActual = transformDatesInActualData(actual.copy());
 
         fields.forEach(key -> {
             if (transformedActual.containsKey(key))
@@ -226,7 +205,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.latestTradingSessionStatus!");
+                context.fail("Didn't receive a response to query.latestTradingSessionStatus!");
             }
         });
 
@@ -252,7 +231,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.historyTradingSessionStatus!");
+                context.fail("Didn't receive a response to query.historyTradingSessionStatus!");
             }
         });
 
@@ -293,7 +272,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.latestPositionReport!");
+                context.fail("Didn't receive a response to query.latestPositionReport!");
             }
         });
 
@@ -319,7 +298,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.latestPositionReport!");
+                context.fail("Didn't receive a response to query.latestPositionReport!");
             }
         });
 
@@ -348,7 +327,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.historyPositionReport!");
+                context.fail("Didn't receive a response to query.historyPositionReport!");
             }
         });
 
@@ -375,7 +354,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.historyPositionReport!");
+                context.fail("Didn't receive a response to query.historyPositionReport!");
             }
         });
 
@@ -416,7 +395,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.latestMarginComponent!");
+                context.fail("Didn't receive a response to query.latestMarginComponent!");
             }
         });
 
@@ -442,7 +421,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.latestMarginComponent!");
+                context.fail("Didn't receive a response to query.latestMarginComponent!");
             }
         });
 
@@ -471,7 +450,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.historyMarginComponent!");
+                context.fail("Didn't receive a response to query.historyMarginComponent!");
             }
         });
 
@@ -498,7 +477,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.historyMarginComponent!");
+                context.fail("Didn't receive a response to query.historyMarginComponent!");
             }
         });
 
@@ -540,7 +519,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.latestTotalMarginRequirement!");
+                context.fail("Didn't receive a response to query.latestTotalMarginRequirement!");
             }
         });
 
@@ -566,7 +545,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.latestTotalMarginRequirement!");
+                context.fail("Didn't receive a response to query.latestTotalMarginRequirement!");
             }
         });
 
@@ -595,7 +574,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.historyTotalMarginRequirement!");
+                context.fail("Didn't receive a response to query.historyTotalMarginRequirement!");
             }
         });
 
@@ -622,7 +601,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.historyTotalMarginRequirement!");
+                context.fail("Didn't receive a response to query.historyTotalMarginRequirement!");
             }
         });
 
@@ -663,7 +642,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.latestMarginShortfallSurplus!");
+                context.fail("Didn't receive a response to query.latestMarginShortfallSurplus!");
             }
         });
 
@@ -689,7 +668,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.latestMarginShortfallSurplus!");
+                context.fail("Didn't receive a response to query.latestMarginShortfallSurplus!");
             }
         });
 
@@ -718,7 +697,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.historyMarginShortfallSurplus!");
+                context.fail("Didn't receive a response to query.historyMarginShortfallSurplus!");
             }
         });
 
@@ -745,7 +724,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.historyMarginShortfallSurplus!");
+                context.fail("Didn't receive a response to query.historyMarginShortfallSurplus!");
             }
         });
 
@@ -786,7 +765,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.latestRiskLimit!");
+                context.fail("Didn't receive a response to query.latestRiskLimit!");
             }
         });
 
@@ -812,7 +791,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.latestRiskLimit!");
+                context.fail("Didn't receive a response to query.latestRiskLimit!");
             }
         });
 
@@ -841,7 +820,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.historyRiskLimit!");
+                context.fail("Didn't receive a response to query.historyRiskLimit!");
             }
         });
 
@@ -868,7 +847,7 @@ public class MongoDBPersistenceVerticleIT {
             }
             else
             {
-                context.fail("Didn't received a response to query.historyRiskLimit!");
+                context.fail("Didn't receive a response to query.historyRiskLimit!");
             }
         });
 

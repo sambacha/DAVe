@@ -8,12 +8,9 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 
 import java.math.BigInteger;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.UUID;
 
 abstract class AbstractRequestProcessor {
-    protected final DateFormat timestampFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
     protected final String replyToAddress;
 
     public AbstractRequestProcessor(String replyToAddress)

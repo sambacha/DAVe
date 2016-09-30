@@ -9,6 +9,9 @@ import com.deutscheboerse.risk.dave.ers.jaxb.RiskLimitTypesGrpBlockT;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.math.BigDecimal;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import javax.xml.bind.JAXBElement;
@@ -29,7 +32,7 @@ public class RiskLimitProcessor extends AbstractProcessor implements Processor {
         String clearer = null;
         String member = null;
         String maintainer = null;
-        Date txnTm = rlMessage.getTxnTm().toGregorianCalendar().getTime();
+        ZonedDateTime txnTm = rlMessage.getTxnTm().toGregorianCalendar().toZonedDateTime().withZoneSameInstant(ZoneOffset.UTC);
         String reqId = rlMessage.getReqID();
         String rptId = rlMessage.getRptID();
         String reqRslt = rlMessage.getReqRslt();
@@ -61,11 +64,11 @@ public class RiskLimitProcessor extends AbstractProcessor implements Processor {
         for (RiskLimitTypesGrpBlockT limit : limits)
         {
             JsonObject rl = new JsonObject();
-            rl.put("received", new JsonObject().put("$date", timestampFormatter.format(received)));
+            rl.put("received", new JsonObject().put("$date", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
             rl.put("clearer", clearer);
             rl.put("member", member);
             rl.put("maintainer", maintainer);
-            rl.put("txnTm", new JsonObject().put("$date", timestampFormatter.format(txnTm)));
+            rl.put("txnTm", new JsonObject().put("$date", txnTm.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
             rl.put("reqId", reqId);
             rl.put("rptId", rptId);
             rl.put("reqRslt", reqRslt);

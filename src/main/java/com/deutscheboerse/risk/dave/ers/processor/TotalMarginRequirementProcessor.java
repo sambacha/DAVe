@@ -7,8 +7,10 @@ import com.deutscheboerse.risk.dave.ers.jaxb.FIXML;
 import com.deutscheboerse.risk.dave.ers.jaxb.MarginAmountBlockT;
 import com.deutscheboerse.risk.dave.ers.jaxb.MarginRequirementReportMessageT;
 import io.vertx.core.json.JsonObject;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -26,12 +28,12 @@ public class TotalMarginRequirementProcessor extends AbstractProcessor implement
         MarginRequirementReportMessageT tmrMessage = (MarginRequirementReportMessageT) msg.getValue();
 
         JsonObject tmr = new JsonObject();
-        tmr.put("received", new JsonObject().put("$date", timestampFormatter.format(new Date())));
+        tmr.put("received", new JsonObject().put("$date", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
         tmr.put("reqId", tmrMessage.getID());
         tmr.put("sesId", tmrMessage.getSetSesID().toString());
         tmr.put("rptId", tmrMessage.getRptID());
-        tmr.put("txnTm", new JsonObject().put("$date", timestampFormatter.format(tmrMessage.getTxnTm().toGregorianCalendar().getTime())));
-        tmr.put("bizDt", new JsonObject().put("$date", timestampFormatter.format(tmrMessage.getBizDt().toGregorianCalendar().getTime())));
+        tmr.put("txnTm", new JsonObject().put("$date", tmrMessage.getTxnTm().toGregorianCalendar().toZonedDateTime().withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
+        tmr.put("bizDt", tmrMessage.getBizDt().toGregorianCalendar().toZonedDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE));
 
         processParties(tmrMessage.getPty(), tmr);
 

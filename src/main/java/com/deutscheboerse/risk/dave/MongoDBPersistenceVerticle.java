@@ -10,8 +10,6 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.mongo.MongoClient;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,9 +25,6 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
     private static final String DEFAULT_CONNECTION_STRING = "mongodb://localhost:27017";
 
     private MongoClient mongo;
-    final DateFormat timestampFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-    final String mongoTimestampFormat = "%Y-%m-%dT%H:%M:%S.%L";
-    final String mongoDayFormat = "%Y-%m-%d";
 
     @Override
     public void start(Future<Void> fut) throws Exception {

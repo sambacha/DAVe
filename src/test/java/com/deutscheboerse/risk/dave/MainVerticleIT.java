@@ -19,14 +19,9 @@ import javax.jms.JMSException;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.naming.NamingException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 
 @RunWith(VertxUnitRunner.class)
 public class MainVerticleIT {
-    protected static final DateFormat timestampFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-    protected static final DateFormat timestampFormatterTimezone = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-
     private static Vertx vertx;
     private static int tcpPort;
     private static int sslPort;
