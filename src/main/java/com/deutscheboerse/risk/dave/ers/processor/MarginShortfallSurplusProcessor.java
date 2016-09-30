@@ -15,6 +15,8 @@ import javax.xml.bind.JAXBElement;
 
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
@@ -42,7 +44,9 @@ public class MarginShortfallSurplusProcessor extends AbstractProcessor implement
         mss.put("reqId", mrrMessage.getID());
         mss.put("sesId", mrrMessage.getSetSesID().toString());
         mss.put("rptId", mrrMessage.getRptID());
-        mss.put("txnTm", new JsonObject().put("$date", mrrMessage.getTxnTm().toGregorianCalendar().toZonedDateTime().withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
+        GregorianCalendar txnTmInFrankfurtZone = mrrMessage.getTxnTm().toGregorianCalendar();
+        txnTmInFrankfurtZone.setTimeZone(TimeZone.getTimeZone("Europe/Paris"));
+        mss.put("txnTm", new JsonObject().put("$date", txnTmInFrankfurtZone.toZonedDateTime().withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
         mss.put("bizDt", mrrMessage.getBizDt().toGregorianCalendar().toZonedDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE));
         mss.put("clearingCcy", mrrMessage.getCcy());
 

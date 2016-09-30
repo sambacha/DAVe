@@ -13,7 +13,9 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.TimeZone;
 import javax.xml.bind.JAXBElement;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
@@ -32,7 +34,8 @@ public class RiskLimitProcessor extends AbstractProcessor implements Processor {
         String clearer = null;
         String member = null;
         String maintainer = null;
-        ZonedDateTime txnTm = rlMessage.getTxnTm().toGregorianCalendar().toZonedDateTime().withZoneSameInstant(ZoneOffset.UTC);
+        GregorianCalendar txnTmInFrankfurtZone = rlMessage.getTxnTm().toGregorianCalendar();
+        txnTmInFrankfurtZone.setTimeZone(TimeZone.getTimeZone("Europe/Paris"));
         String reqId = rlMessage.getReqID();
         String rptId = rlMessage.getRptID();
         String reqRslt = rlMessage.getReqRslt();
@@ -68,7 +71,7 @@ public class RiskLimitProcessor extends AbstractProcessor implements Processor {
             rl.put("clearer", clearer);
             rl.put("member", member);
             rl.put("maintainer", maintainer);
-            rl.put("txnTm", new JsonObject().put("$date", txnTm.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
+            rl.put("txnTm", new JsonObject().put("$date", txnTmInFrankfurtZone.toZonedDateTime().withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
             rl.put("reqId", reqId);
             rl.put("rptId", rptId);
             rl.put("reqRslt", reqRslt);

@@ -10,10 +10,12 @@ import io.vertx.core.json.JsonObject;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.GregorianCalendar;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TimeZone;
 
 import javax.xml.bind.JAXBElement;
 
@@ -32,7 +34,9 @@ public class TotalMarginRequirementProcessor extends AbstractProcessor implement
         tmr.put("reqId", tmrMessage.getID());
         tmr.put("sesId", tmrMessage.getSetSesID().toString());
         tmr.put("rptId", tmrMessage.getRptID());
-        tmr.put("txnTm", new JsonObject().put("$date", tmrMessage.getTxnTm().toGregorianCalendar().toZonedDateTime().withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
+        GregorianCalendar txnTmInFrankfurtZone = tmrMessage.getTxnTm().toGregorianCalendar();
+        txnTmInFrankfurtZone.setTimeZone(TimeZone.getTimeZone("Europe/Paris"));
+        tmr.put("txnTm", new JsonObject().put("$date", txnTmInFrankfurtZone.toZonedDateTime().withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
         tmr.put("bizDt", tmrMessage.getBizDt().toGregorianCalendar().toZonedDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE));
 
         processParties(tmrMessage.getPty(), tmr);
