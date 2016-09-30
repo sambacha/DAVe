@@ -58,7 +58,7 @@ public class ERSConnectorVerticleIT {
         // Deploy also the MasterDataVerticle which is a dependency for ERSVerticle
         JsonObject clearerABCFR = new JsonObject().put("clearer", "ABCFR").put("members", new JsonArray().add(new JsonObject().put("member", "ABCFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP"))).add(new JsonObject().put("member", "GHIFR").put("accounts", new JsonArray().add("PP").add("MY"))));
         JsonObject clearerDEFFR = new JsonObject().put("clearer", "DEFFR").put("members", new JsonArray().add(new JsonObject().put("member", "DEFFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP"))));
-        JsonObject mdConfig = new JsonObject().put("clearers", new JsonArray().add(clearerABCFR).add(clearerDEFFR)).put("productListUrl", "http://localhost:" + httpPort + "/productlist.csv");
+        JsonObject mdConfig = new JsonObject().put("clearers", new JsonArray().add(clearerABCFR).add(clearerDEFFR)).put("productList", new JsonArray().add("JUN3").add("1COF").add("1COV"));
 
         server = DummyWebServer.startWebserver(context, vertx, httpPort, "/productlist.csv", DummyData.productList);
 

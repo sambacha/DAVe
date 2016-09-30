@@ -13,12 +13,24 @@ import io.vertx.ext.web.Router;
 public class DummyWebServer {
     public static HttpServer startWebserver(TestContext context, Vertx vertx, int port, String uri, String dummyContent)
     {
+        return startWebserver(context, vertx, port, uri, dummyContent, null);
+    }
+
+    public static HttpServer startWebserver(TestContext context, Vertx vertx, int port, String uri, String dummyContent, String redirectUri)
+    {
         Async webserverStartup = context.async();
 
         Router router = Router.router(vertx);
         router.route(uri).handler(req -> {
             req.response().setStatusCode(HttpResponseStatus.OK.code()).putHeader("content-type", "text/plain; charset=utf-8").end(dummyContent);
         });
+
+        if (redirectUri != null)
+        {
+            router.route(redirectUri).handler(req -> {
+                req.response().setStatusCode(HttpResponseStatus.FOUND.code()).putHeader("Location", "http://localhost:" + port + uri).end(dummyContent);
+            });
+        }
 
         HttpServer server = vertx.createHttpServer()
                 .requestHandler(router::accept)

@@ -46,7 +46,7 @@ public class MainVerticleIT {
         //config.put("masterdata", new JsonObject().put("clearers", new JsonArray()));
         JsonObject clearerABCFR  =new JsonObject().put("clearer", "ABCFR").put("members", new JsonArray().add(new JsonObject().put("member", "ABCFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP"))).add(new JsonObject().put("member", "GHIFR").put("accounts", new JsonArray().add("PP").add("MY"))));
         JsonObject clearerDEFFR = new JsonObject().put("clearer", "DEFFR").put("members", new JsonArray().add(new JsonObject().put("member", "DEFFR").put("accounts", new JsonArray().add("A1").add("A2").add("PP"))));
-        config.put("masterdata", new JsonObject().put("clearers", new JsonArray().add(clearerABCFR).add(clearerDEFFR)));
+        config.put("masterdata", new JsonObject().put("clearers", new JsonArray().add(clearerABCFR).add(clearerDEFFR)).put("productList", new JsonArray().add("JUN3").add("1COF").add("1COV")));
 
         vertx.deployVerticle(MainVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
     }

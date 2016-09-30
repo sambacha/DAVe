@@ -64,7 +64,8 @@
         ]
       }
     ],
-    "productListUrl": "http://www.eurexchange.com/blob/272096/d3e3e1d6fcdcd1f76ce42f6e9f1afc43/data/productlist.csv"
+    //"productListUrl": "http://www.eurexchange.com/blob/272096/d3e3e1d6fcdcd1f76ce42f6e9f1afc43/data/productlist.csv"
+    "productList": ["FEU1", "FEU3", "FGBM", "FGBL", "FSMI", "OGBL", "ALV", "FBTE", "FDAX", "FXDE", "OSMI", "OXDE"]
   },
   "httpProxy":  {
     "host": "10.139.7.11",

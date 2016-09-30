@@ -1,5 +1,6 @@
 package com.deutscheboerse.risk.dave;
 
+import com.deutscheboerse.risk.dave.masterdata.ProductDownloader;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -76,16 +77,19 @@ public class MasterdataVerticle extends AbstractVerticle {
 
     private Future<Void> loadProducts()
     {
-        String productListUrl = config().getString("productListUrl");
-
-        if (productListUrl != null) {
-            return loadProductsFromUrl(productListUrl);
-        }
-        else
-        {
+        if (config().getString("productListUrl") != null) {
+            return loadProductsFromUrl(config().getString("productListUrl"));
+        } else if (config().getJsonArray("productList") != null) {
+            return loadProductsFromConfig(config().getJsonArray("productList"));
+        } else {
             LOG.warn("No product list URL defined. Products will not be loaded");
             return Future.succeededFuture();
         }
+    }
+
+    private Future<Void> loadProductsFromConfig(JsonArray productList) {
+        products = productList.getList();
+        return Future.succeededFuture();
     }
 
     private Future<Void> loadProductsFromUrl(String productListUrl)
@@ -94,19 +98,17 @@ public class MasterdataVerticle extends AbstractVerticle {
         LOG.info("Downloading products from URL {}", productListUrl);
 
         try {
-            URL url = new URL(productListUrl);
-
-            HttpClientOptions options = new HttpClientOptions();
-            configureProxy(options);
-            vertx.createHttpClient(options).getNow(getPortFromUrl(url), url.getHost(), url.getPath(), res -> {
-                if (res.statusCode() == 200) {
-                    res.bodyHandler(body -> {
-                        parseProducts(body);
-                        productLoad.complete();
-                    });
-                } else {
-                    LOG.error("The product list URL doesn't seem to work! Status code {} returned with message {}.", res.statusCode(), res.statusMessage());
-                    productLoad.fail("The product list URL doesn't seem to work! Status code " + res.statusCode() + " returned with message " + res.statusMessage());
+            ProductDownloader pd = new ProductDownloader(vertx, productListUrl, config().getJsonObject("httpProxy"));
+            pd.loadProducts(res -> {
+                if (res.succeeded())
+                {
+                    products = (List<String>)res.result();
+                    productLoad.complete();
+                }
+                else
+                {
+                    LOG.error("Failed to download product list {}.", res.toString());
+                    productLoad.fail("Failed to download product list.");
                 }
             });
         }
@@ -116,48 +118,6 @@ public class MasterdataVerticle extends AbstractVerticle {
         }
 
         return productLoad;
-    }
-
-    private int getPortFromUrl(URL url)
-    {
-        if (url.getPort() == -1) {
-            switch (url.getProtocol())
-            {
-                case "https":
-                    return 443;
-                case "http":
-                default:
-                    return 80;
-            }
-        }
-        else
-        {
-            return url.getPort();
-        }
-    }
-
-    private void configureProxy(HttpClientOptions options) {
-        if (config().getJsonObject("httpProxy") != null) {
-            options.setProxyOptions(new ProxyOptions().setType(ProxyType.HTTP)
-                    .setHost(config().getJsonObject("httpProxy").getString("host")).setPort(config().getJsonObject("httpProxy").getInteger("port")));
-        }
-    }
-
-    private void parseProducts(Buffer body) {
-        LOG.info("Parsing product list");
-        LOG.trace("Parsing product list {}", body.toString());
-
-        final RecordParser parser = RecordParser.newDelimited("\n", line -> {
-            String[] productFields = line.toString().split(";");
-            String productId = productFields[0];
-            if (productId != null && !productId.equals("PRODUCT_ID") && !productId.equals(""))
-            {
-                LOG.trace("Adding product {} to the product database", productId.trim());
-                products.add(productId.trim());
-            }
-        });
-
-        parser.handle(body.appendString("\n"));
     }
 
     private Future<Void> startListeners()
