@@ -7,8 +7,7 @@ import io.vertx.core.json.JsonObject;
  * Created by schojak on 15.9.16.
  */
 public abstract class AbstractModel {
-    final String mongoTimestampFormat = "%Y-%m-%dT%H:%M:%S.%L";
-    final String mongoDayFormat = "%Y-%m-%d";
+    final String mongoTimestampFormat = "%Y-%m-%dT%H:%M:%S.%LZ";
 
     protected abstract JsonObject getGroup();
     protected abstract JsonObject getProject();

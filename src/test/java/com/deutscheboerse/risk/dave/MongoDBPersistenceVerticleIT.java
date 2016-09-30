@@ -108,7 +108,7 @@ public class MongoDBPersistenceVerticleIT {
         String[] dateKeys = {"received", "txnTm"};
         for (String key : dateKeys) {
             if (data.containsKey(key)) {
-                ZonedDateTime zonedDateTime = ZonedDateTime.parse(data.getString(key), DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneOffset.UTC));
+                ZonedDateTime zonedDateTime = ZonedDateTime.parse(data.getString(key), DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC));
                 data.remove(key);
                 data.put(key, zonedDateTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
             }
