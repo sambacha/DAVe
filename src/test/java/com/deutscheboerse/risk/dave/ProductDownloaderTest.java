@@ -79,6 +79,31 @@ public class ProductDownloaderTest {
         });
     }
 
+    @Test
+    public void testProductDownloadRedirect(TestContext context) throws MalformedURLException {
+        Async download = context.async();
+        server = DummyWebServer.startWebserver(context, vertx, port, "/productlist.csv", DummyData.productList, "/302/productlist.csv");
+
+        ProductDownloader pd = new ProductDownloader(vertx, "http://localhost:" + port + "/302/productlist.csv", null);
+        pd.loadProducts(res -> {
+            if (res.succeeded())
+            {
+                List<String> expected = new LinkedList<String>();
+                expected.add("JUN3");
+                expected.add("1COF");
+                expected.add("1COV");
+
+                context.assertEquals(expected, (List<String>)res.result());
+                download.complete();
+            }
+            else
+            {
+                context.fail("Failed to download products: " + res.cause());
+                download.complete();
+            }
+        });
+    }
+
     @After
     public void stopWebserver(TestContext context)
     {
