@@ -7,6 +7,7 @@ import com.deutscheboerse.risk.dave.ers.jaxb.MarginRequirementReportMessageT;
 import com.deutscheboerse.risk.dave.ers.jaxb.AbstractMessageT;
 import com.deutscheboerse.risk.dave.ers.jaxb.FIXML;
 import io.vertx.core.json.JsonObject;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -32,7 +33,8 @@ public class MarginComponentProcessor extends AbstractProcessor implements Proce
         mc.put("reqId", mcMessage.getID());
         mc.put("sesId", mcMessage.getSetSesID().toString());
         mc.put("rptId", mcMessage.getRptID());
-        mc.put("txnTm", new JsonObject().put("$date", mcMessage.getTxnTm().toGregorianCalendar().toZonedDateTime().withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
+        ZonedDateTime txnTmInFrankfurtZone = ZonedDateTime.ofInstant(mcMessage.getTxnTm().toGregorianCalendar().toInstant(), ZoneId.of("Europe/Paris"));
+        mc.put("txnTm", new JsonObject().put("$date", txnTmInFrankfurtZone.withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
         mc.put("bizDt", mcMessage.getBizDt().toGregorianCalendar().toZonedDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE));
         mc.put("clss", mcMessage.getClss());
 
