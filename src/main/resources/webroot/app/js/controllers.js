@@ -155,6 +155,23 @@ daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$
             }
         };
 
+        $scope.showExtra = function(funcKey) {
+            extra = $("#extra-" + funcKey);
+            extraIcon = $("#extra-icon-" + funcKey);
+
+            if (extra.hasClass("hidden"))
+            {
+                extra.removeClass("hidden");
+                extraIcon.removeClass("fa-chevron-circle-down");
+                extraIcon.addClass("fa-chevron-circle-up");
+            }
+            else {
+                extra.addClass("hidden");
+                extraIcon.removeClass("fa-chevron-circle-up");
+                extraIcon.addClass("fa-chevron-circle-down");
+            }
+        };
+
         $scope.refresh = $interval(function(){
             $http.get($scope.url).success(function(data) {
                 $scope.processPositionReports(data);
@@ -207,6 +224,23 @@ daveControllers.controller('PositionReportHistory', ['$scope', '$routeParams', '
             }
             else {
                 $scope.ordering = column;
+            }
+        };
+
+        $scope.showExtra = function(funcKey) {
+            extra = $("#extra-" + funcKey);
+            extraIcon = $("#extra-icon-" + funcKey);
+
+            if (extra.hasClass("hidden"))
+            {
+                extra.removeClass("hidden");
+                extraIcon.removeClass("fa-chevron-circle-down");
+                extraIcon.addClass("fa-chevron-circle-up");
+            }
+            else {
+                extra.addClass("hidden");
+                extraIcon.removeClass("fa-chevron-circle-up");
+                extraIcon.addClass("fa-chevron-circle-down");
             }
         };
 
