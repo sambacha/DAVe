@@ -243,7 +243,7 @@ public class HttpVerticle extends AbstractVerticle {
 
             ctx.next();
         });
-        router.route().handler(CSRFHandler.create("not a good secret"));
+        //router.route().handler(CSRFHandler.create("not a good secret"));
     }
 
     private SessionHandler getSessionHandler()
