@@ -20,12 +20,7 @@ import io.vertx.ext.auth.mongo.HashSaltStyle;
 import io.vertx.ext.auth.mongo.MongoAuth;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.handler.CorsHandler;
-import io.vertx.ext.web.handler.CookieHandler;
-import io.vertx.ext.web.handler.SessionHandler;
-import io.vertx.ext.web.handler.StaticHandler;
-import io.vertx.ext.web.handler.UserSessionHandler;
+import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 
 import java.util.ArrayList;
@@ -36,6 +31,8 @@ import java.util.List;
  */
 public class HttpVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(HttpVerticle.class);
+
+    private static final Integer MAX_BODY_SIZE = 1024*1024; // 1MB
 
     private static final Integer DEFAULT_HTTP_PORT = 8080;
 
@@ -207,9 +204,11 @@ public class HttpVerticle extends AbstractVerticle {
             AuthProvider authenticationProvider = this.createAuthenticationProvider();
 
             router.route().handler(CookieHandler.create());
-            router.route().handler(BodyHandler.create());
+            router.route().handler(BodyHandler.create().setBodyLimit(MAX_BODY_SIZE));
             router.route().handler(getSessionHandler());
             router.route().handler(UserSessionHandler.create(authenticationProvider));
+            addSecurityHeaders(router);
+
             router.routeWithRegex("^/api/v1.0/(?!user/login).*$").handler(ApiAuthHandler.create(authenticationProvider));
 
             userApi = new UserApi(vertx, authenticationProvider, config().getJsonObject("auth").getBoolean("checkUserAgainstCertificate", HttpVerticle.DEFAULT_AUTH_CHECK_USER_AGAINST_CERTIFICATE));
@@ -220,6 +219,29 @@ public class HttpVerticle extends AbstractVerticle {
         }
 
         return userApi;
+    }
+
+    private void addSecurityHeaders(Router router)
+    {
+        // From http://vertx.io/blog/writing-secure-vert-x-web-apps/
+        router.route().handler(ctx -> {
+            ctx.response()
+                    // do not allow proxies to cache the data
+                    .putHeader("Cache-Control", "no-store, no-cache")
+                    // prevents Internet Explorer from MIME - sniffing a
+                    // response away from the declared content-type
+                    .putHeader("X-Content-Type-Options", "nosniff")
+                    // Strict HTTPS (for about ~6Months)
+                    .putHeader("Strict-Transport-Security", "max-age=" + 15768000)
+                    // IE8+ do not allow opening of attachments in the context of this resource
+                    .putHeader("X-Download-Options", "noopen")
+                    // enable XSS for IE
+                    .putHeader("X-XSS-Protection", "1; mode=block")
+                    // deny frames
+                    .putHeader("X-FRAME-OPTIONS", "DENY");
+            ctx.next();
+        });
+        router.route().handler(CSRFHandler.create("not a good secret"));
     }
 
     private SessionHandler getSessionHandler()
