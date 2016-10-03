@@ -238,7 +238,9 @@ public class HttpVerticle extends AbstractVerticle {
                     // enable XSS for IE
                     .putHeader("X-XSS-Protection", "1; mode=block")
                     // deny frames
-                    .putHeader("X-FRAME-OPTIONS", "DENY");
+                    .putHeader("X-FRAME-OPTIONS", "DENY")
+                    .putHeader("Expires", "0");
+
             ctx.next();
         });
         router.route().handler(CSRFHandler.create("not a good secret"));
