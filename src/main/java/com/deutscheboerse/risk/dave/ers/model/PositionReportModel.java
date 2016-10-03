@@ -45,6 +45,21 @@ public class PositionReportModel extends AbstractModel {
         group.put("optionAssignmentQty", new JsonObject().put("$last", "$optionAssignmentQty"));
         group.put("allocationTradeQty", new JsonObject().put("$last", "$allocationTradeQty"));
         group.put("deliveryNoticeQty", new JsonObject().put("$last", "$deliveryNoticeQty"));
+        group.put("clearingCcy", new JsonObject().put("$last", "$clearingCcy"));
+        group.put("mVar", new JsonObject().put("$last", "$mVar"));
+        group.put("compVar", new JsonObject().put("$last", "$compVar"));
+        group.put("compCorrelationBreak", new JsonObject().put("$last", "$compCorrelationBreak"));
+        group.put("compCompressionError", new JsonObject().put("$last", "$compCompressionError"));
+        group.put("compLiquidityAddOn", new JsonObject().put("$last", "$compLiquidityAddOn"));
+        group.put("compLongOptionCredit", new JsonObject().put("$last", "$compLongOptionCredit"));
+        group.put("productCcy", new JsonObject().put("$last", "$productCcy"));
+        group.put("variationMarginPremiumPayment", new JsonObject().put("$last", "$variationMarginPremiumPayment"));
+        group.put("premiumMargin", new JsonObject().put("$last", "$premiumMargin"));
+        group.put("delta", new JsonObject().put("$last", "$delta"));
+        group.put("gamma", new JsonObject().put("$last", "$gamma"));
+        group.put("vega", new JsonObject().put("$last", "$vega"));
+        group.put("rho", new JsonObject().put("$last", "$rho"));
+        group.put("theta", new JsonObject().put("$last", "$theta"));
         group.put("received", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received"))));
 
         return group;
@@ -74,6 +89,21 @@ public class PositionReportModel extends AbstractModel {
         project.put("optionAssignmentQty", 1);
         project.put("allocationTradeQty", 1);
         project.put("deliveryNoticeQty", 1);
+        project.put("clearingCcy", 1);
+        project.put("mVar", 1);
+        project.put("compVar", 1);
+        project.put("compCorrelationBreak", 1);
+        project.put("compCompressionError", 1);
+        project.put("compLiquidityAddOn", 1);
+        project.put("compLongOptionCredit", 1);
+        project.put("productCcy", 1);
+        project.put("variationMarginPremiumPayment", 1);
+        project.put("premiumMargin", 1);
+        project.put("delta", 1);
+        project.put("gamma", 1);
+        project.put("vega", 1);
+        project.put("rho", 1);
+        project.put("theta", 1);
         project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received")));
 
         return project;
