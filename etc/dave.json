@@ -24,17 +24,7 @@
     },
     "compression": true
   },
-  "ers": [ {
-    "brokerHost": "tcp://rgd003.xeop.de",
-    "brokerPort": 15160,
-    "member": "CBKFR",
-    "sslCertAlias": "cbkfr",
-    "truststore": "truststore",
-    "truststorePassword": "123456",
-    "keystore": "cbkfr.keystore",
-    "keystorePassword": "123456",
-    "connectionPoolSize": 10
-  } ],
+  "ers": [],
   "mongodb": {
     "db_name": "DAVe",
     "connection_string": "mongodb://localhost:27017"
