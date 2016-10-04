@@ -80,6 +80,10 @@ dave.config(['$routeProvider',
                 templateUrl: 'app/view/marginComponentLatest.html',
                 controller: 'MarginComponentLatest'
             }).
+            when('/marginComponentLatest/:clearer/:member/:account/:class/:ccy', {
+                templateUrl: 'app/view/marginComponentLatest.html',
+                controller: 'MarginComponentLatest'
+            }).
             when('/marginComponentHistory/:clearer/:member/:account/:class/:ccy', {
                 templateUrl: 'app/view/marginComponentHistory.html',
                 controller: 'MarginComponentHistory'
@@ -101,6 +105,10 @@ dave.config(['$routeProvider',
                 controller: 'TotalMarginRequirementLatest'
             }).
             when('/totalMarginRequirementLatest/:clearer/:pool/:member/:account', {
+                templateUrl: 'app/view/totalMarginRequirementLatest.html',
+                controller: 'TotalMarginRequirementLatest'
+            }).
+            when('/totalMarginRequirementLatest/:clearer/:pool/:member/:account/:ccy', {
                 templateUrl: 'app/view/totalMarginRequirementLatest.html',
                 controller: 'TotalMarginRequirementLatest'
             }).

@@ -52,7 +52,10 @@
                     <td highlighter="tmr.adjustedMargin">{{tmr.adjustedMargin | number:2}}</td>
                     <td highlighter="tmr.unadjustedMargin">{{tmr.unadjustedMargin | number:2}}</td>
                     <td highlighter="tmr.received">{{tmr.received | date:'HH:mm:ss.sss'}}</td>
-                    <td><a href="#/totalMarginRequirementHistory/{{tmr.clearer}}/{{tmr.pool}}/{{tmr.member}}/{{tmr.account}}/{{tmr.ccy}}"><span class="fa fa-bar-chart-o" aria-hidden="true" title="Detail"></span></a></td>
+                    <td>
+                        <a href="#/marginComponentLatest/{{tmr.clearer}}/{{tmr.member}}/{{tmr.account}}/*/{{tmr.ccy}}"><span class="fa fa-bullseye" aria-hidden="true" title="Drilldown"></span></a>
+                        <a href="#/totalMarginRequirementHistory/{{tmr.clearer}}/{{tmr.pool}}/{{tmr.member}}/{{tmr.account}}/{{tmr.ccy}}"><span class="fa fa-bar-chart-o" aria-hidden="true" title="Detail"></span></a>
+                    </td>
                 </tr>
                 </tbody>
                 </table>

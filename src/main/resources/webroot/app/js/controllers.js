@@ -296,8 +296,9 @@ daveControllers.controller('MarginComponentLatest', ['$scope', '$routeParams', '
         if ($routeParams.member) { $scope.member = $routeParams.member } else { $scope.member = "*" }
         if ($routeParams.account) { $scope.account = $routeParams.account } else { $scope.account = "*" }
         if ($routeParams.class) { $scope.class = $routeParams.class } else { $scope.class = "*" }
+        if ($routeParams.ccy) { $scope.ccy = $routeParams.ccy } else { $scope.ccy = "*" }
 
-        $scope.url = '/api/v1.0/mc/latest/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class;
+        $scope.url = '/api/v1.0/mc/latest/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class + '/' + $scope.ccy;
 
         $http.get($scope.url).success(function(data) {
             $scope.processMarginComponents(data);
@@ -429,8 +430,9 @@ daveControllers.controller('TotalMarginRequirementLatest', ['$scope', '$routePar
         if ($routeParams.pool) { $scope.pool = $routeParams.pool } else { $scope.pool = "*" }
         if ($routeParams.member) { $scope.member = $routeParams.member } else { $scope.member = "*" }
         if ($routeParams.account) { $scope.account = $routeParams.account } else { $scope.account = "*" }
+        if ($routeParams.ccy) { $scope.ccy = $routeParams.ccy } else { $scope.ccy = "*" }
 
-        $scope.url = '/api/v1.0/tmr/latest/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.account;
+        $scope.url = '/api/v1.0/tmr/latest/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.account + '/' + $scope.ccy;
 
         $http.get($scope.url).success(function(data) {
             $scope.processTotalMarginRequirements(data);
