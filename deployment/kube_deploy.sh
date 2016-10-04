@@ -8,4 +8,4 @@ chmod +x kubectl
 ./kubectl config set-credentials aws-admin --username=${K8S_USERNAME} --password=${K8S_PASSWORD}
 ./kubectl config set-context aws --cluster=aws-kubernetes --user=aws-admin
 ./kubectl config use-context aws
-./kubectl set image deployment/dave-deployment dave=scholzj/dave:${CIRCLE_SHA1}
+./kubectl set image deployment/dave-deployment dave=scholzj/dave:${CIRCLE_SHA1} --namespace ttsave

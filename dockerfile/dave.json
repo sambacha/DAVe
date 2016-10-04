@@ -15,38 +15,17 @@
     },
     "auth": {
       "enable": true,
-      "db_name": "DAVe",
-      "connection_string": "mongodb://mongo:27017",
+      "db_name": "DAVe-TTSave",
+      "connection_string": "mongodb://mongo.default:27017",
       "salt": "DAVe",
       "checkUserAgainstCertificate": false
     },
     "compression": true
   },
-  "ers": [
-    {
-      "brokerHost": "tcp://ers-amqps",
-      "brokerPort": 5671,
-      "member": "ABCFR",
-      "sslCertAlias": "abcfr",
-      "truststore": "ersd01.truststore",
-      "truststorePassword": "123456",
-      "keystore": "abcfr.keystore",
-      "keystorePassword": "123456"
-    },
-    {
-      "brokerHost": "tcp://ers-amqps",
-      "brokerPort": 5671,
-      "member": "DEFFR",
-      "sslCertAlias": "deffr",
-      "truststore": "ersd01.truststore",
-      "truststorePassword": "123456",
-      "keystore": "deffr.keystore",
-      "keystorePassword": "123456"
-    }
-  ],
+  "ers": [],
   "mongodb": {
-    "db_name": "DAVe",
-    "connection_string": "mongodb://mongo:27017"
+    "db_name": "DAVe-TTSave",
+    "connection_string": "mongodb://mongo.default:27017"
   },
   "ersDebugger":{
     "enable": false
