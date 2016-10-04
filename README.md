@@ -50,6 +50,7 @@ The `http` section configures the web based UI and the REST API.
 | `compression` | Enbale gzip compression of the HTTP responses | `true` |
 | `ssl` | Subsection configuring SSL/TLS on the webserver |  |
 | `CORS` | Subsection configuring Cross-origin resource sharing (see below) |  |
+| `CSRF` | Subsection configuring Cross-site request forgery protection (see below) |  |
 | `auth` | Subsection configuring authentication (see below) |  |
 
 
@@ -89,9 +90,18 @@ The `CORS` subsection configures Cross-origin resource sharing (CORS), which all
 | `enable` | Enabled the CORS handler | `true` |
 | `origin` | Configures the domain from which cross-origin access will be allowed | `http://mydomain.com` |
 
+#### CSRF
+
+The `CSRF` subsection configures Cross-site request forgery (CSRF) protection. When enabled, the handler will set a XSRF-TOKEN cookie and the client has to send back its value in the X-XSRF-TOKEN header. This handler weill be activated only when authentication is enabled. 
+
+| Option | Explanation | Example |
+|--------|-------------|---------|
+| `enable` | Enabled the CSRF handler | `true` |
+| `secret` | Configures the domain secret used to generate CSFR tokens | `61d77a85-276b-476a-8810-f8408b5cfa19` |
+
 ## Run
 
-Use script `start_dave.sh` to start the application. The scirpt works on Linux and MacOS. 
+Use script `start_dave.sh` to start the application. The script works on Linux and MacOS. 
 
 ## Managing user database
 

@@ -42,6 +42,9 @@ public class HttpVerticle extends AbstractVerticle {
     private static final Boolean DEFAULT_CORS = false;
     private static final String DEFAULT_CORS_ORIGIN = "*";
 
+    private static final Boolean DEFAULT_CSRF = false;
+    private static final String DEFAULT_CSRF_SECRET = "DAVe-CSRF-Secret";
+
     private static final Boolean DEFAULT_COMPRESSION = false;
 
     private static final Boolean DEFAULT_AUTH_ENABLED = false;
@@ -194,6 +197,15 @@ public class HttpVerticle extends AbstractVerticle {
         }
     }
 
+    private void setCsrfHandler(Router router)
+    {
+        if (config().getJsonObject("CSRF", new JsonObject()).getBoolean("enable", HttpVerticle.DEFAULT_CSRF)) {
+            LOG.info("Enabling CSRF handler");
+
+            router.route().handler(CSRFHandler.create(config().getJsonObject("CSRF", new JsonObject()).getString("secret", HttpVerticle.DEFAULT_CSRF_SECRET)));
+        }
+    }
+
     private UserApi setAuthHandler(Router router)
     {
         UserApi userApi;
@@ -207,6 +219,7 @@ public class HttpVerticle extends AbstractVerticle {
             router.route().handler(BodyHandler.create().setBodyLimit(MAX_BODY_SIZE));
             router.route().handler(getSessionHandler());
             router.route().handler(UserSessionHandler.create(authenticationProvider));
+            setCsrfHandler(router);
             addSecurityHeaders(router);
 
             router.routeWithRegex("^/api/v1.0/(?!user/login).*$").handler(ApiAuthHandler.create(authenticationProvider));
@@ -243,7 +256,6 @@ public class HttpVerticle extends AbstractVerticle {
 
             ctx.next();
         });
-        //router.route().handler(CSRFHandler.create("not a good secret"));
     }
 
     private SessionHandler getSessionHandler()
