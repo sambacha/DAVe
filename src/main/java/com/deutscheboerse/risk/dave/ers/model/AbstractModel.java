@@ -24,7 +24,8 @@ public abstract class AbstractModel {
     {
         JsonObject command = new JsonObject()
                 .put("aggregate", mongoCollection)
-                .put("pipeline", pipeline);
+                .put("pipeline", pipeline)
+                .put("allowDiskUse", true);
 
         return command;
     }
