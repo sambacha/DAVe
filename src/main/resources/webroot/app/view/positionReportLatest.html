@@ -30,7 +30,7 @@
 
             <!-- /.panel-heading -->
             <div class="panel-body" ng-if="prLatest.length > 0">
-                <table class="table table-striped table-bordered table-hover">
+                <table class="table table-bordered table-hover">
                     <thead>
                     <tr>
                         <th>Mmb <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('member')"></span></th>
@@ -51,7 +51,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr ng-repeat="pr in prLatest | spacedFilter:recordQuery | orderBy:ordering track by pr.functionalKey" row-highlighter="pr.functionalKey">
+                    <tr ng-repeat-start="pr in prLatest | spacedFilter:recordQuery | orderBy:ordering track by pr.functionalKey" row-highlighter="pr.functionalKey" ng-click="showExtra(pr.functionalKey)">
                         <td highlighter="pr.member"><a href="#/positionReportLatest/{{pr.clearer}}/{{pr.member}}">{{pr.member}}</a></td>
                         <td highlighter="pr.account"><a href="#/positionReportLatest/{{pr.clearer}}/{{pr.member}}/{{pr.account}}">{{pr.account}}</a></td>
                         <td highlighter="pr.symbol"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.symbol}}">{{pr.symbol}}</a></td>
@@ -66,7 +66,54 @@
                         <td highlighter="pr.allocationTradeQty">{{pr.allocationTradeQty | number:2}}</td>
                         <td highlighter="pr.deliveryNoticeQty">{{pr.deliveryNoticeQty | number:2}}</td>
                         <td highlighter="pr.received">{{pr.received | date:'HH:mm:ss.sss'}}</td>
-                        <td><a href="#/positionReportHistory/{{pr.clearer}}/{{pr.member}}/{{pr.account}}/{{pr.symbol}}/{{pr.putCall | nullHandler:'*'}}/{{pr.strikePrice | nullHandler:'*'}}/{{pr.optAttribute | nullHandler:'*'}}/{{pr.maturityMonthYear}}"><span class="fa fa-bar-chart-o" aria-hidden="true" title="Detail"></span></a></td>
+                        <td>
+                            <a><span class="fa fa-chevron-circle-down" aria-hidden="true" title="Show additional fields" id="extra-icon-{{pr.functionalKey}}"></span></a>
+                            <a href="#/positionReportHistory/{{pr.clearer}}/{{pr.member}}/{{pr.account}}/{{pr.symbol}}/{{pr.putCall | nullHandler:'*'}}/{{pr.strikePrice | nullHandler:'*'}}/{{pr.optAttribute | nullHandler:'*'}}/{{pr.maturityMonthYear}}"><span class="fa fa-bar-chart-o" aria-hidden="true" title="Detail"></span></a>
+                        </td>
+                    </tr>
+                    <tr ng-repeat-end class="hidden" id="extra-{{pr.functionalKey}}">
+                        <td colspan="15">
+                            <table class="table table-condensed">
+                                <thead>
+                                <tr>
+                                    <th>ClrCcy</th>
+                                    <th>PrdCcy</th>
+                                    <th>mVar</th>
+                                    <th>compVar</th>
+                                    <th>CorrBreak</th>
+                                    <th>CopmError</th>
+                                    <th>LiquiAddOn</th>
+                                    <th>LonOptCredit</th>
+                                    <th>PremPay</th>
+                                    <th>PremMrgn</th>
+                                    <th>Delta</th>
+                                    <th>Gamma</th>
+                                    <th>Vega</th>
+                                    <th>Rho</th>
+                                    <th>Theta</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>{{pr.clearingCcy}}</td>
+                                    <td>{{pr.productCcy}}</td>
+                                    <td>{{pr.mVar | number:2}}</td>
+                                    <td>{{pr.compVar | number:2}}</td>
+                                    <td>{{pr.compCorrelationBreak | number:2}}</td>
+                                    <td>{{pr.compCompressionError | number:2}}</td>
+                                    <td>{{pr.compLiquidityAddOn | number:2}}</td>
+                                    <td>{{pr.compLongOptionCredit | number:2}}</td>
+                                    <td>{{pr.variationMarginPremiumPayment | number:2}}</td>
+                                    <td>{{pr.premiumMargin | number:2}}</td>
+                                    <td>{{pr.delta | number:2}}</td>
+                                    <td>{{pr.gamma | number:2}}</td>
+                                    <td>{{pr.vega | number:2}}</td>
+                                    <td>{{pr.rho | number:2}}</td>
+                                    <td>{{pr.theta | number:2}}</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </td>
                     </tr>
                     </tbody>
                 </table>
