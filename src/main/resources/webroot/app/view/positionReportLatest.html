@@ -14,7 +14,7 @@
                 <div class="pull-right">
                     <form class="pull-right" role="search" style="margin-top: -4px">
                         <div class="form-group-sm">
-                            <input type="text" class="form-control input-sm" placeholder="Search" ng-model="recordQuery">
+                            <input type="text" class="form-control input-sm" placeholder="Search" ng-model="recordQuery" ng-change="updateViewport()">
                         </div>
                     </form>
                 </div>
@@ -51,7 +51,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr ng-repeat-start="pr in prLatest | spacedFilter:recordQuery | orderBy:ordering track by pr.functionalKey" row-highlighter="pr.functionalKey" ng-click="showExtra(pr.functionalKey)">
+                    <tr ng-repeat-start="pr in prLatest track by pr.functionalKey" row-highlighter="pr.functionalKey" ng-click="showExtra(pr.functionalKey)">
                         <td highlighter="pr.member"><a href="#/positionReportLatest/{{pr.clearer}}/{{pr.member}}">{{pr.member}}</a></td>
                         <td highlighter="pr.account"><a href="#/positionReportLatest/{{pr.clearer}}/{{pr.member}}/{{pr.account}}">{{pr.account}}</a></td>
                         <td highlighter="pr.symbol"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.clss}}/{{pr.symbol}}">{{pr.symbol}}</a></td>
@@ -125,6 +125,25 @@
                 </table>
             </div>
             <!-- /.panel-body -->
+
+            <div class="panel-footer">
+                Showing {{prLatest.length}} records out of {{prSource.length}}
+
+                <!--<nav aria-label="Page navigation">
+                    <ul class="pager">
+                        <li class="previous" ng-click="pagingPrevious()"><span aria-hidden="true">&larr; Previous</span></li>
+                        <li class="next"ng-click="pagingNext()"><span aria-hidden="true">Next &rarr;</span></li>
+                    </ul>
+                </nav>-->
+
+                    <ul class="pagination pagination-sm pull-right" style="margin-top: -5px">
+                        <li class="{{prPaging.first.class}}" ng-click="pagingFirst()"><a aria-label="First"><span aria-hidden="true" class="fa fa-fast-backward"></span></a></li>
+                        <li class="{{prPaging.previous.class}}" ng-click="pagingPrevious()"><a aria-label="Previous"><span aria-hidden="true" class="fa fa-step-backward"></span></a></li>
+                        <li ng-repeat="page in prPaging.pages" class="{{page.class}}" ng-click="pagingGoTo(page.page)"><a>{{page.page}}</a></li>
+                        <li class="{{prPaging.next.class}}" ng-click="pagingNext()"><a aria-label="Next"><span aria-hidden="true" class="fa fa-step-forward"></span></a></li>
+                        <li class="{{prPaging.last.class}}" ng-click="pagingLast()"><a aria-label="Last"><span aria-hidden="true" class="fa fa-fast-forward"></span></a></li>
+                    </ul>
+            </div>
         </div>
         <!-- /.panel -->
     </div>

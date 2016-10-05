@@ -113,10 +113,15 @@ daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$
     function($scope, $routeParams, $http, $interval, $filter) {
         $scope.refresh = null;
         $scope.sorting = false;
+        $scope.page = 1;
+        $scope.pageSize = 20;
+        $scope.prPaging = {"first": {"class": "disabled"}, "previous": {"class": "disabled"}, "pages": [], "next": {"class": "disabled"}, "last": {"class": "disabled"}};
 
         $scope.prLatest = [];
+        $scope.prSource = [];
         $scope.existingRecords = [];
         $scope.error = "";
+        $scope.recordQuery = "";
         $scope.ordering= ["member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
 
         if ($routeParams.clearer) { $scope.clearer = $routeParams.clearer; } else { $scope.clearer = "*" }
@@ -138,6 +143,10 @@ daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$
             $scope.error = "Server returned status " + status;
         });
 
+        $scope.updateViewport = function() {
+            $scope.prLatest = $filter('orderBy')($filter('spacedFilter')($scope.prSource, $scope.recordQuery), $scope.ordering).slice($scope.page*$scope.pageSize-$scope.pageSize, $scope.page*$scope.pageSize);
+        }
+
         $scope.processPositionReports = function(positionReports) {
             var index;
 
@@ -147,7 +156,9 @@ daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$
                 positionReports[index].netEA = (positionReports[index].optionExcerciseQty - positionReports[index].optionAssignmentQty) + (positionReports[index].allocationTradeQty - positionReports[index].deliveryNoticeQty);
             }
 
-            $scope.prLatest = positionReports;
+            $scope.prSource = positionReports;
+            $scope.updateViewport();
+            $scope.updatePaging();
         }
 
         $scope.sortRecords = function(column) {
@@ -158,6 +169,105 @@ daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$
             else {
                 $scope.ordering = [column, "member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
             }
+
+            $scope.updateViewport();
+        };
+
+        $scope.pagingNext = function() {
+            if ($scope.page < Math.ceil($scope.prSource.length/$scope.pageSize))
+            {
+                $scope.page++;
+            }
+
+            $scope.updateViewport();
+            $scope.updatePaging();
+        };
+
+        $scope.pagingPrevious = function() {
+            if ($scope.page > 1)
+            {
+                $scope.page--;
+            }
+
+            $scope.updateViewport();
+            $scope.updatePaging();
+        };
+
+        $scope.pagingFirst = function() {
+            $scope.page = 1;
+            $scope.updateViewport();
+            $scope.updatePaging();
+        };
+
+        $scope.pagingLast = function() {
+            $scope.page = Math.ceil($scope.prSource.length/$scope.pageSize);
+            $scope.updateViewport();
+            $scope.updatePaging();
+        };
+
+        $scope.pagingGoTo = function(pageNo) {
+            $scope.page = pageNo;
+            $scope.updateViewport();
+            $scope.updatePaging();
+        };
+
+        $scope.updatePaging = function() {
+            tempPrPaging = $scope.prPaging;
+            pageCount = Math.ceil($scope.prSource.length/$scope.pageSize);
+
+            if ($scope.page == 1) {
+                tempPrPaging.first.class = "disabled";
+                tempPrPaging.previous.class = "disabled";
+            }
+            else {
+                tempPrPaging.first.class = "";
+                tempPrPaging.previous.class = "";
+            }
+
+            tempPrPaging.pages = [];
+
+            if ($scope.page > 3)
+            {
+                tempPrPaging.pages.push({"page": $scope.page-3, "class": ""});
+            }
+
+            if ($scope.page > 2)
+            {
+                tempPrPaging.pages.push({"page": $scope.page-2, "class": ""});
+            }
+
+            if ($scope.page > 1)
+            {
+                tempPrPaging.pages.push({"page": $scope.page-1, "class": ""});
+            }
+
+            tempPrPaging.pages.push({"page": $scope.page, "class": "active"});
+
+            if ($scope.page < pageCount)
+            {
+                tempPrPaging.pages.push({"page": $scope.page+1, "class": ""});
+            }
+
+            if ($scope.page < pageCount-1)
+            {
+                tempPrPaging.pages.push({"page": $scope.page+2, "class": ""});
+            }
+
+            if ($scope.page < pageCount-2)
+            {
+                tempPrPaging.pages.push({"page": $scope.page+3, "class": ""});
+            }
+
+            if ($scope.page == pageCount) {
+                tempPrPaging.next.class = "disabled";
+                tempPrPaging.last.class = "disabled";
+            }
+            else {
+                tempPrPaging.next.class = "";
+                tempPrPaging.last.class = "";
+            }
+
+            $scope.prPaging = tempPrPaging;
         };
 
         $scope.showExtra = function(funcKey) {
