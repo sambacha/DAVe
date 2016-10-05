@@ -110,7 +110,7 @@ public class RestApiTest {
                 context.assertEquals("CLEARER", params.getString("clearer"));
                 context.assertEquals("MEMBER", params.getString("member"));
                 context.assertEquals("ACCOUNT", params.getString("account"));
-                context.assertEquals("CLASS", params.getString("class"));
+                context.assertEquals("CLASS", params.getString("clss"));
                 context.assertEquals("SYMBOL", params.getString("symbol"));
                 context.assertEquals("PUTCALL", params.getString("putCall"));
                 context.assertEquals("STRIKE", params.getString("strikePrice"));
@@ -152,7 +152,7 @@ public class RestApiTest {
                 context.assertEquals("CLEARER", params.getString("clearer"));
                 context.assertEquals("MEMBER", params.getString("member"));
                 context.assertEquals("ACCOUNT", params.getString("account"));
-                context.assertEquals("CLASS", params.getString("class"));
+                context.assertEquals("CLASS", params.getString("clss"));
                 context.assertEquals("SYMBOL", params.getString("symbol"));
                 context.assertEquals("PUTCALL", params.getString("putCall"));
                 context.assertEquals("STRIKE", params.getString("strikePrice"));
@@ -537,7 +537,7 @@ public class RestApiTest {
                 context.assertEquals("CLEARER", params.getString("clearer"));
                 context.assertNull(params.getString("member"));
                 context.assertNull(params.getString("account"));
-                context.assertNull(params.getString("class"));
+                context.assertNull(params.getString("clss"));
                 context.assertNull(params.getString("symbol"));
                 context.assertNull(params.getString("putCall"));
                 context.assertNull(params.getString("strikePrice"));
