@@ -85,6 +85,7 @@ daveControllers.controller('Login', ['$scope', '$http', '$interval', '$rootScope
 
                     if ($location.path() != "/login")
                     {
+                        $rootScope.authRequestedPath = $location.path();
                         $location.path( "/login" );
                     }
                 }
@@ -95,6 +96,7 @@ daveControllers.controller('Login', ['$scope', '$http', '$interval', '$rootScope
 
                 if ($location.path() != "/login")
                 {
+                    $rootScope.authRequestedPath = $location.path();
                     $location.path( "/login" );
                 }
             });
@@ -120,13 +122,14 @@ daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$
         if ($routeParams.clearer) { $scope.clearer = $routeParams.clearer; } else { $scope.clearer = "*" }
         if ($routeParams.member) { $scope.member = $routeParams.member; } else { $scope.member = "*" }
         if ($routeParams.account) { $scope.account = $routeParams.account; } else { $scope.account = "*" }
+        if ($routeParams.class) { $scope.class = $routeParams.class; } else { $scope.class = "*" }
         if ($routeParams.symbol) { $scope.symbol = $routeParams.symbol; } else { $scope.symbol = "*" }
         if ($routeParams.putCall) { $scope.putCall = $routeParams.putCall; } else { $scope.putCall = "*" }
         if ($routeParams.strikePrice) { $scope.strikePrice = $routeParams.strikePrice; } else { $scope.strikePrice = "*" }
         if ($routeParams.optAttribute) { $scope.optAttribute = $routeParams.optAttribute; } else { $scope.optAttribute = "*" }
         if ($routeParams.maturityMonthYear) { $scope.maturityMonthYear = $routeParams.maturityMonthYear; } else { $scope.maturityMonthYear = "*" }
 
-        $scope.url = '/api/v1.0/pr/latest/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.symbol + '/' + $scope.putCall + '/' + $scope.strikePrice + '/' + $scope.optAttribute + "/" + $scope.maturityMonthYear;
+        $scope.url = '/api/v1.0/pr/latest/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class + '/' + $scope.symbol + '/' + $scope.putCall + '/' + $scope.strikePrice + '/' + $scope.optAttribute + "/" + $scope.maturityMonthYear;
 
         $http.get($scope.url).success(function(data) {
             $scope.processPositionReports(data);
@@ -139,7 +142,9 @@ daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$
             var index;
 
             for (index = 0; index < positionReports.length; ++index) {
-                positionReports[index].functionalKey = positionReports[index].clearer + '-' + positionReports[index].member + '-' + positionReports[index].account + '-' + positionReports[index].symbol + '-' + positionReports[index].putCall + '-' + positionReports[index].maturityMonthYear + '-' + positionReports[index].strikePrice + '-' + positionReports[index].optAttribute + '-' + positionReports[index].maturityMonthYear;
+                positionReports[index].functionalKey = positionReports[index].clearer + '-' + positionReports[index].member + '-' + positionReports[index].account + '-' + positionReports[index].clss + '-' + positionReports[index].symbol + '-' + positionReports[index].putCall + '-' + positionReports[index].maturityMonthYear + '-' + positionReports[index].strikePrice + '-' + positionReports[index].optAttribute + '-' + positionReports[index].maturityMonthYear;
+                positionReports[index].netLS = positionReports[index].crossMarginLongQty - positionReports[index].crossMarginShortQty;
+                positionReports[index].netEA = (positionReports[index].optionExcerciseQty - positionReports[index].optionAssignmentQty) + (positionReports[index].allocationTradeQty - positionReports[index].deliveryNoticeQty);
             }
 
             $scope.prLatest = positionReports;
@@ -201,18 +206,30 @@ daveControllers.controller('PositionReportHistory', ['$scope', '$routeParams', '
         $scope.clearer = $routeParams.clearer;
         $scope.member = $routeParams.member;
         $scope.account = $routeParams.account;
+        $scope.class = $routeParams.class;
         $scope.symbol = $routeParams.symbol;
         $scope.putCall = $routeParams.putCall;
         $scope.strikePrice = $routeParams.strikePrice;
         $scope.optAttribute = $routeParams.optAttribute;
         $scope.maturityMonthYear = $routeParams.maturityMonthYear;
 
-        $scope.url = '/api/v1.0/pr/history/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.symbol + '/' + $scope.putCall + '/' + $scope.strikePrice + '/' + $scope.optAttribute + '/' + $scope.maturityMonthYear;
+        $scope.url = '/api/v1.0/pr/history/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class + '/' + $scope.symbol + '/' + $scope.putCall + '/' + $scope.strikePrice + '/' + $scope.optAttribute + '/' + $scope.maturityMonthYear;
+
+        $scope.processPositionReports = function(positionReports) {
+            var index;
+
+            for (index = 0; index < positionReports.length; ++index) {
+                positionReports[index].netLS = positionReports[index].crossMarginLongQty - positionReports[index].crossMarginShortQty;
+                positionReports[index].netEA = (positionReports[index].optionExcerciseQty - positionReports[index].optionAssignmentQty) + (positionReports[index].allocationTradeQty - positionReports[index].deliveryNoticeQty);
+            }
+
+            $scope.prHistory = positionReports;
+        }
 
         $http.get($scope.url).success(function(data) {
             $scope.error = "";
-            $scope.prHistory = data;
-            $scope.prepareGraphData(data);
+            $scope.processPositionReports(data);
+            $scope.prepareGraphData($scope.prHistory);
         }).error(function(data, status, headers, config) {
             $scope.error = "Server returned status " + status;
         });
@@ -247,9 +264,8 @@ daveControllers.controller('PositionReportHistory', ['$scope', '$routeParams', '
         $scope.refresh = $interval(function(){
             $http.get($scope.url).success(function(data) {
                 $scope.error = "";
-                $scope.prHistory = data;
-                //$scope.dtInstance.DataTable.rows().add(data);
-                $scope.prepareGraphData(data);
+                $scope.processPositionReports(data);
+                $scope.prepareGraphData($scope.prHistory);
             }).error(function(data, status, headers, config) {
                 $scope.error = "Server returned status " + status;
             });
@@ -269,12 +285,12 @@ daveControllers.controller('PositionReportHistory', ['$scope', '$routeParams', '
             for (index = 0; index < data.length; ++index) {
                 tick = {
                     period: $filter('date')(data[index].received, "yyyy-MM-dd HH:mm:ss"),
-                    crossMarginLongQty: data[index].crossMarginLongQty,
-                    crossMarginShortQty: data[index].crossMarginShortQty,
-                    optionExcerciseQty: data[index].optionExcerciseQty,
-                    optionAssignmentQty: data[index].optionAssignmentQty,
-                    allocationTradeQty: data[index].allocationTradeQty,
-                    deliveryNoticeQty: data[index].deliveryNoticeQty
+                    netLS: data[index].netLS,
+                    netEA: data[index].netEA,
+                    mVar: data[index].mVar,
+                    compVar: data[index].compVar,
+                    delta: data[index].delta,
+                    compLiquidityAddOn: data[index].compLiquidityAddOn
                 };
 
                 $scope.prChartData.push(tick);

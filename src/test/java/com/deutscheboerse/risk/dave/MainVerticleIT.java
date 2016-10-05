@@ -89,7 +89,7 @@ public class MainVerticleIT {
         Thread.sleep(1000);
 
         final Async asyncRest = context.async();
-        vertx.createHttpClient().getNow(httpPort, "localhost", "/api/v1.0/pr/latest/ABCFR/DEFFR/A1/BMW/C/3500/1/201001", res -> {
+        vertx.createHttpClient().getNow(httpPort, "localhost", "/api/v1.0/pr/latest/ABCFR/DEFFR/A1/*/BMW/C/3500/1/201001", res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 try {

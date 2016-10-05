@@ -10,6 +10,10 @@
         <div class="panel panel-default">
             <div class="panel-heading">
                 Margin Components History: <a href="#/marginComponentLatest/{{clearer}}">{{clearer}}</a> / <a href="#/marginComponentLatest/{{clearer}}/{{member}}">{{member}}</a> / <a href="#/marginComponentLatest/{{clearer}}/{{member}}/{{account}}">{{account}}</a> / <a href="#/marginComponentLatest/{{clearer}}/{{member}}/{{account}}/{{class}}">{{class}}</a> / <a href="#/marginComponentHistory/{{clearer}}/{{member}}/{{account}}/{{class}}/{{ccy}}">{{ccy}}</a>
+
+                <div class="pull-right">
+                    <a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{class}}" class="btn btn-primary btn-xs" role="button"><span class="fa fa-bullseye" aria-hidden="true" title="Drilldown"></span> Drilldown</a>
+                </div>
             </div>
 
             <div class="panel-body" ng-if="mcHistory.length == 0">

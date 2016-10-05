@@ -13,9 +13,13 @@
       "enable" : false,
       "origin" : "*"
     },
+    "CSRF": {
+      "enable" : false,
+      "secret" : "DAVe-CSRF-Secret"
+    },
     "auth": {
       "enable": true,
-      "db_name": "DAVe",
+      "db_name": "DAVe-TTSave",
       "connection_string": "mongodb://localhost:27017",
       "salt": "DAVe",
       "checkUserAgainstCertificate": false,
@@ -26,7 +30,7 @@
   },
   "ers": [],
   "mongodb": {
-    "db_name": "DAVe",
+    "db_name": "DAVe-TTSave",
     "connection_string": "mongodb://localhost:27017"
   },
   "ersDebugger":{

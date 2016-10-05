@@ -110,6 +110,7 @@ public class RestApiTest {
                 context.assertEquals("CLEARER", params.getString("clearer"));
                 context.assertEquals("MEMBER", params.getString("member"));
                 context.assertEquals("ACCOUNT", params.getString("account"));
+                context.assertEquals("CLASS", params.getString("clss"));
                 context.assertEquals("SYMBOL", params.getString("symbol"));
                 context.assertEquals("PUTCALL", params.getString("putCall"));
                 context.assertEquals("STRIKE", params.getString("strikePrice"));
@@ -126,7 +127,7 @@ public class RestApiTest {
         });
 
         final Async asyncRest = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pr/latest/CLEARER/MEMBER/ACCOUNT/SYMBOL/PUTCALL/STRIKE/OPTAT/MMY", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pr/latest/CLEARER/MEMBER/ACCOUNT/CLASS/SYMBOL/PUTCALL/STRIKE/OPTAT/MMY", res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonArray bd = body.toJsonArray();
@@ -151,6 +152,7 @@ public class RestApiTest {
                 context.assertEquals("CLEARER", params.getString("clearer"));
                 context.assertEquals("MEMBER", params.getString("member"));
                 context.assertEquals("ACCOUNT", params.getString("account"));
+                context.assertEquals("CLASS", params.getString("clss"));
                 context.assertEquals("SYMBOL", params.getString("symbol"));
                 context.assertEquals("PUTCALL", params.getString("putCall"));
                 context.assertEquals("STRIKE", params.getString("strikePrice"));
@@ -167,7 +169,7 @@ public class RestApiTest {
         });
 
         final Async asyncRest = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pr/history/CLEARER/MEMBER/ACCOUNT/SYMBOL/PUTCALL/STRIKE/OPTAT/MMY", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pr/history/CLEARER/MEMBER/ACCOUNT/CLASS/SYMBOL/PUTCALL/STRIKE/OPTAT/MMY", res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonArray bd = body.toJsonArray();
@@ -535,6 +537,7 @@ public class RestApiTest {
                 context.assertEquals("CLEARER", params.getString("clearer"));
                 context.assertNull(params.getString("member"));
                 context.assertNull(params.getString("account"));
+                context.assertNull(params.getString("clss"));
                 context.assertNull(params.getString("symbol"));
                 context.assertNull(params.getString("putCall"));
                 context.assertNull(params.getString("strikePrice"));
@@ -551,7 +554,7 @@ public class RestApiTest {
         });
 
         final Async asyncRest = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pr/latest/CLEARER/*/*/*/*/*/*/MMY", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pr/latest/CLEARER/*/*/*/*/*/*/*/MMY", res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonArray bd = body.toJsonArray();

@@ -24,11 +24,12 @@ public class PositionReportModel extends AbstractModel {
     protected JsonObject getGroup()
     {
         JsonObject group = new JsonObject();
-        group.put("_id", new JsonObject().put("clearer", "$clearer").put("member", "$member").put("account", "$account").put("symbol", "$symbol").put("putCall", "$putCall").put("strikePrice", "$strikePrice").put("optAttribute", "$optAttribute").put("maturityMonthYear", "$maturityMonthYear"));
+        group.put("_id", new JsonObject().put("clearer", "$clearer").put("member", "$member").put("account", "$account").put("clss", "$clss").put("symbol", "$symbol").put("putCall", "$putCall").put("strikePrice", "$strikePrice").put("optAttribute", "$optAttribute").put("maturityMonthYear", "$maturityMonthYear"));
         group.put("id", new JsonObject().put("$last", "$_id"));
         group.put("clearer", new JsonObject().put("$last", "$clearer"));
         group.put("member", new JsonObject().put("$last", "$member"));
         group.put("account", new JsonObject().put("$last", "$account"));
+        group.put("clss", new JsonObject().put("$last", "$clss"));
         group.put("reqId", new JsonObject().put("$last", "$reqId"));
         group.put("rptId", new JsonObject().put("$last", "$rptId"));
         group.put("bizDt", new JsonObject().put("$last", "$bizDt"));
@@ -78,6 +79,7 @@ public class PositionReportModel extends AbstractModel {
         project.put("bizDt", 1);
         project.put("lastReportRequested", 1);
         project.put("sesId", 1);
+        project.put("clss", 1);
         project.put("symbol", 1);
         project.put("putCall", 1);
         project.put("maturityMonthYear", 1);
