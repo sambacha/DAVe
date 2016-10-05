@@ -117,6 +117,7 @@ daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$
         $scope.page = 1;
         $scope.pageSize = 20;
         $scope.prPaging = {"first": {"class": "disabled"}, "previous": {"class": "disabled"}, "pages": [], "next": {"class": "disabled"}, "last": {"class": "disabled"}};
+        $scope.recordCount = 0;
 
         $scope.prLatest = [];
         $scope.prSource = [];
@@ -160,6 +161,7 @@ daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$
             }
 
             $scope.prSource = positionReports;
+            $scope.filter();
             $scope.updateViewport();
             $scope.updatePaging();
         }
@@ -176,8 +178,15 @@ daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$
             $scope.updateViewport();
         };
 
+        $scope.filter = function() {
+            $scope.recordCount = $filter('spacedFilter')($scope.prSource, $scope.recordQuery).length;
+
+            $scope.updatePaging();
+            $scope.updateViewport();
+        };
+
         $scope.pagingNext = function() {
-            if ($scope.page < Math.ceil($scope.prSource.length/$scope.pageSize))
+            if ($scope.page < Math.ceil($scope.recordCount/$scope.pageSize))
             {
                 $scope.page++;
             }
@@ -203,7 +212,7 @@ daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$
         };
 
         $scope.pagingLast = function() {
-            $scope.page = Math.ceil($scope.prSource.length/$scope.pageSize);
+            $scope.page = Math.ceil($scope.recordCount/$scope.pageSize);
             $scope.updateViewport();
             $scope.updatePaging();
         };
@@ -216,7 +225,13 @@ daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$
 
         $scope.updatePaging = function() {
             tempPrPaging = $scope.prPaging;
-            pageCount = Math.ceil($scope.prSource.length/$scope.pageSize);
+            pageCount = Math.ceil($scope.recordCount/$scope.pageSize);
+
+            if ($scope.page > pageCount)
+            {
+                $scope.page = pageCount;
+                $scope.updateViewport();
+            }
 
             if ($scope.page == 1) {
                 tempPrPaging.first.class = "disabled";
