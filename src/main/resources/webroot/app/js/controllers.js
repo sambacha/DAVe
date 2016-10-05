@@ -112,6 +112,7 @@ daveControllers.controller('Login', ['$scope', '$http', '$interval', '$rootScope
 daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$http', '$interval', '$filter',
     function($scope, $routeParams, $http, $interval, $filter) {
         $scope.refresh = null;
+        $scope.initialLoad = true;
         $scope.sorting = false;
         $scope.page = 1;
         $scope.pageSize = 20;
@@ -138,9 +139,11 @@ daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$
 
         $http.get($scope.url).success(function(data) {
             $scope.processPositionReports(data);
+            $scope.initialLoad = false;
             $scope.error = "";
         }).error(function(data, status, headers, config) {
             $scope.error = "Server returned status " + status;
+            $scope.initialLoad = false;
         });
 
         $scope.updateViewport = function() {

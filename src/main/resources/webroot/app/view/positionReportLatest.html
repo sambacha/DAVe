@@ -20,7 +20,11 @@
                 </div>
             </div>
 
-            <div class="panel-body" ng-if="prLatest.length == 0">
+            <div class="panel-body" ng-if="prLatest.length == 0 && initialLoad == true && error == ''">
+                <div class="alert alert-warning" role="alert">Loading ...</div>
+            </div>
+
+            <div class="panel-body" ng-if="prLatest.length == 0 && initialLoad == false && error == ''">
                 <div class="alert alert-info" role="alert">No data available.</div>
             </div>
 
