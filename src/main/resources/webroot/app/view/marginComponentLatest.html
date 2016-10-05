@@ -58,7 +58,10 @@
                         <td highlighter="mc.spreadMargin">{{mc.spreadMargin | number:2}}</td>
                         <td highlighter="mc.additionalMargin">{{mc.additionalMargin | number:2}}</td>
                         <td highlighter="mc.received">{{mc.received | date:'HH:mm:ss.sss'}}</td>
-                        <td><a href="#/marginComponentHistory/{{mc.clearer}}/{{mc.member}}/{{mc.account}}/{{mc.clss}}/{{mc.ccy}}"><span class="fa fa-bar-chart-o" aria-hidden="true" title="Detail"></span></a></td>
+                        <td>
+                            <a href="#/positionReportLatest/{{mc.clearer}}/{{mc.member}}/{{mc.account}}/{{mc.clss}}"><span class="fa fa-bullseye" aria-hidden="true" title="Drilldown"></span></a>
+                            <a href="#/marginComponentHistory/{{mc.clearer}}/{{mc.member}}/{{mc.account}}/{{mc.clss}}/{{mc.ccy}}"><span class="fa fa-bar-chart-o" aria-hidden="true" title="Detail"></span></a>
+                        </td>
                     </tr>
                     </tbody>
                 </table>
