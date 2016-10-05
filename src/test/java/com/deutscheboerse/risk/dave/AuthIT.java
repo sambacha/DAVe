@@ -2,6 +2,7 @@ package com.deutscheboerse.risk.dave;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
@@ -315,6 +316,66 @@ public class AuthIT {
 
             asyncLogin.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
+    }
+
+    private String getCsrfCookie(List<String> cookies)
+    {
+        String token = null;
+
+        for (String cookie : cookies)
+        {
+            if (cookie.startsWith("XSRF-TOKEN="))
+            {
+                token = cookie.replaceFirst("XSRF-TOKEN=", "");
+            }
+        }
+
+        return token;
+    }
+
+    @Test
+    public void testLoginWithCSRF(TestContext context) {
+        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false)).put("CSRF", new JsonObject().put("enable", true).put("secret", "big-secret"));
+        deployHttpVerticle(context, config);
+
+        HttpClient client = vertx.createHttpClient();
+
+        // Get the initial token
+        final Async asyncToken = context.async();
+        client.getNow(port, "localhost", "/api/v1.0/user/loginStatus", tokenRes -> {
+            String csrfToken = getCsrfCookie(tokenRes.cookies());
+
+            // Log in
+            final Async asyncLogin = context.async();
+            client.post(port, "localhost", "/api/v1.0/user/login", res -> {
+                context.assertEquals(200, res.statusCode());
+                context.assertNotNull(res.getHeader(HttpHeaders.SET_COOKIE));
+                String sessionCookie = res.getHeader(HttpHeaders.SET_COOKIE);
+
+                // Logged in => loginStatus should return JsonObject with username
+                final Async asyncLoginStatus = context.async();
+                client.get(port, "localhost", "/api/v1.0/user/loginStatus", statusRes -> {
+                    context.assertEquals(200, statusRes.statusCode());
+                    statusRes.bodyHandler(body -> {
+                        JsonObject bd = body.toJsonObject();
+                        context.assertEquals(new JsonObject().put("username", "user1"), bd);
+                        asyncLoginStatus.complete();
+                    });
+                }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
+
+                // Logged in => REST access should return 200
+                final Async asyncAuthorized = context.async();
+                client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
+                    context.assertEquals(200, tssRes.statusCode());
+                    asyncAuthorized.complete();
+                }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
+
+                asyncLogin.complete();
+            }).putHeader("X-XSRF-TOKEN", csrfToken).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
+            asyncToken.complete();
+        });
+
+        asyncToken.awaitSuccess();
     }
 
     @Test

@@ -85,6 +85,7 @@ daveControllers.controller('Login', ['$scope', '$http', '$interval', '$rootScope
 
                     if ($location.path() != "/login")
                     {
+                        $rootScope.authRequestedPath = $location.path();
                         $location.path( "/login" );
                     }
                 }
@@ -95,6 +96,7 @@ daveControllers.controller('Login', ['$scope', '$http', '$interval', '$rootScope
 
                 if ($location.path() != "/login")
                 {
+                    $rootScope.authRequestedPath = $location.path();
                     $location.path( "/login" );
                 }
             });
