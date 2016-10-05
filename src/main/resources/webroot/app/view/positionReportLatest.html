@@ -40,12 +40,12 @@
                         <th>StrkPrc <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('strikePrice')"></span></th>
                         <th>OptAtt <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('optAttribute')"></span></th>
                         <th>MMY <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('maturityMonthYear')"></span></th>
-                        <th>CrMrgLQty <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('crossMarginLongQty')"></span></th>
-                        <th>CrMrgSQty <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('crossMarginShortQty')"></span></th>
-                        <th>OptExcQty <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('optionExcerciseQty')"></span></th>
-                        <th>OptAssQty <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('optionAssignmentQty')"></span></th>
-                        <th>AllTrQty <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('allocationTradeQty')"></span></th>
-                        <th>DelNtQty <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('deliveryNoticeQty')"></span></th>
+                        <th>NetLS <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('netLS')"></span></th>
+                        <th>NetEA <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('netEA')"></span></th>
+                        <th>MVar <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('mVar')"></span></th>
+                        <th>CompVar <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('compVar')"></span></th>
+                        <th>Delta <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('delta')"></span></th>
+                        <th>LiquiAddOn <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('compLiquidityAddOn')"></span></th>
                         <th>Last upd. <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('received')"></span></th>
                         <th></th>
                     </tr>
@@ -59,12 +59,12 @@
                         <td highlighter="pr.strikePrice"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.symbol}}/{{pr.putCall | nullHandler:'*'}}/{{pr.strikePrice | nullHandler:'*'}}">{{pr.strikePrice}}</a></td>
                         <td highlighter="pr.optAttribute"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.symbol}}/{{pr.putCall | nullHandler:'*'}}/{{pr.strikePrice | nullHandler:'*'}}/{{pr.optAttribute | nullHandler:'*'}}">{{pr.optAttribute}}</a></td>
                         <td highlighter="pr.maturityMonthYear"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.symbol}}/{{pr.putCall | nullHandler:'*'}}/{{pr.strikePrice | nullHandler:'*'}}/{{pr.optAttribute | nullHandler:'*'}}/{{pr.maturityMonthYear}}">{{pr.maturityMonthYear}}</a></td>
-                        <td highlighter="pr.crossMarginLongQty">{{pr.crossMarginLongQty | number:2}}</td>
-                        <td highlighter="pr.crossMarginShortQty">{{pr.crossMarginShortQty | number:2}}</td>
-                        <td highlighter="pr.optionExcerciseQty">{{pr.optionExcerciseQty | number:2}}</td>
-                        <td highlighter="pr.optionAssignmentQty">{{pr.optionAssignmentQty | number:2}}</td>
-                        <td highlighter="pr.allocationTradeQty">{{pr.allocationTradeQty | number:2}}</td>
-                        <td highlighter="pr.deliveryNoticeQty">{{pr.deliveryNoticeQty | number:2}}</td>
+                        <td highlighter="pr.netLS">{{pr.netLS | number:2}}</td>
+                        <td highlighter="pr.netEA">{{pr.netEA | number:2}}</td>
+                        <td highlighter="pr.mVar">{{pr.mVar | number:2}}</td>
+                        <td highlighter="pr.compVar">{{pr.compVar | number:2}}</td>
+                        <td highlighter="pr.delta">{{pr.delta | number:2}}</td>
+                        <td highlighter="pr.compLiquidityAddOn">{{pr.compLiquidityAddOn | number:2}}</td>
                         <td highlighter="pr.received">{{pr.received | date:'HH:mm:ss.sss'}}</td>
                         <td>
                             <a><span class="fa fa-chevron-circle-down" aria-hidden="true" title="Show additional fields" id="extra-icon-{{pr.functionalKey}}"></span></a>
@@ -75,18 +75,20 @@
                         <td colspan="15">
                             <table class="table table-condensed">
                                 <thead>
-                                <tr>
+                                <tr row-highlighter="pr.functionalKey">
                                     <th>ClrCcy</th>
                                     <th>PrdCcy</th>
-                                    <th>mVar</th>
-                                    <th>compVar</th>
+                                    <th>CrMrgLQty</th>
+                                    <th>CrMrgSQty</th>
+                                    <th>OptExcQty</th>
+                                    <th>OptAssQty</th>
+                                    <th>AllTrQty</th>
+                                    <th>DelNtQty</th>
                                     <th>CorrBreak</th>
                                     <th>CopmError</th>
-                                    <th>LiquiAddOn</th>
                                     <th>LonOptCredit</th>
                                     <th>PremPay</th>
                                     <th>PremMrgn</th>
-                                    <th>Delta</th>
                                     <th>Gamma</th>
                                     <th>Vega</th>
                                     <th>Rho</th>
@@ -94,22 +96,24 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr>
-                                    <td>{{pr.clearingCcy}}</td>
-                                    <td>{{pr.productCcy}}</td>
-                                    <td>{{pr.mVar | number:2}}</td>
-                                    <td>{{pr.compVar | number:2}}</td>
-                                    <td>{{pr.compCorrelationBreak | number:2}}</td>
-                                    <td>{{pr.compCompressionError | number:2}}</td>
-                                    <td>{{pr.compLiquidityAddOn | number:2}}</td>
-                                    <td>{{pr.compLongOptionCredit | number:2}}</td>
-                                    <td>{{pr.variationMarginPremiumPayment | number:2}}</td>
-                                    <td>{{pr.premiumMargin | number:2}}</td>
-                                    <td>{{pr.delta | number:2}}</td>
-                                    <td>{{pr.gamma | number:2}}</td>
-                                    <td>{{pr.vega | number:2}}</td>
-                                    <td>{{pr.rho | number:2}}</td>
-                                    <td>{{pr.theta | number:2}}</td>
+                                <tr row-highlighter="pr.functionalKey">
+                                    <td highlighter="pr.clearingCcy">{{pr.clearingCcy}}</td>
+                                    <td highlighter="pr.productCcy">{{pr.productCcy}}</td>
+                                    <td highlighter="pr.crossMarginLongQty">{{pr.crossMarginLongQty | number:2}}</td>
+                                    <td highlighter="pr.crossMarginShortQty">{{pr.crossMarginShortQty | number:2}}</td>
+                                    <td highlighter="pr.optionExcerciseQty">{{pr.optionExcerciseQty | number:2}}</td>
+                                    <td highlighter="pr.optionAssignmentQty">{{pr.optionAssignmentQty | number:2}}</td>
+                                    <td highlighter="pr.allocationTradeQty">{{pr.allocationTradeQty | number:2}}</td>
+                                    <td highlighter="pr.deliveryNoticeQty">{{pr.deliveryNoticeQty | number:2}}</td>
+                                    <td highlighter="pr.compCorrelationBreak">{{pr.compCorrelationBreak | number:2}}</td>
+                                    <td highlighter="pr.compCompressionError">{{pr.compCompressionError | number:2}}</td>
+                                    <td highlighter="pr.compLongOptionCredit">{{pr.compLongOptionCredit | number:2}}</td>
+                                    <td highlighter="pr.variationMarginPremiumPayment">{{pr.variationMarginPremiumPayment | number:2}}</td>
+                                    <td highlighter="pr.premiumMargin">{{pr.premiumMargin | number:2}}</td>
+                                    <td highlighter="pr.gamma">{{pr.gamma | number:2}}</td>
+                                    <td highlighter="pr.vega">{{pr.vega | number:2}}</td>
+                                    <td highlighter="pr.rho">{{pr.rho | number:2}}</td>
+                                    <td highlighter="pr.theta">{{pr.theta | number:2}}</td>
                                 </tr>
                                 </tbody>
                             </table>

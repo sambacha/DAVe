@@ -140,6 +140,8 @@ daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$
 
             for (index = 0; index < positionReports.length; ++index) {
                 positionReports[index].functionalKey = positionReports[index].clearer + '-' + positionReports[index].member + '-' + positionReports[index].account + '-' + positionReports[index].symbol + '-' + positionReports[index].putCall + '-' + positionReports[index].maturityMonthYear + '-' + positionReports[index].strikePrice + '-' + positionReports[index].optAttribute + '-' + positionReports[index].maturityMonthYear;
+                positionReports[index].netLS = positionReports[index].crossMarginLongQty - positionReports[index].crossMarginShortQty;
+                positionReports[index].netEA = (positionReports[index].optionExcerciseQty - positionReports[index].optionAssignmentQty) + (positionReports[index].allocationTradeQty - positionReports[index].deliveryNoticeQty);
             }
 
             $scope.prLatest = positionReports;
@@ -209,10 +211,21 @@ daveControllers.controller('PositionReportHistory', ['$scope', '$routeParams', '
 
         $scope.url = '/api/v1.0/pr/history/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.symbol + '/' + $scope.putCall + '/' + $scope.strikePrice + '/' + $scope.optAttribute + '/' + $scope.maturityMonthYear;
 
+        $scope.processPositionReports = function(positionReports) {
+            var index;
+
+            for (index = 0; index < positionReports.length; ++index) {
+                positionReports[index].netLS = positionReports[index].crossMarginLongQty - positionReports[index].crossMarginShortQty;
+                positionReports[index].netEA = (positionReports[index].optionExcerciseQty - positionReports[index].optionAssignmentQty) + (positionReports[index].allocationTradeQty - positionReports[index].deliveryNoticeQty);
+            }
+
+            $scope.prHistory = positionReports;
+        }
+
         $http.get($scope.url).success(function(data) {
             $scope.error = "";
-            $scope.prHistory = data;
-            $scope.prepareGraphData(data);
+            $scope.processPositionReports(data);
+            $scope.prepareGraphData($scope.prHistory);
         }).error(function(data, status, headers, config) {
             $scope.error = "Server returned status " + status;
         });
@@ -247,9 +260,8 @@ daveControllers.controller('PositionReportHistory', ['$scope', '$routeParams', '
         $scope.refresh = $interval(function(){
             $http.get($scope.url).success(function(data) {
                 $scope.error = "";
-                $scope.prHistory = data;
-                //$scope.dtInstance.DataTable.rows().add(data);
-                $scope.prepareGraphData(data);
+                $scope.processPositionReports(data);
+                $scope.prepareGraphData($scope.prHistory);
             }).error(function(data, status, headers, config) {
                 $scope.error = "Server returned status " + status;
             });
@@ -269,12 +281,12 @@ daveControllers.controller('PositionReportHistory', ['$scope', '$routeParams', '
             for (index = 0; index < data.length; ++index) {
                 tick = {
                     period: $filter('date')(data[index].received, "yyyy-MM-dd HH:mm:ss"),
-                    crossMarginLongQty: data[index].crossMarginLongQty,
-                    crossMarginShortQty: data[index].crossMarginShortQty,
-                    optionExcerciseQty: data[index].optionExcerciseQty,
-                    optionAssignmentQty: data[index].optionAssignmentQty,
-                    allocationTradeQty: data[index].allocationTradeQty,
-                    deliveryNoticeQty: data[index].deliveryNoticeQty
+                    netLS: data[index].netLS,
+                    netEA: data[index].netEA,
+                    mVar: data[index].mVar,
+                    compVar: data[index].compVar,
+                    delta: data[index].delta,
+                    compLiquidityAddOn: data[index].compLiquidityAddOn
                 };
 
                 $scope.prChartData.push(tick);
