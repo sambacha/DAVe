@@ -54,11 +54,11 @@
                     <tr ng-repeat-start="pr in prLatest | spacedFilter:recordQuery | orderBy:ordering track by pr.functionalKey" row-highlighter="pr.functionalKey" ng-click="showExtra(pr.functionalKey)">
                         <td highlighter="pr.member"><a href="#/positionReportLatest/{{pr.clearer}}/{{pr.member}}">{{pr.member}}</a></td>
                         <td highlighter="pr.account"><a href="#/positionReportLatest/{{pr.clearer}}/{{pr.member}}/{{pr.account}}">{{pr.account}}</a></td>
-                        <td highlighter="pr.symbol"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.symbol}}">{{pr.symbol}}</a></td>
-                        <td highlighter="pr.putCall"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.symbol}}/{{pr.putCall | nullHandler:'*'}}">{{pr.putCall}}</a></td>
-                        <td highlighter="pr.strikePrice"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.symbol}}/{{pr.putCall | nullHandler:'*'}}/{{pr.strikePrice | nullHandler:'*'}}">{{pr.strikePrice}}</a></td>
-                        <td highlighter="pr.optAttribute"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.symbol}}/{{pr.putCall | nullHandler:'*'}}/{{pr.strikePrice | nullHandler:'*'}}/{{pr.optAttribute | nullHandler:'*'}}">{{pr.optAttribute}}</a></td>
-                        <td highlighter="pr.maturityMonthYear"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.symbol}}/{{pr.putCall | nullHandler:'*'}}/{{pr.strikePrice | nullHandler:'*'}}/{{pr.optAttribute | nullHandler:'*'}}/{{pr.maturityMonthYear}}">{{pr.maturityMonthYear}}</a></td>
+                        <td highlighter="pr.symbol"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.class}}/{{pr.symbol}}">{{pr.symbol}}</a></td>
+                        <td highlighter="pr.putCall"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.class}}/{{pr.symbol}}/{{pr.putCall | nullHandler:'*'}}">{{pr.putCall}}</a></td>
+                        <td highlighter="pr.strikePrice"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.class}}/{{pr.symbol}}/{{pr.putCall | nullHandler:'*'}}/{{pr.strikePrice | nullHandler:'*'}}">{{pr.strikePrice}}</a></td>
+                        <td highlighter="pr.optAttribute"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.class}}/{{pr.symbol}}/{{pr.putCall | nullHandler:'*'}}/{{pr.strikePrice | nullHandler:'*'}}/{{pr.optAttribute | nullHandler:'*'}}">{{pr.optAttribute}}</a></td>
+                        <td highlighter="pr.maturityMonthYear"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.class}}/{{pr.symbol}}/{{pr.putCall | nullHandler:'*'}}/{{pr.strikePrice | nullHandler:'*'}}/{{pr.optAttribute | nullHandler:'*'}}/{{pr.maturityMonthYear}}">{{pr.maturityMonthYear}}</a></td>
                         <td highlighter="pr.netLS">{{pr.netLS | number:2}}</td>
                         <td highlighter="pr.netEA">{{pr.netEA | number:2}}</td>
                         <td highlighter="pr.mVar">{{pr.mVar | number:2}}</td>
@@ -68,7 +68,7 @@
                         <td highlighter="pr.received">{{pr.received | date:'HH:mm:ss.sss'}}</td>
                         <td>
                             <a><span class="fa fa-chevron-circle-down" aria-hidden="true" title="Show additional fields" id="extra-icon-{{pr.functionalKey}}"></span></a>
-                            <a href="#/positionReportHistory/{{pr.clearer}}/{{pr.member}}/{{pr.account}}/{{pr.symbol}}/{{pr.putCall | nullHandler:'*'}}/{{pr.strikePrice | nullHandler:'*'}}/{{pr.optAttribute | nullHandler:'*'}}/{{pr.maturityMonthYear}}"><span class="fa fa-bar-chart-o" aria-hidden="true" title="Detail"></span></a>
+                            <a href="#/positionReportHistory/{{pr.clearer}}/{{pr.member}}/{{pr.account}}/{{pr.class}}/{{pr.symbol}}/{{pr.putCall | nullHandler:'*'}}/{{pr.strikePrice | nullHandler:'*'}}/{{pr.optAttribute | nullHandler:'*'}}/{{pr.maturityMonthYear}}"><span class="fa fa-bar-chart-o" aria-hidden="true" title="Detail"></span></a>
                         </td>
                     </tr>
                     <tr ng-repeat-end class="hidden" id="extra-{{pr.functionalKey}}">
@@ -76,6 +76,7 @@
                             <table class="table table-condensed">
                                 <thead>
                                 <tr row-highlighter="pr.functionalKey">
+                                    <th>Class</th>
                                     <th>ClrCcy</th>
                                     <th>PrdCcy</th>
                                     <th>CrMrgLQty</th>
@@ -97,6 +98,7 @@
                                 </thead>
                                 <tbody>
                                 <tr row-highlighter="pr.functionalKey">
+                                    <td highlighter="pr.class"><a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{pr.class}}">{{pr.class}}</a></td>
                                     <td highlighter="pr.clearingCcy">{{pr.clearingCcy}}</td>
                                     <td highlighter="pr.productCcy">{{pr.productCcy}}</td>
                                     <td highlighter="pr.crossMarginLongQty">{{pr.crossMarginLongQty | number:2}}</td>
