@@ -8,11 +8,15 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.mongo.IndexOptions;
 import io.vertx.ext.mongo.MongoClient;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.function.Function;
 
 /**
@@ -33,6 +37,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         Future<Void> chainFuture = Future.future();
         connectDb()
                 .compose(this::initDb)
+                .compose(this::createIndexes)
                 .compose(this::startStoreHandlers)
                 .compose(this::startQueryHandlers)
                 .compose(chainFuture::complete, chainFuture);
@@ -99,6 +104,37 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
             } else {
                 LOG.error("Failed to get collection list", res.cause());
                 initDbFuture.fail(res.cause());
+            }
+        });
+        return initDbFuture;
+    }
+
+    private Future<Void> createIndexes(Void unused) {
+        Future<Void> initDbFuture = Future.future();
+        Map<String, JsonObject> indexes = new HashMap<>();
+        indexes.put("ers.MarginComponent", new JsonObject().put("clearer", 1).put("member", 1).put("account", 1).put("clss", 1).put("ccy", 1));
+        indexes.put("ers.MarginShortfallSurplus", new JsonObject().put("clearer", 1).put("pool", 1).put("member", 1).put("clearingCcy", 1).put("ccy", 1));
+        indexes.put("ers.PositionReport", new JsonObject().put("clearer", 1).put("member", 1).put("account", 1).put("clss", 1).put("symbol", 1).put("putCall", 1).put("strikePrice", 1).put("optAttribute", 1).put("maturityMonthYear", 1));
+        indexes.put("ers.RiskLimit", new JsonObject().put("clearer", 1).put("member", 1).put("maintainer", 1).put("limitType", 1));
+        indexes.put("ers.TotalMarginRequirement", new JsonObject().put("clearer", 1).put("pool", 1).put("member", 1).put("account", 1).put("ccy", 1));
+        List<Future> futs = new ArrayList<>();
+        for (Entry<String, JsonObject> index : indexes.entrySet()) {
+            Future<Void> receivedIndexFuture = Future.future();
+            mongo.createIndexWithOptions(index.getKey(), new JsonObject().put("received", 1), new IndexOptions().name("received_idx"), receivedIndexFuture.completer());
+            futs.add(receivedIndexFuture);
+
+            Future<Void> compoundIndexFuture = Future.future();
+            mongo.createIndexWithOptions(index.getKey(), index.getValue(), new IndexOptions().name("compound_idx"), compoundIndexFuture.completer());
+            futs.add(compoundIndexFuture);
+        }
+
+        CompositeFuture.all(futs).setHandler(ar -> {
+            if (ar.succeeded()) {
+                LOG.info("Mongo has all needed indexes");
+                initDbFuture.complete();
+            } else {
+                LOG.error("Failed to create all needed indexes in Mongo", ar.cause());
+                initDbFuture.fail(ar.cause());
             }
         });
         return initDbFuture;

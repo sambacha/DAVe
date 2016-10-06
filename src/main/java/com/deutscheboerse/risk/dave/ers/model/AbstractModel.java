@@ -33,8 +33,8 @@ public abstract class AbstractModel {
     protected JsonArray getLatestPipeline(JsonObject params)
     {
         JsonArray pipeline = new JsonArray();
-        pipeline.add(new JsonObject().put("$sort", getSort()));
         pipeline.add(new JsonObject().put("$match", params));
+        pipeline.add(new JsonObject().put("$sort", getSort()));
         pipeline.add(new JsonObject().put("$group", getGroup()));
 
         return pipeline;
@@ -43,8 +43,8 @@ public abstract class AbstractModel {
     protected JsonArray getHistoryPipeline(JsonObject params)
     {
         JsonArray pipeline = new JsonArray();
-        pipeline.add(new JsonObject().put("$sort", getSort()));
         pipeline.add(new JsonObject().put("$match", params));
+        pipeline.add(new JsonObject().put("$sort", getSort()));
         pipeline.add(new JsonObject().put("$project", getProject()));
 
         return pipeline;
