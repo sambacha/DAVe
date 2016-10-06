@@ -233,6 +233,12 @@ daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$
                 $scope.updateViewport();
             }
 
+            if ($scope.page < 1)
+            {
+                $scope.page = 1;
+                $scope.updateViewport();
+            }
+
             if ($scope.page == 1) {
                 tempPrPaging.first.class = "disabled";
                 tempPrPaging.previous.class = "disabled";
