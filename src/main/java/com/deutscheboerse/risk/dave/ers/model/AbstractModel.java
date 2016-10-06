@@ -12,14 +12,6 @@ public abstract class AbstractModel {
     protected abstract JsonObject getGroup();
     protected abstract JsonObject getProject();
 
-    protected JsonObject getSort()
-    {
-        JsonObject sort = new JsonObject();
-        sort.put("received", 1);
-
-        return sort;
-    }
-
     protected JsonObject getCommand(String mongoCollection, JsonArray pipeline)
     {
         JsonObject command = new JsonObject()
@@ -34,7 +26,6 @@ public abstract class AbstractModel {
     {
         JsonArray pipeline = new JsonArray();
         pipeline.add(new JsonObject().put("$match", params));
-        pipeline.add(new JsonObject().put("$sort", getSort()));
         pipeline.add(new JsonObject().put("$group", getGroup()));
 
         return pipeline;
@@ -44,7 +35,6 @@ public abstract class AbstractModel {
     {
         JsonArray pipeline = new JsonArray();
         pipeline.add(new JsonObject().put("$match", params));
-        pipeline.add(new JsonObject().put("$sort", getSort()));
         pipeline.add(new JsonObject().put("$project", getProject()));
 
         return pipeline;

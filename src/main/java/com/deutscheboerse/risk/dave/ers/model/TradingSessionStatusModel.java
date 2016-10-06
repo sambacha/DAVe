@@ -8,24 +8,23 @@ import io.vertx.core.json.JsonObject;
  */
 public class TradingSessionStatusModel extends AbstractModel {
     private static final String MONGO_COLLECTION = "ers.TradingSessionStatus";
-    private static final AbstractModel INSTANCE = new TradingSessionStatusModel();
+    private static final TradingSessionStatusModel INSTANCE = new TradingSessionStatusModel();
 
     protected TradingSessionStatusModel() {
     }
 
     public static JsonObject getLatestCommand(JsonObject params) {
-        return INSTANCE.getCommand(MONGO_COLLECTION, INSTANCE.getLatestPipeline(params));
+        return INSTANCE.getCommand(MONGO_COLLECTION, INSTANCE.getLatestPipeline());
     }
 
     public static JsonObject getHistoryCommand(JsonObject params)
     {
-        return INSTANCE.getCommand(MONGO_COLLECTION, INSTANCE.getHistoryPipeline(params));
+        return INSTANCE.getCommand(MONGO_COLLECTION, INSTANCE.getHistoryPipeline());
     }
 
     private JsonArray getLatestPipeline()
     {
         JsonArray pipeline = new JsonArray();
-        pipeline.add(new JsonObject().put("$sort", getSort()));
         pipeline.add(new JsonObject().put("$group", getGroup()));
 
         return pipeline;
@@ -34,7 +33,6 @@ public class TradingSessionStatusModel extends AbstractModel {
     private JsonArray getHistoryPipeline()
     {
         JsonArray pipeline = new JsonArray();
-        pipeline.add(new JsonObject().put("$sort", getSort()));
         pipeline.add(new JsonObject().put("$project", getProject()));
 
         return pipeline;
