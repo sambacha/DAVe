@@ -1,6 +1,6 @@
 <div class="row">
     <div class="col-lg-12">
-        <h1 class="page-header">Risk Limits</h1>
+        <h3>Risk Limits</h3>
     </div>
     <!-- /.col-lg-12 -->
 </div>
@@ -14,13 +14,17 @@
                 <div class="pull-right">
                     <form class="pull-right" role="search" style="margin-top: -4px">
                         <div class="form-group-sm">
-                            <input type="text" class="form-control input-sm" placeholder="Search" ng-model="recordQuery">
+                            <input type="text" class="form-control input-sm" placeholder="Search" ng-model="recordQuery" ng-change="filter()">
                         </div>
                     </form>
                 </div>
             </div>
 
-            <div class="panel-body" ng-if="rlLatest.length == 0">
+            <div class="panel-body" ng-if="rlLatest.length == 0 && initialLoad == true && error == ''">
+                <div class="alert alert-warning" role="alert">Loading ...</div>
+            </div>
+
+            <div class="panel-body" ng-if="rlLatest.length == 0 && initialLoad == false && error == ''">
                 <div class="alert alert-info" role="alert">No data available.</div>
             </div>
 
@@ -45,7 +49,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr ng-repeat="rl in rlLatest | spacedFilter:recordQuery | orderBy:ordering track by rl.functionalKey" row-highlighter="rl.functionalKey">
+                    <tr ng-repeat="rl in rlLatest track by rl.functionalKey" row-highlighter="rl.functionalKey">
                         <td highlighter="rl.member"><a href="#/riskLimitLatest/{{rl.clearer}}/{{rl.member}}">{{rl.member}}</a></td>
                         <td highlighter="rl.maintainer"><a href="#/riskLimitLatest/{{clearer}}/{{member}}/{{rl.maintainer}}">{{rl.maintainer}}</a></td>
                         <td highlighter="rl.limitType"><a href="#/riskLimitLatest/{{clearer}}/{{member}}/{{maintainer}}/{{rl.limitType}}">{{rl.limitType}}</a></td>
@@ -60,6 +64,18 @@
                 </table>
             </div>
             <!-- /.panel-body -->
+
+            <div class="panel-footer">
+                Showing {{rlLatest.length}} records out of {{recordCount}}
+
+                <ul class="pagination pagination-sm pull-right" style="margin-top: -5px" ng-if="paging.pages.length > 1">
+                    <li class="{{paging.first.class}}" ng-click="pagingFirst()"><a aria-label="First"><span aria-hidden="true" class="fa fa-fast-backward"></span></a></li>
+                    <li class="{{paging.previous.class}}" ng-click="pagingPrevious()"><a aria-label="Previous"><span aria-hidden="true" class="fa fa-step-backward"></span></a></li>
+                    <li ng-repeat="page in paging.pages" class="{{page.class}}" ng-click="pagingGoTo(page.page)"><a aria-label="Page {{page.page}}">{{page.page}}</a></li>
+                    <li class="{{paging.next.class}}" ng-click="pagingNext()"><a aria-label="Next"><span aria-hidden="true" class="fa fa-step-forward"></span></a></li>
+                    <li class="{{paging.last.class}}" ng-click="pagingLast()"><a aria-label="Last"><span aria-hidden="true" class="fa fa-fast-forward"></span></a></li>
+                </ul>
+            </div>
         </div>
         <!-- /.panel -->
     </div>

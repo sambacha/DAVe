@@ -1,6 +1,6 @@
 <div class="row">
     <div class="col-lg-12">
-        <h1 class="page-header">Margin Shortfall Surplus</h1>
+        <h3>Margin Shortfall Surplus</h3>
     </div>
     <!-- /.col-lg-12 -->
 </div>
@@ -14,13 +14,17 @@
                 <div class="pull-right">
                     <form class="pull-right" role="search" style="margin-top: -4px">
                         <div class="form-group-sm">
-                            <input type="text" class="form-control input-sm" placeholder="Search" ng-model="recordQuery">
+                            <input type="text" class="form-control input-sm" placeholder="Search" ng-model="recordQuery" ng-change="filter()">
                         </div>
                     </form>
                 </div>
             </div>
 
-            <div class="panel-body" ng-if="mssLatest.length == 0">
+            <div class="panel-body" ng-if="mssLatest.length == 0 && initialLoad == true && error == ''">
+                <div class="alert alert-warning" role="alert">Loading ...</div>
+            </div>
+
+            <div class="panel-body" ng-if="mssLatest.length == 0 && initialLoad == false && error == ''">
                 <div class="alert alert-info" role="alert">No data available.</div>
             </div>
 
@@ -48,7 +52,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr ng-repeat="mss in mssLatest | spacedFilter:recordQuery | orderBy:ordering track by mss.functionalKey" row-highlighter="mss.functionalKey">
+                    <tr ng-repeat="mss in mssLatest track by mss.functionalKey" row-highlighter="mss.functionalKey">
                         <td highlighter="mss.pool"><a href="#/marginShortfallSurplusLatest/{{mss.clearer}}/{{mss.pool}}">{{mss.pool}}</a></td>
                         <td highlighter="mss.poolType"><a href="#/marginShortfallSurplusLatest/{{mss.clearer}}/{{mss.pool}}">{{mss.poolType}}</a></td>
                         <td highlighter="mss.member"><a href="#/marginShortfallSurplusLatest/{{mss.clearer}}/{{mss.pool}}/{{mss.member}}">{{mss.member}}</a></td>
@@ -69,6 +73,18 @@
                 </table>
             </div>
             <!-- /.panel-body -->
+
+            <div class="panel-footer">
+                Showing {{mssLatest.length}} records out of {{recordCount}}
+
+                <ul class="pagination pagination-sm pull-right" style="margin-top: -5px" ng-if="paging.pages.length > 1">
+                    <li class="{{paging.first.class}}" ng-click="pagingFirst()"><a aria-label="First"><span aria-hidden="true" class="fa fa-fast-backward"></span></a></li>
+                    <li class="{{paging.previous.class}}" ng-click="pagingPrevious()"><a aria-label="Previous"><span aria-hidden="true" class="fa fa-step-backward"></span></a></li>
+                    <li ng-repeat="page in paging.pages" class="{{page.class}}" ng-click="pagingGoTo(page.page)"><a aria-label="Page {{page.page}}">{{page.page}}</a></li>
+                    <li class="{{paging.next.class}}" ng-click="pagingNext()"><a aria-label="Next"><span aria-hidden="true" class="fa fa-step-forward"></span></a></li>
+                    <li class="{{paging.last.class}}" ng-click="pagingLast()"><a aria-label="Last"><span aria-hidden="true" class="fa fa-fast-forward"></span></a></li>
+                </ul>
+            </div>
         </div>
         <!-- /.panel -->
     </div>
