@@ -1,6 +1,6 @@
 <div class="row">
     <div class="col-lg-12">
-        <h1 class="page-header">Position Report History</h1>
+        <h3>Position Report History</h3>
     </div>
     <!-- /.col-lg-12 -->
 </div>
@@ -12,7 +12,11 @@
                 Position Report History: <a href="#/positionReportLatest/{{clearer}}">{{clearer}}</a> / <a href="#/positionReportLatest/{{clearer}}/{{member}}">{{member}}</a> / <a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}">{{account}}</a> / <a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{class}}">{{class}}</a> / <a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{class}}/{{symbol}}">{{symbol}}</a> / <a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{class}}/{{symbol}}/{{putCall}}">{{putCall}}</a> / <a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{class}}/{{symbol}}/{{putCall}}/{{strikePrice}}">{{strikePrice}}</a> / <a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{class}}/{{symbol}}/{{putCall}}/{{strikePrice}}/{{optAttribute}}">{{optAttribute}}</a> / <a href="#/positionReportLatest/{{clearer}}/{{member}}/{{account}}/{{class}}/{{symbol}}/{{putCall}}/{{strikePrice}}/{{optAttribute}}/{{maturityMonthYear}}">{{maturityMonthYear}}</a>
             </div>
 
-            <div class="panel-body" ng-if="prHistory.length == 0">
+            <div class="panel-body" ng-if="prHistory.length == 0 && initialLoad == true && error == ''">
+                <div class="alert alert-warning" role="alert">Loading ...</div>
+            </div>
+
+            <div class="panel-body" ng-if="prHistory.length == 0 && initialLoad == false && error == ''">
                 <div class="alert alert-info" role="alert">No data available.</div>
             </div>
 
@@ -40,7 +44,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr ng-repeat-start="pr in prHistory | filter:recordQuery | orderBy:ordering track by pr.id.$oid" row-highlighter="pr.id.$oid" ng-click="showExtra(pr.id.$oid)">
+                    <tr ng-repeat-start="pr in prHistory track by pr.id.$oid" row-highlighter="pr.id.$oid" ng-click="showExtra(pr.id.$oid)">
                         <td highlighter="pr.received">{{pr.received | date:'HH:mm:ss'}}</td>
                         <td highlighter="pr.netLS">{{pr.netLS | number:2}}</td>
                         <td highlighter="pr.netEA">{{pr.netEA | number:2}}</td>
@@ -102,6 +106,18 @@
                 </table>
             </div>
             <!-- /.panel-body -->
+
+            <div class="panel-footer">
+                Showing {{prHistory.length}} records out of {{recordCount}}
+
+                <ul class="pagination pagination-sm pull-right" style="margin-top: -5px" ng-if="prPaging.pages.length > 1">
+                    <li class="{{prPaging.first.class}}" ng-click="pagingFirst()"><a aria-label="First"><span aria-hidden="true" class="fa fa-fast-backward"></span></a></li>
+                    <li class="{{prPaging.previous.class}}" ng-click="pagingPrevious()"><a aria-label="Previous"><span aria-hidden="true" class="fa fa-step-backward"></span></a></li>
+                    <li ng-repeat="page in prPaging.pages" class="{{page.class}}" ng-click="pagingGoTo(page.page)"><a aria-label="Page {{page.page}}">{{page.page}}</a></li>
+                    <li class="{{prPaging.next.class}}" ng-click="pagingNext()"><a aria-label="Next"><span aria-hidden="true" class="fa fa-step-forward"></span></a></li>
+                    <li class="{{prPaging.last.class}}" ng-click="pagingLast()"><a aria-label="Last"><span aria-hidden="true" class="fa fa-fast-forward"></span></a></li>
+                </ul>
+            </div>
         </div>
         <!-- /.panel -->
     </div>
