@@ -33,13 +33,13 @@
                 <table class="table table-bordered table-hover">
                     <thead>
                     <tr>
-                        <th class="sorting">Last update <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('received')"></span></th>
-                        <th>NetLS <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('netLS')"></span></th>
-                        <th>NetEA <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('netEA')"></span></th>
-                        <th>MVar <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('mVar')"></span></th>
-                        <th>CompVar <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('compVar')"></span></th>
-                        <th>Delta <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('delta')"></span></th>
-                        <th>LiquiAddOn <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('compLiquidityAddOn')"></span></th>
+                        <th class="sorting">Last update <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Time when DAVe received the last update" aria-hidden="true"></i> <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('received')"></span></th>
+                        <th>NetLS <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Net position" aria-hidden="true"></i> <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('netLS')"></span></th>
+                        <th>NetEA <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="?????" aria-hidden="true"></i> <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('netEA')"></span></th>
+                        <th>MVar <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="?????" aria-hidden="true"></i> <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('mVar')"></span></th>
+                        <th>CompVar <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="?????" aria-hidden="true"></i> <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('compVar')"></span></th>
+                        <th>Delta <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="?????" aria-hidden="true"></i> <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('delta')"></span></th>
+                        <th>LiquiAddOn <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Time when DAVe received the last update" aria-hidden="true"></i> <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('compLiquidityAddOn')"></span></th>
                         <th></th>
                     </tr>
                     </thead>
@@ -123,3 +123,9 @@
     </div>
     <!-- /.col-lg-12 -->
 </div>
+
+<script language="JavaScript">
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+    })
+</script>
