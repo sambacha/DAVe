@@ -120,6 +120,7 @@ daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$
 
         $scope.prLatest = [];
         $scope.prSource = [];
+        $scope.existingRecords = [];
         $scope.error = "";
         $scope.recordQuery = "";
         $scope.ordering= ["member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
@@ -149,7 +150,7 @@ daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$
             var index;
 
             for (index = 0; index < positionReports.length; ++index) {
-                positionReports[index].functionalKey = positionReports[index].clearer + '-' + positionReports[index].member + '-' + positionReports[index].account + '-' + positionReports[index].clss + '-' + positionReports[index].symbol + '-' + positionReports[index].putCall + '-' + positionReports[index].maturityMonthYear + '-' + positionReports[index].strikePrice + '-' + positionReports[index].optAttribute + '-' + positionReports[index].maturityMonthYear;
+                positionReports[index].functionalKey = positionReports[index].clearer + '-' + positionReports[index].member + '-' + positionReports[index].account + '-' + positionReports[index].clss + '-' + positionReports[index].symbol + '-' + positionReports[index].putCall + '-' + positionReports[index].maturityMonthYear + '-' + positionReports[index].strikePrice.replace("\.", "") + '-' + positionReports[index].optAttribute + '-' + positionReports[index].maturityMonthYear;
                 positionReports[index].netLS = positionReports[index].crossMarginLongQty - positionReports[index].crossMarginShortQty;
                 positionReports[index].netEA = (positionReports[index].optionExcerciseQty - positionReports[index].optionAssignmentQty) + (positionReports[index].allocationTradeQty - positionReports[index].deliveryNoticeQty);
             }
@@ -336,6 +337,7 @@ daveControllers.controller('PositionReportHistory', ['$scope', '$routeParams', '
 
         $scope.prHistory = [];
         $scope.prSource = [];
+        $scope.existingRecords = [];
         $scope.error = "";
         $scope.prChartData = [];
         $scope.ordering="-received";
@@ -566,6 +568,7 @@ daveControllers.controller('MarginComponentLatest', ['$scope', '$routeParams', '
 
         $scope.mcLatest = [];
         $scope.mcSource = [];
+        $scope.existingRecords = [];
         $scope.error = "";
         $scope.ordering= ["member", "account", "clss", "ccy"];
 
@@ -758,6 +761,7 @@ daveControllers.controller('MarginComponentHistory', ['$scope', '$routeParams', 
 
         $scope.mcHistory = [];
         $scope.mcSource = [];
+        $scope.existingRecords = [];
         $scope.error = "";
         $scope.mcChartData = [];
         $scope.ordering="-received";
@@ -959,6 +963,7 @@ daveControllers.controller('TotalMarginRequirementLatest', ['$scope', '$routePar
 
         $scope.tmrLatest = [];
         $scope.tmrSource = [];
+        $scope.existingRecords = [];
         $scope.error = "";
         $scope.ordering= ["pool", "member", "account", "ccy"];
 
@@ -1151,6 +1156,7 @@ daveControllers.controller('TotalMarginRequirementHistory', ['$scope', '$routePa
 
         $scope.tmrHistory = [];
         $scope.tmrSource = [];
+        $scope.existingRecords = [];
         $scope.error = "";
         $scope.tmrChartData = [];
         $scope.tmrChartOptions = { legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<datasets.length; i++){%><li><span style=\"background-color:<%=datasets[i].lineColor%>\"></span><%if(datasets[i].label){%><%=datasets[i].label%><%}%></li><%}%></ul>" };
@@ -1350,6 +1356,7 @@ daveControllers.controller('MarginShortfallSurplusLatest', ['$scope', '$routePar
 
         $scope.mssLatest = [];
         $scope.mssSource = [];
+        $scope.existingRecords = [];
         $scope.error = "";
         $scope.ordering= ["pool", "member", "clearingCcy", "ccy"];
 
@@ -1541,6 +1548,7 @@ daveControllers.controller('MarginShortfallSurplusHistory', ['$scope', '$routePa
 
         $scope.mssHistory = [];
         $scope.mssSource = [];
+        $scope.existingRecords = [];
         $scope.error = "";
         $scope.mssChartData = [];
         $scope.ordering="-received";
@@ -1742,6 +1750,7 @@ daveControllers.controller('RiskLimitLatest', ['$scope', '$routeParams', '$http'
 
         $scope.rlLatest = [];
         $scope.rlSource = [];
+        $scope.existingRecords = [];
         $scope.error = "";
         $scope.ordering= ["clearer", "member", "maintainer", "limitType"];
 
@@ -1933,6 +1942,7 @@ daveControllers.controller('RiskLimitHistory', ['$scope', '$routeParams', '$http
 
         $scope.rlHistory = [];
         $scope.rlSource = [];
+        $scope.existingRecords = [];
         $scope.error = "";
         $scope.rlChartData = [];
         $scope.ordering="-received";
