@@ -2,7 +2,7 @@
  * Created by jakub on 15.12.14.
  */
 
-var daveControllers = angular.module('daveControllers', ['angular.morris']);
+var daveControllers = angular.module('daveControllers', ['angular.morris', 'angularUtils.directives.dirPagination']);
 
 daveControllers.controller('Login', ['$scope', '$http', '$interval', '$rootScope', '$location',
     function($scope, $http, $interval, $rootScope, $location) {
@@ -112,17 +112,15 @@ daveControllers.controller('Login', ['$scope', '$http', '$interval', '$rootScope
 daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$http', '$interval', '$filter',
     function($scope, $routeParams, $http, $interval, $filter) {
         $scope.refresh = null;
-        $scope.initialLoad = true;
-        $scope.page = 1;
+        $scope.loading = true;
         $scope.pageSize = 20;
-        $scope.prPaging = {"first": {"class": "disabled"}, "previous": {"class": "disabled"}, "pages": [], "next": {"class": "disabled"}, "last": {"class": "disabled"}};
-        $scope.recordCount = 0;
+        $scope.totalPr = 0;
 
-        $scope.prLatest = [];
         $scope.prSource = [];
-        $scope.existingRecords = [];
         $scope.error = "";
         $scope.recordQuery = "";
+        $scope.sortOrder = 1;
+        $scope.sortColumn = "";
         $scope.ordering= ["member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
 
         if ($routeParams.clearer) { $scope.clearer = $routeParams.clearer; } else { $scope.clearer = "*" }
@@ -136,161 +134,52 @@ daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$
         if ($routeParams.maturityMonthYear) { $scope.maturityMonthYear = $routeParams.maturityMonthYear; } else { $scope.maturityMonthYear = "*" }
 
         $scope.url = '/api/v1.0/pr/latest/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class + '/' + $scope.symbol + '/' + $scope.putCall + '/' + $scope.strikePrice + '/' + $scope.optAttribute + "/" + $scope.maturityMonthYear;
+        updateResultsCount();
+        getResultsPage(1);
 
-        $http.get($scope.url).success(function(data) {
-            $scope.processPositionReports(data);
-            $scope.initialLoad = false;
-            $scope.error = "";
-        }).error(function(data, status, headers, config) {
-            $scope.error = "Server returned status " + status;
-            $scope.initialLoad = false;
-        });
+        function updateResultsCount() {
+            $http.get($scope.url + "?countOnly" + "&filter=" + $scope.recordQuery).success(function(data) {
+                $scope.totalPr = data[0].count;
+                $scope.error = "";
+            }).error(function(data, status, headers, config) {
+                $scope.error = "Server returned status " + status;
+            });
+        };
 
-        $scope.processPositionReports = function(positionReports) {
+        function getResultsPage(pageNumber) {
+            $http.get($scope.url + "?page=" + pageNumber + "&filter=" + $scope.recordQuery + "&sortOrder=" + $scope.sortOrder + "&sortColumn=" + $scope.sortColumn).success(function(data) {
+                processPositionReports(data);
+                $scope.loading = false;
+                $scope.error = "";
+            }).error(function(data, status, headers, config) {
+                $scope.error = "Server returned status " + status;
+                $scope.loading = false;
+            });
+        };
+
+        function processPositionReports(positionReports) {
             var index;
-
             for (index = 0; index < positionReports.length; ++index) {
                 positionReports[index].functionalKey = positionReports[index].clearer + '-' + positionReports[index].member + '-' + positionReports[index].account + '-' + positionReports[index].clss + '-' + positionReports[index].symbol + '-' + positionReports[index].putCall + '-' + positionReports[index].maturityMonthYear + '-' + positionReports[index].strikePrice.replace("\.", "") + '-' + positionReports[index].optAttribute + '-' + positionReports[index].maturityMonthYear;
                 positionReports[index].netLS = positionReports[index].crossMarginLongQty - positionReports[index].crossMarginShortQty;
                 positionReports[index].netEA = (positionReports[index].optionExcerciseQty - positionReports[index].optionAssignmentQty) + (positionReports[index].allocationTradeQty - positionReports[index].deliveryNoticeQty);
             }
-
             $scope.prSource = positionReports;
-            $scope.filter();
-            $scope.updateViewport();
-            $scope.updatePaging();
         }
+
+        $scope.pageChanged = function(newPage) {
+            getResultsPage(newPage);
+        };
+
+        $scope.filter = function() {
+            updateResultsCount();
+            getResultsPage(1);
+        };
 
         $scope.sortRecords = function(column) {
-            if ($scope.ordering[0] == column)
-            {
-                $scope.ordering = ["-" + column, "member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
-            }
-            else {
-                $scope.ordering = [column, "member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
-            }
-
-            $scope.updateViewport();
-        };
-
-        $scope.updateViewport = function() {
-            $scope.prLatest = $filter('orderBy')($filter('spacedFilter')($scope.prSource, $scope.recordQuery), $scope.ordering).slice($scope.page*$scope.pageSize-$scope.pageSize, $scope.page*$scope.pageSize);
-        }
-        
-        $scope.filter = function() {
-            $scope.recordCount = $filter('spacedFilter')($scope.prSource, $scope.recordQuery).length;
-
-            $scope.updatePaging();
-            $scope.updateViewport();
-        };
-
-        $scope.pagingNext = function() {
-            if ($scope.page < Math.ceil($scope.recordCount/$scope.pageSize))
-            {
-                $scope.page++;
-            }
-
-            $scope.updateViewport();
-            $scope.updatePaging();
-        };
-
-        $scope.pagingPrevious = function() {
-            if ($scope.page > 1)
-            {
-                $scope.page--;
-            }
-
-            $scope.updateViewport();
-            $scope.updatePaging();
-        };
-
-        $scope.pagingFirst = function() {
-            $scope.page = 1;
-            $scope.updateViewport();
-            $scope.updatePaging();
-        };
-
-        $scope.pagingLast = function() {
-            $scope.page = Math.ceil($scope.recordCount/$scope.pageSize);
-            $scope.updateViewport();
-            $scope.updatePaging();
-        };
-
-        $scope.pagingGoTo = function(pageNo) {
-            $scope.page = pageNo;
-            $scope.updateViewport();
-            $scope.updatePaging();
-        };
-
-        $scope.updatePaging = function() {
-            tempPrPaging = $scope.prPaging;
-            pageCount = Math.ceil($scope.recordCount/$scope.pageSize);
-
-            if ($scope.page > pageCount)
-            {
-                $scope.page = pageCount;
-                $scope.updateViewport();
-            }
-
-            if ($scope.page < 1)
-            {
-                $scope.page = 1;
-                $scope.updateViewport();
-            }
-
-            if ($scope.page == 1) {
-                tempPrPaging.first.class = "disabled";
-                tempPrPaging.previous.class = "disabled";
-            }
-            else {
-                tempPrPaging.first.class = "";
-                tempPrPaging.previous.class = "";
-            }
-
-            tempPrPaging.pages = [];
-
-            if ($scope.page > 3)
-            {
-                tempPrPaging.pages.push({"page": $scope.page-3, "class": ""});
-            }
-
-            if ($scope.page > 2)
-            {
-                tempPrPaging.pages.push({"page": $scope.page-2, "class": ""});
-            }
-
-            if ($scope.page > 1)
-            {
-                tempPrPaging.pages.push({"page": $scope.page-1, "class": ""});
-            }
-
-            tempPrPaging.pages.push({"page": $scope.page, "class": "active"});
-
-            if ($scope.page < pageCount)
-            {
-                tempPrPaging.pages.push({"page": $scope.page+1, "class": ""});
-            }
-
-            if ($scope.page < pageCount-1)
-            {
-                tempPrPaging.pages.push({"page": $scope.page+2, "class": ""});
-            }
-
-            if ($scope.page < pageCount-2)
-            {
-                tempPrPaging.pages.push({"page": $scope.page+3, "class": ""});
-            }
-
-            if ($scope.page == pageCount) {
-                tempPrPaging.next.class = "disabled";
-                tempPrPaging.last.class = "disabled";
-            }
-            else {
-                tempPrPaging.next.class = "";
-                tempPrPaging.last.class = "";
-            }
-
-            $scope.prPaging = tempPrPaging;
+            $scope.sortOrder *= -1;
+            $scope.sortColumn = column;
+            getResultsPage(1);
         };
 
         $scope.showExtra = function(funcKey) {
@@ -312,6 +201,7 @@ daveControllers.controller('PositionReportLatest', ['$scope', '$routeParams', '$
 
         $scope.refresh = $interval(function(){
             $http.get($scope.url).success(function(data) {
+                updateResultsCount();
                 $scope.processPositionReports(data);
                 $scope.error = "";
             }).error(function(data, status, headers, config) {
@@ -733,7 +623,7 @@ daveControllers.controller('MarginComponentLatest', ['$scope', '$routeParams', '
 
             $scope.mcPaging = tempMcPaging;
         };
-        
+
         $scope.refresh = $interval(function(){
             $http.get($scope.url).success(function(data) {
                 $scope.processMarginComponents(data);
@@ -915,7 +805,7 @@ daveControllers.controller('MarginComponentHistory', ['$scope', '$routeParams', 
 
             $scope.mcPaging = tempMcPaging;
         };
-        
+
         $scope.refresh = $interval(function(){
             $http.get($scope.url).success(function(data) {
                 $scope.error = "";
@@ -1128,7 +1018,7 @@ daveControllers.controller('TotalMarginRequirementLatest', ['$scope', '$routePar
 
             $scope.paging = tempPaging;
         };
-        
+
         $scope.refresh = $interval(function(){
             $http.get($scope.url).success(function(data) {
                 $scope.processTotalMarginRequirements(data);
@@ -1311,7 +1201,7 @@ daveControllers.controller('TotalMarginRequirementHistory', ['$scope', '$routePa
 
             $scope.paging = tempPaging;
         };
-        
+
         $scope.refresh = $interval(function(){
             $http.get($scope.url).success(function(data) {
                 $scope.error = "";
