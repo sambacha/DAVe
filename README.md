@@ -8,7 +8,7 @@
 
 ## Build
     mvn clean package
-    
+
 The shippable artifact will be built in `target/dave-VERSION` directory.
 
 ## Configure
@@ -33,7 +33,7 @@ The `ers` section configures the Enhanced Risk Solution connection. It is an arr
 
 ### MongoDB
 
-The `mongodb` section contains the configuration of the MongoDB database where will the ERS data be persisted. 
+The `mongodb` section contains the configuration of the MongoDB database where will the ERS data be persisted.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
@@ -79,11 +79,11 @@ The `auth` subsection configures authentication to the UI and REST interface. Th
 | `salt` | Salt string used in hashed passwords | `sdf8hdgss3_a` |
 | `checkUserAgainstCertificate` | Validate username against the CN from the TLS client certificate subject. Unless the CN is equal to the username, authentication will be refused. _*)_ | `false` |
 
-_*) This feature doesn't work properly with self-signed certificates, where the holder of the certificate can easily issue and sign another certificate which would contain different CN and login._ 
+_*) This feature doesn't work properly with self-signed certificates, where the holder of the certificate can easily issue and sign another certificate which would contain different CN and login._
 
 #### CORS
 
-The `CORS` subsection configures Cross-origin resource sharing (CORS), which allows the REST API to be used from web applications running under different domain. 
+The `CORS` subsection configures Cross-origin resource sharing (CORS), which allows the REST API to be used from web applications running under different domain.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
@@ -92,16 +92,16 @@ The `CORS` subsection configures Cross-origin resource sharing (CORS), which all
 
 #### CSRF
 
-The `CSRF` subsection configures Cross-site request forgery (CSRF) protection. When enabled, the handler will set a XSRF-TOKEN cookie and the client has to send back its value in the X-XSRF-TOKEN header. This handler weill be activated only when authentication is enabled. 
+The `CSRF` subsection configures Cross-site request forgery (CSRF) protection. When enabled, the handler will set a XSRF-TOKEN cookie and the client has to send back its value in the X-XSRF-TOKEN header. This handler weill be activated only when authentication is enabled.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `enable` | Enabled the CSRF handler | `true` |
+| `enable` | Enable the CSRF handler | `true` |
 | `secret` | Configures the domain secret used to generate CSFR tokens | `61d77a85-276b-476a-8810-f8408b5cfa19` |
 
 ## Run
 
-Use script `start_dave.sh` to start the application. The script works on Linux and MacOS. 
+Use script `start_dave.sh` to start the application. The script works on Linux and MacOS.
 
 ## Managing user database
 
@@ -112,9 +112,9 @@ Use script `user_manager.sh`. Script accepts one of the following commands:
 
 ### Insert new user record
       user_manager.sh insert USER PASSWORD
-      
+
 ### Delete existing user record      
       user_manager.sh delete USER
-      
+
 ### List all user records      
       user_manager.sh list
