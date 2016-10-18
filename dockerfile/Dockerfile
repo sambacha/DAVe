@@ -1,10 +1,12 @@
 FROM		openjdk:8-jre
 MAINTAINER 	JAkub Scholz "www@scholzj.com"
 
-RUN adduser --system --home /home/dave dave
+RUN addgroup --system dave && adduser --system --home /home/dave --group dave
 COPY ./dave-1.0-SNAPSHOT /home/dave
 
-RUN chown -R dave /home/dave
+ENV DAVE_VERSION 1.0-SNAPSHOT
+
+RUN chown -R dave:dave /home/dave
 WORKDIR /home/dave
 
 # Add entrypoint
