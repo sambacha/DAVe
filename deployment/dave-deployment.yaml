@@ -15,7 +15,7 @@ spec:
         project: dave
     spec:
       containers:
-        - image: scholzj/dave:latest
+        - image: scholzj/dave:ttsave
           name: dave
           imagePullPolicy: Always
           env:
