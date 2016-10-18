@@ -15,14 +15,14 @@ spec:
         project: dave
     spec:
       containers:
-        - image: scholzj/dave:latest
+        - image: scholzj/dave:master
           name: dave
           imagePullPolicy: Always
           env:
             - name: DAVE_DB_NAME
-              value: DAVe-TTSave
+              value: DAVe
             - name: DAVE_DB_HOSTNAME
-              value: mongo.default
+              value: mongo
             - name: DAVE_DB_PORT
               value: "27017"
             - name: DAVE_HTTP_ENABLE
