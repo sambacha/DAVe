@@ -7,14 +7,9 @@ if [ "${1:0:1}" = '-' ]; then
 fi
 
 if [ "$1" = "./bin/start_dave.sh" ]; then
-  have_ers=0
-  have_masterdata=0
-  have_ers_debugger=0
-  have_db=0
   CONFIG_DB=()
-
-  have_http=0
   CONFIG_HTTP=()
+  CONFIG_ERS_DEBUGGER=()
 
   #####
   # DB
@@ -53,8 +48,6 @@ if [ "$1" = "./bin/start_dave.sh" ]; then
 
     db_config="\"db_name\": \"${DAVE_DB_NAME}\", \"connection_string\": \"${DAVE_DB_URL}\""
     CONFIG_DB+=("$db_config")
-    have_db=1
-
 
   #####
   # HTTP
@@ -150,8 +143,17 @@ if [ "$1" = "./bin/start_dave.sh" ]; then
       http_auth="\"auth\": { \"enable\": true, \"salt\": \"${DAVE_HTTP_AUTH_SALT}\", \"db_name\": \"${DAVE_DB_NAME}\", \"connection_string\": \"${DAVE_DB_URL}\", \"checkUserAgainstCertificate\": ${DAVE_HTTP_AUTH_LINK_SSL} }"
       CONFIG_HTTP+=("$http_auth")
     fi
+  fi
 
-    have_http=1
+  #####
+  # ERS Debugger
+  #####
+  if [ "$DAVE_ERS_DEBUGGER" ]; then
+    dbg_config="\"enable\": true"
+    CONFIG_ERS_DEBUGGER+=("$dbg_config")
+  else
+    dbg_config="\"enable\": false"
+    CONFIG_ERS_DEBUGGER+=("$dbg_config")
   fi
 
   #####
@@ -170,13 +172,13 @@ EOS
   "mongodb": {
     ${CONFIG_DB[*]}
   },
+  "ersDebugger": {
+    ${CONFIG_ERS_DEBUGGER[*]}
+  },
 EOS
   IFS="$IFSBAK"
   cat >> $configFile <<-EOS
-  "ers": [],
-  "ersDebugger": {
-    "enable": false
-  }
+  "ers": []
 }
 EOS
 
