@@ -10,6 +10,8 @@ if [ "$1" = "./bin/start_dave.sh" ]; then
   CONFIG_DB=()
   CONFIG_HTTP=()
   CONFIG_ERS_DEBUGGER=()
+  CONFIG_ERS=()
+  CONFIG_MASTERDATA=()
 
   #####
   # DB
@@ -108,7 +110,7 @@ if [ "$1" = "./bin/start_dave.sh" ]; then
 
         counter=1
         for cert in $(ls ca_*); do
-          keytool -importcert -noprompt -keystore $truststorePath -keypass $jks_password -storetype JKS -file $cert
+          keytool -importcert -noprompt -keystore $truststorePath -keypass $jks_password -storetype JKS -file $cert -alias "ca_${counter}"
           let counter=$counter+1
         done
 
