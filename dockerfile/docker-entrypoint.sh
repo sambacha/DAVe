@@ -180,9 +180,8 @@ EOS
 }
 EOS
 
-  chown -R dave:dave /home/dave
+  #chown -R dave:dave /home/dave
 fi
 
 # else default to run whatever the user wanted like "bash"
-#cat $configFile
 exec "$@"
