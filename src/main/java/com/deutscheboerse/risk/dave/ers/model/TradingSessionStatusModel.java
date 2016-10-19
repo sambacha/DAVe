@@ -1,7 +1,6 @@
 package com.deutscheboerse.risk.dave.ers.model;
 
 import io.vertx.core.eventbus.Message;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -36,14 +35,6 @@ public class TradingSessionStatusModel extends AbstractModel {
         document.put("txt", message.getValue("txt"));
         document.put("received", message.getJsonObject("received").getString("$date"));
         return document;
-    }
-
-    private JsonArray getHistoryPipeline()
-    {
-        JsonArray pipeline = new JsonArray();
-        pipeline.add(new JsonObject().put("$project", getProject()));
-
-        return pipeline;
     }
 
     @Override
