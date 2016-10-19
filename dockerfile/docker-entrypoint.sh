@@ -209,18 +209,26 @@ if [ "$1" = "./bin/start_dave.sh" ]; then
       if [[ "$DAVE_ERS_SSL_MEMBER_PUBLIC_KEY" && "$DAVE_ERS_SSL_MEMBER_PRIVATE_KEY" ]]; then
         keystorePath="$(pwd)/etc/ers.keystore"
         tempDir="$(mktemp -d)"
+
         echo "$DAVE_ERS_SSL_MEMBER_PUBLIC_KEY" > $tempDir/keystore.crt
         echo "$DAVE_ERS_SSL_MEMBER_PRIVATE_KEY" > $tempDir/keystore.pem
-        echo "222222222222"
+
         openssl pkcs12 -export -in $tempDir/keystore.crt -inkey $tempDir/keystore.pem -out $tempDir/keystore.p12 -passout pass:$jks_password
-        echo "3333333333333"
         keytool -importkeystore -srckeystore $tempDir/keystore.p12 -srcstoretype PKCS12 -srcstorepass $jks_password -destkeystore $keystorePath -deststoretype JKS -deststorepass $jks_password -srcalias 1 -destalias erskey -noprompt
+
         rm -rf $tempDir
-echo "4444444444444"
+
         ers_keystore_config="\"keystore\": \"${keystorePath}\", \"keystorePassword\": \"${jks_password}\", \"sslCertAlias\": \"erskey\""
         CONFIG_ERS+=("$ers_keystore_config")
       fi
     fi
+  fi
+
+  #####
+  # MASTERDATA
+  #####
+  if [ "$DAVE_MASTERDATA" ]; then
+    CONFIG_MASTERDATA+=("${DAVE_MASTERDATA}")
   fi
 
   #####
@@ -241,6 +249,9 @@ EOS
   },
   "ersDebugger": {
     ${CONFIG_ERS_DEBUGGER[*]}
+  },
+  "masterdata": {
+    ${CONFIG_MASTERDATA[*]}
   },
 EOS
   if [ ""${#CONFIG_ERS[@]}"" -gt 0 ]; then

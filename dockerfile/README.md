@@ -52,3 +52,15 @@ To actually use the application, you have to point to a host running the MongoDB
 | `DAVE_ERS_SSL_MEMBER_PUBLIC_KEY` | Public key of the ERS member certificate in CRT format | |
 | `DAVE_ERS_SSL_MEMBER_PRIVATE_KEY` | Private key of the ERS member certificate in PEM format | |
 | `DAVE_ERS_SSL_BROKER_CA` | List of trusted CA for the ERS broker / Public key of the ERS broker certificate | |
+
+### ERS Debugger
+
+| Option | Explanation | Example |
+|--------|-------------|---------|
+| `DAVE_ERS_DEBUGGER` | Enable the ERS debugger | `1` |
+
+### Masterdata
+
+| Option | Explanation | Example |
+|--------|-------------|---------|
+| `DAVE_MASTERDATA` | JSON text with the master data configuration | `"clearers": [ { ... } ], "productList": [ ... ]` |
