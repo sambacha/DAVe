@@ -1,53 +1,53 @@
 package com.deutscheboerse.risk.dave.ers.model;
 
+import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
 /**
  * Created by schojak on 15.9.16.
  */
 public class RiskLimitModel extends AbstractModel {
-    private static final String MONGO_COLLECTION = "ers.RiskLimit";
-    private static final AbstractModel INSTANCE = new RiskLimitModel();
+    private static final String MONGO_HISTORY_COLLECTION = "ers.RiskLimit";
+    private static final String MONGO_LATEST_COLLECTION = "ers.RiskLimit.latest";
 
-    protected RiskLimitModel() {
+    public RiskLimitModel() {
+        super(MONGO_HISTORY_COLLECTION, MONGO_LATEST_COLLECTION);
     }
 
-    public static JsonObject getLatestCommand(JsonObject params) {
-        return INSTANCE.getCommand(MONGO_COLLECTION, INSTANCE.getLatestPipeline(params));
+    @Override
+    public JsonObject queryLatestDocument(Message<?> msg) {
+        JsonObject message = (JsonObject)msg.body();
+        JsonObject query = new JsonObject();
+        query.put("clearer", message.getValue("clearer"));
+        query.put("member", message.getValue("member"));
+        query.put("maintainer", message.getValue("maintainer"));
+        query.put("limitType", message.getValue("limitType"));
+        return query;
     }
 
-    public static JsonObject getHistoryCommand(JsonObject params)
-    {
-        return INSTANCE.getCommand(MONGO_COLLECTION, INSTANCE.getHistoryPipeline(params));
+    @Override
+    public JsonObject makeLatestDocument(Message<?> msg) {
+        JsonObject message = (JsonObject)msg.body();
+        JsonObject document = new JsonObject();
+        document.put("clearer", message.getValue("clearer"));
+        document.put("member", message.getValue("member"));
+        document.put("maintainer", message.getValue("maintainer"));
+        document.put("reqId", message.getValue("reqId"));
+        document.put("rptId", message.getValue("rptId"));
+        document.put("txnTm", message.getJsonObject("txnTm").getString("$date"));
+        document.put("reqRslt", message.getValue("reqRslt"));
+        document.put("txt", message.getValue("txt"));
+        document.put("limitType", message.getValue("limitType"));
+        document.put("utilization", message.getValue("utilization"));
+        document.put("warningLevel", message.getValue("warningLevel"));
+        document.put("throttleLevel", message.getValue("throttleLevel"));
+        document.put("rejectLevel", message.getValue("rejectLevel"));
+        document.put("received", message.getJsonObject("received").getString("$date"));
+        return document;
     }
 
-    protected JsonObject getGroup()
-    {
-        JsonObject group = new JsonObject();
-        group.put("_id", new JsonObject()
-                .put("clearer", "$clearer").put("member", "$member").put("maintainer", "$maintainer")
-                .put("limitType", "$limitType"));
-        group.put("id", new JsonObject().put("$last", "$_id"));
-        group.put("clearer", new JsonObject().put("$last", "$clearer"));
-        group.put("member", new JsonObject().put("$last", "$member"));
-        group.put("maintainer", new JsonObject().put("$last", "$maintainer"));
-        group.put("reqId", new JsonObject().put("$last", "$reqId"));
-        group.put("rptId", new JsonObject().put("$last", "$rptId"));
-        group.put("txnTm", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$txnTm"))));
-        group.put("reqRslt", new JsonObject().put("$last", "$reqRslt"));
-        group.put("txt", new JsonObject().put("$last", "$txt"));
-        group.put("limitType", new JsonObject().put("$last", "$limitType"));
-        group.put("utilization", new JsonObject().put("$last", "$utilization"));
-        group.put("warningLevel", new JsonObject().put("$last", "$warningLevel"));
-        group.put("throttleLevel", new JsonObject().put("$last", "$throttleLevel"));
-        group.put("rejectLevel", new JsonObject().put("$last", "$rejectLevel"));
-        group.put("received", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received"))));
-
-        return group;
-    }
-
-    protected JsonObject getProject()
-    {
+    @Override
+    protected JsonObject getProject() {
         JsonObject project = new JsonObject();
         project.put("_id", 0);
         project.put("id", "$_id");
@@ -65,7 +65,6 @@ public class RiskLimitModel extends AbstractModel {
         project.put("throttleLevel", 1);
         project.put("rejectLevel", 1);
         project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received")));
-
         return project;
     }
 }

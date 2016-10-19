@@ -1,73 +1,80 @@
 package com.deutscheboerse.risk.dave.ers.model;
 
+import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
 /**
  * Created by schojak on 15.9.16.
  */
 public class PositionReportModel extends AbstractModel {
-    private static final String MONGO_COLLECTION = "ers.PositionReport";
-    private static final AbstractModel INSTANCE = new PositionReportModel();
+    private static final String MONGO_HISTORY_COLLECTION = "ers.PositionReport";
+    private static final String MONGO_LATEST_COLLECTION = "ers.PositionReport.latest";
 
-    protected PositionReportModel() {
+    public PositionReportModel() {
+        super(MONGO_HISTORY_COLLECTION, MONGO_LATEST_COLLECTION);
     }
 
-    public static JsonObject getLatestCommand(JsonObject params) {
-        return INSTANCE.getCommand(MONGO_COLLECTION, INSTANCE.getLatestPipeline(params));
+    @Override
+    public JsonObject queryLatestDocument(Message<?> msg) {
+        JsonObject message = (JsonObject)msg.body();
+        JsonObject query = new JsonObject();
+        query.put("clearer", message.getValue("clearer"));
+        query.put("member", message.getValue("member"));
+        query.put("account", message.getValue("account"));
+        query.put("clss", message.getValue("clss"));
+        query.put("symbol", message.getValue("symbol"));
+        query.put("putCall", message.getValue("putCall"));
+        query.put("strikePrice", message.getValue("strikePrice"));
+        query.put("optAttribute", message.getValue("optAttribute"));
+        query.put("maturityMonthYear", message.getValue("maturityMonthYear"));
+        return query;
     }
 
-    public static JsonObject getHistoryCommand(JsonObject params)
-    {
-        return INSTANCE.getCommand(MONGO_COLLECTION, INSTANCE.getHistoryPipeline(params));
+    @Override
+    public JsonObject makeLatestDocument(Message<?> msg) {
+        JsonObject message = (JsonObject)msg.body();
+        JsonObject document = new JsonObject();
+        document.put("clearer", message.getValue("clearer"));
+        document.put("member", message.getValue("member"));
+        document.put("account", message.getValue("account"));
+        document.put("clss", message.getValue("clss"));
+        document.put("reqId", message.getValue("reqId"));
+        document.put("rptId", message.getValue("rptId"));
+        document.put("bizDt", message.getValue("bizDt"));
+        document.put("lastReportRequested", message.getValue("lastReportRequested"));
+        document.put("sesId", message.getValue("sesId"));
+        document.put("symbol", message.getValue("symbol"));
+        document.put("putCall", message.getValue("putCall"));
+        document.put("maturityMonthYear", message.getValue("maturityMonthYear"));
+        document.put("strikePrice", message.getValue("strikePrice"));
+        document.put("optAttribute", message.getValue("optAttribute"));
+        document.put("crossMarginLongQty", message.getValue("crossMarginLongQty"));
+        document.put("crossMarginShortQty", message.getValue("crossMarginShortQty"));
+        document.put("optionExcerciseQty", message.getValue("optionExcerciseQty"));
+        document.put("optionAssignmentQty", message.getValue("optionAssignmentQty"));
+        document.put("allocationTradeQty", message.getValue("allocationTradeQty"));
+        document.put("deliveryNoticeQty", message.getValue("deliveryNoticeQty"));
+        document.put("clearingCcy", message.getValue("clearingCcy"));
+        document.put("mVar", message.getValue("mVar"));
+        document.put("compVar", message.getValue("compVar"));
+        document.put("compCorrelationBreak", message.getValue("compCorrelationBreak"));
+        document.put("compCompressionError", message.getValue("compCompressionError"));
+        document.put("compLiquidityAddOn", message.getValue("compLiquidityAddOn"));
+        document.put("compLongOptionCredit", message.getValue("compLongOptionCredit"));
+        document.put("productCcy", message.getValue("productCcy"));
+        document.put("variationMarginPremiumPayment", message.getValue("variationMarginPremiumPayment"));
+        document.put("premiumMargin", message.getValue("premiumMargin"));
+        document.put("delta", message.getValue("delta"));
+        document.put("gamma", message.getValue("gamma"));
+        document.put("vega", message.getValue("vega"));
+        document.put("rho", message.getValue("rho"));
+        document.put("theta", message.getValue("theta"));
+        document.put("received", message.getJsonObject("received").getString("$date"));
+        return document;
     }
 
-    protected JsonObject getGroup()
-    {
-        JsonObject group = new JsonObject();
-        group.put("_id", new JsonObject().put("clearer", "$clearer").put("member", "$member").put("account", "$account").put("clss", "$clss").put("symbol", "$symbol").put("putCall", "$putCall").put("strikePrice", "$strikePrice").put("optAttribute", "$optAttribute").put("maturityMonthYear", "$maturityMonthYear"));
-        group.put("id", new JsonObject().put("$last", "$_id"));
-        group.put("clearer", new JsonObject().put("$last", "$clearer"));
-        group.put("member", new JsonObject().put("$last", "$member"));
-        group.put("account", new JsonObject().put("$last", "$account"));
-        group.put("clss", new JsonObject().put("$last", "$clss"));
-        group.put("reqId", new JsonObject().put("$last", "$reqId"));
-        group.put("rptId", new JsonObject().put("$last", "$rptId"));
-        group.put("bizDt", new JsonObject().put("$last", "$bizDt"));
-        group.put("lastReportRequested", new JsonObject().put("$last", "$lastReportRequested"));
-        group.put("sesId", new JsonObject().put("$last", "$sesId"));
-        group.put("symbol", new JsonObject().put("$last", "$symbol"));
-        group.put("putCall", new JsonObject().put("$last", "$putCall"));
-        group.put("maturityMonthYear", new JsonObject().put("$last", "$maturityMonthYear"));
-        group.put("strikePrice", new JsonObject().put("$last", "$strikePrice"));
-        group.put("optAttribute", new JsonObject().put("$last", "$optAttribute"));
-        group.put("crossMarginLongQty", new JsonObject().put("$last", "$crossMarginLongQty"));
-        group.put("crossMarginShortQty", new JsonObject().put("$last", "$crossMarginShortQty"));
-        group.put("optionExcerciseQty", new JsonObject().put("$last", "$optionExcerciseQty"));
-        group.put("optionAssignmentQty", new JsonObject().put("$last", "$optionAssignmentQty"));
-        group.put("allocationTradeQty", new JsonObject().put("$last", "$allocationTradeQty"));
-        group.put("deliveryNoticeQty", new JsonObject().put("$last", "$deliveryNoticeQty"));
-        group.put("clearingCcy", new JsonObject().put("$last", "$clearingCcy"));
-        group.put("mVar", new JsonObject().put("$last", "$mVar"));
-        group.put("compVar", new JsonObject().put("$last", "$compVar"));
-        group.put("compCorrelationBreak", new JsonObject().put("$last", "$compCorrelationBreak"));
-        group.put("compCompressionError", new JsonObject().put("$last", "$compCompressionError"));
-        group.put("compLiquidityAddOn", new JsonObject().put("$last", "$compLiquidityAddOn"));
-        group.put("compLongOptionCredit", new JsonObject().put("$last", "$compLongOptionCredit"));
-        group.put("productCcy", new JsonObject().put("$last", "$productCcy"));
-        group.put("variationMarginPremiumPayment", new JsonObject().put("$last", "$variationMarginPremiumPayment"));
-        group.put("premiumMargin", new JsonObject().put("$last", "$premiumMargin"));
-        group.put("delta", new JsonObject().put("$last", "$delta"));
-        group.put("gamma", new JsonObject().put("$last", "$gamma"));
-        group.put("vega", new JsonObject().put("$last", "$vega"));
-        group.put("rho", new JsonObject().put("$last", "$rho"));
-        group.put("theta", new JsonObject().put("$last", "$theta"));
-        group.put("received", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received"))));
-
-        return group;
-    }
-
-    protected JsonObject getProject()
-    {
+    @Override
+    protected JsonObject getProject() {
         JsonObject project = new JsonObject();
         project.put("_id", 0);
         project.put("id", "$_id");
@@ -107,7 +114,6 @@ public class PositionReportModel extends AbstractModel {
         project.put("rho", 1);
         project.put("theta", 1);
         project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received")));
-
         return project;
     }
 }

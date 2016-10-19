@@ -1,50 +1,53 @@
 package com.deutscheboerse.risk.dave.ers.model;
 
+import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
 /**
  * Created by schojak on 15.9.16.
  */
 public class TotalMarginRequirementModel extends AbstractModel {
-    private static final String MONGO_COLLECTION = "ers.TotalMarginRequirement";
-    private static final AbstractModel INSTANCE = new TotalMarginRequirementModel();
+    private static final String MONGO_HISTORY_COLLECTION = "ers.TotalMarginRequirement";
+    private static final String MONGO_LATEST_COLLECTION = "ers.TotalMarginRequirement.latest";
 
-    protected TotalMarginRequirementModel() {
+    public TotalMarginRequirementModel() {
+        super(MONGO_HISTORY_COLLECTION, MONGO_LATEST_COLLECTION);
     }
 
-    public static JsonObject getLatestCommand(JsonObject params) {
-        return INSTANCE.getCommand(MONGO_COLLECTION, INSTANCE.getLatestPipeline(params));
+    @Override
+    public JsonObject queryLatestDocument(Message<?> msg) {
+        JsonObject message = (JsonObject)msg.body();
+        JsonObject query = new JsonObject();
+        query.put("clearer", message.getString("clearer"));
+        query.put("pool", message.getString("pool"));
+        query.put("member", message.getString("member"));
+        query.put("account", message.getString("account"));
+        query.put("ccy", message.getString("ccy"));
+        return query;
     }
 
-    public static JsonObject getHistoryCommand(JsonObject params)
-    {
-        return INSTANCE.getCommand(MONGO_COLLECTION, INSTANCE.getHistoryPipeline(params));
+    @Override
+    public JsonObject makeLatestDocument(Message<?> msg) {
+        JsonObject message = (JsonObject)msg.body();
+        JsonObject document = new JsonObject();
+        document.put("clearer", message.getValue("clearer"));
+        document.put("pool", message.getValue("pool"));
+        document.put("member", message.getValue("member"));
+        document.put("account", message.getValue("account"));
+        document.put("ccy", message.getValue("ccy"));
+        document.put("txnTm", message.getJsonObject("txnTm").getString("$date"));
+        document.put("bizDt", message.getValue("bizDt"));
+        document.put("reqId", message.getValue("reqId"));
+        document.put("rptId", message.getValue("rptId"));
+        document.put("sesId", message.getValue("sesId"));
+        document.put("unadjustedMargin", message.getValue("unadjustedMargin"));
+        document.put("adjustedMargin", message.getValue("adjustedMargin"));
+        document.put("received", message.getJsonObject("received").getString("$date"));
+        return document;
     }
 
-    protected JsonObject getGroup()
-    {
-        JsonObject group = new JsonObject();
-        group.put("_id", new JsonObject().put("clearer", "$clearer").put("pool", "$pool").put("member", "$member").put("account", "$account").put("ccy", "$ccy"));
-        group.put("id", new JsonObject().put("$last", "$_id"));
-        group.put("clearer", new JsonObject().put("$last", "$clearer"));
-        group.put("pool", new JsonObject().put("$last", "$pool"));
-        group.put("member", new JsonObject().put("$last", "$member"));
-        group.put("account", new JsonObject().put("$last", "$account"));
-        group.put("ccy", new JsonObject().put("$last", "$ccy"));
-        group.put("txnTm", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$txnTm"))));
-        group.put("bizDt", new JsonObject().put("$last", "$bizDt"));
-        group.put("reqId", new JsonObject().put("$last", "$reqId"));
-        group.put("rptId", new JsonObject().put("$last", "$rptId"));
-        group.put("sesId", new JsonObject().put("$last", "$sesId"));
-        group.put("unadjustedMargin", new JsonObject().put("$last", "$unadjustedMargin"));
-        group.put("adjustedMargin", new JsonObject().put("$last", "$adjustedMargin"));
-        group.put("received", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received"))));
-
-        return group;
-    }
-
-    protected JsonObject getProject()
-    {
+    @Override
+    protected JsonObject getProject() {
         JsonObject project = new JsonObject();
         project.put("_id", 0);
         project.put("id", "$_id");
@@ -61,7 +64,6 @@ public class TotalMarginRequirementModel extends AbstractModel {
         project.put("unadjustedMargin", 1);
         project.put("adjustedMargin", 1);
         project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received")));
-
         return project;
     }
 }

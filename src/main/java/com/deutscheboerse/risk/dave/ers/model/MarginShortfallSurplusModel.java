@@ -1,54 +1,57 @@
 package com.deutscheboerse.risk.dave.ers.model;
 
+import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
 /**
  * Created by schojak on 15.9.16.
  */
 public class MarginShortfallSurplusModel extends AbstractModel {
-    private static final String MONGO_COLLECTION = "ers.MarginShortfallSurplus";
-    private static final AbstractModel INSTANCE = new MarginShortfallSurplusModel();
+    private static final String MONGO_HISTORY_COLLECTION = "ers.MarginShortfallSurplus";
+    private static final String MONGO_LATEST_COLLECTION = "ers.MarginShortfallSurplus.latest";
 
-    protected MarginShortfallSurplusModel() {
+    public MarginShortfallSurplusModel() {
+        super(MONGO_HISTORY_COLLECTION, MONGO_LATEST_COLLECTION);
     }
 
-    public static JsonObject getLatestCommand(JsonObject params) {
-        return INSTANCE.getCommand(MONGO_COLLECTION, INSTANCE.getLatestPipeline(params));
+    @Override
+    public JsonObject queryLatestDocument(Message<?> msg) {
+        JsonObject message = (JsonObject)msg.body();
+        JsonObject query = new JsonObject();
+        query.put("clearer", message.getValue("clearer"));
+        query.put("pool", message.getValue("pool"));
+        query.put("member", message.getValue("member"));
+        query.put("clearingCcy", message.getValue("clearingCcy"));
+        query.put("ccy", message.getValue("ccy"));
+        return query;
     }
 
-    public static JsonObject getHistoryCommand(JsonObject params)
-    {
-        return INSTANCE.getCommand(MONGO_COLLECTION, INSTANCE.getHistoryPipeline(params));
+    @Override
+    public JsonObject makeLatestDocument(Message<?> msg) {
+        JsonObject message = (JsonObject)msg.body();
+        JsonObject document = new JsonObject();
+        document.put("clearer", message.getValue("clearer"));
+        document.put("pool", message.getValue("pool"));
+        document.put("poolType", message.getValue("poolType"));
+        document.put("member", message.getValue("member"));
+        document.put("clearingCcy", message.getValue("clearingCcy"));
+        document.put("ccy", message.getValue("ccy"));
+        document.put("txnTm", message.getJsonObject("txnTm").getString("$date"));
+        document.put("bizDt", message.getValue("bizDt"));
+        document.put("reqId", message.getValue("reqId"));
+        document.put("rptId", message.getValue("rptId"));
+        document.put("sesId", message.getValue("sesId"));
+        document.put("marginRequirement", message.getValue("marginRequirement"));
+        document.put("securityCollateral", message.getValue("securityCollateral"));
+        document.put("cashBalance", message.getValue("cashBalance"));
+        document.put("shortfallSurplus", message.getValue("shortfallSurplus"));
+        document.put("marginCall", message.getValue("marginCall"));
+        document.put("received", message.getJsonObject("received").getString("$date"));
+        return document;
     }
 
-    protected JsonObject getGroup()
-    {
-        JsonObject group = new JsonObject();
-        group.put("_id", new JsonObject().put("clearer", "$clearer").put("pool", "$pool").put("member", "$member").put("clearingCcy", "$clearingCcy").put("ccy", "$ccy"));
-        group.put("id", new JsonObject().put("$last", "$_id"));
-        group.put("clearer", new JsonObject().put("$last", "$clearer"));
-        group.put("pool", new JsonObject().put("$last", "$pool"));
-        group.put("poolType", new JsonObject().put("$last", "$poolType"));
-        group.put("member", new JsonObject().put("$last", "$member"));
-        group.put("clearingCcy", new JsonObject().put("$last", "$clearingCcy"));
-        group.put("ccy", new JsonObject().put("$last", "$ccy"));
-        group.put("txnTm", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$txnTm"))));
-        group.put("bizDt", new JsonObject().put("$last", "$bizDt"));
-        group.put("reqId", new JsonObject().put("$last", "$reqId"));
-        group.put("rptId", new JsonObject().put("$last", "$rptId"));
-        group.put("sesId", new JsonObject().put("$last", "$sesId"));
-        group.put("marginRequirement", new JsonObject().put("$last", "$marginRequirement"));
-        group.put("securityCollateral", new JsonObject().put("$last", "$securityCollateral"));
-        group.put("cashBalance", new JsonObject().put("$last", "$cashBalance"));
-        group.put("shortfallSurplus", new JsonObject().put("$last", "$shortfallSurplus"));
-        group.put("marginCall", new JsonObject().put("$last", "$marginCall"));
-        group.put("received", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received"))));
-
-        return group;
-    }
-
-    protected JsonObject getProject()
-    {
+    @Override
+    protected JsonObject getProject() {
         JsonObject project = new JsonObject();
         project.put("_id", 0);
         project.put("id", "$_id");
@@ -69,7 +72,6 @@ public class MarginShortfallSurplusModel extends AbstractModel {
         project.put("shortfallSurplus", 1);
         project.put("marginCall", 1);
         project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received")));
-
         return project;
     }
 }

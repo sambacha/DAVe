@@ -1,5 +1,6 @@
 package com.deutscheboerse.risk.dave.ers.model;
 
+import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -7,27 +8,34 @@ import io.vertx.core.json.JsonObject;
  * Created by schojak on 15.9.16.
  */
 public class TradingSessionStatusModel extends AbstractModel {
-    private static final String MONGO_COLLECTION = "ers.TradingSessionStatus";
-    private static final TradingSessionStatusModel INSTANCE = new TradingSessionStatusModel();
+    private static final String MONGO_HISTORY_COLLECTION = "ers.TradingSessionStatus";
+    private static final String MONGO_LATEST_COLLECTION = "ers.TradingSessionStatus.latest";
 
-    protected TradingSessionStatusModel() {
+    public TradingSessionStatusModel() {
+        super(MONGO_HISTORY_COLLECTION, MONGO_LATEST_COLLECTION);
     }
 
-    public static JsonObject getLatestCommand(JsonObject params) {
-        return INSTANCE.getCommand(MONGO_COLLECTION, INSTANCE.getLatestPipeline());
-    }
-
-    public static JsonObject getHistoryCommand(JsonObject params)
+    @Override
+    public JsonObject queryLatestDocument(Message<?> msg)
     {
-        return INSTANCE.getCommand(MONGO_COLLECTION, INSTANCE.getHistoryPipeline());
+        JsonObject message = (JsonObject)msg.body();
+        JsonObject query = new JsonObject();
+        query.put("sesId", message.getValue("sesId"));
+        return query;
     }
 
-    private JsonArray getLatestPipeline()
+    @Override
+    public JsonObject makeLatestDocument(Message<?> msg)
     {
-        JsonArray pipeline = new JsonArray();
-        pipeline.add(new JsonObject().put("$group", getGroup()));
-
-        return pipeline;
+        JsonObject message = (JsonObject)msg.body();
+        JsonObject document = new JsonObject();
+        document.put("reqId", message.getValue("reqId"));
+        document.put("sesId", message.getValue("sesId"));
+        document.put("stat", message.getValue("stat"));
+        document.put("statRejRsn", message.getValue("statRejRsn"));
+        document.put("txt", message.getValue("txt"));
+        document.put("received", message.getJsonObject("received").getString("$date"));
+        return document;
     }
 
     private JsonArray getHistoryPipeline()
@@ -38,23 +46,8 @@ public class TradingSessionStatusModel extends AbstractModel {
         return pipeline;
     }
 
-    protected JsonObject getGroup()
-    {
-        JsonObject group = new JsonObject();
-        group.put("_id", new JsonObject().put("sesId", "$sesId"));
-        group.put("id", new JsonObject().put("$last", "$_id"));
-        group.put("reqId", new JsonObject().put("$last", "$reqId"));
-        group.put("sesId", new JsonObject().put("$last", "$sesId"));
-        group.put("stat", new JsonObject().put("$last", "$stat"));
-        group.put("statRejRsn", new JsonObject().put("$last", "$statRejRsn"));
-        group.put("txt", new JsonObject().put("$last", "$txt"));
-        group.put("received", new JsonObject().put("$last", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received"))));
-
-        return group;
-    }
-
-    protected JsonObject getProject()
-    {
+    @Override
+    protected JsonObject getProject() {
         JsonObject project = new JsonObject();
         project.put("_id", 0);
         project.put("id", "$_id");
@@ -64,7 +57,6 @@ public class TradingSessionStatusModel extends AbstractModel {
         project.put("statRejRsn", 1);
         project.put("txt", 1);
         project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received")));
-
         return project;
     }
 }

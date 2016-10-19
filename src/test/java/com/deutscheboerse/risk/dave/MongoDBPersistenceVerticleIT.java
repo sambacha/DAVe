@@ -152,11 +152,17 @@ public class MongoDBPersistenceVerticleIT {
     public void checkCollectionsExist(TestContext context) {
         List<String> requiredCollections = new ArrayList<>();
         requiredCollections.add("ers.TradingSessionStatus");
+        requiredCollections.add("ers.TradingSessionStatus.latest");
         requiredCollections.add("ers.MarginComponent");
+        requiredCollections.add("ers.MarginComponent.latest");
         requiredCollections.add("ers.TotalMarginRequirement");
+        requiredCollections.add("ers.TotalMarginRequirement.latest");
         requiredCollections.add("ers.MarginShortfallSurplus");
+        requiredCollections.add("ers.MarginShortfallSurplus.latest");
         requiredCollections.add("ers.PositionReport");
+        requiredCollections.add("ers.PositionReport.latest");
         requiredCollections.add("ers.RiskLimit");
+        requiredCollections.add("ers.RiskLimit.latest");
         final Async async = context.async();
         MongoDBPersistenceVerticleIT.mongoClient.getCollections(ar -> {
             if (ar.succeeded()) {
@@ -261,8 +267,8 @@ public class MongoDBPersistenceVerticleIT {
 
                     context.assertEquals(2, response.size());
 
-                    compareMessages(context, DummyData.positionReportJson.get(2), response.getJsonObject(1));
-                    compareMessages(context, DummyData.positionReportJson.get(3), response.getJsonObject(0));
+                    compareMessages(context, DummyData.positionReportJson.get(2), response.getJsonObject(0));
+                    compareMessages(context, DummyData.positionReportJson.get(3), response.getJsonObject(1));
                     asyncLatest.complete();
                 }
                 catch (Exception e)
@@ -384,8 +390,8 @@ public class MongoDBPersistenceVerticleIT {
 
                     context.assertEquals(2, response.size());
 
-                    compareMessages(context, DummyData.marginComponentJson.get(2), response.getJsonObject(1));
-                    compareMessages(context, DummyData.marginComponentJson.get(3), response.getJsonObject(0));
+                    compareMessages(context, DummyData.marginComponentJson.get(2), response.getJsonObject(0));
+                    compareMessages(context, DummyData.marginComponentJson.get(3), response.getJsonObject(1));
                     asyncLatest.complete();
                 }
                 catch (Exception e)
@@ -508,8 +514,8 @@ public class MongoDBPersistenceVerticleIT {
 
                     context.assertEquals(2, response.size());
 
-                    compareMessages(context, DummyData.totalMarginRequirementJson.get(2), response.getJsonObject(1));
-                    compareMessages(context, DummyData.totalMarginRequirementJson.get(3), response.getJsonObject(0));
+                    compareMessages(context, DummyData.totalMarginRequirementJson.get(2), response.getJsonObject(0));
+                    compareMessages(context, DummyData.totalMarginRequirementJson.get(3), response.getJsonObject(1));
                     asyncLatest.complete();
                 }
                 catch (Exception e)
@@ -631,8 +637,8 @@ public class MongoDBPersistenceVerticleIT {
 
                     context.assertEquals(2, response.size());
 
-                    compareMessages(context, DummyData.marginShortfallSurplusJson.get(2), response.getJsonObject(1));
-                    compareMessages(context, DummyData.marginShortfallSurplusJson.get(3), response.getJsonObject(0));
+                    compareMessages(context, DummyData.marginShortfallSurplusJson.get(2), response.getJsonObject(0));
+                    compareMessages(context, DummyData.marginShortfallSurplusJson.get(3), response.getJsonObject(1));
                     asyncLatest.complete();
                 }
                 catch (Exception e)
@@ -754,8 +760,8 @@ public class MongoDBPersistenceVerticleIT {
 
                     context.assertEquals(2, response.size());
 
-                    compareMessages(context, DummyData.riskLimitJson.get(2), response.getJsonObject(1));
-                    compareMessages(context, DummyData.riskLimitJson.get(3), response.getJsonObject(0));
+                    compareMessages(context, DummyData.riskLimitJson.get(2), response.getJsonObject(0));
+                    compareMessages(context, DummyData.riskLimitJson.get(3), response.getJsonObject(1));
                     asyncLatest.complete();
                 }
                 catch (Exception e)

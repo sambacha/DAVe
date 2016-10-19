@@ -1,5 +1,6 @@
 package com.deutscheboerse.risk.dave.ers.model;
 
+import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -7,28 +8,34 @@ import io.vertx.core.json.JsonObject;
  * Created by schojak on 15.9.16.
  */
 public abstract class AbstractModel {
-    final String mongoTimestampFormat = "%Y-%m-%dT%H:%M:%S.%LZ";
+    protected final String mongoTimestampFormat = "%Y-%m-%dT%H:%M:%S.%LZ";
+    private final String mongoHistoryCollection;
+    private final String mongoLatestCollection;
 
-    protected abstract JsonObject getGroup();
+    public abstract JsonObject queryLatestDocument(Message<?> msg);
+    public abstract JsonObject makeLatestDocument(Message<?> msg);
     protected abstract JsonObject getProject();
 
-    protected JsonObject getCommand(String mongoCollection, JsonArray pipeline)
-    {
+    protected AbstractModel(String historyCollection, String latestCollection) {
+        this.mongoHistoryCollection = historyCollection;
+        this.mongoLatestCollection = latestCollection;
+    }
+
+    public String getHistoryCollection() {
+        return this.mongoHistoryCollection;
+    }
+
+    public String getLatestCollection() {
+        return this.mongoLatestCollection;
+    }
+
+    public JsonObject getHistoryCommand(JsonObject params) {
         JsonObject command = new JsonObject()
-                .put("aggregate", mongoCollection)
-                .put("pipeline", pipeline)
+                .put("aggregate", getHistoryCollection())
+                .put("pipeline", getHistoryPipeline(params))
                 .put("allowDiskUse", true);
 
         return command;
-    }
-
-    protected JsonArray getLatestPipeline(JsonObject params)
-    {
-        JsonArray pipeline = new JsonArray();
-        pipeline.add(new JsonObject().put("$match", params));
-        pipeline.add(new JsonObject().put("$group", getGroup()));
-
-        return pipeline;
     }
 
     protected JsonArray getHistoryPipeline(JsonObject params)

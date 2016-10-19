@@ -10,6 +10,8 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.mongo.IndexOptions;
 import io.vertx.ext.mongo.MongoClient;
+import io.vertx.ext.mongo.MongoClientUpdateResult;
+import io.vertx.ext.mongo.UpdateOptions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,7 +19,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.function.Function;
 
 /**
  * Created by schojak on 19.8.16.
@@ -29,6 +30,13 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
     private static final String DEFAULT_CONNECTION_STRING = "mongodb://localhost:27017";
 
     private MongoClient mongo;
+
+    private final AbstractModel tssModel = new TradingSessionStatusModel();
+    private final AbstractModel mcModel = new MarginComponentModel();
+    private final AbstractModel tmrModel = new TotalMarginRequirementModel();
+    private final AbstractModel mssModel = new MarginShortfallSurplusModel();
+    private final AbstractModel prModel = new PositionReportModel();
+    private final AbstractModel rlModel = new RiskLimitModel();
 
     @Override
     public void start(Future<Void> fut) throws Exception {
@@ -70,11 +78,17 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
                 List<String> mongoCollections = res.result();
                 List<String> neededCollections = new ArrayList<>(Arrays.asList(
                         "ers.TradingSessionStatus",
+                        "ers.TradingSessionStatus.latest",
                         "ers.MarginComponent",
+                        "ers.MarginComponent.latest",
                         "ers.TotalMarginRequirement",
+                        "ers.TotalMarginRequirement.latest",
                         "ers.MarginShortfallSurplus",
+                        "ers.MarginShortfallSurplus.latest",
                         "ers.PositionReport",
-                        "ers.RiskLimit"
+                        "ers.PositionReport.latest",
+                        "ers.RiskLimit",
+                        "ers.RiskLimit.latest"
                 ));
 
                 List<Future> futs = new ArrayList<>();
@@ -145,12 +159,12 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         EventBus eb = vertx.eventBus();
 
         // Camel consumers
-        eb.consumer("ers.TradingSessionStatus", message -> store(message));
-        eb.consumer("ers.MarginComponent", message -> store(message));
-        eb.consumer("ers.TotalMarginRequirement", message -> store(message));
-        eb.consumer("ers.MarginShortfallSurplus", message -> store(message));
-        eb.consumer("ers.PositionReport", message -> store(message));
-        eb.consumer("ers.RiskLimit", message -> store(message));
+        eb.consumer("ers.TradingSessionStatus", message -> store(message, this.tssModel));
+        eb.consumer("ers.MarginComponent", message -> store(message, this.mcModel));
+        eb.consumer("ers.TotalMarginRequirement", message -> store(message, this.tmrModel));
+        eb.consumer("ers.MarginShortfallSurplus", message -> store(message, this.mssModel));
+        eb.consumer("ers.PositionReport", message -> store(message, this.prModel));
+        eb.consumer("ers.RiskLimit", message -> store(message, this.rlModel));
 
         LOG.info("Event bus store handlers subscribed");
         return Future.succeededFuture();
@@ -161,30 +175,39 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         EventBus eb = vertx.eventBus();
 
         // Query endpoints
-        eb.consumer("query.latestTradingSessionStatus", message -> query(message, TradingSessionStatusModel::getLatestCommand));
-        eb.consumer("query.historyTradingSessionStatus", message -> query(message, TradingSessionStatusModel::getHistoryCommand));
-        eb.consumer("query.latestMarginComponent", message -> query(message, MarginComponentModel::getLatestCommand));
-        eb.consumer("query.historyMarginComponent", message -> query(message, MarginComponentModel::getHistoryCommand));
-        eb.consumer("query.latestTotalMarginRequirement", message -> query(message, TotalMarginRequirementModel::getLatestCommand));
-        eb.consumer("query.historyTotalMarginRequirement", message -> query(message, TotalMarginRequirementModel::getHistoryCommand));
-        eb.consumer("query.latestMarginShortfallSurplus", message -> query(message, MarginShortfallSurplusModel::getLatestCommand));
-        eb.consumer("query.historyMarginShortfallSurplus", message -> query(message, MarginShortfallSurplusModel::getHistoryCommand));
-        eb.consumer("query.latestPositionReport", message -> query(message, PositionReportModel::getLatestCommand));
-        eb.consumer("query.historyPositionReport", message -> query(message, PositionReportModel::getHistoryCommand));
-        eb.consumer("query.latestRiskLimit", message -> query(message, RiskLimitModel::getLatestCommand));
-        eb.consumer("query.historyRiskLimit", message -> query(message, RiskLimitModel::getHistoryCommand));
+        eb.consumer("query.latestTradingSessionStatus", message -> queryLatest(message, this.tssModel));
+        eb.consumer("query.historyTradingSessionStatus", message -> queryHistory(message, this.tssModel));
+        eb.consumer("query.latestMarginComponent", message -> queryLatest(message, this.mcModel));
+        eb.consumer("query.historyMarginComponent", message -> queryHistory(message, this.mcModel));
+        eb.consumer("query.latestTotalMarginRequirement", message -> queryLatest(message, this.tmrModel));
+        eb.consumer("query.historyTotalMarginRequirement", message -> queryHistory(message, this.tmrModel));
+        eb.consumer("query.latestMarginShortfallSurplus", message -> queryLatest(message, this.mssModel));
+        eb.consumer("query.historyMarginShortfallSurplus", message -> queryHistory(message, this.mssModel));
+        eb.consumer("query.latestPositionReport", message -> queryLatest(message, this.prModel));
+        eb.consumer("query.historyPositionReport", message -> queryHistory(message, this.prModel));
+        eb.consumer("query.latestRiskLimit", message -> queryLatest(message, this.rlModel));
+        eb.consumer("query.historyRiskLimit", message -> queryHistory(message, this.rlModel));
 
         LOG.info("Event bus query handlers subscribed");
         return Future.succeededFuture();
     }
 
-    private void query(Message msg, Function<JsonObject, JsonObject> commandFnc)
-    {
+    private void queryLatest(Message<?> msg, AbstractModel model) {
         LOG.trace("Received {} query with message {}", msg.address(), msg.body());
-
         JsonObject params = (JsonObject)msg.body();
+        mongo.find(model.getLatestCollection(), params, res -> {
+            if (res.succeeded()) {
+                msg.reply(Json.encodePrettily(res.result()));
+            } else {
+                LOG.error("{} query failed", msg.address(), res.cause());
+            }
+        });
+    }
 
-        mongo.runCommand("aggregate", commandFnc.apply(params), res -> {
+    private void queryHistory(Message<?> msg, AbstractModel model) {
+        LOG.trace("Received {} query with message {}", msg.address(), msg.body());
+        JsonObject params = (JsonObject)msg.body();
+        mongo.runCommand("aggregate", model.getHistoryCommand(params), res -> {
             if (res.succeeded()) {
                 msg.reply(Json.encodePrettily(res.result().getJsonArray("result")));
             } else {
@@ -193,23 +216,36 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         });
     }
 
-    private void store(Message msg)
-    {
-        LOG.trace("Storing message {} with body {}", msg.address(), msg.body().toString());
-        JsonObject json = (JsonObject)msg.body();
-
-        mongo.insert(msg.address(), json, res -> {
-            if (res.succeeded())
-            {
-                LOG.trace("Stored {} into DB", msg.address());
+    private void store(Message<?> msg, AbstractModel model) {
+        List<Future> tasks = new ArrayList<>();
+        tasks.add(this.storeIntoHistoryCollection(msg, model));
+        tasks.add(this.storeIntoLatestCollection(msg, model));
+        CompositeFuture.all(tasks).setHandler(ar -> {
+            if (ar.succeeded()) {
                 msg.reply(new JsonObject());
-            }
-            else
-            {
-                LOG.error("Failed to store {} into DB ", msg.address(), res.cause());
-                msg.fail(1, res.cause().getMessage());
+            } else {
+                msg.fail(1, ar.cause().getMessage());
             }
         });
+    }
+
+    private Future<String> storeIntoHistoryCollection(Message<?> msg, AbstractModel model) {
+        LOG.trace("Storing message into {} with body {}", model.getHistoryCollection(), msg.body().toString());
+        JsonObject document = (JsonObject)msg.body();
+        Future<String> result = Future.future();
+        mongo.insert(model.getHistoryCollection(), document, result.completer());
+        return result;
+    }
+
+    private Future<MongoClientUpdateResult> storeIntoLatestCollection(Message<?> msg, AbstractModel model) {
+        LOG.trace("Storing message into {} with body {}", model.getLatestCollection(), msg.body().toString());
+        Future<MongoClientUpdateResult> result = Future.future();
+        mongo.replaceDocumentsWithOptions(model.getLatestCollection(),
+                model.queryLatestDocument(msg),
+                model.makeLatestDocument(msg),
+                new UpdateOptions().setUpsert(true),
+                result.completer());
+        return result;
     }
 
     @Override
