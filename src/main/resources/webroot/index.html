@@ -54,13 +54,13 @@
             <!-- /.navbar-header -->
 
             <ul class="nav navbar-top-links navbar-right">
-                <li ng-controller="TssCtrl" ng-if="authStatus == true">
+                <li ng-controller="TradingSessionStatusController" ng-if="authStatus == true">
                         <span ng-if="tss[0].stat==2" class="label label-success">ERS Status: Online</span>
                         <span ng-if="tss[0].stat==1" class="label label-danger">ERS Status: Halted</span>
                         <span ng-if="tss[0].stat==3" class="label label-danger">ERS Status: Closed</span>
                         <span ng-if="tss[0].stat!=3 && tss[0].stat!=1 && tss[0].stat!=2" class="label label-warning">ERS Status: Unknown</span>
                 </li>
-                <li class="dropdown" ng-controller="Login">
+                <li class="dropdown" ng-controller="LoginController">
                     <a class="dropdown-toggle" data-toggle="dropdown">
                         <i class="fa fa-user fa-fw"></i> <i class="fa fa-caret-down"></i>
                     </a>
@@ -81,7 +81,7 @@
 
             <div class="navbar-default sidebar" role="navigation">
                 <div class="sidebar-nav navbar-collapse">
-                    <ul class="nav" id="side-menu" ng-controller="MenuCtrl">
+                    <ul class="nav" id="side-menu" ng-controller="MenuController">
                         <li ng-class="amIActive('/dashboard')">
                             <a href="#/dashboard"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
                         </li>
@@ -140,10 +140,27 @@
     <script src="./vendor/angular-morris/angular-morris.min.js"></script>
 
     <!-- Custom javascript -->
-    <script src="./app/js/controllers.js"></script>
-    <script src="./app/js/filters.js"></script>
-    <script src="./app/js/directives.js"></script>
-    <script src="./app/js/app.js"></script>
+    <script src="app/app.js"></script>
+    <script src="app/route.config.js"></script>
+    <script src="app/null-handler.filter.js"></script>
+    <script src="app/spaced-filter.filter.js"></script>
+    <script src="app/highlighter.directive.js"></script>
+    <script src="app/row-highlighter.directive.js"></script>
+    <script src="app/menu.controller.js"></script>
+    <script src="app/trading-session-status.controller.js"></script>
+    <script src="app/position-reports/position-report-latest.controller.js"></script>
+    <script src="app/position-reports/position-report-history.controller.js"></script>
+    <script src="app/margin-components/margin-component-latest.controller.js"></script>
+    <script src="app/margin-components/margin-component-history.controller.js"></script>
+    <script src="app/total-margin-requirement/total-margin-requirement-latest.controller.js"></script>
+    <script src="app/total-margin-requirement/total-margin-requirement-history.controller.js"></script>
+    <script src="app/margin-shortfall-surplus/margin-shortfall-surplus-latest.controller.js"></script>
+    <script src="app/margin-shortfall-surplus/margin-shortfall-surplus-history.controller.js"></script>
+    <script src="app/risk-limits/risk-limit-latest.controller.js"></script>
+    <script src="app/risk-limits/risk-limit-history.controller.js"></script>
+    <script src="app/login/login.controller.js"></script>
+    <script src="app/dashboard/dashboard.controller.js"></script>
+
 </body>
 
 </html>
