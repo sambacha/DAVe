@@ -4,20 +4,16 @@ import com.deutscheboerse.risk.dave.masterdata.ProductDownloader;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.buffer.Buffer;
+import io.vertx.core.Handler;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
-import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.core.net.ProxyOptions;
-import io.vertx.core.net.ProxyType;
-import io.vertx.core.parsetools.RecordParser;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.*;
 
 /**
@@ -27,6 +23,7 @@ public class MasterdataVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(MasterdataVerticle.class);
 
     private EventBus eb;
+    private final List<MessageConsumer<?>> eventBusConsumers = new ArrayList<>();
     private Map<String, List<String>> clearerMemberRelationship = new HashMap<>();
     private Map<String, JsonObject> memberDetails = new HashMap<>();
     private List<String> products = new LinkedList<>();
@@ -122,10 +119,15 @@ public class MasterdataVerticle extends AbstractVerticle {
 
     private Future<Void> startListeners()
     {
-        eb.consumer("masterdata.getMembershipInfo", message -> getMembershipInfo(message));
-        eb.consumer("masterdata.getProducts", message -> getProducts(message));
+        this.registerConsumer("masterdata.getMembershipInfo", message -> getMembershipInfo(message));
+        this.registerConsumer("masterdata.getProducts", message -> getProducts(message));
 
         return Future.succeededFuture();
+    }
+
+    private <T> void registerConsumer(String address, Handler<Message<T>> handler) {
+        EventBus eb = vertx.eventBus();
+        this.eventBusConsumers.add(eb.consumer(address, handler));
     }
 
     private void getMembershipInfo(Message msg)
@@ -163,5 +165,6 @@ public class MasterdataVerticle extends AbstractVerticle {
     @Override
     public void stop() throws Exception {
         LOG.info("Shutting down masterdata");
+        this.eventBusConsumers.forEach(consumer -> consumer.unregister());
     }
 }

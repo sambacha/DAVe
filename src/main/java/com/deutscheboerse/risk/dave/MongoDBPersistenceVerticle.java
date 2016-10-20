@@ -4,6 +4,7 @@ import com.deutscheboerse.risk.dave.ers.model.*;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
+import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -30,6 +31,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
     private static final String DEFAULT_CONNECTION_STRING = "mongodb://localhost:27017";
 
     private MongoClient mongo;
+    private final List<MessageConsumer<?>> eventBusConsumers = new ArrayList<>();
 
     private final AbstractModel tssModel = new TradingSessionStatusModel();
     private final AbstractModel mcModel = new MarginComponentModel();
@@ -156,15 +158,13 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
 
     private Future<Void> startStoreHandlers(Void unused)
     {
-        EventBus eb = vertx.eventBus();
-
         // Camel consumers
-        eb.consumer("ers.TradingSessionStatus", message -> store(message, this.tssModel));
-        eb.consumer("ers.MarginComponent", message -> store(message, this.mcModel));
-        eb.consumer("ers.TotalMarginRequirement", message -> store(message, this.tmrModel));
-        eb.consumer("ers.MarginShortfallSurplus", message -> store(message, this.mssModel));
-        eb.consumer("ers.PositionReport", message -> store(message, this.prModel));
-        eb.consumer("ers.RiskLimit", message -> store(message, this.rlModel));
+        this.registerConsumer("ers.TradingSessionStatus", message -> store(message, this.tssModel));
+        this.registerConsumer("ers.MarginComponent", message -> store(message, this.mcModel));
+        this.registerConsumer("ers.TotalMarginRequirement", message -> store(message, this.tmrModel));
+        this.registerConsumer("ers.MarginShortfallSurplus", message -> store(message, this.mssModel));
+        this.registerConsumer("ers.PositionReport", message -> store(message, this.prModel));
+        this.registerConsumer("ers.RiskLimit", message -> store(message, this.rlModel));
 
         LOG.info("Event bus store handlers subscribed");
         return Future.succeededFuture();
@@ -172,24 +172,27 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
 
     private Future<Void> startQueryHandlers(Void unused)
     {
-        EventBus eb = vertx.eventBus();
-
         // Query endpoints
-        eb.consumer("query.latestTradingSessionStatus", message -> queryLatest(message, this.tssModel));
-        eb.consumer("query.historyTradingSessionStatus", message -> queryHistory(message, this.tssModel));
-        eb.consumer("query.latestMarginComponent", message -> queryLatest(message, this.mcModel));
-        eb.consumer("query.historyMarginComponent", message -> queryHistory(message, this.mcModel));
-        eb.consumer("query.latestTotalMarginRequirement", message -> queryLatest(message, this.tmrModel));
-        eb.consumer("query.historyTotalMarginRequirement", message -> queryHistory(message, this.tmrModel));
-        eb.consumer("query.latestMarginShortfallSurplus", message -> queryLatest(message, this.mssModel));
-        eb.consumer("query.historyMarginShortfallSurplus", message -> queryHistory(message, this.mssModel));
-        eb.consumer("query.latestPositionReport", message -> queryLatest(message, this.prModel));
-        eb.consumer("query.historyPositionReport", message -> queryHistory(message, this.prModel));
-        eb.consumer("query.latestRiskLimit", message -> queryLatest(message, this.rlModel));
-        eb.consumer("query.historyRiskLimit", message -> queryHistory(message, this.rlModel));
+        this.registerConsumer("query.latestTradingSessionStatus", message -> queryLatest(message, this.tssModel));
+        this.registerConsumer("query.historyTradingSessionStatus", message -> queryHistory(message, this.tssModel));
+        this.registerConsumer("query.latestMarginComponent", message -> queryLatest(message, this.mcModel));
+        this.registerConsumer("query.historyMarginComponent", message -> queryHistory(message, this.mcModel));
+        this.registerConsumer("query.latestTotalMarginRequirement", message -> queryLatest(message, this.tmrModel));
+        this.registerConsumer("query.historyTotalMarginRequirement", message -> queryHistory(message, this.tmrModel));
+        this.registerConsumer("query.latestMarginShortfallSurplus", message -> queryLatest(message, this.mssModel));
+        this.registerConsumer("query.historyMarginShortfallSurplus", message -> queryHistory(message, this.mssModel));
+        this.registerConsumer("query.latestPositionReport", message -> queryLatest(message, this.prModel));
+        this.registerConsumer("query.historyPositionReport", message -> queryHistory(message, this.prModel));
+        this.registerConsumer("query.latestRiskLimit", message -> queryLatest(message, this.rlModel));
+        this.registerConsumer("query.historyRiskLimit", message -> queryHistory(message, this.rlModel));
 
         LOG.info("Event bus query handlers subscribed");
         return Future.succeededFuture();
+    }
+
+    private <T> void registerConsumer(String address, Handler<Message<T>> handler) {
+        EventBus eb = vertx.eventBus();
+        this.eventBusConsumers.add(eb.consumer(address, handler));
     }
 
     private void queryLatest(Message<?> msg, AbstractModel model) {
@@ -251,6 +254,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
     @Override
     public void stop() throws Exception {
         LOG.info("MongoDBPersistenceVerticle is being stopped");
+        this.eventBusConsumers.forEach(consumer -> consumer.unregister());
         mongo.close();
     }
 }
