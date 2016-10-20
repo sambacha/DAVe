@@ -40,3 +40,27 @@ To actually use the application, you have to point to a host running the MongoDB
 | `DAVE_HTTP_AUTH` | Enable authentication | `1` |
 | `DAVE_HTTP_AUTH_SALT` | Set the salt for password hashing | `sdf8hdgss3_a` |
 | `DAVE_HTTP_AUTH_LINK_SSL` | Validate the username against the CN of the SSL client certificate | `1` |
+
+### ERS
+
+| Option | Explanation | Example |
+|--------|-------------|---------|
+| `DAVE_ERS_ENABLE` | Enable the ERS connector | `1` |
+| `DAVE_ERS_HOSTNAME` | ERS broker hostname| `ersp01.deutsche-boerse.com` |
+| `DAVE_ERS_PORT` | Port of the ERS broker | `18080` |
+| `DAVE_ERS_MEMBER` | Member ID of the ERS customer | `ABCFR` |
+| `DAVE_ERS_SSL_MEMBER_PUBLIC_KEY` | Public key of the ERS member certificate in CRT format | |
+| `DAVE_ERS_SSL_MEMBER_PRIVATE_KEY` | Private key of the ERS member certificate in PEM format | |
+| `DAVE_ERS_SSL_BROKER_CA` | List of trusted CA for the ERS broker / Public key of the ERS broker certificate | |
+
+### ERS Debugger
+
+| Option | Explanation | Example |
+|--------|-------------|---------|
+| `DAVE_ERS_DEBUGGER` | Enable the ERS debugger | `1` |
+
+### Masterdata
+
+| Option | Explanation | Example |
+|--------|-------------|---------|
+| `DAVE_MASTERDATA` | JSON text with the master data configuration | `"clearers": [ { ... } ], "productList": [ ... ]` |
