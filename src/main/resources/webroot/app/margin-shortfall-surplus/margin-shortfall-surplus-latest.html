@@ -75,7 +75,7 @@
             <!-- /.panel-body -->
 
             <div class="panel-footer">
-                Showing {{mssLatest.length}} records out of {{recordCount}}
+                <table-summary total="recordCount" shown="mssLatest.length"></table-summary>
 
                 <ul class="pagination pagination-sm pull-right" style="margin-top: -5px" ng-if="paging.pages.length > 1">
                     <li class="{{paging.first.class}}" ng-click="pagingFirst()"><a aria-label="First"><span aria-hidden="true" class="fa fa-fast-backward"></span></a></li>

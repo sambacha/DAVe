@@ -60,7 +60,7 @@
             <!-- /.panel-body -->
 
             <div class="panel-footer">
-                Showing {{mcHistory.length}} records out of {{recordCount}}
+                <table-summary total="recordCount" shown="mcHistory.length"></table-summary>
 
                 <ul class="pagination pagination-sm pull-right" style="margin-top: -5px" ng-if="mcPaging.pages.length > 1">
                     <li class="{{mcPaging.first.class}}" ng-click="pagingFirst()"><a aria-label="First"><span aria-hidden="true" class="fa fa-fast-backward"></span></a></li>
