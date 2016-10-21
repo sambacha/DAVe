@@ -7,19 +7,19 @@
 
     angular.module('dave').controller('PagingController', PagingController);
 
-    function PagingController($scope, $attrs) {
-        var paging = this;
-        paging.first = {"class": "disabled"};
-        paging.previous = {"class": "disabled"};
-        paging.pages = [];
-        paging.next = {"class": "disabled"};
-        paging.last= {"class": "disabled"};
+    function PagingController($scope) {
+        var vm = this;
+        vm.first = {"class": "disabled"};
+        vm.previous = {"class": "disabled"};
+        vm.pages = [];
+        vm.next = {"class": "disabled"};
+        vm.last= {"class": "disabled"};
 
-        paging.goToFirst = goToFirst;
-        paging.goToPrevious = goToPrevious;
-        paging.goToNext = goToNext;
-        paging.goToLast = goToLast;
-        paging.goToPage = goToPage;
+        vm.goToFirst = goToFirst;
+        vm.goToPrevious = goToPrevious;
+        vm.goToNext = goToNext;
+        vm.goToLast = goToLast;
+        vm.goToPage = goToPage;
 
         var page = 1;
         var pageSize = $scope.pageSize ? $scope.pageSize : 20;
@@ -92,12 +92,12 @@
 
             // First and previous buttons
             if (page == 1) {
-                paging.first.class = "disabled";
-                paging.previous.class = "disabled";
+                vm.first.class = "disabled";
+                vm.previous.class = "disabled";
             }
             else {
-                paging.first.class = "";
-                paging.previous.class = "";
+                vm.first.class = "";
+                vm.previous.class = "";
             }
 
             // Individual page buttons
@@ -135,16 +135,16 @@
                 pages.push({"page": page+3, "class": ""});
             }
 
-            paging.pages = pages;
+            vm.pages = pages;
 
             // Next and last buttons
             if (page == pageCount) {
-                paging.next.class = "disabled";
-                paging.last.class = "disabled";
+                vm.next.class = "disabled";
+                vm.last.class = "disabled";
             }
             else {
-                paging.next.class = "";
-                paging.last.class = "";
+                vm.next.class = "";
+                vm.last.class = "";
             }
         };
     };

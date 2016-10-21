@@ -54,11 +54,11 @@
             <!-- /.navbar-header -->
 
             <ul class="nav navbar-top-links navbar-right">
-                <li ng-controller="TradingSessionStatusController" ng-if="authStatus == true">
-                        <span ng-if="tss[0].stat==2" class="label label-success">ERS Status: Online</span>
-                        <span ng-if="tss[0].stat==1" class="label label-danger">ERS Status: Halted</span>
-                        <span ng-if="tss[0].stat==3" class="label label-danger">ERS Status: Closed</span>
-                        <span ng-if="tss[0].stat!=3 && tss[0].stat!=1 && tss[0].stat!=2" class="label label-warning">ERS Status: Unknown</span>
+                <li ng-controller="TradingSessionStatusController as status" ng-if="authStatus == true">
+                        <span ng-if="status.tss[0].stat==2" class="label label-success">ERS Status: Online</span>
+                        <span ng-if="status.tss[0].stat==1" class="label label-danger">ERS Status: Halted</span>
+                        <span ng-if="status.tss[0].stat==3" class="label label-danger">ERS Status: Closed</span>
+                        <span ng-if="status.tss[0].stat!=3 && status.tss[0].stat!=1 && status.tss[0].stat!=2" class="label label-warning">ERS Status: Unknown</span>
                 </li>
                 <li class="dropdown" ng-controller="LoginController">
                     <a class="dropdown-toggle" data-toggle="dropdown">
@@ -81,23 +81,23 @@
 
             <div class="navbar-default sidebar" role="navigation">
                 <div class="sidebar-nav navbar-collapse">
-                    <ul class="nav" id="side-menu" ng-controller="MenuController">
-                        <li ng-class="amIActive('/dashboard')">
+                    <ul class="nav" id="side-menu" ng-controller="MenuController as menu">
+                        <li ng-class="menu.amIActive('/dashboard')">
                             <a href="#/dashboard"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
                         </li>
-                        <li ng-class="amIActive('/positionReport')">
+                        <li ng-class="menu.amIActive('/positionReport')">
                             <a href="#/positionReportLatest"><i class="fa fa-list fa-fw"></i> Position Reports</a>
                         </li>
-                        <li ng-class="amIActive('/marginComponent')">
+                        <li ng-class="menu.amIActive('/marginComponent')">
                             <a href="#/marginComponentLatest"><i class="fa fa-th fa-fw"></i> Margin Components</a>
                         </li>
-                        <li ng-class="amIActive('/totalMarginRequirement')">
+                        <li ng-class="menu.amIActive('/totalMarginRequirement')">
                             <a href="#/totalMarginRequirementLatest"><i class="fa fa-th-list fa-fw"></i> Total Margin Requirements</a>
                         </li>
-                        <li ng-class="amIActive('/marginShortfallSurplus')">
+                        <li ng-class="menu.amIActive('/marginShortfallSurplus')">
                             <a href="#/marginShortfallSurplusLatest"><i class="fa fa-th-large fa-fw"></i> Margin Shortfall Surplus</a>
                         </li>
-                        <li ng-class="amIActive('/riskLimit')">
+                        <li ng-class="menu.amIActive('/riskLimit')">
                             <a href="#/riskLimitLatest"><i class="fa fa-fire-extinguisher fa-fw"></i> Risk Limits</a>
                         </li>
                     </ul>

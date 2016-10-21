@@ -8,27 +8,30 @@
     angular.module('dave').controller('TradingSessionStatusController', TradingSessionStatusController);
 
     function TradingSessionStatusController($scope, $http, $interval, $rootScope) {
-        $scope.refresh = null;
-        $scope.tss = null;
-        $scope.url = '/api/v1.0/tss/latest';
+        var vm = this;
+        vm.tss = null;
 
-        if ($rootScope.authStatus == true) {
-            $http.get($scope.url).success(function (data) {
-                $scope.tss = data;
-            });
+        var url = '/api/v1.0/tss/latest';
+        var refresh = null;
+
+        getTradingSessionStatus()
+
+        ////////////////////
+
+        function getTradingSessionStatus()
+        {
+            if ($rootScope.authStatus == true) {
+                $http.get(url).success(function (data) {
+                    vm.tss = data;
+                });
+            }
         }
 
-        $scope.refresh = $interval(function(){
-            if ($rootScope.authStatus == true) {
-                $http.get($scope.url).success(function (data) {
-                    $scope.tss = data;
-                })
-            }
-        },60000);
+        refresh = $interval(getTradingSessionStatus,60000);
 
         $scope.$on("$destroy", function() {
-            if ($scope.refresh != null) {
-                $interval.cancel($scope.refresh);
+            if (refresh != null) {
+                $interval.cancel(refresh);
             }
         });
     };

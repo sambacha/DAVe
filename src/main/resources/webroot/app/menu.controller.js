@@ -7,8 +7,11 @@
 
     angular.module('dave').controller('MenuController', MenuController);
 
-    function MenuController($scope, $location) {
-        $scope.amIActive = function(item) {
+    function MenuController($location) {
+        var vm = this;
+        vm.amIActive = amIActive;
+
+        function amIActive(item) {
             if ($location.url().indexOf(item) > -1) {
                 return "active";
             }
