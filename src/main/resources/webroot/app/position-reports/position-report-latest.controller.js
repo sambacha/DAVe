@@ -8,11 +8,10 @@
     angular.module('dave').controller('PositionReportLatestController', PositionReportLatestController);
 
     function PositionReportLatestController($scope, $routeParams, $http, $interval, $filter) {
+        var currentPage = 1;
         $scope.refresh = null;
         $scope.initialLoad = true;
-        $scope.page = 1;
         $scope.pageSize = 20;
-        $scope.prPaging = {"first": {"class": "disabled"}, "previous": {"class": "disabled"}, "pages": [], "next": {"class": "disabled"}, "last": {"class": "disabled"}};
         $scope.recordCount = 0;
 
         $scope.prLatest = [];
@@ -54,8 +53,7 @@
 
             $scope.prSource = positionReports;
             $scope.filter();
-            $scope.updateViewport();
-            $scope.updatePaging();
+            $scope.updateViewport(currentPage);
         }
 
         $scope.sortRecords = function(column) {
@@ -67,127 +65,17 @@
                 $scope.ordering = [column, "member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
             }
 
-            $scope.updateViewport();
+            $scope.updateViewport(currentPage);
         };
 
-        $scope.updateViewport = function() {
-            $scope.prLatest = $filter('orderBy')($filter('spacedFilter')($scope.prSource, $scope.recordQuery), $scope.ordering).slice($scope.page*$scope.pageSize-$scope.pageSize, $scope.page*$scope.pageSize);
+        $scope.updateViewport = function(page) {
+            currentPage = page;
+            $scope.prLatest = $filter('orderBy')($filter('spacedFilter')($scope.prSource, $scope.recordQuery), $scope.ordering).slice(page*$scope.pageSize-$scope.pageSize, page*$scope.pageSize);
         }
 
         $scope.filter = function() {
             $scope.recordCount = $filter('spacedFilter')($scope.prSource, $scope.recordQuery).length;
-
-            $scope.updatePaging();
-            $scope.updateViewport();
-        };
-
-        $scope.pagingNext = function() {
-            if ($scope.page < Math.ceil($scope.recordCount/$scope.pageSize))
-            {
-                $scope.page++;
-            }
-
-            $scope.updateViewport();
-            $scope.updatePaging();
-        };
-
-        $scope.pagingPrevious = function() {
-            if ($scope.page > 1)
-            {
-                $scope.page--;
-            }
-
-            $scope.updateViewport();
-            $scope.updatePaging();
-        };
-
-        $scope.pagingFirst = function() {
-            $scope.page = 1;
-            $scope.updateViewport();
-            $scope.updatePaging();
-        };
-
-        $scope.pagingLast = function() {
-            $scope.page = Math.ceil($scope.recordCount/$scope.pageSize);
-            $scope.updateViewport();
-            $scope.updatePaging();
-        };
-
-        $scope.pagingGoTo = function(pageNo) {
-            $scope.page = pageNo;
-            $scope.updateViewport();
-            $scope.updatePaging();
-        };
-
-        $scope.updatePaging = function() {
-            var tempPrPaging = $scope.prPaging;
-            var pageCount = Math.ceil($scope.recordCount/$scope.pageSize);
-
-            if ($scope.page > pageCount)
-            {
-                $scope.page = pageCount;
-                $scope.updateViewport();
-            }
-
-            if ($scope.page < 1)
-            {
-                $scope.page = 1;
-                $scope.updateViewport();
-            }
-
-            if ($scope.page == 1) {
-                tempPrPaging.first.class = "disabled";
-                tempPrPaging.previous.class = "disabled";
-            }
-            else {
-                tempPrPaging.first.class = "";
-                tempPrPaging.previous.class = "";
-            }
-
-            tempPrPaging.pages = [];
-
-            if ($scope.page > 3)
-            {
-                tempPrPaging.pages.push({"page": $scope.page-3, "class": ""});
-            }
-
-            if ($scope.page > 2)
-            {
-                tempPrPaging.pages.push({"page": $scope.page-2, "class": ""});
-            }
-
-            if ($scope.page > 1)
-            {
-                tempPrPaging.pages.push({"page": $scope.page-1, "class": ""});
-            }
-
-            tempPrPaging.pages.push({"page": $scope.page, "class": "active"});
-
-            if ($scope.page < pageCount)
-            {
-                tempPrPaging.pages.push({"page": $scope.page+1, "class": ""});
-            }
-
-            if ($scope.page < pageCount-1)
-            {
-                tempPrPaging.pages.push({"page": $scope.page+2, "class": ""});
-            }
-
-            if ($scope.page < pageCount-2)
-            {
-                tempPrPaging.pages.push({"page": $scope.page+3, "class": ""});
-            }
-
-            if ($scope.page == pageCount) {
-                tempPrPaging.next.class = "disabled";
-                tempPrPaging.last.class = "disabled";
-            }
-            else {
-                tempPrPaging.next.class = "";
-                tempPrPaging.last.class = "";
-            }
-
-            $scope.prPaging = tempPrPaging;
+            $scope.updateViewport(currentPage);
         };
 
         $scope.showExtra = function(funcKey) {

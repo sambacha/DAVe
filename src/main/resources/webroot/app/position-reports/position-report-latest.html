@@ -133,13 +133,7 @@
             <div class="panel-footer">
                 <table-summary total="recordCount" shown="prLatest.length"></table-summary>
 
-                <ul class="pagination pagination-sm pull-right" style="margin-top: -5px" ng-if="prPaging.pages.length > 1">
-                    <li class="{{prPaging.first.class}}" ng-click="pagingFirst()"><a aria-label="First"><span aria-hidden="true" class="fa fa-fast-backward"></span></a></li>
-                    <li class="{{prPaging.previous.class}}" ng-click="pagingPrevious()"><a aria-label="Previous"><span aria-hidden="true" class="fa fa-step-backward"></span></a></li>
-                    <li ng-repeat="page in prPaging.pages" class="{{page.class}}" ng-click="pagingGoTo(page.page)"><a aria-label="Page {{page.page}}">{{page.page}}</a></li>
-                    <li class="{{prPaging.next.class}}" ng-click="pagingNext()"><a aria-label="Next"><span aria-hidden="true" class="fa fa-step-forward"></span></a></li>
-                    <li class="{{prPaging.last.class}}" ng-click="pagingLast()"><a aria-label="Last"><span aria-hidden="true" class="fa fa-fast-forward"></span></a></li>
-                </ul>
+                <paging page-size="pageSize" total-records="recordCount" update-callback="updateViewport"></paging>
             </div>
         </div>
         <!-- /.panel -->
