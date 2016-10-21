@@ -7,7 +7,8 @@
     function routeConfig($routeProvider) {
         $routeProvider.when('/login', {
             templateUrl: 'app/login/login.html',
-            controller: 'LoginController'
+            controller: 'LoginController',
+            controllerAs: 'vm'
         }).when('/dashboard', {
             templateUrl: 'app/dashboard/dashboard.html',
             controller: 'DashboardController'

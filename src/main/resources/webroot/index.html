@@ -60,7 +60,7 @@
                         <span ng-if="status.tss[0].stat==3" class="label label-danger">ERS Status: Closed</span>
                         <span ng-if="status.tss[0].stat!=3 && status.tss[0].stat!=1 && status.tss[0].stat!=2" class="label label-warning">ERS Status: Unknown</span>
                 </li>
-                <li class="dropdown" ng-controller="LoginController">
+                <li class="dropdown" ng-controller="LoginController as login">
                     <a class="dropdown-toggle" data-toggle="dropdown">
                         <i class="fa fa-user fa-fw"></i> <i class="fa fa-caret-down"></i>
                     </a>
@@ -70,7 +70,7 @@
                         <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
                         </li>
                         <li class="divider"></li>-->
-                        <li ng-click="logout()" ng-if="authStatus == true"><a href="#/login"><i class="fa fa-sign-out fa-fw"></i> Logout</a></li>
+                        <li ng-click="login.logout()" ng-if="authStatus == true"><a href="#/login"><i class="fa fa-sign-out fa-fw"></i> Logout</a></li>
                         <li ng-if="authStatus == false"><a href="#/login"><i class="fa fa-sign-out fa-fw"></i> Login</a></li>
                     </ul>
                     <!-- /.dropdown-user -->

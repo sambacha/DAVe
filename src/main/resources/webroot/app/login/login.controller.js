@@ -10,48 +10,57 @@
     function LoginController($scope, $http, $interval, $rootScope, $location) {
         $rootScope.authStatus = false;
         $rootScope.authUsername = "";
-        $scope.authError = null;
-        $scope.refresh = null;
-        $scope.statusUrl = '/api/v1.0/user/loginStatus';
-        $scope.loginUrl = '/api/v1.0/user/login';
-        $scope.logoutUrl = '/api/v1.0/user/logout';
 
-        $http.get($scope.statusUrl).success(function(data) {
-            if (data.username != null) {
-                $rootScope.authStatus = true;
-                $rootScope.authUsername = data.username;
+        var vm = this;
+        vm.username = null;
+        vm.password = null;
+        vm.errorMessage = null;
+        vm.login = login;
+        vm.logout = logout;
 
-                if ($rootScope.authRequestedPath) {
-                    var path = $rootScope.authRequestedPath;
-                    $rootScope.authRequestedPath = null;
-                    $location.path(path);
+        var refresh = null
+        var url = {
+            "status": '/api/v1.0/user/loginStatus',
+            "login": '/api/v1.0/user/login',
+            "logout": '/api/v1.0/user/logout'
+        }
+
+        function checkAuth() {
+            $http.get(url.status).success(function (data) {
+                if (data.username != null) {
+                    $rootScope.authStatus = true;
+                    $rootScope.authUsername = data.username;
+
+                    if ($rootScope.authRequestedPath) {
+                        var path = $rootScope.authRequestedPath;
+                        $rootScope.authRequestedPath = null;
+                        $location.path(path);
+                    }
                 }
-            }
-            else {
-                $rootScope.authStatus = false;
-                $rootScope.authUsername = "";
+                else {
+                    $rootScope.authStatus = false;
+                    $rootScope.authUsername = "";
 
-                if ($location.path() != "/login")
-                {
-                    $location.path( "/login" );
+                    if ($location.path() != "/login") {
+                        $location.path("/login");
+                    }
                 }
-            }
-        })
-            .error(function(data) {
-                $rootScope.authStatus = false;
-                $rootScope.authUsername = "";
+            })
+                .error(function (data) {
+                    $rootScope.authStatus = false;
+                    $rootScope.authUsername = "";
 
-                if ($location.path() != "/login")
-                {
-                    $location.path( "/login" );
-                }
-            });
+                    if ($location.path() != "/login") {
+                        $location.path("/login");
+                    }
+                });
+        }
 
-        $scope.login = function(username, password) {
-            $scope.authError = null;
+        function login(username, password) {
+            vm.errorMessage = null;
             var loginData = { "username": username, "password": password };
 
-            $http.post($scope.loginUrl, loginData).success(function(data) {
+            $http.post(url.login, loginData).success(function(data) {
                 $rootScope.authStatus = true;
                 $rootScope.authUsername = username;
 
@@ -61,52 +70,25 @@
                     $location.path(path);
                 }
             }).error(function(data) {
-                $scope.authError = "Authentication failed. Is the username and password correct?";
+                vm.errorMessage = "Authentication failed. Is the username and password correct?";
             });
         }
 
-        $scope.logout = function(username, password) {
-            $http.get($scope.logoutUrl).success(function(data) {
+        function logout() {
+            $http.get(url.logout).success(function(data) {
                 $rootScope.authStatus = false;
                 $rootScope.authUsername = "";
-                $location.path( "/login" );
+                $location.path("/login");
             }).error(function(data) {
                 // Nothing
             });
         }
 
-        $scope.refresh = $interval(function(){
-            $http.get($scope.statusUrl).success(function(data) {
-                if (data.username != null) {
-                    $rootScope.authStatus = true;
-                    $rootScope.authUsername = data.username;
-                }
-                else {
-                    $rootScope.authStatus = false;
-                    $rootScope.authUsername = "";
-
-                    if ($location.path() != "/login")
-                    {
-                        $rootScope.authRequestedPath = $location.path();
-                        $location.path( "/login" );
-                    }
-                }
-            })
-                .error(function(data) {
-                    $rootScope.authStatus = false;
-                    $rootScope.authUsername = "";
-
-                    if ($location.path() != "/login")
-                    {
-                        $rootScope.authRequestedPath = $location.path();
-                        $location.path( "/login" );
-                    }
-                });
-        },60000);
+        refresh = $interval(checkAuth,60000);
 
         $scope.$on("$destroy", function() {
             if ($scope.refresh != null) {
-                $interval.cancel($scope.refresh);
+                $interval.cancel(refresh);
             }
         });
     };
