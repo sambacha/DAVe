@@ -8,78 +8,53 @@
     angular.module('dave').controller('RiskLimitHistoryController', RiskLimitHistoryController);
 
     function RiskLimitHistoryController($scope, $routeParams, $http, $interval, $filter) {
-        $scope.refresh = null;
-        $scope.initialLoad = true;
-        var currentPage = 1;
-        $scope.pageSize = 20;
-        $scope.recordCount = 0;
-
-        $scope.rlHistory = [];
-        $scope.rlSource = [];
-        $scope.existingRecords = [];
-        $scope.error = "";
-        $scope.rlChartData = [];
-        $scope.ordering="-received";
-
-        $scope.clearer = $routeParams.clearer;
-        $scope.member = $routeParams.member;
-        $scope.maintainer = $routeParams.maintainer;
-        $scope.limitType = $routeParams.limitType;
-
-        $scope.url = '/api/v1.0/rl/history/' + $scope.clearer + '/' + $scope.member + '/' + $scope.maintainer + '/' + $scope.limitType;
-
-        $http.get($scope.url).success(function(data) {
-            $scope.error = "";
-            $scope.processRiskLimits(data);
-            $scope.prepareGraphData(data);
-            $scope.initialLoad = false;
-        }).error(function(data, status, headers, config) {
-            $scope.error = "Server returned status " + status;
-            $scope.initialLoad = false;
-        });
-
-        $scope.processRiskLimits = function(data) {
-            $scope.rlSource = data;
-            $scope.recordCount = data.length;
-            $scope.updateViewport(currentPage);
-        }
-
-        $scope.sortRecords = function(column) {
-            if ($scope.ordering == column)
-            {
-                $scope.ordering = "-" + column;
-            }
-            else {
-                $scope.ordering = column;
-            }
-
-            $scope.updateViewport(currentPage);
+        var vm = this;
+        vm.initialLoad= true;
+        vm.pageSize = 20;
+        vm.recordCount = 0;
+        vm.viewWindow = [];
+        vm.updateViewWindow = updateViewWindow;
+        vm.chartData = [];
+        vm.errorMessage = null;
+        vm.sortRecords = sortRecords;
+        vm.route = {
+            "clearer": $routeParams.clearer,
+            "member": $routeParams.member,
+            "maintainer": $routeParams.maintainer,
+            "limitType": $routeParams.limitType
         };
 
-        $scope.updateViewport = function(page) {
-            currentPage = page;
-            $scope.rlHistory = $filter('orderBy')($scope.rlSource, $scope.ordering).slice(currentPage*$scope.pageSize-$scope.pageSize, currentPage*$scope.pageSize);
+        var currentPage = 1;
+        var refresh = $interval(loadData, 60000);
+        var restQueryUrl = '/api/v1.0/rl/history/' + vm.route.clearer + '/' + vm.route.member + '/' + vm.route.maintainer + '/' + vm.route.limitType;
+        var ordering = ["-received"];
+        var sourceData = [];
+
+        loadData();
+
+        ///////////////////
+
+        function loadData()
+        {
+            $http.get(restQueryUrl).success(function(data) {
+                vm.errorMessage = "";
+                processData(data);
+                processGraphData(data);
+                vm.initialLoad = false;
+            }).error(function(data, status, headers, config) {
+                vm.errorMessage = "Server returned status " + status;
+                vm.initialLoad = false;
+            });
         }
 
-        $scope.refresh = $interval(function(){
-            $http.get($scope.url).success(function(data) {
-                $scope.error = "";
-                $scope.processRiskLimits(data);
-                $scope.prepareGraphData(data);
-            }).error(function(data, status, headers, config) {
-                $scope.error = "Server returned status " + status;
-            });
-        },60000);
+        function processData(data) {
+            sourceData = data;
+            vm.recordCount = data.length;
+            updateViewWindow(currentPage);
+        }
 
-        $scope.$on("$destroy", function() {
-            if ($scope.refresh != null) {
-                $interval.cancel($scope.refresh);
-            }
-        });
-
-        $scope.prepareGraphData = function(data) {
-            $scope.rlChartData = []
-
+        function processGraphData(data) {
+            var chartData = [];
             var index;
 
             for (index = 0; index < data.length; ++index) {
@@ -91,8 +66,33 @@
                     rejectLevel: data[index].rejectLevel
                 };
 
-                $scope.rlChartData.push(tick);
+                chartData.push(tick);
             }
+
+            vm.chartData = chartData;
         }
+
+        function sortRecords(column) {
+            if (ordering[0] == column)
+            {
+                ordering = ["-" + column, "-received"];
+            }
+            else {
+                ordering = [column, "-received"];
+            }
+
+            updateViewWindow(currentPage);
+        };
+
+        function updateViewWindow(page) {
+            currentPage = page;
+            vm.viewWindow = $filter('orderBy')(sourceData, ordering).slice(currentPage*vm.pageSize-vm.pageSize, currentPage*vm.pageSize);
+        }
+
+        $scope.$on("$destroy", function() {
+            if (refresh != null) {
+                $interval.cancel(refresh);
+            }
+        });
     };
 })();

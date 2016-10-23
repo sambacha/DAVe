@@ -9,40 +9,38 @@
     <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                Risk Limit History: <a href="#/riskLimitLatest/{{clearer}}">{{clearer}}</a> / <a href="#/riskLimitLatest/{{clearer}}/{{member}}">{{member}}</a> / <a href="#/riskLimitLatest/{{clearer}}/{{member}}/{{maintainer}}">{{maintainer}}</a> / <a href="#/riskLimitLatest/{{clearer}}/{{member}}/{{maintainer}}/{{limitType}}">{{limitType}}</a>
+                Risk Limit History: <a href="#/riskLimitLatest/{{vm.route.clearer}}">{{vm.route.clearer}}</a> / <a href="#/riskLimitLatest/{{vm.route.clearer}}/{{vm.route.member}}">{{vm.route.member}}</a> / <a href="#/riskLimitLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.maintainer}}">{{vm.route.maintainer}}</a> / <a href="#/riskLimitLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.maintainer}}/{{vm.route.limitType}}">{{vm.route.limitType}}</a>
             </div>
 
-            <div class="panel-body" ng-if="rlHistory.length == 0 && initialLoad == true && error == ''">
-                <div class="alert alert-warning" role="alert">Loading ...</div>
-            </div>
+            <initial-load ng-if="vm.recordCount == 0 && vm.initialLoad == true && vm.errorMessage == ''" />
 
-            <div class="panel-body" ng-if="rlHistory.length == 0 && initialLoad == false && error == ''">
-                <div class="alert alert-info" role="alert">No data available.</div>
-            </div>
+            <no-data ng-if="vm.recordCount == 0 && vm.initialLoad == false && vm.errorMessage == ''" />
 
-            <div class="panel-body" ng-if="rlChartData.length > 0">
-                <div id="rlHistoryChart" line-chart line-data="rlChartData" line-xkey='period' line-ykeys='["utilization", "warningLevel", "throttleLevel", "rejectLevel"]' line-labels='["Limit utilization", "Warning level", "Throttle level", "Stop level"]' line-colors='["#31C0BE", "#c7254e", "#800000", "#808000"]'></div>
+            <update-failed ng-if="vm.errorMessage != ''" message="vm.errorMessage"/>
+
+            <div class="panel-body" ng-if="vm.chartData.length > 0">
+                <div id="rlHistoryChart" line-chart line-data="vm.chartData" line-xkey='period' line-ykeys='["utilization", "warningLevel", "throttleLevel", "rejectLevel"]' line-labels='["Limit utilization", "Warning level", "Throttle level", "Stop level"]' line-colors='["#31C0BE", "#c7254e", "#800000", "#808000"]'></div>
             </div>
 
             <!-- /.panel-heading -->
-            <div class="panel-body" ng-if="rlHistory.length > 0">
+            <div class="panel-body" ng-if="vm.viewWindow.length > 0">
                 <table class="table table-striped table-bordered table-hover">
                     <thead>
                     <tr>
-                        <th>Last update <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('received')"></span></th>
-                        <th class="sorting">Limit utilization <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('utilization')"></span></th>
-                        <th>Warning limit <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('warningLevel')"></span></th>
-                        <th>Throttle limit <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('throttleLevel')"></span></th>
-                        <th>Stop limit <span class="fa fa-sort" aria-hidden="true" ng-click="sortRecords('rejectLevel')"></span></th>
+                        <th>Last update <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('received')"></span></th>
+                        <th class="sorting">Limit utilization <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('utilization')"></span></th>
+                        <th>Warning limit <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('warningLevel')"></span></th>
+                        <th>Throttle limit <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('throttleLevel')"></span></th>
+                        <th>Stop limit <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('rejectLevel')"></span></th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr ng-repeat="rl in rlHistory track by rl.id.$oid" row-highlighter="rl.id.$oid">
-                        <td highlighter="rl.received">{{rl.received | date:'HH:mm:ss'}}</td>
-                        <td highlighter="rl.utilization">{{rl.utilization | number:2}}</td>
-                        <td highlighter="rl.warningLevel">{{rl.warningLevel | number:2}}</td>
-                        <td highlighter="rl.throttleLevel">{{rl.throttleLevel | number:2}}</td>
-                        <td highlighter="rl.rejectLevel">{{rl.rejectLevel | number:2}}</td>
+                    <tr ng-repeat="record in vm.viewWindow track by record.id.$oid" row-highlighter="record.id.$oid">
+                        <td highlighter="record.received">{{record.received | date:'HH:mm:ss'}}</td>
+                        <td highlighter="record.utilization">{{record.utilization | number:2}}</td>
+                        <td highlighter="record.warningLevel">{{record.warningLevel | number:2}}</td>
+                        <td highlighter="record.throttleLevel">{{record.throttleLevel | number:2}}</td>
+                        <td highlighter="record.rejectLevel">{{record.rejectLevel | number:2}}</td>
                     </tr>
                     </tbody>
                 </table>
@@ -50,9 +48,9 @@
             <!-- /.panel-body -->
 
             <div class="panel-footer">
-                <table-summary total="recordCount" shown="rlHistory.length"></table-summary>
+                <table-summary total="vm.recordCount" shown="vm.viewWindow.length"></table-summary>
 
-                <paging page-size="pageSize" total-records="recordCount" update-callback="updateViewport"></paging>
+                <paging page-size="vm.pageSize" total-records="vm.recordCount" update-callback="vm.updateViewWindow"></paging>
             </div>
         </div>
         <!-- /.panel -->

@@ -8,80 +8,90 @@
     angular.module('dave').controller('RiskLimitLatestController', RiskLimitLatestController);
 
     function RiskLimitLatestController($scope, $routeParams, $http, $interval, $filter) {
-        $scope.refresh = null;
-        $scope.initialLoad = true;
+        var vm = this;
+        vm.initialLoad= true;
+        vm.pageSize = 20;
+        vm.recordCount = 0;
+        vm.viewWindow = [];
+        vm.updateViewWindow = updateViewWindow;
+        vm.errorMessage = null;
+        vm.filter = filter;
+        vm.filterQuery = "";
+        vm.sortRecords = sortRecords;
+        vm.route = {
+            "clearer": "*",
+            "member": "*",
+            "maintainer": "*",
+            "limitType": "*"
+            };
+
+        processRouting();
+
         var currentPage = 1;
-        $scope.pageSize = 20;
-        $scope.recordCount = 0;
+        var refresh = $interval(loadData, 60000);
+        var sourceData = [];
+        var ordering = ["clearer", "member", "maintainer", "limitType"];
+        var restQueryUrl = '/api/v1.0/rl/latest/' + vm.route.clearer + '/' + vm.route.member + '/' + vm.route.maintainer + '/' + vm.route.limitType;
 
-        $scope.rlLatest = [];
-        $scope.rlSource = [];
-        $scope.existingRecords = [];
-        $scope.error = "";
-        $scope.ordering= ["clearer", "member", "maintainer", "limitType"];
+        loadData();
 
-        if ($routeParams.clearer) { $scope.clearer = $routeParams.clearer } else { $scope.clearer = "*" }
-        if ($routeParams.member) { $scope.member = $routeParams.member } else { $scope.member = "*" }
-        if ($routeParams.maintainer) { $scope.maintainer = $routeParams.maintainer } else { $scope.maintainer = "*" }
-        if ($routeParams.limitType) { $scope.limitType = $routeParams.limitType } else { $scope.limitType = "*" }
+        ////////////////////
 
-        $scope.url = '/api/v1.0/rl/latest/' + $scope.clearer + '/' + $scope.member + '/' + $scope.maintainer + '/' + $scope.limitType;
+        function loadData(){
+            $http.get(restQueryUrl).success(function(data) {
+                processData(data);
+                vm.error = "";
+                vm.initialLoad = false;
+            }).error(function(data, status, headers, config) {
+                vm.error = "Server returned status " + status;
+            });
+        }
 
-        $http.get($scope.url).success(function(data) {
-            $scope.processRiskLimits(data);
-            $scope.error = "";
-            $scope.initialLoad = false;
-        }).error(function(data, status, headers, config) {
-            $scope.error = "Server returned status " + status;
-            $scope.initialLoad = false;
-        });
+        function processRouting()
+        {
+            if ($routeParams.clearer) { vm.route.clearer = $routeParams.clearer } else { vm.route.clearer = "*" }
+            if ($routeParams.member) { vm.route.member = $routeParams.member } else { vm.route.member = "*" }
+            if ($routeParams.maintainer) { vm.route.maintainer = $routeParams.maintainer } else { vm.route.maintainer = "*" }
+            if ($routeParams.limitType) { vm.route.limitType = $routeParams.limitType } else { vm.route.limitType = "*" }
+        }
 
-        $scope.processRiskLimits = function(data) {
+        function processData(data) {
             var index;
 
             for (index = 0; index < data.length; ++index) {
                 data[index].functionalKey = data[index].clearer + '-' + data[index].member + '-' + data[index].maintainer + '-' + data[index].limitType;
             }
 
-            $scope.rlSource = data;
-            $scope.filter();
-            $scope.updateViewport(currentPage);
+            sourceData = data;
+            filter();
+            updateViewWindow(currentPage);
         }
 
-        $scope.sortRecords = function(column) {
-            if ($scope.ordering[0] == column)
+        function sortRecords(column) {
+            if (ordering[0] == column)
             {
-                $scope.ordering = ["-" + column, "clearer", "member", "maintainer", "limitType"];
+                ordering = ["-" + column, "clearer", "member", "maintainer", "limitType"];
             }
             else {
-                $scope.ordering = [column, "clearer", "member", "maintainer", "limitType"];
+                ordering = [column, "clearer", "member", "maintainer", "limitType"];
             }
 
-            $scope.updateViewport(currentPage);
+            updateViewWindow(currentPage);
         };
 
-        $scope.updateViewport = function(page) {
+        function updateViewWindow(page) {
             currentPage = page;
-            $scope.rlLatest = $filter('orderBy')($filter('spacedFilter')($scope.rlSource, $scope.recordQuery), $scope.ordering).slice(currentPage*$scope.pageSize-$scope.pageSize, currentPage*$scope.pageSize);
+            vm.viewWindow = $filter('orderBy')($filter('spacedFilter')(sourceData, vm.filterQuery), ordering).slice(currentPage*vm.pageSize-vm.pageSize, currentPage*vm.pageSize);
         }
 
-        $scope.filter = function() {
-            $scope.recordCount = $filter('spacedFilter')($scope.rlSource, $scope.recordQuery).length;
-            $scope.updateViewport(currentPage);
+        function filter() {
+            vm.recordCount = $filter('spacedFilter')(sourceData, vm.filterQuery).length;
+            updateViewWindow(currentPage);
         };
 
-        $scope.refresh = $interval(function(){
-            $http.get($scope.url).success(function(data) {
-                $scope.processRiskLimits(data);
-                $scope.error = "";
-            }).error(function(data, status, headers, config) {
-                $scope.error = "Server returned status " + status;
-            });
-        },60000);
-
         $scope.$on("$destroy", function() {
-            if ($scope.refresh != null) {
-                $interval.cancel($scope.refresh);
+            if (refresh != null) {
+                $interval.cancel(refresh);
             }
         });
     };

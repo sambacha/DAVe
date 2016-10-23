@@ -107,22 +107,28 @@
             controller: 'MarginShortfallSurplusHistoryController'
         }).when('/riskLimitLatest', {
             templateUrl: 'app/risk-limits/risk-limit-latest.html',
-            controller: 'RiskLimitLatestController'
+            controller: 'RiskLimitLatestController',
+            controllerAs: 'vm'
         }).when('/riskLimitLatest/:clearer', {
             templateUrl: 'app/risk-limits/risk-limit-latest.html',
-            controller: 'RiskLimitLatestController'
+            controller: 'RiskLimitLatestController',
+            controllerAs: 'vm'
         }).when('/riskLimitLatest/:clearer/:member', {
             templateUrl: 'app/risk-limits/risk-limit-latest.html',
-            controller: 'RiskLimitLatestController'
+            controller: 'RiskLimitLatestController',
+            controllerAs: 'vm'
         }).when('/riskLimitLatest/:clearer/:member/:maintainer', {
             templateUrl: 'app/risk-limits/risk-limit-latest.html',
-            controller: 'RiskLimitLatestController'
+            controller: 'RiskLimitLatestController',
+            controllerAs: 'vm'
         }).when('/riskLimitLatest/:clearer/:member/:maintainer/:limitType', {
             templateUrl: 'app/risk-limits/risk-limit-latest.html',
-            controller: 'RiskLimitLatestController'
+            controller: 'RiskLimitLatestController',
+            controllerAs: 'vm'
         }).when('/riskLimitHistory/:clearer/:member/:maintainer/:limitType', {
             templateUrl: 'app/risk-limits/risk-limit-history.html',
-            controller: 'RiskLimitHistoryController'
+            controller: 'RiskLimitHistoryController',
+            controllerAs: 'vm'
         }).otherwise({
             redirectTo: '/dashboard'
         });

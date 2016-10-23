@@ -11,9 +11,11 @@
         return {
             restrict: 'A',
             link: function(scope, element, attrs) {
+                var existingRecords = []
+
                 scope.$watch(attrs.rowHighlighter, function (nv, ov) {
-                    if ($.inArray(nv, scope.existingRecords) === -1) {
-                        scope.existingRecords.push(nv);
+                    if ($.inArray(nv, existingRecords) === -1) {
+                        existingRecords.push(nv);
                         $(element).children().each(function (index, child) { $(child).addClass('bg-warning'); });
 
                         $timeout(function () {
