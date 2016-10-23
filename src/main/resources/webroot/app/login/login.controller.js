@@ -18,12 +18,16 @@
         vm.login = login;
         vm.logout = logout;
 
-        var refresh = null
         var url = {
             "status": '/api/v1.0/user/loginStatus',
             "login": '/api/v1.0/user/login',
             "logout": '/api/v1.0/user/logout'
-        }
+        };
+
+        checkAuth();
+        var refresh = $interval(checkAuth,60000);
+
+        ////////////////////
 
         function checkAuth() {
             $http.get(url.status).success(function (data) {
@@ -83,8 +87,6 @@
                 // Nothing
             });
         }
-
-        refresh = $interval(checkAuth,60000);
 
         $scope.$on("$destroy", function() {
             if ($scope.refresh != null) {
