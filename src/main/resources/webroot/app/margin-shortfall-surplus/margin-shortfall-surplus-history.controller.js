@@ -84,7 +84,7 @@
             }
 
             updateViewWindow(currentPage);
-        };
+        }
 
         function updateViewWindow(page) {
             currentPage = page;

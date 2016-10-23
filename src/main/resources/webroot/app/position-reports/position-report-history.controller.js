@@ -8,72 +8,103 @@
     angular.module('dave').controller('PositionReportHistoryController', PositionReportHistoryController);
 
     function PositionReportHistoryController($scope, $routeParams, $http, $interval, $filter) {
-        $scope.refresh = null;
-        $scope.initialLoad = true;
-        var currentPage = 1;
-        $scope.pageSize = 20;
-        $scope.recordCount = 0;
-
-        $scope.prHistory = [];
-        $scope.prSource = [];
-        $scope.existingRecords = [];
-        $scope.error = "";
-        $scope.prChartData = [];
-        $scope.ordering="-received";
-
-        $scope.clearer = $routeParams.clearer;
-        $scope.member = $routeParams.member;
-        $scope.account = $routeParams.account;
-        $scope.class = $routeParams.class;
-        $scope.symbol = $routeParams.symbol;
-        $scope.putCall = $routeParams.putCall;
-        $scope.strikePrice = $routeParams.strikePrice;
-        $scope.optAttribute = $routeParams.optAttribute;
-        $scope.maturityMonthYear = $routeParams.maturityMonthYear;
-
-        $scope.url = '/api/v1.0/pr/history/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class + '/' + $scope.symbol + '/' + $scope.putCall + '/' + $scope.strikePrice + '/' + $scope.optAttribute + '/' + $scope.maturityMonthYear;
-
-        $scope.processPositionReports = function(positionReports) {
-            var index;
-
-            for (index = 0; index < positionReports.length; ++index) {
-                positionReports[index].netLS = positionReports[index].crossMarginLongQty - positionReports[index].crossMarginShortQty;
-                positionReports[index].netEA = (positionReports[index].optionExcerciseQty - positionReports[index].optionAssignmentQty) + (positionReports[index].allocationTradeQty - positionReports[index].deliveryNoticeQty);
-            }
-
-            $scope.prSource = positionReports;
-            $scope.recordCount = positionReports.length;
-            $scope.updateViewport(currentPage);
-        }
-
-        $http.get($scope.url).success(function(data) {
-            $scope.error = "";
-            $scope.processPositionReports(data);
-            $scope.prepareGraphData($scope.prHistory);
-            $scope.initialLoad = false;
-        }).error(function(data, status, headers, config) {
-            $scope.error = "Server returned status " + status;
-            $scope.initialLoad = false;
-        });
-
-        $scope.sortRecords = function(column) {
-            if ($scope.ordering == column)
-            {
-                $scope.ordering = "-" + column;
-            }
-            else {
-                $scope.ordering = column;
-            }
-
-            $scope.updateViewport(currentPage);
+        var vm = this;
+        vm.initialLoad= true;
+        vm.pageSize = 20;
+        vm.recordCount = 0;
+        vm.viewWindow = [];
+        vm.updateViewWindow = updateViewWindow;
+        vm.chartData = [];
+        vm.errorMessage = "";
+        vm.sortRecords = sortRecords;
+        vm.showExtraInfo = showExtraInfo;
+        vm.route = {
+            "clearer": $routeParams.clearer,
+            "member": $routeParams.member,
+            "account": $routeParams.account,
+            "class": $routeParams.class,
+            "symbol": $routeParams.symbol,
+            "putCall": $routeParams.putCall,
+            "strikePrice": $routeParams.strikePrice,
+            "optAttribute": $routeParams.optAttribute,
+            "maturityMonthYear": $routeParams.maturityMonthYear
         };
 
-        $scope.updateViewport = function(page) {
-            currentPage = page;
-            $scope.prHistory = $filter('orderBy')($scope.prSource, $scope.ordering).slice(currentPage*$scope.pageSize-$scope.pageSize, currentPage*$scope.pageSize);
+        var currentPage = 1;
+        var refresh = $interval(loadData, 60000);
+        var restQueryUrl = '/api/v1.0/pr/history/' + vm.route.clearer + '/' + vm.route.member + '/' + vm.route.account + '/' + vm.route.class + '/' + vm.route.symbol + '/' + vm.route.putCall + '/' + vm.route.strikePrice + '/' + vm.route.optAttribute + "/" + vm.route.maturityMonthYear;
+        var ordering = ["-received"];
+        var sourceData = [];
+
+        loadData();
+
+        ///////////////////
+
+        function loadData()
+        {
+            $http.get(restQueryUrl).success(function(data) {
+                vm.errorMessage = "";
+                processData(data);
+                processGraphData(data);
+                vm.initialLoad = false;
+            }).error(function(data, status, headers, config) {
+                vm.errorMessage = "Server returned status " + status;
+                vm.initialLoad = false;
+            });
         }
 
-        $scope.showExtra = function(funcKey) {
+        function processData(data) {
+            var index;
+
+            for (index = 0; index < data.length; ++index) {
+                data[index].netLS = data[index].crossMarginLongQty - data[index].crossMarginShortQty;
+                data[index].netEA = (data[index].optionExcerciseQty - data[index].optionAssignmentQty) + (data[index].allocationTradeQty - data[index].deliveryNoticeQty);
+            }
+            
+            sourceData = data;
+            vm.recordCount = data.length;
+            updateViewWindow(currentPage);
+        }
+
+        function processGraphData(data) {
+            var chartData = [];
+            var index;
+
+            for (index = 0; index < data.length; ++index) {
+                var tick = {
+                    period: $filter('date')(data[index].received, "yyyy-MM-dd HH:mm:ss"),
+                    netLS: data[index].netLS,
+                    netEA: data[index].netEA,
+                    mVar: data[index].mVar,
+                    compVar: data[index].compVar,
+                    delta: data[index].delta,
+                    compLiquidityAddOn: data[index].compLiquidityAddOn
+                };
+
+                chartData.push(tick);
+            }
+
+            vm.chartData = chartData;
+        }
+
+        function sortRecords(column) {
+            if (ordering[0] == column)
+            {
+                ordering = ["-" + column, "-received"];
+            }
+            else {
+                ordering = [column, "-received"];
+            }
+
+            updateViewWindow(currentPage);
+        }
+
+        function updateViewWindow(page) {
+            currentPage = page;
+            vm.viewWindow = $filter('orderBy')(sourceData, ordering).slice(currentPage*vm.pageSize-vm.pageSize, currentPage*vm.pageSize);
+        }
+
+        function showExtraInfo(funcKey) {
             var extra = $("#extra-" + funcKey);
             var extraIcon = $("#extra-icon-" + funcKey);
 
@@ -88,42 +119,12 @@
                 extraIcon.removeClass("fa-chevron-circle-up");
                 extraIcon.addClass("fa-chevron-circle-down");
             }
-        };
-
-        $scope.refresh = $interval(function(){
-            $http.get($scope.url).success(function(data) {
-                $scope.error = "";
-                $scope.processPositionReports(data);
-                $scope.prepareGraphData($scope.prHistory);
-            }).error(function(data, status, headers, config) {
-                $scope.error = "Server returned status " + status;
-            });
-        },60000);
+        }
 
         $scope.$on("$destroy", function() {
-            if ($scope.refresh != null) {
-                $interval.cancel($scope.refresh);
+            if (refresh != null) {
+                $interval.cancel(refresh);
             }
         });
-
-        $scope.prepareGraphData = function(data) {
-            $scope.prChartData = [];
-
-            var index;
-
-            for (index = 0; index < data.length; ++index) {
-                var tick = {
-                    period: $filter('date')(data[index].received, "yyyy-MM-dd HH:mm:ss"),
-                    netLS: data[index].netLS,
-                    netEA: data[index].netEA,
-                    mVar: data[index].mVar,
-                    compVar: data[index].compVar,
-                    delta: data[index].delta,
-                    compLiquidityAddOn: data[index].compLiquidityAddOn
-                };
-
-                $scope.prChartData.push(tick);
-            }
-        }
     };
 })();

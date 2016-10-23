@@ -8,81 +8,93 @@
     angular.module('dave').controller('TotalMarginRequirementLatestController', TotalMarginRequirementLatestController);
 
     function TotalMarginRequirementLatestController($scope, $routeParams, $http, $interval, $filter) {
-        $scope.refresh = null;
-        $scope.initialLoad = true;
+        var vm = this;
+        vm.initialLoad= true;
+        vm.pageSize = 20;
+        vm.recordCount = 0;
+        vm.viewWindow = [];
+        vm.updateViewWindow = updateViewWindow;
+        vm.errorMessage = "";
+        vm.filter = filter;
+        vm.filterQuery = "";
+        vm.sortRecords = sortRecords;
+        vm.route = {
+            "clearer": "*",
+            "pool": "*",
+            "member": "*",
+            "account": "*",
+            "ccy": "*"
+        };
+
+        processRouting();
+
         var currentPage = 1;
-        $scope.pageSize = 20;
-        $scope.recordCount = 0;
+        var refresh = $interval(loadData, 60000);
+        var sourceData = [];
+        var ordering = ["clearer", "pool", "member", "account", "ccy"];
+        var restQueryUrl = '/api/v1.0/tmr/latest/' + vm.route.clearer + '/' + vm.route.pool + '/' + vm.route.member + '/' + vm.route.account + '/' + vm.route.ccy;
 
-        $scope.tmrLatest = [];
-        $scope.tmrSource = [];
-        $scope.existingRecords = [];
-        $scope.error = "";
-        $scope.ordering= ["pool", "member", "account", "ccy"];
+        loadData();
 
-        if ($routeParams.clearer) { $scope.clearer = $routeParams.clearer } else { $scope.clearer = "*" }
-        if ($routeParams.pool) { $scope.pool = $routeParams.pool } else { $scope.pool = "*" }
-        if ($routeParams.member) { $scope.member = $routeParams.member } else { $scope.member = "*" }
-        if ($routeParams.account) { $scope.account = $routeParams.account } else { $scope.account = "*" }
-        if ($routeParams.ccy) { $scope.ccy = $routeParams.ccy } else { $scope.ccy = "*" }
+        ////////////////////
 
-        $scope.url = '/api/v1.0/tmr/latest/' + $scope.clearer + '/' + $scope.pool + '/' + $scope.member + '/' + $scope.account + '/' + $scope.ccy;
+        function loadData(){
+            $http.get(restQueryUrl).success(function(data) {
+                processData(data);
+                vm.error = "";
+                vm.initialLoad = false;
+            }).error(function(data, status, headers, config) {
+                vm.error = "Server returned status " + status;
+                vm.initialLoad = false;
+            });
+        }
 
-        $http.get($scope.url).success(function(data) {
-            $scope.processTotalMarginRequirements(data);
-            $scope.error = "";
-            $scope.initialLoad = false;
-        }).error(function(data, status, headers, config) {
-            $scope.error = "Server returned status " + status;
-            $scope.initialLoad = false;
-        });
+        function processRouting()
+        {
+            if ($routeParams.clearer) { vm.route.clearer = $routeParams.clearer } else { vm.route.clearer = "*" }
+            if ($routeParams.pool) { vm.route.pool = $routeParams.pool } else { vm.route.pool = "*" }
+            if ($routeParams.member) { vm.route.member = $routeParams.member } else { vm.route.member = "*" }
+            if ($routeParams.account) { vm.route.account = $routeParams.account } else { vm.route.account = "*" }
+            if ($routeParams.ccy) { vm.route.ccy = $routeParams.ccy } else { vm.route.ccy = "*" }
+        }
 
-        $scope.processTotalMarginRequirements = function(totalMarginRequirements) {
+        function processData(data) {
             var index;
 
-            for (index = 0; index < totalMarginRequirements.length; ++index) {
-                totalMarginRequirements[index].functionalKey = totalMarginRequirements[index].clearer + '-' + totalMarginRequirements[index].pool + '-' + totalMarginRequirements[index].member + '-' + totalMarginRequirements[index].account + '-' + totalMarginRequirements[index].ccy;
+            for (index = 0; index < data.length; ++index) {
+                data[index].functionalKey = data[index].clearer + '-' + data[index].pool + '-' + data[index].member + '-' + data[index].account + '-' + data[index].ccy;
             }
 
-            $scope.tmrSource = totalMarginRequirements;
-            $scope.filter();
-            $scope.updateViewport(currentPage);
+            sourceData = data;
+            filter();
+            updateViewWindow(currentPage);
         }
 
-        $scope.sortRecords = function(column) {
-            if ($scope.ordering[0] == column)
+        function sortRecords(column) {
+            if (ordering[0] == column)
             {
-                $scope.ordering = ["-" + column, "pool", "member", "account", "ccy"];
+                ordering = ["-" + column, "clearer", "pool", "member", "account", "ccy"];
             }
             else {
-                $scope.ordering = [column, "pool", "member", "account", "ccy"];
+                ordering = [column, "clearer", "pool", "member", "account", "ccy"];
             }
 
-            $scope.updateViewport(currentPage);
+            updateViewWindow(currentPage);
         };
 
-        $scope.updateViewport = function(page) {
+        function updateViewWindow(page) {
             currentPage = page;
-            $scope.tmrLatest = $filter('orderBy')($filter('spacedFilter')($scope.tmrSource, $scope.recordQuery), $scope.ordering).slice(currentPage*$scope.pageSize-$scope.pageSize, currentPage*$scope.pageSize);
+            vm.viewWindow = $filter('orderBy')($filter('spacedFilter')(sourceData, vm.filterQuery), ordering).slice(currentPage*vm.pageSize-vm.pageSize, currentPage*vm.pageSize);
         }
 
-        $scope.filter = function() {
-            $scope.recordCount = $filter('spacedFilter')($scope.tmrSource, $scope.recordQuery).length;
-            $scope.updateViewport(currentPage);
+        function filter() {
+            vm.recordCount = $filter('spacedFilter')(sourceData, vm.filterQuery).length;
+            updateViewWindow(currentPage);
         };
 
-        $scope.refresh = $interval(function(){
-            $http.get($scope.url).success(function(data) {
-                $scope.processTotalMarginRequirements(data);
-                $scope.error = "";
-            }).error(function(data, status, headers, config) {
-                $scope.error = "Server returned status " + status;
-            });
-        },60000);
-
         $scope.$on("$destroy", function() {
-            if ($scope.refresh != null) {
-                $interval.cancel($scope.refresh);
+            if (refresh != null) {
+                $interval.cancel(refresh);
             }
         });
     };

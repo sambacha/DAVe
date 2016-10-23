@@ -78,7 +78,7 @@
             }
 
             updateViewWindow(currentPage);
-        };
+        }
 
         function updateViewWindow(page) {
             currentPage = page;
@@ -88,7 +88,7 @@
         function filter() {
             vm.recordCount = $filter('spacedFilter')(sourceData, vm.filterQuery).length;
             updateViewWindow(currentPage);
-        };
+        }
 
         $scope.$on("$destroy", function() {
             if (refresh != null) {

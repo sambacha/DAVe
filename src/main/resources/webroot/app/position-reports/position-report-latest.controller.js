@@ -8,77 +8,102 @@
     angular.module('dave').controller('PositionReportLatestController', PositionReportLatestController);
 
     function PositionReportLatestController($scope, $routeParams, $http, $interval, $filter) {
+        var vm = this;
+        vm.initialLoad= true;
+        vm.pageSize = 20;
+        vm.recordCount = 0;
+        vm.viewWindow = [];
+        vm.updateViewWindow = updateViewWindow;
+        vm.errorMessage = "";
+        vm.filter = filter;
+        vm.filterQuery = "";
+        vm.sortRecords = sortRecords;
+        vm.showExtraInfo = showExtraInfo;
+        vm.route = {
+            "clearer": "*",
+            "member": "*",
+            "account": "*",
+            "class": "*",
+            "symbol": "*",
+            "putCall": "*",
+            "strikePrice": "*",
+            "optAttribute": "*",
+            "maturityMonthYear": "*"
+        };
+
+        processRouting();
+
         var currentPage = 1;
-        $scope.refresh = null;
-        $scope.initialLoad = true;
-        $scope.pageSize = 20;
-        $scope.recordCount = 0;
+        var refresh = $interval(loadData, 60000);
+        var sourceData = [];
+        var ordering = ["clearer", "member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
+        var restQueryUrl = '/api/v1.0/pr/latest/' + vm.route.clearer + '/' + vm.route.member + '/' + vm.route.account + '/' + vm.route.class + '/' + vm.route.symbol + '/' + vm.route.putCall + '/' + vm.route.strikePrice + '/' + vm.route.optAttribute + "/" + vm.route.maturityMonthYear;
 
-        $scope.prLatest = [];
-        $scope.prSource = [];
-        $scope.existingRecords = [];
-        $scope.error = "";
-        $scope.recordQuery = "";
-        $scope.ordering= ["member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
+        loadData();
 
-        if ($routeParams.clearer) { $scope.clearer = $routeParams.clearer; } else { $scope.clearer = "*" }
-        if ($routeParams.member) { $scope.member = $routeParams.member; } else { $scope.member = "*" }
-        if ($routeParams.account) { $scope.account = $routeParams.account; } else { $scope.account = "*" }
-        if ($routeParams.class) { $scope.class = $routeParams.class; } else { $scope.class = "*" }
-        if ($routeParams.symbol) { $scope.symbol = $routeParams.symbol; } else { $scope.symbol = "*" }
-        if ($routeParams.putCall) { $scope.putCall = $routeParams.putCall; } else { $scope.putCall = "*" }
-        if ($routeParams.strikePrice) { $scope.strikePrice = $routeParams.strikePrice; } else { $scope.strikePrice = "*" }
-        if ($routeParams.optAttribute) { $scope.optAttribute = $routeParams.optAttribute; } else { $scope.optAttribute = "*" }
-        if ($routeParams.maturityMonthYear) { $scope.maturityMonthYear = $routeParams.maturityMonthYear; } else { $scope.maturityMonthYear = "*" }
+        ////////////////////
 
-        $scope.url = '/api/v1.0/pr/latest/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class + '/' + $scope.symbol + '/' + $scope.putCall + '/' + $scope.strikePrice + '/' + $scope.optAttribute + "/" + $scope.maturityMonthYear;
+        function loadData(){
+            $http.get(restQueryUrl).success(function(data) {
+                processData(data);
+                vm.error = "";
+                vm.initialLoad = false;
+            }).error(function(data, status, headers, config) {
+                vm.error = "Server returned status " + status;
+                vm.initialLoad = false;
+            });
+        }
 
-        $http.get($scope.url).success(function(data) {
-            $scope.processPositionReports(data);
-            $scope.initialLoad = false;
-            $scope.error = "";
-        }).error(function(data, status, headers, config) {
-            $scope.error = "Server returned status " + status;
-            $scope.initialLoad = false;
-        });
+        function processRouting()
+        {
+            if ($routeParams.clearer) { vm.route.clearer = $routeParams.clearer; } else { vm.route.clearer = "*" }
+            if ($routeParams.member) { vm.route.member = $routeParams.member; } else { vm.route.member = "*" }
+            if ($routeParams.account) { vm.route.account = $routeParams.account; } else { vm.route.account = "*" }
+            if ($routeParams.class) { vm.route.class = $routeParams.class; } else { vm.route.class = "*" }
+            if ($routeParams.symbol) { vm.route.symbol = $routeParams.symbol; } else { vm.route.symbol = "*" }
+            if ($routeParams.putCall) { vm.route.putCall = $routeParams.putCall; } else { vm.route.putCall = "*" }
+            if ($routeParams.strikePrice) { vm.route.strikePrice = $routeParams.strikePrice; } else { vm.route.strikePrice = "*" }
+            if ($routeParams.optAttribute) { vm.route.optAttribute = $routeParams.optAttribute; } else { vm.route.optAttribute = "*" }
+            if ($routeParams.maturityMonthYear) { vm.route.maturityMonthYear = $routeParams.maturityMonthYear; } else { vm.route.maturityMonthYear = "*" }
+        }
 
-        $scope.processPositionReports = function(positionReports) {
+        function processData(data) {
             var index;
 
-            for (index = 0; index < positionReports.length; ++index) {
-                positionReports[index].functionalKey = positionReports[index].clearer + '-' + positionReports[index].member + '-' + positionReports[index].account + '-' + positionReports[index].clss + '-' + positionReports[index].symbol + '-' + positionReports[index].putCall + '-' + positionReports[index].maturityMonthYear + '-' + positionReports[index].strikePrice.replace("\.", "") + '-' + positionReports[index].optAttribute + '-' + positionReports[index].maturityMonthYear;
-                positionReports[index].netLS = positionReports[index].crossMarginLongQty - positionReports[index].crossMarginShortQty;
-                positionReports[index].netEA = (positionReports[index].optionExcerciseQty - positionReports[index].optionAssignmentQty) + (positionReports[index].allocationTradeQty - positionReports[index].deliveryNoticeQty);
+            for (index = 0; index < data.length; ++index) {
+                data[index].functionalKey = data[index].clearer + '-' + data[index].member + '-' + data[index].account + '-' + data[index].clss + '-' + data[index].symbol + '-' + data[index].putCall + '-' + data[index].maturityMonthYear + '-' + data[index].strikePrice.replace("\.", "") + '-' + data[index].optAttribute + '-' + data[index].maturityMonthYear;
+                data[index].netLS = data[index].crossMarginLongQty - data[index].crossMarginShortQty;
+                data[index].netEA = (data[index].optionExcerciseQty - data[index].optionAssignmentQty) + (data[index].allocationTradeQty - data[index].deliveryNoticeQty);
             }
 
-            $scope.prSource = positionReports;
-            $scope.filter();
-            $scope.updateViewport(currentPage);
+            sourceData = data;
+            filter();
+            updateViewWindow(currentPage);
         }
 
-        $scope.sortRecords = function(column) {
-            if ($scope.ordering[0] == column)
+        function sortRecords(column) {
+            if (ordering[0] == column)
             {
-                $scope.ordering = ["-" + column, "member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
+                ordering = ["-" + column, "clearer", "member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
             }
             else {
-                $scope.ordering = [column, "member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
+                ordering = [column, "clearer", "member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
             }
 
-            $scope.updateViewport(currentPage);
-        };
-
-        $scope.updateViewport = function(page) {
-            currentPage = page;
-            $scope.prLatest = $filter('orderBy')($filter('spacedFilter')($scope.prSource, $scope.recordQuery), $scope.ordering).slice(page*$scope.pageSize-$scope.pageSize, page*$scope.pageSize);
+            updateViewWindow(currentPage);
         }
 
-        $scope.filter = function() {
-            $scope.recordCount = $filter('spacedFilter')($scope.prSource, $scope.recordQuery).length;
-            $scope.updateViewport(currentPage);
-        };
+        function updateViewWindow(page) {
+            currentPage = page;
+            vm.viewWindow = $filter('orderBy')($filter('spacedFilter')(sourceData, vm.filterQuery), ordering).slice(currentPage*vm.pageSize-vm.pageSize, currentPage*vm.pageSize);
+        }
 
-        $scope.showExtra = function(funcKey) {
+        function filter() {
+            vm.recordCount = $filter('spacedFilter')(sourceData, vm.filterQuery).length;
+            updateViewWindow(currentPage);
+        }
+
+        function showExtraInfo(funcKey) {
             var extra = $("#extra-" + funcKey);
             var extraIcon = $("#extra-icon-" + funcKey);
 
@@ -93,20 +118,11 @@
                 extraIcon.removeClass("fa-chevron-circle-up");
                 extraIcon.addClass("fa-chevron-circle-down");
             }
-        };
-
-        $scope.refresh = $interval(function(){
-            $http.get($scope.url).success(function(data) {
-                $scope.processPositionReports(data);
-                $scope.error = "";
-            }).error(function(data, status, headers, config) {
-                $scope.error = "Server returned status " + status;
-            });
-        },60000);
+        }
 
         $scope.$on("$destroy", function() {
-            if ($scope.refresh != null) {
-                $interval.cancel($scope.refresh);
+            if (refresh != null) {
+                $interval.cancel(refresh);
             }
         });
     };

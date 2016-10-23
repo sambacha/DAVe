@@ -14,79 +14,104 @@
             controller: 'DashboardController'
         }).when('/positionReportLatest', {
             templateUrl: 'app/position-reports/position-report-latest.html',
-            controller: 'PositionReportLatestController'
+            controller: 'PositionReportLatestController',
+            controllerAs: 'vm'
         }).when('/positionReportLatest/:clearer', {
             templateUrl: 'app/position-reports/position-report-latest.html',
-            controller: 'PositionReportLatestController'
+            controller: 'PositionReportLatestController',
+            controllerAs: 'vm'
         }).when('/positionReportLatest/:clearer/:member', {
             templateUrl: 'app/position-reports/position-report-latest.html',
-            controller: 'PositionReportLatestController'
+            controller: 'PositionReportLatestController',
+            controllerAs: 'vm'
         }).when('/positionReportLatest/:clearer/:member/:account', {
             templateUrl: 'app/position-reports/position-report-latest.html',
-            controller: 'PositionReportLatestController'
+            controller: 'PositionReportLatestController',
+            controllerAs: 'vm'
         }).when('/positionReportLatest/:clearer/:member/:account/:class', {
             templateUrl: 'app/position-reports/position-report-latest.html',
-            controller: 'PositionReportLatestController'
+            controller: 'PositionReportLatestController',
+            controllerAs: 'vm'
         }).when('/positionReportLatest/:clearer/:member/:account/:class/:symbol', {
             templateUrl: 'app/position-reports/position-report-latest.html',
-            controller: 'PositionReportLatestController'
+            controller: 'PositionReportLatestController',
+            controllerAs: 'vm'
         }).when('/positionReportLatest/:clearer/:member/:account/:class/:symbol/:putCall', {
             templateUrl: 'app/position-reports/position-report-latest.html',
-            controller: 'PositionReportLatestController'
+            controller: 'PositionReportLatestController',
+            controllerAs: 'vm'
         }).when('/positionReportLatest/:clearer/:member/:account/:class/:symbol/:putCall/:strikePrice', {
             templateUrl: 'app/position-reports/position-report-latest.html',
-            controller: 'PositionReportLatestController'
+            controller: 'PositionReportLatestController',
+            controllerAs: 'vm'
         }).when('/positionReportLatest/:clearer/:member/:account/:class/:symbol/:putCall/:strikePrice/:optAttribute', {
             templateUrl: 'app/position-reports/position-report-latest.html',
-            controller: 'PositionReportLatestController'
+            controller: 'PositionReportLatestController',
+            controllerAs: 'vm'
         }).when('/positionReportLatest/:clearer/:member/:account/:class/:symbol/:putCall/:strikePrice/:optAttribute/:maturityMonthYear', {
             templateUrl: 'app/position-reports/position-report-latest.html',
-            controller: 'PositionReportLatestController'
+            controller: 'PositionReportLatestController',
+            controllerAs: 'vm'
         }).when('/positionReportHistory/:clearer/:member/:account/:class/:symbol/:putCall/:strikePrice/:optAttribute/:maturityMonthYear', {
             templateUrl: 'app/position-reports/position-report-history.html',
-            controller: 'PositionReportHistoryController'
+            controller: 'PositionReportHistoryController',
+            controllerAs: 'vm'
         }).when('/marginComponentLatest', {
             templateUrl: 'app/margin-components/margin-component-latest.html',
-            controller: 'MarginComponentLatestController'
+            controller: 'MarginComponentLatestController',
+            controllerAs: 'vm'
         }).when('/marginComponentLatest/:clearer', {
             templateUrl: 'app/margin-components/margin-component-latest.html',
-            controller: 'MarginComponentLatestController'
+            controller: 'MarginComponentLatestController',
+            controllerAs: 'vm'
         }).when('/marginComponentLatest/:clearer/:member', {
             templateUrl: 'app/margin-components/margin-component-latest.html',
-            controller: 'MarginComponentLatestController'
+            controller: 'MarginComponentLatestController',
+            controllerAs: 'vm'
         }).when('/marginComponentLatest/:clearer/:member/:account', {
             templateUrl: 'app/margin-components/margin-component-latest.html',
-            controller: 'MarginComponentLatestController'
+            controller: 'MarginComponentLatestController',
+            controllerAs: 'vm'
         }).when('/marginComponentLatest/:clearer/:member/:account/:class', {
             templateUrl: 'app/margin-components/margin-component-latest.html',
-            controller: 'MarginComponentLatestController'
+            controller: 'MarginComponentLatestController',
+            controllerAs: 'vm'
         }).when('/marginComponentLatest/:clearer/:member/:account/:class/:ccy', {
             templateUrl: 'app/margin-components/margin-component-latest.html',
-            controller: 'MarginComponentLatestController'
+            controller: 'MarginComponentLatestController',
+            controllerAs: 'vm'
         }).when('/marginComponentHistory/:clearer/:member/:account/:class/:ccy', {
             templateUrl: 'app/margin-components/margin-component-history.html',
-            controller: 'MarginComponentHistoryController'
+            controller: 'MarginComponentHistoryController',
+            controllerAs: 'vm'
         }).when('/totalMarginRequirementLatest', {
             templateUrl: 'app/total-margin-requirement/total-margin-requirement-latest.html',
-            controller: 'TotalMarginRequirementLatestController'
+            controller: 'TotalMarginRequirementLatestController',
+            controllerAs: 'vm'
         }).when('/totalMarginRequirementLatest/:clearer', {
             templateUrl: 'app/total-margin-requirement/total-margin-requirement-latest.html',
-            controller: 'TotalMarginRequirementLatestController'
+            controller: 'TotalMarginRequirementLatestController',
+            controllerAs: 'vm'
         }).when('/totalMarginRequirementLatest/:clearer/:pool', {
             templateUrl: 'app/total-margin-requirement/total-margin-requirement-latest.html',
-            controller: 'TotalMarginRequirementLatestController'
+            controller: 'TotalMarginRequirementLatestController',
+            controllerAs: 'vm'
         }).when('/totalMarginRequirementLatest/:clearer/:pool/:member', {
             templateUrl: 'app/total-margin-requirement/total-margin-requirement-latest.html',
-            controller: 'TotalMarginRequirementLatestController'
+            controller: 'TotalMarginRequirementLatestController',
+            controllerAs: 'vm'
         }).when('/totalMarginRequirementLatest/:clearer/:pool/:member/:account', {
             templateUrl: 'app/total-margin-requirement/total-margin-requirement-latest.html',
-            controller: 'TotalMarginRequirementLatestController'
+            controller: 'TotalMarginRequirementLatestController',
+            controllerAs: 'vm'
         }).when('/totalMarginRequirementLatest/:clearer/:pool/:member/:account/:ccy', {
             templateUrl: 'app/total-margin-requirement/total-margin-requirement-latest.html',
-            controller: 'TotalMarginRequirementLatestController'
+            controller: 'TotalMarginRequirementLatestController',
+            controllerAs: 'vm'
         }).when('/totalMarginRequirementHistory/:clearer/:pool/:member/:account/:ccy', {
             templateUrl: 'app/total-margin-requirement/total-margin-requirement-history.html',
-            controller: 'TotalMarginRequirementHistoryController'
+            controller: 'TotalMarginRequirementHistoryController',
+            controllerAs: 'vm'
         }).when('/marginShortfallSurplusLatest', {
             templateUrl: 'app/margin-shortfall-surplus/margin-shortfall-surplus-latest.html',
             controller: 'MarginShortfallSurplusLatestController',

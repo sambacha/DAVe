@@ -8,81 +8,93 @@
     angular.module('dave').controller('MarginComponentLatestController', MarginComponentLatestController);
 
     function MarginComponentLatestController($scope, $routeParams, $http, $interval, $filter) {
-        $scope.refresh = null;
-        $scope.initialLoad = true;
+        var vm = this;
+        vm.initialLoad= true;
+        vm.pageSize = 20;
+        vm.recordCount = 0;
+        vm.viewWindow = [];
+        vm.updateViewWindow = updateViewWindow;
+        vm.errorMessage = "";
+        vm.filter = filter;
+        vm.filterQuery = "";
+        vm.sortRecords = sortRecords;
+        vm.route = {
+            "clearer": "*",
+            "member": "*",
+            "account": "*",
+            "class": "*",
+            "ccy": "*"
+        };
+
+        processRouting();
+
         var currentPage = 1;
-        $scope.pageSize = 20;
-        $scope.recordCount = 0;
+        var refresh = $interval(loadData, 60000);
+        var sourceData = [];
+        var ordering = ["clearer", "member", "account", "class", "ccy"];
+        var restQueryUrl = '/api/v1.0/mc/latest/' + vm.route.clearer + '/' + vm.route.member + '/' + vm.route.account + '/' + vm.route.class + '/' + vm.route.ccy;
 
-        $scope.mcLatest = [];
-        $scope.mcSource = [];
-        $scope.existingRecords = [];
-        $scope.error = "";
-        $scope.ordering= ["member", "account", "clss", "ccy"];
+        loadData();
 
-        if ($routeParams.clearer) { $scope.clearer = $routeParams.clearer } else { $scope.clearer = "*" }
-        if ($routeParams.member) { $scope.member = $routeParams.member } else { $scope.member = "*" }
-        if ($routeParams.account) { $scope.account = $routeParams.account } else { $scope.account = "*" }
-        if ($routeParams.class) { $scope.class = $routeParams.class } else { $scope.class = "*" }
-        if ($routeParams.ccy) { $scope.ccy = $routeParams.ccy } else { $scope.ccy = "*" }
+        ////////////////////
 
-        $scope.url = '/api/v1.0/mc/latest/' + $scope.clearer + '/' + $scope.member + '/' + $scope.account + '/' + $scope.class + '/' + $scope.ccy;
+        function loadData(){
+            $http.get(restQueryUrl).success(function(data) {
+                processData(data);
+                vm.error = "";
+                vm.initialLoad = false;
+            }).error(function(data, status, headers, config) {
+                vm.error = "Server returned status " + status;
+                vm.initialLoad = false;
+            });
+        }
 
-        $http.get($scope.url).success(function(data) {
-            $scope.processMarginComponents(data);
-            $scope.error = "";
-            $scope.initialLoad = false;
-        }).error(function(data, status, headers, config) {
-            $scope.error = "Server returned status " + status;
-            $scope.initialLoad = false;
-        });
+        function processRouting()
+        {
+            if ($routeParams.clearer) { vm.route.clearer = $routeParams.clearer } else { vm.route.clearer = "*" }
+            if ($routeParams.member) { vm.route.member = $routeParams.member } else { vm.route.member = "*" }
+            if ($routeParams.account) { vm.route.account = $routeParams.account } else { vm.route.account = "*" }
+            if ($routeParams.class) { vm.route.class = $routeParams.class } else { vm.route.class = "*" }
+            if ($routeParams.ccy) { vm.route.ccy = $routeParams.ccy } else { vm.route.ccy = "*" }
+        }
 
-        $scope.processMarginComponents = function(data) {
+        function processData(data) {
             var index;
 
             for (index = 0; index < data.length; ++index) {
                 data[index].functionalKey = data[index].clearer + '-' + data[index].member + '-' + data[index].account + '-' + data[index].clss + '-' + data[index].ccy;
             }
 
-            $scope.mcSource = data;
-            $scope.filter();
-            $scope.updateViewport(currentPage);
+            sourceData = data;
+            filter();
+            updateViewWindow(currentPage);
         }
 
-        $scope.sortRecords = function(column) {
-            if ($scope.ordering[0] == column)
+        function sortRecords(column) {
+            if (ordering[0] == column)
             {
-                $scope.ordering = ["-" + column, "member", "account", "clss", "ccy"];
+                ordering = ["-" + column, "clearer", "member", "account", "class", "ccy"];
             }
             else {
-                $scope.ordering = [column, "member", "account", "clss", "ccy"];
+                ordering = [column, "clearer", "member", "account", "class", "ccy"];
             }
 
-            $scope.updateViewport(currentPage);
-        };
-
-        $scope.updateViewport = function(page) {
-            currentPage = page;
-            $scope.mcLatest = $filter('orderBy')($filter('spacedFilter')($scope.mcSource, $scope.recordQuery), $scope.ordering).slice(currentPage*$scope.pageSize-$scope.pageSize, currentPage*$scope.pageSize);
+            updateViewWindow(currentPage);
         }
 
-        $scope.filter = function() {
-            $scope.recordCount = $filter('spacedFilter')($scope.mcSource, $scope.recordQuery).length;
-            $scope.updateViewport(currentPage);
-        };
+        function updateViewWindow(page) {
+            currentPage = page;
+            vm.viewWindow = $filter('orderBy')($filter('spacedFilter')(sourceData, vm.filterQuery), ordering).slice(currentPage*vm.pageSize-vm.pageSize, currentPage*vm.pageSize);
+        }
 
-        $scope.refresh = $interval(function(){
-            $http.get($scope.url).success(function(data) {
-                $scope.processMarginComponents(data);
-                $scope.error = "";
-            }).error(function(data, status, headers, config) {
-                $scope.error = "Server returned status " + status;
-            });
-        },60000);
+        function filter() {
+            vm.recordCount = $filter('spacedFilter')(sourceData, vm.filterQuery).length;
+            updateViewWindow(currentPage);
+        }
 
         $scope.$on("$destroy", function() {
-            if ($scope.refresh != null) {
-                $interval.cancel($scope.refresh);
+            if (refresh != null) {
+                $interval.cancel(refresh);
             }
         });
     };
