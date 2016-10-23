@@ -12,18 +12,18 @@
                 <i class="fa fa-bar-chart-o fa-fw"></i> Margin Requirement
             </div>
             <div class="panel-body">
-                <div class="panel-body" ng-if="chartMarginRequirementData.length == 0">
+                <div class="panel-body" ng-if="vm.chartData.MarginRequirement.length == 0">
                     <div class="alert alert-info" role="alert">No data available.</div>
                 </div>
 
-                <div class="panel-body" ng-if="error != ''">
-                    <div class="alert alert-danger" role="alert">Failed to update the data: {{error}}.</div>
+                <div class="panel-body" ng-if="vm.errorMessage != ''">
+                    <div class="alert alert-danger" role="alert">Failed to update the data: {{vm.errorMessage}}.</div>
                 </div>
 
                 <div
-                        ng-if="chartMarginRequirementData.length > 0"
+                        ng-if="vm.chartData.MarginRequirement.length > 0"
                         donut-chart
-                        donut-data="chartMarginRequirementData"
+                        donut-data="vm.chartData.MarginRequirement"
                         donut-label-color='"#000000"'
                         donut-background-color='"#ffffff"'
                         donut-colors='["#31C0BE","#c7254e","#98a0d3"]'>
@@ -39,18 +39,18 @@
                 <i class="fa fa-bar-chart-o fa-fw"></i> Margin Shortfall / Surplus
             </div>
             <div class="panel-body">
-                <div class="panel-body" ng-if="chartMarginShortfallSurplusData.length == 0">
+                <div class="panel-body" ng-if="vm.chartData.MarginShortfallSurplus.length == 0">
                     <div class="alert alert-info" role="alert">No data available.</div>
                 </div>
 
-                <div class="panel-body" ng-if="error != ''">
-                    <div class="alert alert-danger" role="alert">Failed to update the data: {{error}}.</div>
+                <div class="panel-body" ng-if="vm.errorMessage != ''">
+                    <div class="alert alert-danger" role="alert">Failed to update the data: {{vm.errorMessage}}.</div>
                 </div>
 
                 <div
-                      ng-if="chartMarginShortfallSurplusData.length > 0"
+                      ng-if="vm.chartData.MarginShortfallSurplus.length > 0"
                       donut-chart
-                      donut-data="chartMarginShortfallSurplusData"
+                      donut-data="vm.chartData.MarginShortfallSurplus"
                       donut-label-color='"#000000"'
                       donut-background-color='"#ffffff"'
                       donut-colors='["#31C0BE","#c7254e","#98a0d3"]'>
@@ -66,18 +66,18 @@
                 <i class="fa fa-bar-chart-o fa-fw"></i> Margin Call
             </div>
             <div class="panel-body">
-                <div class="panel-body" ng-if="chartMarginCallData.length == 0">
+                <div class="panel-body" ng-if="vm.chartData.MarginCall.length == 0">
                     <div class="alert alert-info" role="alert">No data available.</div>
                 </div>
 
-                <div class="panel-body" ng-if="error != ''">
-                    <div class="alert alert-danger" role="alert">Failed to update the data: {{error}}.</div>
+                <div class="panel-body" ng-if="vm.errorMessage != ''">
+                    <div class="alert alert-danger" role="alert">Failed to update the data: {{vm.errorMessage}}.</div>
                 </div>
 
                 <div
-                      ng-if="chartMarginCallData.length > 0"
+                      ng-if="vm.chartData.MarginCall.length > 0"
                       donut-chart
-                      donut-data="chartMarginCallData"
+                      donut-data="vm.chartData.MarginCall"
                       donut-label-color='"#000000"'
                       donut-background-color='"#ffffff"'
                       donut-colors='["#31C0BE","#c7254e","#98a0d3"]'>

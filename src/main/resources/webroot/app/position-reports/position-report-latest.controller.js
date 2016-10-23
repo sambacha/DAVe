@@ -46,10 +46,10 @@
         function loadData(){
             $http.get(restQueryUrl).success(function(data) {
                 processData(data);
-                vm.error = "";
+                vm.errorMessage = "";
                 vm.initialLoad = false;
             }).error(function(data, status, headers, config) {
-                vm.error = "Server returned status " + status;
+                vm.errorMessage = "Server returned status " + status;
                 vm.initialLoad = false;
             });
         }

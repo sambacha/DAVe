@@ -11,7 +11,8 @@
             controllerAs: 'vm'
         }).when('/dashboard', {
             templateUrl: 'app/dashboard/dashboard.html',
-            controller: 'DashboardController'
+            controller: 'DashboardController',
+            controllerAs: 'vm'
         }).when('/positionReportLatest', {
             templateUrl: 'app/position-reports/position-report-latest.html',
             controller: 'PositionReportLatestController',
