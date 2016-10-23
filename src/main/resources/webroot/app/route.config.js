@@ -89,22 +89,28 @@
             controller: 'TotalMarginRequirementHistoryController'
         }).when('/marginShortfallSurplusLatest', {
             templateUrl: 'app/margin-shortfall-surplus/margin-shortfall-surplus-latest.html',
-            controller: 'MarginShortfallSurplusLatestController'
+            controller: 'MarginShortfallSurplusLatestController',
+            controllerAs: 'vm'
         }).when('/marginShortfallSurplusLatest/:clearer', {
             templateUrl: 'app/margin-shortfall-surplus/margin-shortfall-surplus-latest.html',
-            controller: 'MarginShortfallSurplusLatestController'
+            controller: 'MarginShortfallSurplusLatestController',
+            controllerAs: 'vm'
         }).when('/marginShortfallSurplusLatest/:clearer/:pool', {
             templateUrl: 'app/margin-shortfall-surplus/margin-shortfall-surplus-latest.html',
-            controller: 'MarginShortfallSurplusLatestController'
+            controller: 'MarginShortfallSurplusLatestController',
+            controllerAs: 'vm'
         }).when('/marginShortfallSurplusLatest/:clearer/:pool/:member', {
             templateUrl: 'app/margin-shortfall-surplus/margin-shortfall-surplus-latest.html',
-            controller: 'MarginShortfallSurplusLatestController'
+            controller: 'MarginShortfallSurplusLatestController',
+            controllerAs: 'vm'
         }).when('/marginShortfallSurplusLatest/:clearer/:pool/:member/:clearingCyy', {
             templateUrl: 'app/margin-shortfall-surplus/margin-shortfall-surplus-latest.html',
-            controller: 'MarginShortfallSurplusLatestController'
+            controller: 'MarginShortfallSurplusLatestController',
+            controllerAs: 'vm'
         }).when('/marginShortfallSurplusHistory/:clearer/:pool/:member/:clearingCcy/:ccy', {
             templateUrl: 'app/margin-shortfall-surplus/margin-shortfall-surplus-history.html',
-            controller: 'MarginShortfallSurplusHistoryController'
+            controller: 'MarginShortfallSurplusHistoryController',
+            controllerAs: 'vm'
         }).when('/riskLimitLatest', {
             templateUrl: 'app/risk-limits/risk-limit-latest.html',
             controller: 'RiskLimitLatestController',

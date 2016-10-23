@@ -14,7 +14,7 @@
         vm.recordCount = 0;
         vm.viewWindow = [];
         vm.updateViewWindow = updateViewWindow;
-        vm.errorMessage = null;
+        vm.errorMessage = "";
         vm.filter = filter;
         vm.filterQuery = "";
         vm.sortRecords = sortRecords;
@@ -44,6 +44,7 @@
                 vm.initialLoad = false;
             }).error(function(data, status, headers, config) {
                 vm.error = "Server returned status " + status;
+                vm.initialLoad = false;
             });
         }
 

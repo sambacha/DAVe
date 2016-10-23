@@ -15,7 +15,7 @@
         vm.viewWindow = [];
         vm.updateViewWindow = updateViewWindow;
         vm.chartData = [];
-        vm.errorMessage = null;
+        vm.errorMessage = "";
         vm.sortRecords = sortRecords;
         vm.route = {
             "clearer": $routeParams.clearer,
