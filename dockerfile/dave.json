@@ -24,7 +24,7 @@
   },
   "ers": [
     {
-      "brokerHost": "tcp://ers-amqps",
+      "brokerHost": "ers-amqps",
       "brokerPort": 5671,
       "member": "ABCFR",
       "sslCertAlias": "abcfr",
@@ -34,7 +34,7 @@
       "keystorePassword": "123456"
     },
     {
-      "brokerHost": "tcp://ers-amqps",
+      "brokerHost": "ers-amqps",
       "brokerPort": 5671,
       "member": "DEFFR",
       "sslCertAlias": "deffr",

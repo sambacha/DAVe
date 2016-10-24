@@ -21,7 +21,7 @@ The `ers` section configures the Enhanced Risk Solution connection. It is an arr
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `brokerHost` | ERS broker hostname | `tcp://localhost.de` |
+| `brokerHost` | ERS broker hostname | `localhost.de` |
 | `brokerPort` | ERS broker port | `18080` |
 | `member` | Member ID which will be used for the ERS connection | `ABCFR` |
 | `truststore` | JKS file with the public key of the ERS broker |  |
@@ -113,8 +113,8 @@ Use script `user_manager.sh`. Script accepts one of the following commands:
 ### Insert new user record
       user_manager.sh insert USER PASSWORD
 
-### Delete existing user record      
+### Delete existing user record
       user_manager.sh delete USER
 
-### List all user records      
+### List all user records
       user_manager.sh list
