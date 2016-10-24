@@ -7,6 +7,7 @@
 
     angular.module('dave', [
         'ngRoute',
-        'angular.morris'
+        'angular.morris',
+        'googlechart'
     ]);
 })();

@@ -1,10 +1,42 @@
 <div class="row">
     <div class="col-lg-12">
-        <h1 class="page-header">DAVe Dashboard</h1>
+        <h3>DAVe Dashboard</h3>
     </div>
     <!-- /.col-lg-12 -->
 </div>
 
+<div class="row">
+    <div class="col-lg-8 col-md-10">
+        <div class="panel panel-default" ng-controller="TotalMarginRequirementTreemapController as treemap">
+            <div class="panel-heading">
+                <i class="fa fa-bar-chart-o fa-fw"></i> Total Margin Requirement
+            </div>
+            <div class="panel-body">
+                <initial-load ng-if="treemap.chartData.MarginRequirement.length == 0 && treemap.initialLoad == true && treemap.errorMessage == ''" />
+
+                <no-data ng-if="treemap.chartData.MarginRequirement.length && treemap.initialLoad == false && treemap.errorMessage == ''" />
+
+                <update-failed ng-if="treemap.errorMessage != ''" message="treemap.errorMessage"/>
+
+                <div google-chart chart="treemap.chartObject" style="height:400px; width:100%;"></div>
+
+                <a href="#/totalMarginRequirementLatest" class="btn btn-default btn-block">View Details</a>
+            </div>
+            <!-- /.panel-body -->
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <i class="fa fa-bar-chart-o fa-fw"></i> Margin Call
+            </div>
+            <div class="panel-body">
+
+            </div>
+            <!-- /.panel-body -->
+        </div>
+    </div>
+</div>
 <div class="row">
     <div class="col-lg-4 col-md-6">
         <div class="panel panel-default">
