@@ -16,7 +16,6 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.amqp.AMQPComponent;
 import org.apache.camel.impl.DefaultCamelContext;
-import org.apache.qpid.client.AMQConnectionFactory;
 import org.apache.qpid.client.PooledConnectionFactory;
 import org.apache.qpid.url.URLSyntaxException;
 
@@ -144,7 +143,7 @@ public class ERSConnectorVerticle extends AbstractVerticle {
     }
 
     private ConnectionFactory createAMQConnectionFactory() throws URLSyntaxException {
-        String connectionAddress = String.format("amqp://:@MyCamelApp/?brokerlist='%s:%d?tcp_nodelay='true'&ssl='true'&ssl_cert_alias='%s'&sasl_mechs='EXTERNAL'&trust_store='%s'&trust_store_password='%s'&key_store='%s'&key_store_password='%s'&ssl_verify_hostname='false''&sync_publish='all'",
+        String connectionAddress = String.format("amqp://:@MyCamelApp/?brokerlist='tcp://%s:%d?tcp_nodelay='true'&ssl='true'&ssl_cert_alias='%s'&sasl_mechs='EXTERNAL'&trust_store='%s'&trust_store_password='%s'&key_store='%s'&key_store_password='%s'&ssl_verify_hostname='false''&sync_publish='all'",
                 config().getString("brokerHost", ERSConnectorVerticle.DEFAULT_BROKER_HOST),
                 config().getInteger("brokerPort", ERSConnectorVerticle.DEFAULT_BROKER_PORT),
                 config().getString("sslCertAlias", ERSConnectorVerticle.DEFAULT_SSL_CERT_ALIAS),
