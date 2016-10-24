@@ -29,7 +29,7 @@
     "compression": true
   },
   "ers": [ {
-    "brokerHost": "tcp://rgd003.xeop.de",
+    "brokerHost": "rgd003.xeop.de",
     "brokerPort": 15160,
     "member": "CBKFR",
     "sslCertAlias": "cbkfr",
