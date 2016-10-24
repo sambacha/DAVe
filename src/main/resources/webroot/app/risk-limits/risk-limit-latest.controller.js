@@ -7,7 +7,7 @@
 
     angular.module('dave').controller('RiskLimitLatestController', RiskLimitLatestController);
 
-    function RiskLimitLatestController($scope, $routeParams, $http, $interval, $filter) {
+    function RiskLimitLatestController($scope, $routeParams, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService) {
         var vm = this;
         vm.initialLoad= true;
         vm.pageSize = 20;
@@ -30,7 +30,8 @@
         var currentPage = 1;
         var refresh = $interval(loadData, 60000);
         var sourceData = [];
-        var ordering = ["clearer", "member", "maintainer", "limitType"];
+        var defaultOrdering = ["clearer", "member", "maintainer", "limitType"];
+        var ordering = defaultOrdering;
         var restQueryUrl = '/api/v1.0/rl/latest/' + vm.route.clearer + '/' + vm.route.member + '/' + vm.route.maintainer + '/' + vm.route.limitType;
 
         loadData();
@@ -69,24 +70,17 @@
         }
 
         function sortRecords(column) {
-            if (ordering[0] == column)
-            {
-                ordering = ["-" + column, "clearer", "member", "maintainer", "limitType"];
-            }
-            else {
-                ordering = [column, "clearer", "member", "maintainer", "limitType"];
-            }
-
+            ordering = sortRecordsService(column, ordering, defaultOrdering);
             updateViewWindow(currentPage);
         }
 
         function updateViewWindow(page) {
             currentPage = page;
-            vm.viewWindow = $filter('orderBy')($filter('spacedFilter')(sourceData, vm.filterQuery), ordering).slice(currentPage*vm.pageSize-vm.pageSize, currentPage*vm.pageSize);
+            vm.viewWindow = updateViewWindowService(sourceData, vm.filterQuery, ordering, currentPage, vm.pageSize);
         }
 
         function filter() {
-            vm.recordCount = $filter('spacedFilter')(sourceData, vm.filterQuery).length;
+            vm.recordCount = recordCountService(sourceData, vm.filterQuery);
             updateViewWindow(currentPage);
         }
 

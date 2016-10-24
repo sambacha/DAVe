@@ -7,7 +7,7 @@
 
     angular.module('dave').controller('PositionReportLatestController', PositionReportLatestController);
 
-    function PositionReportLatestController($scope, $routeParams, $http, $interval, $filter) {
+    function PositionReportLatestController($scope, $routeParams, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService) {
         var vm = this;
         vm.initialLoad= true;
         vm.pageSize = 20;
@@ -36,7 +36,8 @@
         var currentPage = 1;
         var refresh = $interval(loadData, 60000);
         var sourceData = [];
-        var ordering = ["clearer", "member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
+        var defaultOrdering = ["clearer", "member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
+        var ordering = defaultOrdering;
         var restQueryUrl = '/api/v1.0/pr/latest/' + vm.route.clearer + '/' + vm.route.member + '/' + vm.route.account + '/' + vm.route.class + '/' + vm.route.symbol + '/' + vm.route.putCall + '/' + vm.route.strikePrice + '/' + vm.route.optAttribute + "/" + vm.route.maturityMonthYear;
 
         loadData();
@@ -82,42 +83,22 @@
         }
 
         function sortRecords(column) {
-            if (ordering[0] == column)
-            {
-                ordering = ["-" + column, "clearer", "member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
-            }
-            else {
-                ordering = [column, "clearer", "member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
-            }
-
+            ordering = sortRecordsService(column, ordering, defaultOrdering);
             updateViewWindow(currentPage);
         }
 
         function updateViewWindow(page) {
             currentPage = page;
-            vm.viewWindow = $filter('orderBy')($filter('spacedFilter')(sourceData, vm.filterQuery), ordering).slice(currentPage*vm.pageSize-vm.pageSize, currentPage*vm.pageSize);
+            vm.viewWindow = updateViewWindowService(sourceData, vm.filterQuery, ordering, currentPage, vm.pageSize);
         }
 
         function filter() {
-            vm.recordCount = $filter('spacedFilter')(sourceData, vm.filterQuery).length;
+            vm.recordCount = recordCountService(sourceData, vm.filterQuery);
             updateViewWindow(currentPage);
         }
 
         function showExtraInfo(funcKey) {
-            var extra = $("#extra-" + funcKey);
-            var extraIcon = $("#extra-icon-" + funcKey);
-
-            if (extra.hasClass("hidden"))
-            {
-                extra.removeClass("hidden");
-                extraIcon.removeClass("fa-chevron-circle-down");
-                extraIcon.addClass("fa-chevron-circle-up");
-            }
-            else {
-                extra.addClass("hidden");
-                extraIcon.removeClass("fa-chevron-circle-up");
-                extraIcon.addClass("fa-chevron-circle-down");
-            }
+            showExtraInfoService(funcKey);
         }
 
         $scope.$on("$destroy", function() {

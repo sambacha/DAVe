@@ -7,7 +7,7 @@
 
     angular.module('dave').controller('MarginComponentHistoryController', MarginComponentHistoryController);
 
-    function MarginComponentHistoryController($scope, $routeParams, $http, $interval, $filter) {
+    function MarginComponentHistoryController($scope, $routeParams, $http, $interval, $filter, sortRecordsService, updateViewWindowService) {
         var vm = this;
         vm.initialLoad= true;
         vm.pageSize = 20;
@@ -28,7 +28,8 @@
         var currentPage = 1;
         var refresh = $interval(loadData, 60000);
         var restQueryUrl = '/api/v1.0/mc/history/' + vm.route.clearer + '/' + vm.route.member + '/' + vm.route.account + '/' + vm.route.class + '/' + vm.route.ccy;
-        var ordering = ["-received"];
+        var defaultOrdering = ["-received"];
+        var ordering = defaultOrdering;
         var sourceData = [];
 
         loadData();
@@ -75,20 +76,13 @@
         }
 
         function sortRecords(column) {
-            if (ordering[0] == column)
-            {
-                ordering = ["-" + column, "-received"];
-            }
-            else {
-                ordering = [column, "-received"];
-            }
-
+            ordering = sortRecordsService(column, ordering, defaultOrdering);
             updateViewWindow(currentPage);
         }
 
         function updateViewWindow(page) {
             currentPage = page;
-            vm.viewWindow = $filter('orderBy')(sourceData, ordering).slice(currentPage*vm.pageSize-vm.pageSize, currentPage*vm.pageSize);
+            vm.viewWindow = vm.viewWindow = updateViewWindowService(sourceData, null, ordering, currentPage, vm.pageSize);
         }
 
         $scope.$on("$destroy", function() {
