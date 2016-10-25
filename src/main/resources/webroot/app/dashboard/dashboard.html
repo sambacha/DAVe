@@ -12,28 +12,42 @@
                 <i class="fa fa-bar-chart-o fa-fw"></i> Total Margin Requirement
             </div>
             <div class="panel-body">
-                <initial-load ng-if="treemap.chartData.MarginRequirement.length == 0 && treemap.initialLoad == true && treemap.errorMessage == ''" />
+                <initial-load ng-if="treemap.chartObject.data.rows.length <= 1 && treemap.initialLoad == true && treemap.errorMessage == ''" />
 
-                <no-data ng-if="treemap.chartData.MarginRequirement.length && treemap.initialLoad == false && treemap.errorMessage == ''" />
+                <no-data ng-if="treemap.chartObject.data.rows.length <= 1 && treemap.initialLoad == false && treemap.errorMessage == ''" />
 
                 <update-failed ng-if="treemap.errorMessage != ''" message="treemap.errorMessage"/>
 
-                <div google-chart chart="treemap.chartObject" style="height:400px; width:100%;"></div>
+                <div google-chart chart="treemap.chartObject" style="height:345px; width:100%;"></div>
 
                 <a href="#/totalMarginRequirementLatest" class="btn btn-default btn-block">View Details</a>
             </div>
-            <!-- /.panel-body -->
         </div>
     </div>
     <div class="col-lg-4 col-md-6">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <i class="fa fa-bar-chart-o fa-fw"></i> Margin Call
+                <i class="fa fa-bar-chart-o fa-fw"></i> Margin Shortfall / Surplus
             </div>
             <div class="panel-body">
+                <div class="panel-body" ng-if="vm.chartData.MarginShortfallSurplus.length == 0">
+                    <div class="alert alert-info" role="alert">No data available.</div>
+                </div>
 
+                <div class="panel-body" ng-if="vm.errorMessage != ''">
+                    <div class="alert alert-danger" role="alert">Failed to update the data: {{vm.errorMessage}}.</div>
+                </div>
+
+                <div
+                        ng-if="vm.chartData.MarginShortfallSurplus.length > 0"
+                        donut-chart
+                        donut-data="vm.chartData.MarginShortfallSurplus"
+                        donut-label-color='"#000000"'
+                        donut-background-color='"#ffffff"'
+                        donut-colors='["#31C0BE","#c7254e","#98a0d3"]'>
+                </div>
+                <a href="#/marginShortfallSurplusLatest" class="btn btn-default btn-block">View Details</a>
             </div>
-            <!-- /.panel-body -->
         </div>
     </div>
 </div>
@@ -65,58 +79,22 @@
             <!-- /.panel-body -->
         </div>
     </div>
-    <div class="col-lg-4 col-md-6">
-        <div class="panel panel-default">
+    <div class="col-lg-8 col-md-10">
+        <div class="panel panel-default" ng-controller="MarginComponentTreemapController as treemap2">
             <div class="panel-heading">
-                <i class="fa fa-bar-chart-o fa-fw"></i> Margin Shortfall / Surplus
+                <i class="fa fa-bar-chart-o fa-fw"></i> Initial Margin
             </div>
             <div class="panel-body">
-                <div class="panel-body" ng-if="vm.chartData.MarginShortfallSurplus.length == 0">
-                    <div class="alert alert-info" role="alert">No data available.</div>
-                </div>
+                <initial-load ng-if="treemap2.chartObject.data.rows.length <= 1 && treemap2.initialLoad == true && treemap2.errorMessage == ''" />
 
-                <div class="panel-body" ng-if="vm.errorMessage != ''">
-                    <div class="alert alert-danger" role="alert">Failed to update the data: {{vm.errorMessage}}.</div>
-                </div>
+                <no-data ng-if="treemap2.chartObject.data.rows.length <= 1 && treemap2.initialLoad == false && treemap2.errorMessage == ''" />
 
-                <div
-                      ng-if="vm.chartData.MarginShortfallSurplus.length > 0"
-                      donut-chart
-                      donut-data="vm.chartData.MarginShortfallSurplus"
-                      donut-label-color='"#000000"'
-                      donut-background-color='"#ffffff"'
-                      donut-colors='["#31C0BE","#c7254e","#98a0d3"]'>
-                </div>
-                <a href="#/marginShortfallSurplusLatest" class="btn btn-default btn-block">View Details</a>
+                <update-failed ng-if="treemap2.errorMessage != ''" message="treemap2.errorMessage"/>
+
+                <div google-chart chart="treemap2.chartObject" style="height:345px; width:100%;"></div>
+
+                <a href="#/marginComponentLatest" class="btn btn-default btn-block">View Details</a>
             </div>
-            <!-- /.panel-body -->
-        </div>
-    </div>
-    <div class="col-lg-4 col-md-6">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <i class="fa fa-bar-chart-o fa-fw"></i> Margin Call
-            </div>
-            <div class="panel-body">
-                <div class="panel-body" ng-if="vm.chartData.MarginCall.length == 0">
-                    <div class="alert alert-info" role="alert">No data available.</div>
-                </div>
-
-                <div class="panel-body" ng-if="vm.errorMessage != ''">
-                    <div class="alert alert-danger" role="alert">Failed to update the data: {{vm.errorMessage}}.</div>
-                </div>
-
-                <div
-                      ng-if="vm.chartData.MarginCall.length > 0"
-                      donut-chart
-                      donut-data="vm.chartData.MarginCall"
-                      donut-label-color='"#000000"'
-                      donut-background-color='"#ffffff"'
-                      donut-colors='["#31C0BE","#c7254e","#98a0d3"]'>
-                </div>
-                <a href="#/marginShortfallSurplusLatest" class="btn btn-default btn-block">View Details</a>
-            </div>
-            <!-- /.panel-body -->
         </div>
     </div>
 </div>

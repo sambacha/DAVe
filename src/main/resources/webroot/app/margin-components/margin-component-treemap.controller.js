@@ -5,16 +5,16 @@
 (function() {
     'use strict';
 
-    angular.module('dave').controller('TotalMarginRequirementTreemapController', TotalMarginRequirementTreemapController);
+    angular.module('dave').controller('MarginComponentTreemapController', MarginComponentTreemapController);
 
-    function TotalMarginRequirementTreemapController($scope, $http, $interval) {
+    function MarginComponentTreemapController($scope, $http, $interval) {
         var vm = this;
         vm.initialLoad= true;
         vm.errorMessage = "";
         vm.chartObject = {};
 
         var refresh = $interval(loadData, 60000);
-        var restQueryUrl = '/api/v1.0/tmr/latest/';
+        var restQueryUrl = '/api/v1.0/mc/latest/';
 
         loadData();
 
@@ -72,24 +72,38 @@
             };
 
             var index;
+            var classes = [];
             var accounts = [];
             var members = [];
-            var pools = [];
 
             for (index = 0; index < data.length; ++index) {
-                var ccy = data[index].clearer + '-' + data[index].pool + '-' + data[index].member + '-' + data[index].account + '-' + data[index].ccy;
-                var account = data[index].clearer + '-' + data[index].pool + '-' + data[index].member + '-' + data[index].account;
-                var member = data[index].clearer + '-' + data[index].pool + '-' + data[index].member;
-                var pool = data[index].clearer + '-' + data[index].pool;
+                var ccy = data[index].clearer + '-' + data[index].member + '-' + data[index].account + '-' + data[index].clss + '-' + data[index].ccy;
+                var clss = data[index].clearer + '-' + data[index].member + '-' + data[index].account + '-' + data[index].clss;
+                var account = data[index].clearer + '-' + data[index].member + '-' + data[index].account;
+                var member = data[index].clearer + '-' + data[index].member;
 
                 chartObject.data.rows.push({c: [{
                             v: ccy
                         }, {
-                            v: account
+                            v: clss
                         }, {
-                            v: data[index].adjustedMargin
+                            v: data[index].additionalMargin
                         }
                     ]});
+
+                if ($.inArray(clss, classes) === -1)
+                {
+                    chartObject.data.rows.push({c: [{
+                        v: clss
+                    }, {
+                        v: account
+                    }, {
+                        v: 0
+                    }
+                    ]});
+
+                    classes.push(clss);
+                }
 
                 if ($.inArray(account, accounts) === -1)
                 {
@@ -110,27 +124,13 @@
                     chartObject.data.rows.push({c: [{
                                 v: member
                             }, {
-                                v: pool
-                            }, {
-                                v: 0
-                            }
-                        ]});
-
-                    members.push(member);
-                }
-
-                if ($.inArray(pool, pools) === -1)
-                {
-                    chartObject.data.rows.push({c: [{
-                                v: pool
-                            }, {
                                 v: 'all'
                             }, {
                                 v: 0
                             }
                         ]});
 
-                    pools.push(pool);
+                    members.push(member);
                 }
             }
 
