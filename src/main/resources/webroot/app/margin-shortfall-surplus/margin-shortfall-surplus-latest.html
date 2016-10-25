@@ -36,10 +36,10 @@
                         <th>Mmb <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('member')"></span></th>
                         <th>Clr Ccy <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('clearingCcy')"></span></th>
                         <th>Ccy <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('ccy')"></span></th>
+                        <th>Shortfall / Surplus <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('shortfallSurplus')"></span></th>
                         <th>Rqrmt <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('marginRequirement')"></span></th>
                         <th>Collat <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('securityCollateral')"></span></th>
                         <th>Cash Bal. <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('cashBalance')"></span></th>
-                        <th>Shortfall / Surplus <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('shortfallSurplus')"></span></th>
                         <th>Margin Call <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('marginCall')"></span></th>
                         <th>Last upd. <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('received')"></span></th>
                         <th></th>
@@ -52,10 +52,10 @@
                         <td highlighter="record.member"><a href="#/marginShortfallSurplusLatest/{{record.clearer}}/{{record.pool}}/{{record.member}}">{{record.member}}</a></td>
                         <td highlighter="record.clearingCcy"><a href="#/marginShortfallSurplusLatest/{{record.clearer}}/{{record.pool}}/{{record.member}}/{{record.clearingCcy}}">{{record.clearingCcy}}</a></td>
                         <td highlighter="record.ccy">{{record.ccy}}</td>
+                        <td highlighter="record.shortfallSurplus">{{record.shortfallSurplus | number:2}}</td>
                         <td highlighter="record.marginRequirement">{{record.marginRequirement | number:2}}</td>
                         <td highlighter="record.securityCollateral">{{record.securityCollateral | number:2}}</td>
                         <td highlighter="record.cashBalance">{{record.cashBalance | number:2}}</td>
-                        <td highlighter="record.shortfallSurplus">{{record.shortfallSurplus | number:2}}</td>
                         <td highlighter="record.marginCall">{{record.marginCall | number:2}}</td>
                         <td highlighter="record.received">{{record.received | date:'HH:mm:ss.sss'}}</td>
                         <td>

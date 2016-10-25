@@ -33,10 +33,10 @@
                     <tr>
                         <th>Last upd.<span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('received')"></span></th>
                         <th>Pool Type<span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('poolType')"></span></th>
+                        <th>Shortfall / Surplus<span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('shortfallSurplus')"></span></th>
                         <th>Requirement<span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('marginRequirement')"></span></th>
                         <th>Collateral<span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('securityCollateral')"></span></th>
                         <th>Cash Balance<span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('cashBalance')"></span></th>
-                        <th>Shortfall / Surplus<span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('shortfallSurplus')"></span></th>
                         <th>Margin Call<span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('marginCall')"></span></th>
                     </tr>
                     </thead>
@@ -44,10 +44,10 @@
                     <tr ng-repeat="record in vm.viewWindow track by record.id.$oid" row-highlighter="record.id.$oid">
                         <td highlighter="record.received">{{record.received | date:'HH:mm:ss'}}</td>
                         <td highlighter="record.poolType">{{record.poolType}}</td>
+                        <td highlighter="record.shortfallSurplus">{{record.shortfallSurplus | number:2}}</td>
                         <td highlighter="record.marginRequirement">{{record.marginRequirement | number:2}}</td>
                         <td highlighter="record.securityCollateral">{{record.securityCollateral | number:2}}</td>
                         <td highlighter="record.cashBalance">{{record.cashBalance | number:2}}</td>
-                        <td highlighter="record.shortfallSurplus">{{record.shortfallSurplus | number:2}}</td>
                         <td highlighter="record.marginCall">{{record.marginCall | number:2}}</td>
                     </tr>
                     </tbody>
