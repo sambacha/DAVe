@@ -69,6 +69,7 @@ public class PositionReportModel extends AbstractModel {
         document.put("vega", message.getValue("vega"));
         document.put("rho", message.getValue("rho"));
         document.put("theta", message.getValue("theta"));
+        document.put("underlying", message.getValue("underlying"));
         document.put("received", message.getJsonObject("received").getString("$date"));
         return document;
     }
@@ -113,6 +114,7 @@ public class PositionReportModel extends AbstractModel {
         project.put("vega", 1);
         project.put("rho", 1);
         project.put("theta", 1);
+        project.put("underlying", 1);
         project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received")));
         return project;
     }
