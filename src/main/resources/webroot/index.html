@@ -86,6 +86,25 @@
                             <a href="#/dashboard"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
                         </li>
                         <li ng-class="menu.amIActive('/positionReport')">
+                            <a href="#"><i class="fa fa-line-chart fa-fw"></i> Margin Requirement<span class="fa arrow"></a>
+                            <ul class="nav nav-second-level">
+                                <li ng-class="menu.amIActive('/positionReport')">
+                                    <a href="#/positionReportLatest">Position Reports</a>
+                                </li>
+                                <li ng-class="menu.amIActive('/marginComponent')">
+                                    <a href="#/marginComponentLatest">Margin Components</a>
+                                </li>
+                                <li ng-class="menu.amIActive('/totalMarginRequirement')">
+                                    <a href="#/totalMarginRequirementLatest">Total Margin Requirements</a>
+                                </li>
+                                <li ng-class="menu.amIActive('/marginShortfallSurplus')">
+                                    <a href="#/marginShortfallSurplusLatest">Margin Shortfall Surplus</a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- Experimental drop dow menu
+                        <li ng-class="menu.amIActive('/positionReport')">
                             <a href="#/positionReportLatest"><i class="fa fa-list fa-fw"></i> Position Reports</a>
                         </li>
                         <li ng-class="menu.amIActive('/marginComponent')">
@@ -96,7 +115,7 @@
                         </li>
                         <li ng-class="menu.amIActive('/marginShortfallSurplus')">
                             <a href="#/marginShortfallSurplusLatest"><i class="fa fa-th-large fa-fw"></i> Margin Shortfall Surplus</a>
-                        </li>
+                        </li>-->
                         <li ng-class="menu.amIActive('/riskLimit')">
                             <a href="#/riskLimitLatest"><i class="fa fa-fire-extinguisher fa-fw"></i> Risk Limits</a>
                         </li>
