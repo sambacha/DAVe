@@ -3,6 +3,7 @@ function BaseHistoryController($scope, $http, $interval, sortRecordsService, rec
     var vm = this;
     vm.filterQuery = null;
     vm.processData = processData;
+    vm.processGraphData = processGraphData;
 
     function processData(data) {
         vm.sourceData = data;

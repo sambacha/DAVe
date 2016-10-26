@@ -25,7 +25,20 @@
         vm.ordering = vm.defaultOrdering;
         vm.getTickFromRecord = getTickFromRecord;
         vm.getRestQueryUrl = getRestQueryUrl;
+        vm.processData = processData;
         vm.loadData();
+
+        function processData(data) {
+            var index;
+            for (index = 0; index < data.length; ++index) {
+                data[index].netLS = data[index].crossMarginLongQty - data[index].crossMarginShortQty;
+                data[index].netEA = (data[index].optionExcerciseQty - data[index].optionAssignmentQty) + (data[index].allocationTradeQty - data[index].deliveryNoticeQty);
+            }
+            vm.sourceData = data;
+            vm.recordCount = data.length;
+            vm.updateViewWindow(vm.currentPage);
+            vm.processGraphData(data);
+        }
 
         function getTickFromRecord(record) {
             var tick = {
