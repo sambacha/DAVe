@@ -1,0 +1,68 @@
+<div class="row">
+    <div class="col-lg-12">
+        <h3>Position Report History</h3>
+    </div>
+    <!-- /.col-lg-12 -->
+</div>
+<!-- /.row -->
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                Position Report History: <a href="#/positionReportLatest/{{vm.route.clearer}}">{{vm.route.clearer}}</a> 
+                / <a href="#/positionReportLatest/{{vm.route.clearer}}/{{vm.route.member}}">{{vm.route.member}}</a> 
+                / <a href="#/positionReportLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}">{{vm.route.account}}</a> 
+                / <a href="#/positionReportLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.symbol}}">{{vm.route.symbol}}</a>
+                / <a href="#/positionReportLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.symbol}}/{{vm.route.putCall}}">{{vm.route.putCall}}</a>
+                / <a href="#/positionReportLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.symbol}}/{{vm.route.putCall}}/{{vm.route.strikePrice}}">{{vm.route.strikePrice}}</a>
+                / <a href="#/positionReportLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.symbol}}/{{vm.route.putCall}}/{{vm.route.strikePrice}}/{{vm.route.optAttribute}}">{{vm.route.optAttribute}}</a>
+                / <a href="#/positionReportLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.symbol}}/{{vm.route.putCall}}/{{vm.route.strikePrice}}/{{vm.route.optAttribute}}/{{vm.route.maturityMonthYear}}">{{vm.route.maturityMonthYear}}</a>
+            </div>
+
+            <initial-load ng-if="vm.recordCount == 0 && vm.initialLoad == true && vm.errorMessage == ''" />
+
+            <no-data ng-if="vm.recordCount == 0 && vm.initialLoad == false && vm.errorMessage == ''" />
+
+            <update-failed ng-if="vm.errorMessage != ''" message="vm.errorMessage"/>
+
+            <div class="panel-body" ng-if="vm.chartData.length > 0">
+                <div id="prHistoryChart" line-chart line-data="vm.chartData" line-xkey='period' line-ykeys='["netLS", "netEA"]' line-labels='["NetLS", "NetEA"]' line-colors='["#31C0BE", "#c7254e"]'></div>
+            </div>
+
+            <!-- /.panel-heading -->
+            <div class="panel-body" ng-if="vm.viewWindow.length > 0">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                    <tr>
+                        <th class="sorting">Last update <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Time when DAVe received the last update" aria-hidden="true"></i> <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('received')"></span></th>
+                        <th>NetLS <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Net position" aria-hidden="true"></i> <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('netLS')"></span></th>
+                        <th>NetEA <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="?????" aria-hidden="true"></i> <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('netEA')"></span></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="record in vm.viewWindow track by record.id.$oid" row-highlighter="record.id.$oid">
+                        <td highlighter="record.received">{{record.received | date:'HH:mm:ss'}}</td>
+                        <td highlighter="record.netLS">{{record.netLS | number:2}}</td>
+                        <td highlighter="record.netEA">{{record.netEA | number:2}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.panel-body -->
+
+            <div class="panel-footer">
+                <table-summary total="vm.recordCount" shown="vm.viewWindow.length"></table-summary>
+
+                <paging page-size="vm.pageSize" total-records="vm.recordCount" update-callback="vm.updateViewWindow"></paging>
+            </div>
+        </div>
+        <!-- /.panel -->
+    </div>
+    <!-- /.col-lg-12 -->
+</div>
+
+<script language="JavaScript">
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+    })
+</script>

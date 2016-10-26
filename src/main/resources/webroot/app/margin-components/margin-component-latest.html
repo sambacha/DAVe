@@ -1,0 +1,81 @@
+<div class="row">
+    <div class="col-lg-12">
+        <h3>Margin Components</h3>
+    </div>
+    <!-- /.col-lg-12 -->
+</div>
+<!-- /.row -->
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <a href="#/marginComponentLatest">Latest Margin Components</a>
+                <span ng-if="vm.route.clearer != '*'">: <a href="#/marginComponentLatest/{{vm.route.clearer}}">{{vm.route.clearer}}</a></span>
+                <span ng-if="vm.route.member != '*'"> / <a href="#/marginComponentLatest/{{vm.route.clearer}}/{{vm.route.member}}">{{vm.route.member}}</a></span>
+                <span ng-if="vm.route.account != '*'"> / <a href="#/marginComponentLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}">{{vm.route.account}}</a></span>
+                <span ng-if="vm.route.class != '*'"> / <a href="#/marginComponentLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.class}}">{{vm.route.class}}</a></span>
+
+                <div class="pull-right">
+                    <form class="pull-right" role="search" style="margin-top: -4px">
+                        <div class="form-group-sm">
+                            <input type="text" class="form-control input-sm" placeholder="Search" ng-model="vm.filterQuery" ng-change="vm.filter()">
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <initial-load ng-if="vm.recordCount == 0 && vm.initialLoad == true && vm.errorMessage == ''" />
+
+            <no-data ng-if="vm.recordCount == 0 && vm.initialLoad == false && vm.errorMessage == ''" />
+
+            <update-failed ng-if="vm.errorMessage != ''" message="vm.errorMessage"/>
+
+            <!-- /.panel-heading -->
+            <div class="panel-body" ng-if="vm.viewWindow.length > 0">
+                <table class="table table-striped table-bordered table-hover">
+                    <thead>
+                    <tr>
+                        <th>Mmb <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('member')"></span></th>
+                        <th>Acc <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('account')"></span></th>
+                        <th>Clss <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('clss')"></span></th>
+                        <th>Ccy <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('ccy')"></span></th>
+                        <th>Vari <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('variationMargin')"></span></th>
+                        <th>Prem <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('premiumMargin')"></span></th>
+                        <th>Liqui <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('liquiMargin')"></span></th>
+                        <th>Spread <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('spreadMargin')"></span></th>
+                        <th>Addi <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('additionalMargin')"></span></th>
+                        <th>Last upd. <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('received')"></span></th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="record in vm.viewWindow track by record.functionalKey" row-highlighter="record.functionalKey">
+                        <td highlighter="record.member"><a href="#/marginComponentLatest/{{record.clearer}}/{{record.member}}">{{record.member}}</a></td>
+                        <td highlighter="record.account"><a href="#/marginComponentLatest/{{record.clearer}}/{{record.member}}/{{record.account}}">{{record.account}}</a></td>
+                        <td highlighter="record.clss"><a href="#/marginComponentLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{record.clss}}">{{record.clss}}</a></td>
+                        <td highlighter="record.ccy">{{record.ccy}}</td>
+                        <td highlighter="record.variationMargin">{{record.variationMargin | number:2}}</td>
+                        <td highlighter="record.premiumMargin">{{record.premiumMargin | number:2}}</td>
+                        <td highlighter="record.liquiMargin">{{record.liquiMargin | number:2}}</td>
+                        <td highlighter="record.spreadMargin">{{record.spreadMargin | number:2}}</td>
+                        <td highlighter="record.additionalMargin">{{record.additionalMargin | number:2}}</td>
+                        <td highlighter="record.received">{{record.received | date:'HH:mm:ss.sss'}}</td>
+                        <td>
+                            <a href="#/marginComponentHistory/{{record.clearer}}/{{record.member}}/{{record.account}}/{{record.clss}}/{{record.ccy}}"><span class="fa fa-bar-chart-o" aria-hidden="true" title="Detail"></span></a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.panel-body -->
+
+            <div class="panel-footer">
+                <table-summary total="vm.recordCount" shown="vm.viewWindow.length"></table-summary>
+
+                <paging page-size="vm.pageSize" total-records="vm.recordCount" update-callback="vm.updateViewWindow"></paging>
+            </div>
+        </div>
+        <!-- /.panel -->
+    </div>
+    <!-- /.col-lg-12 -->
+</div>
