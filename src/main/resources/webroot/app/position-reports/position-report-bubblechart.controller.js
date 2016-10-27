@@ -21,6 +21,16 @@
 
         function loadData(){
             $http.get(restQueryUrl).success(function(data) {
+                function compare(a, b) {
+                    var first = a.symbol + '-' + a.maturityMonthYear;
+                    var second = b.symbol + '-' + b.maturityMonthYear;
+                    if (first < second)
+                      return -1;
+                    if (first > second)
+                      return 1;
+                    return 0;
+                }
+                data.sort(compare);
                 processGraphData(data);
                 vm.errorMessage = "";
                 vm.initialLoad = false;
