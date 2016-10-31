@@ -18,7 +18,7 @@ resource "aws_instance" "worker" {
     key_name = "${var.default_keypair_name}"
 
     tags {
-      Name = "worker-${count.index}"
+      Name = "dave-k8s-worker-${count.index}"
       Owner = "${var.owner}"
       Application = "${var.application}"
       Confidentiality = "${var.confidentality}"

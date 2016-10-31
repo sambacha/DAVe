@@ -16,7 +16,7 @@ resource "aws_instance" "etcd" {
     key_name = "${var.default_keypair_name}"
 
     tags {
-      Name = "etcd-${count.index}"
+      Name = "dave-k8s-etcd-${count.index}"
       Owner = "${var.owner}"
       Application = "${var.application}"
       Confidentiality = "${var.confidentality}"
