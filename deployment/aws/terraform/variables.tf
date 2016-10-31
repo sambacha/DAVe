@@ -2,7 +2,7 @@
 
 variable control_cidr {
   description = "CIDR for maintenance: inbound traffic will be allowed from this IPs"
-  default = ["88.208.76.87/32", "193.29.76.161/32"]
+  default = ["88.208.76.87/32", "193.29.76.166/32"]
 }
 
 # Key
@@ -70,11 +70,11 @@ variable kubernetes_pod_cidr {
 
 variable default_ami {
   description = "Default AMI for all nodes"
-  default = "ami-0044b96f"
+  default = "	ami-8504fdea"
 }
 
 variable default_instance_user {
-  default = "ec2-user"
+  default = "ubuntu"
 }
 
 variable etcd_instance_type {
