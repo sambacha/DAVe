@@ -8,7 +8,7 @@
 
   tasks:
     - name: Install Python
-      raw: "yum -y install python27"
+      raw: "apt-get -y -q install python"
       become: true
       retries: 10
       delay: 20

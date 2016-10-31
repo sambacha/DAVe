@@ -33,12 +33,12 @@
     no_log: True
   - set_fact:
      kubernetes_nodes_addresses: "{{ node_addresses_tmp.results|map(attribute='item')|selectattr('type','equalto','InternalIP')|map(attribute='address')|list }}"
-#  - debug: var=kubernetes_nodes_addresses
+  - debug: var=kubernetes_nodes_addresses
 
   # Extract Pod CIDRs
   - set_fact:
       kubernetes_pod_cidrs: "{{ kubernetes_nodes['items']|map(attribute='spec')|map(attribute='podCIDR')|list }}"
-#  - debug: var=kubernetes_pod_cidrs
+  - debug: var=kubernetes_pod_cidrs
 
   - name: Add pod routes
     command: "route add -net {{ item.0|ipaddr('network') }} netmask {{ item.0|ipaddr('netmask') }} gw {{ item.1|ipaddr('address') }} metric 1"

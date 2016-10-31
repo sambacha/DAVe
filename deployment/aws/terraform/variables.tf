@@ -70,7 +70,7 @@ variable kubernetes_pod_cidr {
 
 variable default_ami {
   description = "Default AMI for all nodes"
-  default = "	ami-8504fdea"
+  default = "ami-8504fdea"
 }
 
 variable default_instance_user {

@@ -52,6 +52,7 @@
     - docker-containerd-ctr
     - docker-containerd-shim
     - docker-runc
+    - dockerd
   become: true
 
 - name: Add docker systemd unit
