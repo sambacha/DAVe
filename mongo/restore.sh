@@ -1,7 +1,7 @@
 #!/bin/bash
 
 MONGO_DB=DAVe-TTSave
-DUMP_DIR=mongo/DAVe-TTsave
+DUMP_DIR=mongo/DAVe-TTSave
 
 mongorestore -c "ers.TradingSessionStatus" -d ${MONGO_DB} ${DUMP_DIR}/ers.TradingSessionStatus.bson
 mongorestore -c "ers.TradingSessionStatus.latest" -d ${MONGO_DB} ${DUMP_DIR}/ers.TradingSessionStatus.latest.bson
