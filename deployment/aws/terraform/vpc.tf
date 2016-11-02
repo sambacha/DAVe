@@ -55,7 +55,7 @@ resource "aws_subnet" "kubernetes" {
   availability_zone = "${var.zone}"
 
   tags {
-    Name = "kubernetes"
+    Name = "${var.vpc_name}"
     Owner = "${var.owner}"
     Application = "${var.application}"
     Confidentiality = "${var.confidentality}"
@@ -66,7 +66,7 @@ resource "aws_subnet" "kubernetes" {
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.kubernetes.id}"
   tags {
-    Name = "kubernetes"
+    Name = "${var.vpc_name}"
     Owner = "${var.owner}"
     Application = "${var.application}"
     Confidentiality = "${var.confidentality}"
@@ -88,7 +88,7 @@ resource "aws_route_table" "kubernetes" {
     }
 
     tags {
-      Name = "kubernetes"
+      Name = "${var.vpc_name}"
       Owner = "${var.owner}"
       Application = "${var.application}"
       Confidentiality = "${var.confidentality}"
@@ -108,10 +108,10 @@ resource "aws_route_table_association" "kubernetes" {
 
 resource "aws_security_group" "kubernetes" {
   vpc_id = "${aws_vpc.kubernetes.id}"
-  name = "kubernetes"
+  name = "${var.vpc_name}"
 
   tags {
-    Name = "kubernetes"
+    Name = "${var.vpc_name}"
     Owner = "${var.owner}"
     Application = "${var.application}"
     Confidentiality = "${var.confidentality}"
