@@ -136,7 +136,7 @@ resource "aws_iam_role_policy" "kubernetes-worker" {
 EOF
 }
 
-resource "aws_iam_role_policy" "kubernetes-etcd" {
+/*resource "aws_iam_role_policy" "kubernetes-etcd" {
   name = "dave-k8s-etcd"
   role = "${aws_iam_role.kubernetes-etcd.id}"
   policy = <<EOF
@@ -151,7 +151,7 @@ resource "aws_iam_role_policy" "kubernetes-etcd" {
     ]
   }
 EOF
-}
+}*/
 
 # IAM Instance Profile for Controller
 resource  "aws_iam_instance_profile" "kubernetes-controller" {
