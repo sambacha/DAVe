@@ -7,7 +7,7 @@ resource "aws_instance" "controller" {
     ami = "${var.default_ami}"
     instance_type = "${var.controller_instance_type}"
 
-    //iam_instance_profile = "${aws_iam_instance_profile.kubernetes.id}"
+    iam_instance_profile = "${aws_iam_instance_profile.kubernetes-controller.id}"
 
     subnet_id = "${aws_subnet.kubernetes.id}"
     private_ip = "${cidrhost(var.vpc_cidr, 20 + count.index)}"

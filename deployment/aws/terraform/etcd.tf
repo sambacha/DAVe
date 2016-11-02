@@ -7,6 +7,8 @@ resource "aws_instance" "etcd" {
     ami = "${var.default_ami}"
     instance_type = "${var.etcd_instance_type}"
 
+    iam_instance_profile = "${aws_iam_instance_profile.kubernetes-etcd.id}"
+
     subnet_id = "${aws_subnet.kubernetes.id}"
     private_ip = "${cidrhost(var.vpc_cidr, 10 + count.index)}"
     associate_public_ip_address = true # Instances have public, dynamic IP
