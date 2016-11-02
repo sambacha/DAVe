@@ -51,7 +51,7 @@ resource "aws_vpc_dhcp_options_association" "dns_resolver" {
 # Subnet (public)
 resource "aws_subnet" "kubernetes" {
   vpc_id = "${aws_vpc.kubernetes.id}"
-  cidr_block = "${var.vpc_cidr}"
+  cidr_block = "${var.vpc_subnet_cidr}"
   availability_zone = "${var.zone}"
 
   tags {
@@ -143,7 +143,7 @@ resource "aws_security_group_rule" "allow_all_from_vpc" {
     from_port = 0
     to_port = 0
     protocol = "-1"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = ["${var.vpc_subnet_cidr}"]
     security_group_id = "${aws_security_group.kubernetes.id}"
 }
 

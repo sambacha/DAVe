@@ -2,7 +2,7 @@
 
 variable control_cidr {
   description = "CIDR for maintenance: inbound traffic will be allowed from this IPs"
-  default = ["88.208.76.87/32", "193.29.76.166/32"]
+  default = ["88.208.76.87/32", "193.29.76.166/32", "193.29.76.163/32"]
 }
 
 # Key
@@ -59,11 +59,15 @@ variable elb_name {
 ### VARIABLES BELOW MUST NOT BE CHANGED ###
 
 variable vpc_cidr {
+  default = "172.35.0.0/16"
+}
+
+variable vpc_subnet_cidr {
   default = "172.35.0.0/24"
 }
 
 variable kubernetes_pod_cidr {
-  default = "172.35.2.0/24"
+  default = "172.35.32.0/19"
 }
 
 # Instances Setup
