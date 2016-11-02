@@ -102,7 +102,17 @@
     <div class="col-lg-12 col-md-10">
         <div class="panel panel-default" ng-controller="PositionReportBubbleChartController as bubbleChart">
             <div class="panel-heading">
-                <i class="fa fa-bar-chart-o fa-fw"></i> Position Reports
+                <div>
+                  <i class="fa fa-bar-chart-o fa-fw"></i> Position Reports
+                  <div class="pull-right">
+                    <label>{{bubbleChart.accountSelection.selectedOption.member}} / </label>
+                    <select name="seriesSelect" id="seriesSelect"
+                        ng-options="option.account group by option.member for option in bubbleChart.accountSelection.availableOptions"
+                        ng-model="bubbleChart.accountSelection.selectedOption"
+                        ng-change="bubbleChart.selectionChanged(bubbleChart.accountSelection.selectedOption)">
+                    </select>
+                  </div>
+                </div>
             </div>
             <div class="panel-body">
                 <initial-load ng-if="bubbleChart.chartObject.data.rows.length <= 1 && bubbleChart.initialLoad === true && bubbleChart.errorMessage === ''" />
