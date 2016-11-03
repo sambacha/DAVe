@@ -15,18 +15,23 @@
         vm.chartObject = createEmptyChartObject();
         vm.accountSelection = { accountSet: {}, availableOptions: [], selectedOption: null };
         vm.selectionChanged = selectionChanged;
+        vm.topRecordsCount = "20";
 
         var refresh = $interval(loadData, 60000);
         var restQueryUrl = '/api/v1.0/pr/latest/';
-        var bubbles = new Map();
+        var bubblesMap = new Map();
+        var compVarPositiveLegend = "Compvar positive";
+        var compVarNegativeLegend = "Compvar negative";
 
         function createEmptyChartObject() {
             var chartObject = {};
             chartObject.type = "BubbleChart";
             chartObject.options = {
                     explorer: { actions: ['dragToZoom', 'rightClickToReset'] },
-                    hAxis: {title: 'Series-Maturity', ticks: []},
+                    legend: {position: 'top'},
+                    hAxis: {title: 'Series-Maturity', ticks: [],  slantedText:true },
                     vAxis: {title: 'Underlying', ticks: []},
+                    chartArea: {height: "50%"},
                     backgroundColor: {
                         fill: 'transparent'
                     },
@@ -60,16 +65,6 @@
 
         function loadData(){
             $http.get(restQueryUrl).success(function(data) {
-                function compare(a, b) {
-                    var first = a.symbol + '-' + a.maturityMonthYear;
-                    var second = b.symbol + '-' + b.maturityMonthYear;
-                    if (first < second)
-                      return -1;
-                    if (first > second)
-                      return 1;
-                    return 0;
-                }
-                data.sort(compare);
                 processGraphData(data);
                 vm.errorMessage = "";
                 vm.initialLoad = false;
@@ -84,7 +79,6 @@
                 addRecordToBubbles(data[index]);
                 addAccountToSelection(data[index]);
             }
-
             selectionChanged(vm.accountSelection.selectedOption);
 
             function addAccountToSelection(record) {
@@ -105,10 +99,11 @@
             function addRecordToBubbles(record) {
                 var bubbleKey = record.clearer + '-' + record.member + '-' + record.account + '-' + record.symbol + '-' + record.maturityMonthYear;
                 var radius = record.compVar;
-                if (bubbleKey in bubbles.keys()) {
-                    bubbles.get(bubbleKey).radius += radius;
+                if (bubbleKey in bubblesMap.keys()) {
+                    bubblesMap.get(bubbleKey).radius += radius;
                 } else {
-                    bubbles.set(bubbleKey, {
+                    bubblesMap.set(bubbleKey, {
+                        key: bubbleKey,
                         clearer: record.clearer,
                         member: record.member,
                         account: record.account,
@@ -122,6 +117,52 @@
             }
         }
 
+        function getLargestBubbles(selection) {
+            var totalPositiveCompVar = 0;
+            var topNPositiveCompVar = 0;
+            var topNNegativeCompVar = 0;
+            var totalNegativeCompVar = 0;
+            var positiveBubbles = [];
+            var negativeBubbles = [];
+            bubblesMap.forEach(function(bubble, bubbleKey, mapObj) {
+                if (bubble.clearer !== selection.clearer || bubble.member !== selection.member || bubble.account !== selection.account) {
+                  return;
+                }
+                if (bubble.radius >= 0 ) {
+                    positiveBubbles.push(bubble);
+                    totalPositiveCompVar += bubble.radius;
+                } else {
+                    negativeBubbles.push(bubble);
+                    totalNegativeCompVar += Math.abs(bubble.radius);
+                }
+            });
+            positiveBubbles = positiveBubbles.sort(function(a, b) { return b - a; }).slice(1, parseInt(vm.topRecordsCount) + 1);
+            negativeBubbles = negativeBubbles.sort(function(a, b) { return a - b; }).slice(1, parseInt(vm.topRecordsCount) + 1);
+            positiveBubbles.forEach(function(bubble) {
+                topNPositiveCompVar += bubble.radius;
+            });
+            negativeBubbles.forEach(function(bubble) {
+                topNNegativeCompVar += Math.abs(bubble.radius);
+            });
+            if (totalPositiveCompVar > 0) {
+                compVarPositiveLegend = "Compvar positive (" + parseFloat((topNPositiveCompVar / totalPositiveCompVar) * 100).toFixed(2) + "%)";
+            }
+            if (totalNegativeCompVar > 0) {
+                compVarNegativeLegend = "Compvar negative (" + parseFloat((topNNegativeCompVar / totalNegativeCompVar) * 100).toFixed(2) + "%)";
+            }
+            var bubbles = negativeBubbles.concat(positiveBubbles);
+            bubbles.sort(function(a, b) {
+                var first = a.symbol + '-' + a.maturityMonthYear;
+                var second = b.symbol + '-' + b.maturityMonthYear;
+                if (first < second)
+                  return -1;
+                if (first > second)
+                  return 1;
+                return 0;
+            });
+            return bubbles;
+        }
+
         function selectionChanged(selection) {
             if (selection === null) return;
             var series = {};
@@ -131,14 +172,12 @@
             var rows = [];
             var hTicks = [];
             var vTicks = [];
-            bubbles.forEach(function(bubble, bubbleKey, mapObj) {
-                if (bubble.clearer !== selection.clearer || bubble.member !== selection.member || bubble.account !== selection.account) {
-                  return;
-                }
-                var hAxisKey = bubble.symbol + '-' + bubble.maturityMonthYear;
-                var vAxisKey = bubble.underlying;
+            var bubbles = getLargestBubbles(selection);
+            for (var i = 0; i < bubbles.length; i++) {
+                var hAxisKey = bubbles[i].symbol + '-' + bubbles[i].maturityMonthYear;
+                var vAxisKey = bubbles[i].underlying;
                 if (!(hAxisKey in series)) {
-                    if (bubble.putCall && 0 !== bubble.putCall.length) {
+                    if (bubbles[i].putCall && 0 !== bubbles[i].putCall.length) {
                         hIndex.optionsIndex++;
                         hTicks.push({v: hIndex.optionsIndex, f: hAxisKey});
                         series[hAxisKey] = hIndex.optionsIndex;
@@ -155,18 +194,21 @@
                 }
 
                 rows.push({c: [{
-                            v: bubbleKey
+                            v: bubbles[i].key
                         }, {
                             v: series[hAxisKey]
                         }, {
                             v: underlyings[vAxisKey]
                         }, {
-                            v: bubbles.get(bubbleKey).radius >= 0 ? "Compvar positive" : "Compvar negative"
+                            v: bubbles[i].radius >= 0 ? compVarPositiveLegend : compVarNegativeLegend
                         }, {
-                            v: Math.abs(bubbles.get(bubbleKey).radius)
+                            v: Math.abs(bubbles[i].radius)
                         }
                     ]});
-            });
+            }
+            vm.chartObject.options.series = {};
+            vm.chartObject.options.series[compVarPositiveLegend] = {color: 'red'};
+            vm.chartObject.options.series[compVarNegativeLegend] = {color: 'green'};
             vm.chartObject.options.hAxis.ticks = hTicks;
             vm.chartObject.options.vAxis.ticks = vTicks;
             vm.chartObject.data.rows = rows;
