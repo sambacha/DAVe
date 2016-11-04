@@ -18,8 +18,6 @@
 
         loadData();
 
-        ////////////////////
-
         function loadData(){
             $http.get(restQueryUrl).success(function(data) {
                 processGraphData(data);
@@ -38,9 +36,9 @@
                     backgroundColor: {
                         fill: 'transparent'
                     },
-                    minColor: '#f00',
-                    midColor: '#ddd',
-                    maxColor: '#0d0',
+//                    minColor: '#f00',
+//                    midColor: '#ddd',
+//                    maxColor: '#0d0',
                     fontColor: 'black',
                     showScale: false,
                     highlightOnMouseOver: true,
@@ -72,9 +70,9 @@
             };
 
             var index;
-            var classes = [];
-            var accounts = [];
-            var members = [];
+            var classes = {};
+            var accounts = {};
+            var members = {};
 
             for (index = 0; index < data.length; ++index) {
                 var ccy = data[index].clearer + '-' + data[index].member + '-' + data[index].account + '-' + data[index].clss + '-' + data[index].ccy;
@@ -91,7 +89,7 @@
                         }
                     ]});
 
-                if ($.inArray(clss, classes) === -1)
+                if (!(clss in classes))
                 {
                     chartObject.data.rows.push({c: [{
                         v: clss
@@ -102,10 +100,10 @@
                     }
                     ]});
 
-                    classes.push(clss);
+                    classes[clss] = true;
                 }
 
-                if ($.inArray(account, accounts) === -1)
+                if (!(account in accounts))
                 {
                     chartObject.data.rows.push({c: [{
                                 v: account
@@ -116,10 +114,10 @@
                             }
                         ]});
 
-                    accounts.push(account);
+                    accounts[account] = true;
                 }
 
-                if ($.inArray(member, members) === -1)
+                if (!(member in members))
                 {
                     chartObject.data.rows.push({c: [{
                                 v: member
@@ -130,7 +128,7 @@
                             }
                         ]});
 
-                    members.push(member);
+                    members[member] = true;
                 }
             }
 
@@ -138,7 +136,7 @@
         }
 
         $scope.$on("$destroy", function() {
-            if (refresh != null) {
+            if (refresh !== null) {
                 $interval.cancel(refresh);
             }
         });

@@ -20,15 +20,17 @@
         var refresh = $interval(loadData, 60000);
         var restQueryUrl = '/api/v1.0/pr/latest/';
         var bubblesMap = new Map();
-        var compVarPositiveLegend = "Compvar positive";
-        var compVarNegativeLegend = "Compvar negative";
+        var compVarPositiveLegend = "Positive";
+        var compVarNegativeLegend = "Negative";
+        var positiveCoveragePerc = 0;
+        var negativeCoveragePerc = 0;
 
         function createEmptyChartObject() {
             var chartObject = {};
             chartObject.type = "BubbleChart";
             chartObject.options = {
                     explorer: { actions: ['dragToZoom', 'rightClickToReset'] },
-                    legend: {position: 'top'},
+                    legend: {position: 'right'},
                     hAxis: {title: 'Series-Maturity', ticks: [],  slantedText:true },
                     vAxis: {title: 'Underlying', ticks: []},
                     chartArea: {height: "50%"},
@@ -36,6 +38,7 @@
                         fill: 'transparent'
                     },
                     bubble: {textStyle: {color: 'none'}},
+                    series: {Positive: {color: 'red'}, Negative: {color: 'green'}},
                     fontColor: 'black',
                     sortBubblesBySize: true
                 };
@@ -145,10 +148,10 @@
                 topNNegativeCompVar += Math.abs(bubble.radius);
             });
             if (totalPositiveCompVar > 0) {
-                compVarPositiveLegend = "Compvar positive (" + parseFloat((topNPositiveCompVar / totalPositiveCompVar) * 100).toFixed(2) + "%)";
+                positiveCoveragePerc = parseFloat((topNPositiveCompVar / totalPositiveCompVar) * 100).toFixed(2);
             }
             if (totalNegativeCompVar > 0) {
-                compVarNegativeLegend = "Compvar negative (" + parseFloat((topNNegativeCompVar / totalNegativeCompVar) * 100).toFixed(2) + "%)";
+                negativeCoveragePerc = parseFloat((topNNegativeCompVar / totalNegativeCompVar) * 100).toFixed(2);
             }
             var bubbles = negativeBubbles.concat(positiveBubbles);
             bubbles.sort(function(a, b) {
@@ -206,9 +209,7 @@
                         }
                     ]});
             }
-            vm.chartObject.options.series = {};
-            vm.chartObject.options.series[compVarPositiveLegend] = {color: 'red'};
-            vm.chartObject.options.series[compVarNegativeLegend] = {color: 'green'};
+            vm.chartObject.options.title = "Records cover " + positiveCoveragePerc + "% of positive and " + negativeCoveragePerc + "% of negative total CompVaR";
             vm.chartObject.options.hAxis.ticks = hTicks;
             vm.chartObject.options.vAxis.ticks = vTicks;
             vm.chartObject.data.rows = rows;
