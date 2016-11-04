@@ -43,19 +43,33 @@ resource "aws_vpc_dhcp_options_association" "dns_resolver" {
 #  public_key = "${var.default_keypair_public_key}"
 #}
 
-
 ############
 ## Subnets
 ############
 
 # Subnet (public)
-resource "aws_subnet" "kubernetes" {
+resource "aws_subnet" "jumpnet" {
   vpc_id = "${aws_vpc.kubernetes.id}"
-  cidr_block = "${var.vpc_subnet_cidr}"
+  cidr_block = "${var.vpc_public_subnet_cidr}"
   availability_zone = "${var.zone}"
 
   tags {
-    Name = "${var.vpc_name}"
+    Name = "${var.vpc_name}-jumpnet"
+    Owner = "${var.owner}"
+    Application = "${var.application}"
+    Confidentiality = "${var.confidentality}"
+    Costcenter = "${var.costcenter}"
+  }
+}
+
+# Subnet (private)
+resource "aws_subnet" "kubernetes" {
+  vpc_id = "${aws_vpc.kubernetes.id}"
+  cidr_block = "${var.vpc_private_subnet_cidr}"
+  availability_zone = "${var.zone}"
+
+  tags {
+    Name = "${var.vpc_name}-kubernetes"
     Owner = "${var.owner}"
     Application = "${var.application}"
     Confidentiality = "${var.confidentality}"
@@ -74,11 +88,22 @@ resource "aws_internet_gateway" "gw" {
   }
 }
 
+resource "aws_eip" "nat" {
+  vpc      = true
+}
+
+resource "aws_nat_gateway" "nat" {
+    allocation_id = "${aws_eip.nat.id}"
+    subnet_id = "${aws_subnet.jumpnet.id}"
+
+    depends_on = ["aws_internet_gateway.gw"]
+}
+
 ############
 ## Routing
 ############
 
-resource "aws_route_table" "kubernetes" {
+resource "aws_route_table" "jumpnet" {
     vpc_id = "${aws_vpc.kubernetes.id}"
 
     # Default route through Internet Gateway
@@ -88,7 +113,30 @@ resource "aws_route_table" "kubernetes" {
     }
 
     tags {
-      Name = "${var.vpc_name}"
+      Name = "${var.vpc_name}-jumpnet"
+      Owner = "${var.owner}"
+      Application = "${var.application}"
+      Confidentiality = "${var.confidentality}"
+      Costcenter = "${var.costcenter}"
+    }
+}
+
+resource "aws_route_table_association" "jumpnet" {
+  subnet_id = "${aws_subnet.jumpnet.id}"
+  route_table_id = "${aws_route_table.jumpnet.id}"
+}
+
+resource "aws_route_table" "kubernetes" {
+    vpc_id = "${aws_vpc.kubernetes.id}"
+
+    # Default route through Internet Gateway
+    route {
+      cidr_block = "0.0.0.0/0"
+      gateway_id = "${aws_nat_gateway.nat.id}"
+    }
+
+    tags {
+      Name = "${var.vpc_name}-kubernetes"
       Owner = "${var.owner}"
       Application = "${var.application}"
       Confidentiality = "${var.confidentality}"
@@ -101,10 +149,59 @@ resource "aws_route_table_association" "kubernetes" {
   route_table_id = "${aws_route_table.kubernetes.id}"
 }
 
-
 ############
 ## Security
 ############
+
+resource "aws_security_group" "jumpnet" {
+  vpc_id = "${aws_vpc.kubernetes.id}"
+  name = "${var.vpc_name}-jumpnet"
+
+  tags {
+    Name = "${var.vpc_name}-jumpnet"
+    Owner = "${var.owner}"
+    Application = "${var.application}"
+    Confidentiality = "${var.confidentality}"
+    Costcenter = "${var.costcenter}"
+  }
+}
+
+resource "aws_security_group_rule" "allow_all_outbound_from_jumpnet" {
+    type = "egress"
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    security_group_id = "${aws_security_group.jumpnet.id}"
+}
+
+resource "aws_security_group_rule" "allow_all_from_control_host" {
+    count = "${length(var.control_cidr)}"
+    type = "ingress"
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["${var.control_cidr[count.index]}"]
+    security_group_id = "${aws_security_group.jumpnet.id}"
+}
+
+resource "aws_security_group_rule" "allow_all_from_public_subnect_to_jumpnet" {
+    type = "ingress"
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["${var.vpc_public_subnet_cidr}"]
+    security_group_id = "${aws_security_group.jumpnet.id}"
+}
+
+resource "aws_security_group_rule" "allow_all_from_private_subnet_to_jumpnet" {
+    type = "ingress"
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["${var.vpc_private_subnet_cidr}"]
+    security_group_id = "${aws_security_group.jumpnet.id}"
+}
 
 resource "aws_security_group" "kubernetes" {
   vpc_id = "${aws_vpc.kubernetes.id}"
@@ -119,7 +216,7 @@ resource "aws_security_group" "kubernetes" {
   }
 }
 
-resource "aws_security_group_rule" "allow_all_outbound" {
+resource "aws_security_group_rule" "allow_all_outbound_from_kubernetes" {
     type = "egress"
     from_port = 0
     to_port = 0
@@ -128,22 +225,21 @@ resource "aws_security_group_rule" "allow_all_outbound" {
     security_group_id = "${aws_security_group.kubernetes.id}"
 }
 
-resource "aws_security_group_rule" "allow_all_from_control_host" {
-    count = "${length(var.control_cidr)}"
+resource "aws_security_group_rule" "allow_all_from_public_subnect" {
     type = "ingress"
     from_port = 0
     to_port = 0
     protocol = "-1"
-    cidr_blocks = ["${var.control_cidr[count.index]}"]
+    cidr_blocks = ["${var.vpc_public_subnet_cidr}"]
     security_group_id = "${aws_security_group.kubernetes.id}"
 }
 
-resource "aws_security_group_rule" "allow_all_from_vpc" {
+resource "aws_security_group_rule" "allow_all_from_private_subnet" {
     type = "ingress"
     from_port = 0
     to_port = 0
     protocol = "-1"
-    cidr_blocks = ["${var.vpc_subnet_cidr}"]
+    cidr_blocks = ["${var.vpc_private_subnet_cidr}"]
     security_group_id = "${aws_security_group.kubernetes.id}"
 }
 

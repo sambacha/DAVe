@@ -10,8 +10,8 @@ resource "aws_instance" "controller" {
     iam_instance_profile = "${aws_iam_instance_profile.kubernetes-controller.id}"
 
     subnet_id = "${aws_subnet.kubernetes.id}"
-    private_ip = "${cidrhost(var.vpc_cidr, 20 + count.index)}"
-    associate_public_ip_address = true # Instances have public, dynamic IP
+    private_ip = "${cidrhost(var.vpc_private_subnet_cidr, 20 + count.index)}"
+    associate_public_ip_address = false # Instances have public, dynamic IP
     source_dest_check = false # TODO Required??
 
     availability_zone = "${var.zone}"
@@ -37,7 +37,7 @@ resource "aws_instance" "controller" {
 resource "aws_elb" "kubernetes_api" {
     name = "${var.elb_name}"
     instances = ["${aws_instance.controller.*.id}"]
-    subnets = ["${aws_subnet.kubernetes.id}"]
+    subnets = ["${aws_subnet.jumpnet.id}"]
     cross_zone_load_balancing = false
 
     security_groups = ["${aws_security_group.kubernetes_api.id}"]
@@ -58,7 +58,7 @@ resource "aws_elb" "kubernetes_api" {
     }
 
     tags {
-      Name = "kubernetes"
+      Name = "${var.elb_name}"
       Owner = "${var.owner}"
       Application = "${var.application}"
       Confidentiality = "${var.confidentality}"
@@ -72,10 +72,10 @@ resource "aws_elb" "kubernetes_api" {
 
 resource "aws_security_group" "kubernetes_api" {
   vpc_id = "${aws_vpc.kubernetes.id}"
-  name = "kubernetes-api"
+  name = "${var.elb_name}"
 
   tags {
-    Name = "kubernetes-api"
+    Name = "${var.elb_name}"
     Owner = "${var.owner}"
     Application = "${var.application}"
     Confidentiality = "${var.confidentality}"

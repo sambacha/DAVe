@@ -11,8 +11,8 @@ resource "aws_instance" "worker" {
     iam_instance_profile = "${aws_iam_instance_profile.kubernetes-worker.id}"
 
     subnet_id = "${aws_subnet.kubernetes.id}"
-    private_ip = "${cidrhost(var.vpc_cidr, 30 + count.index)}"
-    associate_public_ip_address = true # Instances have public, dynamic IP
+    private_ip = "${cidrhost(var.vpc_private_subnet_cidr, 30 + count.index)}"
+    associate_public_ip_address = false # Instances have public, dynamic IP
     source_dest_check = false # TODO Required??
 
     availability_zone = "${var.zone}"

@@ -3,7 +3,7 @@
 # Install Python
 #####################
 
-- hosts: all
+- hosts: jumphost
   gather_facts: false # As Python is not yet installed, we cannot gather host facts
 
   tasks:
@@ -22,18 +22,3 @@
   roles:
     - common
     - jumphost
-
-- hosts: etcd
-  roles:
-    - common
-    - etcd
-
-- hosts: controller
-  roles:
-    - common
-    - controller
-
-- hosts: worker
-  roles:
-    - common
-    - worker

@@ -2,10 +2,14 @@
 
 variable control_cidr {
   description = "CIDR for maintenance: inbound traffic will be allowed from this IPs"
-  default = ["88.208.76.87/32", "193.29.76.166/32", "193.29.76.163/32"]
+  default = ["88.208.76.87/32", "193.29.76.166/32", "193.29.76.163/32", "193.29.76.164/32"]
 }
 
 # Key
+
+variable ssh_private_key_path {
+  default = "../schojak.pem"
+}
 
 variable default_keypair_name {
   default = "schojak"
@@ -41,7 +45,7 @@ variable region {
 }
 
 variable zone {
-  default = "eu-central-1a"
+  default = "eu-central-1b"
 }
 
 # VPC setup
@@ -53,7 +57,7 @@ variable vpc_name {
 
 variable elb_name {
   description = "Name of the ELB for Kubernetes API"
-  default = "dave-k8s"
+  default = "dave-k8s-api"
 }
 
 ### VARIABLES BELOW MUST NOT BE CHANGED ###
@@ -62,8 +66,12 @@ variable vpc_cidr {
   default = "172.35.0.0/16"
 }
 
-variable vpc_subnet_cidr {
+variable vpc_public_subnet_cidr {
   default = "172.35.0.0/24"
+}
+
+variable vpc_private_subnet_cidr {
+  default = "172.35.1.0/24"
 }
 
 variable kubernetes_pod_cidr {
@@ -91,6 +99,10 @@ variable controller_instance_type {
 
 variable worker_instance_type {
   default = "t2.small"
+}
+
+variable jumphost_instance_type {
+  default = "t2.micro"
 }
 
 variable kubernetes_cluster_dns {

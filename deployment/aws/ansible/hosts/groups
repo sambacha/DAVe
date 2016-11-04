@@ -4,6 +4,8 @@
 
 [tag_ansibleNodeType_controller]
 
+[tag_ansibleNodeType_jumphost]
+
 [etcd:children]
 tag_ansibleNodeType_etcd
 
@@ -12,3 +14,6 @@ tag_ansibleNodeType_worker
 
 [controller:children]
 tag_ansibleNodeType_controller
+
+[jumphost:children]
+tag_ansibleNodeType_jumphost
