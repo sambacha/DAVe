@@ -139,8 +139,8 @@
                     totalNegativeCompVar += Math.abs(bubble.radius);
                 }
             });
-            positiveBubbles = positiveBubbles.sort(function(a, b) { return b - a; }).slice(1, parseInt(vm.topRecordsCount) + 1);
-            negativeBubbles = negativeBubbles.sort(function(a, b) { return a - b; }).slice(1, parseInt(vm.topRecordsCount) + 1);
+            positiveBubbles = positiveBubbles.sort(function(a, b) { return b.radius - a.radius; }).slice(1, parseInt(vm.topRecordsCount) + 1);
+            negativeBubbles = negativeBubbles.sort(function(a, b) { return a.radius - b.radius; }).slice(1, parseInt(vm.topRecordsCount) + 1);
             positiveBubbles.forEach(function(bubble) {
                 topNPositiveCompVar += bubble.radius;
             });
