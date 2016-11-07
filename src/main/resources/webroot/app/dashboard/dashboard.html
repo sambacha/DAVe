@@ -132,11 +132,23 @@
                                 <td highlighter="record.spreadMargin">{{record.spreadMargin | number:2}}</td>
                                 <td highlighter="record.additionalMargin">{{record.additionalMargin | number:2}}</td>
                                 <td>
-                                    <a href="#/positionReportLatest/{{record.clearer}}/{{record.member}}/{{record.account}}"><span
+                                    <a href="#/marginComponentLatest/{{record.clearer}}/{{record.member}}/{{record.account}}"><span
                                             class="fa fa-bullseye" aria-hidden="true" title="Drilldown"></span></a>
                                 </td>
                             </tr>
                             </tbody>
+                            <tfoot>
+                            <tr>
+                                <th></th>
+                                <th></th>
+                                <th highlighter="mc.viewSum.variationMargin">{{mc.viewSum.variationMargin | number:2}}</th>
+                                <th highlighter="mc.viewSum.premiumMargin">{{mc.viewSum.premiumMargin | number:2}}</th>
+                                <th highlighter="mc.viewSum.liquiMargin">{{mc.viewSum.liquiMargin | number:2}}</th>
+                                <th highlighter="mc.viewSum.spreadMargin">{{mc.viewSum.spreadMargin | number:2}}</th>
+                                <th highlighter="mc.viewSum.additionalMargin">{{mc.viewSum.additionalMargin | number:2}}</th>
+                                <th></th>
+                            </tr>
+                            </tfoot>
                         </table>
 
                         <a href="#/marginComponentLatest" class="btn btn-default btn-block">View Details</a>

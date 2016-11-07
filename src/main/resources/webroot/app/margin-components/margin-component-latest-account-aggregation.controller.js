@@ -15,6 +15,7 @@
         vm.recordCount = 0;
         vm.errorMessage = "";
         vm.viewWindow = [];
+        vm.viewSum = {};
         vm.sortRecords = sortRecords;
 
         var refresh = $interval(loadData, 60000);
@@ -42,6 +43,13 @@
         function processData(data) {
             var index;
             var newViewWindow = {};
+            var sum = {
+                "variationMargin": 0,
+                "premiumMargin": 0,
+                "liquiMargin": 0,
+                "spreadMargin": 0,
+                "additionalMargin": 0
+            };
 
             for (index = 0; index < data.length; ++index) {
                 var fKey = functionalKey(data[index]);
@@ -53,6 +61,12 @@
                     newViewWindow[fKey].liquiMargin += data[index].liquiMargin;
                     newViewWindow[fKey].spreadMargin += data[index].spreadMargin;
                     newViewWindow[fKey].additionalMargin += data[index].additionalMargin;
+
+                    sum.variationMargin += data[index].variationMargin;
+                    sum.premiumMargin += data[index].premiumMargin;
+                    sum.liquiMargin += data[index].liquiMargin;
+                    sum.spreadMargin += data[index].spreadMargin;
+                    sum.additionalMargin += data[index].additionalMargin;
                 }
                 else {
                     newViewWindow[fKey] = {
@@ -66,10 +80,17 @@
                         "spreadMargin": data[index].spreadMargin,
                         "additionalMargin": data[index].additionalMargin
                     };
+
+                    sum.variationMargin += data[index].variationMargin;
+                    sum.premiumMargin += data[index].premiumMargin;
+                    sum.liquiMargin += data[index].liquiMargin;
+                    sum.spreadMargin += data[index].spreadMargin;
+                    sum.additionalMargin += data[index].additionalMargin;
                 }
             }
 
             vm.viewWindow = $filter('orderBy')(Object.keys(newViewWindow).map(function (key) { return newViewWindow[key]; }), vm.ordering);
+            vm.viewSum = sum;
         }
 
         function functionalKey(record) {
