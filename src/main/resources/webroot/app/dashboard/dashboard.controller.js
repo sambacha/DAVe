@@ -10,18 +10,23 @@
     function DashboardController($scope, $routeParams, $http, $interval, $filter) {
         var vm = this;
         vm.errorMessage = "";
-        vm.chartData = {
-            "MarginRequirement": [],
-            "MarginShortfallSurplus": [],
-            "MarginCall": []
-        };
+//        vm.chartData = {
+//            "MarginRequirement": [],
+//            "MarginShortfallSurplus": [],
+//            "MarginCall": []
+//        };
+//
+//        var refresh = $interval(loadData, 60000);
+//        var restQueryUrl = '/api/v1.0/mss/latest/';
+        vm.activeTab = "cv";
+        vm.setActiveTab = setActiveTab;
 
-        var refresh = $interval(loadData, 60000);
-        var restQueryUrl = '/api/v1.0/mss/latest/';
-
-        loadData();
+//        loadData();
 
         ////////////////////
+        function setActiveTab(tabName) {
+            vm.activeTab = tabName;
+        }
 
         function loadData(){
             $http.get(restQueryUrl).success(function(data) {
@@ -66,10 +71,10 @@
             vm.chartData = chartData;
         }
 
-        $scope.$on("$destroy", function() {
-            if (refresh != null) {
-                $interval.cancel(refresh);
-            }
-        });
+//        $scope.$on("$destroy", function() {
+//            if (refresh != null) {
+//                $interval.cancel(refresh);
+//            }
+//        });
     };
 })();
