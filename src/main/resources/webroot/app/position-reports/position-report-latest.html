@@ -27,6 +27,17 @@
                         </div>
                     </form>
                 </div>
+
+                <div class="dropdown pull-right" style="margin-right: 10px;">
+                    <button class="btn btn-sm btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="margin-top: -4px">
+                        <i class="fa fa-download" aria-hidden="true"></i> Download
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                        <li><a href="javascript: window.alert('Not implemented yet!');">As CSV file</a></li>
+                    </ul>
+                </div>
+
             </div>
 
             <initial-load ng-if="vm.recordCount == 0 && vm.initialLoad == true && vm.errorMessage == ''" />
