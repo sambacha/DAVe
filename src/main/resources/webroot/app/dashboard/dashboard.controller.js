@@ -18,7 +18,7 @@
 //
 //        var refresh = $interval(loadData, 60000);
 //        var restQueryUrl = '/api/v1.0/mss/latest/';
-        vm.activeTab = "tmr";
+        vm.activeTab = "cv";
         vm.setActiveTab = setActiveTab;
 
 //        loadData();
@@ -71,10 +71,10 @@
             vm.chartData = chartData;
         }
 
-        $scope.$on("$destroy", function() {
-            if (refresh != null) {
-                $interval.cancel(refresh);
-            }
-        });
+//        $scope.$on("$destroy", function() {
+//            if (refresh != null) {
+//                $interval.cancel(refresh);
+//            }
+//        });
     };
 })();

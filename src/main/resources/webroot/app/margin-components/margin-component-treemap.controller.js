@@ -75,6 +75,8 @@
             var members = {};
 
             for (index = 0; index < data.length; ++index) {
+                if (data[index].additionalMargin === 0) continue;
+
                 var ccy = data[index].clearer + '-' + data[index].member + '-' + data[index].account + '-' + data[index].clss + '-' + data[index].ccy;
                 var clss = data[index].clearer + '-' + data[index].member + '-' + data[index].account + '-' + data[index].clss;
                 var account = data[index].clearer + '-' + data[index].member + '-' + data[index].account;
