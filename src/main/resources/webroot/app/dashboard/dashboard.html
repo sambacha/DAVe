@@ -4,17 +4,16 @@
     </div>
     <div class="col-lg-12">
         <ul class="nav nav-tabs">
-            <li class="active"><a data-target="#cv" ng-click="vm.setActiveTab('cv')" data-toggle="tab">CompVaR</a></li>
-            <li><a data-target="#tmr" ng-click="vm.setActiveTab('tmr')" data-toggle="tab">Total Margin Requirement</a>
+            <li class="active"><a data-target="#cv" ng-click="vm.setActiveTab('cv')" data-toggle="tab"><i class="fa fa-adjust" aria-hidden="true"></i> CompVaR</a></li>
+            <li><a data-target="#tmr" ng-click="vm.setActiveTab('tmr')" data-toggle="tab"><i class="fa fa-th-list fa-fw"></i>Total Margin Requirement</a>
             </li>
-            <li><a data-target="#im" ng-click="vm.setActiveTab('im')" data-toggle="tab">Initial Margin</a></li>
-            <li><a data-target="#mc" ng-click="vm.setActiveTab('mc')" data-toggle="tab">Margin Componets</a></li>
+            <li><a data-target="#im" ng-click="vm.setActiveTab('im')" data-toggle="tab"><i class="fa fa-th fa-fw"></i> Initial Margin</a></li>
+            <li><a data-target="#mc" ng-click="vm.setActiveTab('mc')" data-toggle="tab"><i class="fa fa-table" aria-hidden="true"></i> Margin Componets</a></li>
         </ul>
         <div class="tab-content">
             <div class="tab-pane fade in active" id="cv" ng-if="vm.activeTab === 'cv'">
                 <div class="panel panel-default" ng-controller="PositionReportBubbleChartController as bubbleChart" style="border-top: 0px">
                     <div class="panel-body">
-                        <div>
                             <div class="pull-right">
                                 <label for="seriesSelect">{{bubbleChart.accountSelection.selectedOption.member}}
                                     / </label>
@@ -32,7 +31,6 @@
                                     <option value="30">30</option>
                                 </select>
                             </div>
-                        </div>
                     </div>
                     <div class="panel-body">
                         <initial-load
@@ -45,6 +43,7 @@
 
                         <div google-chart chart="bubbleChart.chartObject" style="height:345px; width:100%;"
                              ng-if="bubbleChart.chartObject.data.rows.length > 0"></div>
+                        <br />
 
                         <a href="#/positionReportLatest" class="btn btn-default btn-block">View Details</a>
                     </div>
@@ -63,6 +62,8 @@
 
                         <div google-chart chart="treemap.chartObject" style="height:345px; width:100%;"
                              ng-if="treemap.chartObject.data.rows.length > 1"></div>
+                        <br />
+
                         <a href="#/totalMarginRequirementLatest" class="btn btn-default btn-block">View Details</a>
                     </div>
                 </div>
@@ -80,6 +81,7 @@
 
                         <div google-chart chart="treemap2.chartObject" style="height:345px; width:100%;"
                              ng-if="treemap2.chartObject.data.rows.length > 1"></div>
+                        <br />
 
                         <a href="#/marginComponentLatest" class="btn btn-default btn-block">View Details</a>
                     </div>
@@ -136,6 +138,8 @@
                             </tr>
                             </tbody>
                         </table>
+
+                        <a href="#/marginComponentLatest" class="btn btn-default btn-block">View Details</a>
                     </div>
                 </div>
             </div>
