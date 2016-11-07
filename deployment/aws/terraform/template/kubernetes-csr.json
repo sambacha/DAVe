@@ -5,6 +5,7 @@
     "worker1",
     "worker2",
     "${kubernetes_cluster_dns}",
+    "${kubernetes_cluster_api}",
     "${controller0_ip}",
     "${controller1_ip}",
     "${controller2_ip}",

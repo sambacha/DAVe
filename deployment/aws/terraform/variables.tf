@@ -105,6 +105,10 @@ variable jumphost_instance_type {
   default = "t2.micro"
 }
 
+variable kubernetes_cluster_api {
+  default = "172.35.2.1"
+}
+
 variable kubernetes_cluster_dns {
-  default = "172.35.1.10"
+  default = "172.35.2.10"
 }

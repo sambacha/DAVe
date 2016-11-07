@@ -10,6 +10,7 @@ data "template_file" "certificates" {
     vars {
       kubernetes_api_elb_dns_name = "${aws_elb.kubernetes_api.dns_name}"
       kubernetes_cluster_dns = "${var.kubernetes_cluster_dns}"
+      kubernetes_cluster_api = "${var.kubernetes_cluster_api}"
 
       # Unfortunately, variables must be primitives, neither lists nor maps
       etcd0_ip = "${aws_instance.etcd.0.private_ip}"
