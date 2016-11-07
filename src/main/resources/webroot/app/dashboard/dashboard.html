@@ -40,7 +40,7 @@
 
                 <update-failed ng-if="bubbleChart.errorMessage !== ''" message="bubbleChart.errorMessage"/>
 
-                <div google-chart chart="bubbleChart.chartObject" style="height:345px; width:100%;"></div>
+                <div google-chart chart="bubbleChart.chartObject" style="height:345px; width:100%;" ng-if="bubbleChart.chartObject.data.rows.length > 0"></div>
 
                 <a href="#/positionReportLatest" class="btn btn-default btn-block">View Details</a>
             </div>
@@ -58,7 +58,7 @@
 
                 <update-failed ng-if="treemap.errorMessage != ''" message="treemap.errorMessage"/>
 
-                <div google-chart chart="treemap.chartObject" style="height:345px; width:100%;"></div>
+                <div google-chart chart="treemap.chartObject" style="height:345px; width:100%;" ng-if="treemap.chartObject.data.rows.length > 1"></div>
                 <a href="#/totalMarginRequirementLatest" class="btn btn-default btn-block">View Details</a>
             </div>
         </div>
@@ -129,7 +129,7 @@
 
                 <update-failed ng-if="treemap2.errorMessage != ''" message="treemap2.errorMessage"/>
 
-                <div google-chart chart="treemap2.chartObject" style="height:345px; width:100%;"></div>
+                <div google-chart chart="treemap2.chartObject" style="height:345px; width:100%;" ng-if="treemap2.chartObject.data.rows.length > 1"></div>
 
                 <a href="#/marginComponentLatest" class="btn btn-default btn-block">View Details</a>
             </div>
