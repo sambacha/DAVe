@@ -77,6 +77,8 @@
             var pools = [];
 
             for (index = 0; index < data.length; ++index) {
+                if (data[index].adjustedMargin === 0) continue;
+
                 var ccy = data[index].clearer + '-' + data[index].pool + '-' + data[index].member + '-' + data[index].account + '-' + data[index].ccy;
                 var account = data[index].clearer + '-' + data[index].pool + '-' + data[index].member + '-' + data[index].account;
                 var member = data[index].clearer + '-' + data[index].pool + '-' + data[index].member;
