@@ -12,3 +12,4 @@ This directory contains the DAVe deployment into Kubernetes cluster running on A
 * Create a cleanup procedure which would clean k8s resources (currently, kubernetes don't clean some resources such as security groups etc. That blocks terraform from deleting the VPC)
 * Bootstrap the hosts in cloud init, so that we can use auto-scale groups in amazon and not only from outside (might be complicated due to the fixed IP setup currently used)
 * Add ssh certificate validation when connecting to the remote hosts using SSH (Ansible)
+* Store Terraform state in S3
