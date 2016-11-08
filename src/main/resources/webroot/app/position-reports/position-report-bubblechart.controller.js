@@ -24,6 +24,7 @@
         var compVarNegativeLegend = "Negative";
         var positiveCoveragePerc = 0;
         var negativeCoveragePerc = 0;
+        var totalCompVar;
 
         function createEmptyChartObject() {
             var chartObject = {};
@@ -147,6 +148,7 @@
             negativeBubbles.forEach(function(bubble) {
                 topNNegativeCompVar += Math.abs(bubble.radius);
             });
+            totalCompVar = totalPositiveCompVar - totalNegativeCompVar;
             if (totalPositiveCompVar > 0) {
                 positiveCoveragePerc = parseFloat((topNPositiveCompVar / totalPositiveCompVar) * 100).toFixed(2);
             }
@@ -209,7 +211,7 @@
                         }
                     ]});
             }
-            vm.chartObject.options.title = "Records cover " + positiveCoveragePerc + "% of positive and " + negativeCoveragePerc + "% of negative total CompVaR";
+            vm.chartObject.options.title = "Records cover " + positiveCoveragePerc + "% of positive and " + negativeCoveragePerc + "% of negative CompVaR respectively. Total CompVaR is " + parseFloat(totalCompVar).toFixed(2);
             vm.chartObject.options.hAxis.ticks = hTicks;
             vm.chartObject.options.vAxis.ticks = vTicks;
             vm.chartObject.data.rows = rows;
