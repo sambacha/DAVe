@@ -16,6 +16,14 @@
   apt: name=telnet state=present
   become: true
 
+- name: Install wget
+  apt: name=wget state=present
+  become: true
+
+- name: Install curl
+  apt: name=curl state=present
+  become: true
+
 - name: Install Git
   apt: name=git state=present
   become: true
