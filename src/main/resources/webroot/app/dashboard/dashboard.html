@@ -88,9 +88,73 @@
                 </div>
             </div>
             <div class="tab-pane fade in active" id="overview" ng-if="vm.activeTab === 'overview'">
-                <div class="panel panel-default"
-                     ng-controller="MarginComponentLatestAccountAggregationController as mc" style="border-top: 0px">
-                    <div class="panel-body">
+                <div class="panel panel-default" style="border-top: 0px">
+                    <div class="panel-body" ng-controller="MarginShortfallSurplusLatestSummaryController as msssum">
+
+                        <div class="col-lg-2 col-md-6">
+                            <div class="panel panel-primary">
+                                <div class="panel-heading">
+                                    <div class="row">
+                                        <div class="col-xs-12 text-right">
+                                            <div class="huge">{{msssum.viewSum.shortfallSurplus | number:2}}</div>
+                                            <div>Margin Sortfall / Surplus!</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <div class="panel panel-green">
+                                <div class="panel-heading">
+                                    <div class="row">
+                                        <div class="col-xs-12 text-right">
+                                            <div class="huge">{{msssum.viewSum.marginRequirement | number:2}}</div>
+                                            <div>Margin Requirement!</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <div class="panel panel-yellow">
+                                <div class="panel-heading">
+                                    <div class="row">
+                                        <div class="col-xs-12 text-right">
+                                            <div class="huge">{{msssum.viewSum.securityCollateral | number:2}}</div>
+                                            <div>Collateral!</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <div class="panel panel-red">
+                                <div class="panel-heading">
+                                    <div class="row">
+                                        <div class="col-xs-12 text-right">
+                                            <div class="huge">{{msssum.viewSum.cashBalance | number:2}}</div>
+                                            <div>Cash Balance!</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <div class="panel panel-red">
+                                <div class="panel-heading">
+                                    <div class="row">
+                                        <div class="col-xs-12 text-right">
+                                            <div class="huge">{{msssum.viewSum.marginCall | number:2}}</div>
+                                            <div>Margin Call!</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="panel-body" ng-controller="MarginComponentLatestAccountAggregationController as mc">
                         <initial-load ng-if="mc.viewWindow.length == 0 && mc.initialLoad == true && mc.errorMessage == ''"/>
 
                         <no-data ng-if="mc.viewWindow.length == 0 && mc.initialLoad == false && mc.errorMessage == ''"/>

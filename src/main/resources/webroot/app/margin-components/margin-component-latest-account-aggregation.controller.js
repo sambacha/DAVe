@@ -15,7 +15,12 @@
         vm.recordCount = 0;
         vm.errorMessage = "";
         vm.viewWindow = [];
-        vm.viewSum = {};
+        vm.viewSum = {
+            "variationMargin": 0,
+            "premiumMargin": 0,
+            "liquiMargin": 0,
+            "spreadMargin": 0,
+            "additionalMargin": 0};
         vm.sortRecords = sortRecords;
 
         var refresh = $interval(loadData, 60000);
