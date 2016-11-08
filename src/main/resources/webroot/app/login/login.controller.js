@@ -40,10 +40,6 @@
                         $rootScope.authRequestedPath = null;
                         $location.path(path);
                     }
-                    else {
-                        var path = "/dashboard";
-                        $location.path(path);
-                    }
                 }
                 else {
                     $rootScope.authStatus = false;
