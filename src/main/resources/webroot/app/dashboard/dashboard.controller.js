@@ -9,7 +9,7 @@
 
     function DashboardController() {
         var vm = this;
-        vm.activeTab = "cv";
+        vm.activeTab = "overview";
         vm.setActiveTab = setActiveTab;
 
         ////////////////////
