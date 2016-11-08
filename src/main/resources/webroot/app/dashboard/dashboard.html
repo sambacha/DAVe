@@ -89,10 +89,10 @@
             </div>
             <div class="tab-pane fade in active" id="overview" ng-if="vm.activeTab === 'overview'">
                 <div class="panel panel-default" style="border-top: 0px">
-                    <div class="panel-body" ng-controller="MarginShortfallSurplusLatestSummaryController as msssum">
-
+                    <div class="panel-body">
+                        <div  ng-controller="MarginShortfallSurplusLatestSummaryController as msssum">
                         <div class="col-lg-2 col-md-4">
-                            <div class="panel panel-primary">
+                            <div ng-class="msssum.viewSum.shortfallSurplus >= 0 ? 'panel panel-green' : 'panel panel-red'">
                                 <div class="panel-heading">
                                     <div class="row">
                                         <div class="col-xs-12 text-right">
@@ -104,7 +104,7 @@
                             </div>
                         </div>
                         <div class="col-lg-2 col-md-4">
-                            <div class="panel panel-green">
+                            <div ng-class="msssum.viewSum.marginRequirement >= 0 ? 'panel panel-green' : 'panel panel-red'">
                                 <div class="panel-heading">
                                     <div class="row">
                                         <div class="col-xs-12 text-right">
@@ -116,7 +116,7 @@
                             </div>
                         </div>
                         <div class="col-lg-2 col-md-4">
-                            <div class="panel panel-yellow">
+                            <div ng-class="msssum.viewSum.securityCollateral >= 0 ? 'panel panel-green' : 'panel panel-red'">
                                 <div class="panel-heading">
                                     <div class="row">
                                         <div class="col-xs-12 text-right">
@@ -128,7 +128,7 @@
                             </div>
                         </div>
                         <div class="col-lg-2 col-md-4">
-                            <div class="panel panel-red">
+                            <div ng-class="msssum.viewSum.cashBalance >= 0 ? 'panel panel-green' : 'panel panel-red'">
                                 <div class="panel-heading">
                                     <div class="row">
                                         <div class="col-xs-12 text-right">
@@ -140,7 +140,7 @@
                             </div>
                         </div>
                         <div class="col-lg-2 col-md-4">
-                            <div class="panel panel-red">
+                            <div ng-class="msssum.viewSum.marginCall >= 0 ? 'panel panel-green' : 'panel panel-red'">
                                 <div class="panel-heading">
                                     <div class="row">
                                         <div class="col-xs-12 text-right">
@@ -152,8 +152,8 @@
                             </div>
                         </div>
                         <div class="col-lg-2 col-md-4">
-                            <div class="panel">
-                                <div class="panel-footer">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
                                     <div class="row">
                                         <div class="col-xs-12 text-right">
                                             <i class="fa fa-arrow-circle-right fa-2x"></i>
@@ -163,9 +163,8 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="panel-body" ng-controller="MarginComponentLatestAccountAggregationController as mc">
+                        </div>
+                        <div  ng-controller="MarginComponentLatestAccountAggregationController as mc">
                         <initial-load ng-if="mc.viewWindow.length == 0 && mc.initialLoad == true && mc.errorMessage == ''"/>
 
                         <no-data ng-if="mc.viewWindow.length == 0 && mc.initialLoad == false && mc.errorMessage == ''"/>
@@ -232,6 +231,7 @@
                         </table>
 
                         <a href="#/marginComponentLatest" class="btn btn-default btn-block">View Details</a>
+                        </div>
                     </div>
                 </div>
             </div>
