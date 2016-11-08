@@ -100,6 +100,8 @@
                         <table class="table table-striped table-bordered table-hover" ng-if="mc.viewWindow.length > 0">
                             <thead>
                             <tr>
+                                <th>Clr <span class="fa fa-sort" aria-hidden="true"
+                                              ng-click="mc.sortRecords('clearer')"></span></th>
                                 <th>Mmb <span class="fa fa-sort" aria-hidden="true"
                                               ng-click="mc.sortRecords('member')"></span></th>
                                 <th>Acc <span class="fa fa-sort" aria-hidden="true"
@@ -120,6 +122,9 @@
                             <tbody>
                             <tr ng-repeat="record in mc.viewWindow track by record.functionalKey"
                                 row-highlighter="record.functionalKey">
+                                <td highlighter="record.clearer"><a
+                                        href="#/marginComponentLatest/{{record.clearer}}">{{record.clearer}}</a>
+                                </td>
                                 <td highlighter="record.member"><a
                                         href="#/marginComponentLatest/{{record.clearer}}/{{record.member}}">{{record.member}}</a>
                                 </td>
