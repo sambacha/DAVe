@@ -41,7 +41,6 @@
                         <th>Collat <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('securityCollateral')"></span></th>
                         <th>Cash Bal. <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('cashBalance')"></span></th>
                         <th>Margin Call <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('marginCall')"></span></th>
-                        <th>Last upd. <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('received')"></span></th>
                         <th></th>
                     </tr>
                     </thead>
@@ -57,7 +56,6 @@
                         <td highlighter="record.securityCollateral">{{record.securityCollateral | number:2}}</td>
                         <td highlighter="record.cashBalance">{{record.cashBalance | number:2}}</td>
                         <td highlighter="record.marginCall">{{record.marginCall | number:2}}</td>
-                        <td highlighter="record.received">{{record.received | date:'HH:mm:ss.sss'}}</td>
                         <td>
                             <a href="#/totalMarginRequirementLatest/{{record.clearer}}/{{record.pool}}/*/*/{{record.ccy}}"><span class="fa fa-bullseye" aria-hidden="true" title="Drilldown"></span></a>
                             <a href="#/marginShortfallSurplusHistory/{{record.clearer}}/{{record.pool}}/{{record.member}}/{{record.clearingCcy}}/{{record.ccy}}"><span class="fa fa-bar-chart-o" aria-hidden="true" title="Detail"></span></a>

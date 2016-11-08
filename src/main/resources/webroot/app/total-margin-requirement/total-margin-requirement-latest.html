@@ -41,7 +41,6 @@
                     <th>Ccy <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('ccy')"></span></th>
                     <th>Adj <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('adjustedMargin')"></span></th>
                     <th>Unadj <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('unadjustedMargin')"></span></th>
-                    <th>Last upd. <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('received')"></span></th>
                     <th></th>
                 </tr>
                 </thead>
@@ -53,7 +52,6 @@
                     <td highlighter="record.ccy">{{record.ccy}}</td>
                     <td highlighter="record.adjustedMargin">{{record.adjustedMargin | number:2}}</td>
                     <td highlighter="record.unadjustedMargin">{{record.unadjustedMargin | number:2}}</td>
-                    <td highlighter="record.received">{{record.received | date:'HH:mm:ss.sss'}}</td>
                     <td>
                         <a href="#/marginComponentLatest/{{record.clearer}}/{{record.member}}/{{record.account}}/*/{{record.ccy}}"><span class="fa fa-bullseye" aria-hidden="true" title="Drilldown"></span></a>
                         <a href="#/totalMarginRequirementHistory/{{record.clearer}}/{{record.pool}}/{{record.member}}/{{record.account}}/{{record.ccy}}"><span class="fa fa-bar-chart-o" aria-hidden="true" title="Detail"></span></a>

@@ -38,7 +38,6 @@
                         <th>Warning <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('warningLevel')"></span></th>
                         <th>Throttle <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('throttleLevel')"></span></th>
                         <th>Stop <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('rejectLevel')"></span></th>
-                        <th>Last upd. <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('received')"></span></th>
                         <th></th>
                     </tr>
                     </thead>
@@ -51,7 +50,6 @@
                         <td highlighter="record.warningLevel">{{record.warningLevel | number:2}}</td>
                         <td highlighter="record.throttleLevel">{{record.throttleLevel | number:2}}</td>
                         <td highlighter="record.rejectLevel">{{record.rejectLevel | number:2}}</td>
-                        <td highlighter="record.received">{{record.received | date:'HH:mm:ss.sss'}}</td>
                         <td><a href="#/riskLimitHistory/{{record.clearer}}/{{record.member}}/{{record.maintainer}}/{{record.limitType}}"><span class="fa fa-bar-chart-o" aria-hidden="true" title="Detail"></span></a></td>
                     </tr>
                     </tbody>
