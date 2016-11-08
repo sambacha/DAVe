@@ -20,15 +20,17 @@
                 <span ng-if="vm.route.optAttribute != '*'"> / <a href="#/positionReportLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.symbol}}/{{vm.route.putCall}}/{{vm.route.strikePrice}}/{{vm.route.optAttribute}}">{{vm.route.optAttribute}}</a></span>
                 <span ng-if="vm.route.maturityMonthYear != '*'"> / <a href="#/positionReportLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.symbol}}/{{vm.route.putCall}}/{{vm.route.strikePrice}}/{{vm.route.optAttribute}}/{{vm.route.maturityMonthYear}}">{{vm.route.maturityMonthYear}}</a></span>
 
-                <div class="pull-right">
-                    <form class="pull-right" role="search" style="margin-top: -4px">
-                        <div class="form-group-sm">
-                            <input type="text" class="form-control input-sm" placeholder="Search" ng-model="vm.filterQuery" ng-change="vm.filter()">
-                        </div>
-                    </form>
+                <div class="pull-right col-lg-2 filter">
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control"
+                               placeholder="Filter ..." ng-model="vm.filterQuery" ng-change="vm.filter()">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="button" ng-click="vm.filter()"><i class="fa fa-search" aria-hidden="true"></i></button>
+                        </span>
+                    </div>
                 </div>
 
-                <div class="dropdown pull-right" style="margin-right: 10px;">
+                <div class="dropdown pull-right">
                     <button class="btn btn-sm btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="margin-top: -4px">
                         <i class="fa fa-download" aria-hidden="true"></i> Download
                         <span class="caret"></span>

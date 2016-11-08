@@ -15,12 +15,14 @@
                 <span ng-if="vm.route.member != '*'"> / <a href="#/totalMarginRequirementLatest/{{vm.route.clearer}}/{{vm.route.pool}}/{{vm.route.member}}">{{vm.route.member}}</a></span>
                 <span ng-if="vm.route.account != '*'"> / <a href="#/totalMarginRequirementLatest/{{vm.route.clearer}}/{{vm.route.pool}}/{{vm.route.member}}/{{vm.route.account}}">{{vm.route.account}}</a></span>
 
-                <div class="pull-right">
-                    <form class="pull-right" role="search" style="margin-top: -4px">
-                        <div class="form-group-sm">
-                            <input type="text" class="form-control input-sm" placeholder="Search" ng-model="vm.filterQuery" ng-change="vm.filter()">
-                        </div>
-                    </form>
+                <div class="pull-right col-lg-2 filter">
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control"
+                               placeholder="Filter ..." ng-model="vm.filterQuery" ng-change="vm.filter()">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="button" ng-click="vm.filter()"><i class="fa fa-search" aria-hidden="true"></i></button>
+                        </span>
+                    </div>
                 </div>
             </div>
 
