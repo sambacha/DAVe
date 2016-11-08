@@ -12,7 +12,7 @@
 # 2) Set additional routes on every worker
 #   e.g.  route add -net 10.200.0.0 netmask 255.255.255.0 gw 10.43.0.31 metric 1
 
-- hosts: worker
+- hosts: worker controller
 
   tasks:
 
