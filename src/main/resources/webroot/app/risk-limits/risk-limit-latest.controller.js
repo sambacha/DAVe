@@ -27,6 +27,18 @@
 
         function processRecord(record) {
             record.functionalKey = record.clearer + '-' + record.member + '-' + record.maintainer + '-' + record.limitType;
+
+            if (record.warningLevel > 0) {
+                record.warningUtil = record.utilization / record.warningLevel * 100;
+            }
+
+            if (record.throttleLevel > 0) {
+                record.throttleUtil = record.utilization / record.throttleLevel * 100;
+            }
+
+            if (record.rejectLevel > 0) {
+                record.rejectUtil = record.utilization / record.rejectLevel * 100;
+            }
         }
 
         function getRestQueryUrl() {

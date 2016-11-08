@@ -20,6 +20,7 @@
         vm.ordering = vm.defaultOrdering;
         vm.getTickFromRecord = getTickFromRecord;
         vm.getRestQueryUrl = getRestQueryUrl;
+        vm.processData = processData;
         vm.loadData();
 
         function getTickFromRecord(record) {
@@ -31,6 +32,27 @@
                 rejectLevel: record.rejectLevel
             };
             return tick;
+        }
+
+        function processData(data) {
+            for (var index = 0; index < data.length; ++index) {
+                if (data[index].warningLevel > 0) {
+                    data[index].warningUtil = data[index].utilization / data[index].warningLevel * 100;
+                }
+
+                if (data[index].throttleLevel > 0) {
+                    data[index].throttleUtil = data[index].utilization / data[index].throttleLevel * 100;
+                }
+
+                if (data[index].rejectLevel > 0) {
+                    data[index].rejectUtil = data[index].utilization / data[index].rejectLevel * 100;
+                }
+            }
+
+            vm.sourceData = data;
+            vm.recordCount = data.length;
+            vm.updateViewWindow(vm.currentPage);
+            vm.processGraphData(data);
         }
 
         function getRestQueryUrl() {

@@ -9,7 +9,7 @@ function BaseHistoryController($scope, $http, $interval, sortRecordsService, rec
         vm.sourceData = data;
         vm.recordCount = data.length;
         vm.updateViewWindow(vm.currentPage);
-        processGraphData(data);
+        vm.processGraphData(data);
     }
 
     function processGraphData(data) {

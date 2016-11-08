@@ -33,14 +33,22 @@
                 <table class="table table-striped table-bordered table-hover">
                     <thead>
                     <tr>
-                        <th>Mmb <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('member')"></span></th>
-                        <th>Mntnr <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('maintainer')"></span></th>
-                        <th>Typ <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('limitType')"></span></th>
-                        <th>Util <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('utilization')"></span></th>
-                        <th>Warning <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('warningLevel')"></span></th>
-                        <th>Throttle <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('throttleLevel')"></span></th>
-                        <th>Stop <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('rejectLevel')"></span></th>
-                        <th></th>
+                        <th rowspan="2">Mmb <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('member')"></span></th>
+                        <th rowspan="2">Mntnr <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('maintainer')"></span></th>
+                        <th rowspan="2">Typ <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('limitType')"></span></th>
+                        <th rowspan="2">Utilization <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('utilization')"></span></th>
+                        <th colspan="2">Warning Level</th>
+                        <th colspan="2">Throttle Level</th>
+                        <th colspan="2">Stop Level</th>
+                        <th rowspan="2"></th>
+                    </tr>
+                    <tr>
+                        <th>Limit <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('warningLevel')"></span></th>
+                        <th>Utilization <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('warningUtil')"></span></th>
+                        <th>Limit <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('throttleLevel')"></span></th>
+                        <th>Utilization <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('throttleUtil')"></span></th>
+                        <th>Limit <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('rejectLevel')"></span></th>
+                        <th>Utilization <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('rejectUtil')"></span></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -50,8 +58,11 @@
                         <td highlighter="record.limitType"><a href="#/riskLimitLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.maintainer}}/{{record.limitType}}">{{record.limitType}}</a></td>
                         <td highlighter="record.utilization">{{record.utilization | number:2}}</td>
                         <td highlighter="record.warningLevel">{{record.warningLevel | number:2}}</td>
+                        <td highlighter="record.warningUtil">{{record.warningUtil | percentage:0}}</td>
                         <td highlighter="record.throttleLevel">{{record.throttleLevel | number:2}}</td>
+                        <td highlighter="record.throttleUtil">{{record.throttleUtil | percentage:0}}</td>
                         <td highlighter="record.rejectLevel">{{record.rejectLevel | number:2}}</td>
+                        <td highlighter="record.rejectUtil">{{record.rejectUtil | percentage:0}}</td>
                         <td><a href="#/riskLimitHistory/{{record.clearer}}/{{record.member}}/{{record.maintainer}}/{{record.limitType}}"><span class="fa fa-bar-chart-o" aria-hidden="true" title="Detail"></span></a></td>
                     </tr>
                     </tbody>
