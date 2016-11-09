@@ -36,9 +36,10 @@
                     backgroundColor: {
                         fill: 'transparent'
                     },
-//                    minColor: '#f00',
+                    minColor: '#f5f50a',
+                    //minColor: '#c88c5a',
 //                    midColor: '#ddd',
-//                    maxColor: '#0d0',
+                    maxColor: '#FA6969',
                     fontColor: 'black',
                     showScale: false,
                     highlightOnMouseOver: true,
