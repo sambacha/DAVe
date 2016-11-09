@@ -8,7 +8,7 @@
 
     angular.module('dave').controller('PositionReportBubbleChartController', PositionReportBubbleChartController);
 
-    function PositionReportBubbleChartController($scope, $http, $interval) {
+    function PositionReportBubbleChartController($scope, $http, $interval, $filter) {
         var vm = this;
         vm.initialLoad= true;
         vm.errorMessage = "";
@@ -211,7 +211,7 @@
                         }
                     ]});
             }
-            vm.chartObject.options.title = vm.topRecordsCount + " Top risk positions represent " + positiveCoveragePerc + "%  of total portfolio VaR. " + vm.topRecordsCount + " Top offsetting positions represent " + negativeCoveragePerc + "% of total offsetting positions. Total portfolio VaR is " + numberWithCommas(parseFloat(totalCompVar).toFixed(2));
+            vm.chartObject.options.title = vm.topRecordsCount + " top risk positions represent " + $filter('number')(positiveCoveragePerc, 2) + "%  of total portfolio VaR. " + vm.topRecordsCount + " top offsetting positions represent " + $filter('number')(negativeCoveragePerc, 2) + "% of total offsetting positions. Total portfolio VaR is " + $filter('number')(totalCompVar, 2) + ".";
             vm.chartObject.options.hAxis.ticks = hTicks;
             vm.chartObject.options.vAxis.ticks = vTicks;
             vm.chartObject.data.rows = rows;
