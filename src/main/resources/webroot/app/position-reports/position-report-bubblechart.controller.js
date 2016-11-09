@@ -150,7 +150,7 @@
             });
             totalCompVar = totalPositiveCompVar - totalNegativeCompVar;
             if (totalPositiveCompVar > 0) {
-                positiveCoveragePerc = parseFloat((topNPositiveCompVar / totalPositiveCompVar) * 100).toFixed(2);
+                positiveCoveragePerc = parseFloat((topNPositiveCompVar / totalCompVar) * 100).toFixed(2);
             }
             if (totalNegativeCompVar > 0) {
                 negativeCoveragePerc = parseFloat((topNNegativeCompVar / totalNegativeCompVar) * 100).toFixed(2);
@@ -211,10 +211,16 @@
                         }
                     ]});
             }
-            vm.chartObject.options.title = "Records cover " + positiveCoveragePerc + "% of positive and " + negativeCoveragePerc + "% of negative CompVaR respectively. Total CompVaR is " + parseFloat(totalCompVar).toFixed(2);
+            vm.chartObject.options.title = vm.topRecordsCount + " Top risk positions represent " + positiveCoveragePerc + "%  of total portfolio VaR. " + vm.topRecordsCount + " Top offsetting positions represent " + negativeCoveragePerc + "% of total offsetting positions. Total portfolio VaR is " + numberWithCommas(parseFloat(totalCompVar).toFixed(2));
             vm.chartObject.options.hAxis.ticks = hTicks;
             vm.chartObject.options.vAxis.ticks = vTicks;
             vm.chartObject.data.rows = rows;
+        }
+
+        function numberWithCommas(x) {
+            var parts = x.toString().split(".");
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            return parts.join(".");
         }
 
         $scope.$on("$destroy", function() {
