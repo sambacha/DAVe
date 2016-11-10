@@ -7,8 +7,8 @@
 
     angular.module('dave').controller('PositionReportHistoryController', PositionReportHistoryController);
 
-    function PositionReportHistoryController($scope, $routeParams, $http, $interval, $filter, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService) {
-        BaseHistoryController.call(this, $scope, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService);
+    function PositionReportHistoryController($scope, $routeParams, $http, $interval, $filter, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService) {
+        BaseHistoryController.call(this, $scope, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService);
         var vm = this;
         vm.route = {
             "clearer": $routeParams.clearer,
@@ -23,6 +23,12 @@
         };
         vm.defaultOrdering = ["-received"];
         vm.ordering = vm.defaultOrdering;
+        vm.exportKeys = ["clearer", "member", "account", "bizDt", "symbol", "putCall", "maturityMonthYear", "strikePrice", "optAttribute",
+            "crossMarginLongQty", "crossMarginShortQty", "optionExcerciseQty", "optionAssignmentQty", "allocationTradeQty", "deliveryNoticeQty",
+            "clearingCcy", "mVar", "compVar", "compCorrelationBreak", "compCompressionError", "compLiquidityAddOn", "compLongOptionCredit",
+            "productCcy", "variationMarginPremiumPayment", "premiumMargin", "delta", "gamma", "vega", "rho", "theta", "received", "clss",
+            "underlying", "netLS", "netEA"
+        ];
         vm.getTickFromRecord = getTickFromRecord;
         vm.getRestQueryUrl = getRestQueryUrl;
         vm.processData = processData;

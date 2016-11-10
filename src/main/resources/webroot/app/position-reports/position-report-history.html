@@ -18,6 +18,8 @@
                 / <a href="#/positionReportLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.class}}/{{vm.route.symbol}}/{{vm.route.putCall}}/{{vm.route.strikePrice}}">{{vm.route.strikePrice}}</a> 
                 / <a href="#/positionReportLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.class}}/{{vm.route.symbol}}/{{vm.route.putCall}}/{{vm.route.strikePrice}}/{{vm.route.optAttribute}}">{{vm.route.optAttribute}}</a> 
                 / <a href="#/positionReportLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.class}}/{{vm.route.symbol}}/{{vm.route.putCall}}/{{vm.route.strikePrice}}/{{vm.route.optAttribute}}/{{vm.route.maturityMonthYear}}">{{vm.route.maturityMonthYear}}</a>
+
+                <ng-include src="'app/download-as-menu.html'"></ng-include>
             </div>
 
             <initial-load ng-if="vm.recordCount == 0 && vm.initialLoad == true && vm.errorMessage == ''" />

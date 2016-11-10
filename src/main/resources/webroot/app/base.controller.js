@@ -1,4 +1,4 @@
-function BaseController($scope, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService) {
+function BaseController($scope, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService) {
     var vm = this;
     vm.initialLoad= true;
     vm.recordCount = 0;
@@ -13,6 +13,7 @@ function BaseController($scope, $http, $interval, sortRecordsService, recordCoun
     vm.sortRecords = sortRecords;
     vm.filter = filter;
     vm.showExtraInfo = showExtraInfo;
+    vm.downloadAsCsv = downloadAsCsv;
 
     var refresh = $interval(vm.loadData, 60000);
 
@@ -44,6 +45,11 @@ function BaseController($scope, $http, $interval, sortRecordsService, recordCoun
 
     function showExtraInfo(funcKey) {
         showExtraInfoService(funcKey);
+    }
+
+
+    function downloadAsCsv() {
+        downloadAsCsvService("download.csv", vm.sourceData, vm.exportKeys);
     }
 
     $scope.$on("$destroy", function() {

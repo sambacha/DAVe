@@ -24,6 +24,8 @@
                         </span>
                     </div>
                 </div>
+
+                <ng-include src="'app/download-as-menu.html'"></ng-include>
             </div>
 
             <initial-load ng-if="vm.recordCount == 0 && vm.initialLoad == true && vm.errorMessage == ''" />

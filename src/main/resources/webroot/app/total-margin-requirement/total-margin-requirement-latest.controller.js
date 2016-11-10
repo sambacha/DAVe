@@ -7,8 +7,8 @@
 
     angular.module('dave').controller('TotalMarginRequirementLatestController', TotalMarginRequirementLatestController);
 
-    function TotalMarginRequirementLatestController($scope, $routeParams, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService) {
-        BaseLatestController.call(this, $scope, $routeParams, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService);
+    function TotalMarginRequirementLatestController($scope, $routeParams, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService) {
+        BaseLatestController.call(this, $scope, $routeParams, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService);
         var vm = this;
         vm.route = {
             "clearer": "*",
@@ -20,6 +20,7 @@
         vm.defaultOrdering = ["clearer", "pool", "member", "account", "ccy"];
         vm.routingKeys = ["clearer", "pool", "member", "account", "ccy"];
         vm.ordering = vm.defaultOrdering;
+        vm.exportKeys = ["clearer", "pool", "member", "account", "ccy", "bizDt", "unadjustedMargin", "adjustedMargin", "received"];
         vm.getRestQueryUrl = getRestQueryUrl;
         vm.processRecord = processRecord;
 

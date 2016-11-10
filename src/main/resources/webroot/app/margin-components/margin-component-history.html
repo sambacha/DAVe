@@ -15,9 +15,11 @@
                 / <a href="#/marginComponentLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.class}}">{{vm.route.class}}</a> 
                 / <a href="#/marginComponentHistory/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.class}}/{{vm.route.ccy}}">{{vm.route.ccy}}</a>
 
-                <div class="pull-right">
+                <div class="btn-group-sm drilldown-button pull-right">
                     <a href="#/positionReportLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.class}}" class="btn btn-primary btn-xs" role="button"><span class="fa fa-bullseye" aria-hidden="true" title="Drilldown"></span> Drilldown</a>
                 </div>
+
+                <ng-include src="'app/download-as-menu.html'"></ng-include>
             </div>
 
             <initial-load ng-if="vm.recordCount == 0 && vm.initialLoad == true && vm.errorMessage == ''" />

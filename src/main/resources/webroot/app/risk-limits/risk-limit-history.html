@@ -10,6 +10,8 @@
         <div class="panel panel-default">
             <div class="panel-heading">
                 Risk Limit History: <a href="#/riskLimitLatest/{{vm.route.clearer}}">{{vm.route.clearer}}</a> / <a href="#/riskLimitLatest/{{vm.route.clearer}}/{{vm.route.member}}">{{vm.route.member}}</a> / <a href="#/riskLimitLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.maintainer}}">{{vm.route.maintainer}}</a> / <a href="#/riskLimitLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.maintainer}}/{{vm.route.limitType}}">{{vm.route.limitType}}</a>
+
+                <ng-include src="'app/download-as-menu.html'"></ng-include>
             </div>
 
             <initial-load ng-if="vm.recordCount == 0 && vm.initialLoad == true && vm.errorMessage == ''" />

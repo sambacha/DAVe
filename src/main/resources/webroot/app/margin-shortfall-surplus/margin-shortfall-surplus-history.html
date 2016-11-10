@@ -11,9 +11,11 @@
             <div class="panel-heading">
                 Margin Shortfall Surplus History: <a href="#/marginShortfallSurplusLatest/{{vm.route.clearer}}">{{vm.route.clearer}}</a> / <a href="#/marginShortfallSurplusLatest/{{vm.route.clearer}}/{{vm.route.pool}}">{{vm.route.pool}}</a> / <a href="#/marginShortfallSurplusLatest/{{vm.route.clearer}}/{{vm.route.pool}}/{{vm.route.member}}">{{vm.route.member}}</a> / <a href="#/marginShortfallSurplusLatest/{{vm.route.clearer}}/{{vm.route.pool}}/{{vm.route.member}}/{{vm.route.clearingCcy}}">{{vm.route.clearingCcy}}</a> / <a href="#/marginShortfallSurplusHistory/{{vm.route.clearer}}/{{vm.route.pool}}/{{vm.route.member}}/{{vm.route.clearingCcy}}/{{vm.route.ccy}}">{{vm.route.ccy}}</a>
 
-                <div class="pull-right">
+                <div class="btn-group-sm pull-right drilldown-button">
                     <a href="#/totalMarginRequirementLatest/{{vm.route.clearer}}/{{vm.route.pool}}/*/*/{{vm.route.ccy}}" class="btn btn-primary btn-xs" role="button"><span class="fa fa-bullseye" aria-hidden="true" title="Drilldown"></span> Drilldown</a>
                 </div>
+
+                <ng-include src="'app/download-as-menu.html'"></ng-include>
             </div>
 
             <initial-load ng-if="vm.recordCount == 0 && vm.initialLoad == true && vm.errorMessage == ''" />

@@ -1,5 +1,5 @@
-function BaseHistoryController($scope, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService) {
-    BaseController.call(this, $scope, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService)
+function BaseHistoryController($scope, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService) {
+    BaseController.call(this, $scope, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService)
     var vm = this;
     vm.filterQuery = null;
     vm.processData = processData;

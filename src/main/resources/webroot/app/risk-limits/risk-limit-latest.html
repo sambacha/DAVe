@@ -20,6 +20,8 @@
                         </span>
                     </div>
                 </div>
+
+                <ng-include src="'app/download-as-menu.html'"></ng-include>
             </div>
 
             <initial-load ng-if="vm.recordCount == 0 && vm.initialLoad == true && vm.errorMessage == ''" />
@@ -39,7 +41,7 @@
                         <th rowspan="2">Utilization <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('utilization')"></span></th>
                         <th colspan="2">Warning Level</th>
                         <th colspan="2">Throttle Level</th>
-                        <th colspan="2">Stop Level</th>Rqrmt
+                        <th colspan="2">Stop Level</th>
                         <th rowspan="2"></th>
                     </tr>
                     <tr>

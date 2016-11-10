@@ -7,8 +7,8 @@
 
     angular.module('dave').controller('RiskLimitLatestController', RiskLimitLatestController);
 
-    function RiskLimitLatestController($scope, $routeParams, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService) {
-        BaseLatestController.call(this, $scope, $routeParams, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService);
+    function RiskLimitLatestController($scope, $routeParams, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService) {
+        BaseLatestController.call(this, $scope, $routeParams, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService);
         var vm = this;
         vm.route = {
             "clearer": "*",
@@ -19,6 +19,7 @@
         vm.defaultOrdering = ["clearer", "member", "maintainer", "limitType"];
         vm.routingKeys = ["clearer", "member", "maintainer", "limitType"];
         vm.ordering = vm.defaultOrdering;
+        vm.exportKeys = ["clearer", "member", "maintainer", "limitType", "utilization", "warningLevel", "warningUtil", "throttleLevel", "throttleUtil", "rejectLevel", "rejectUtil", "received"];
         vm.getRestQueryUrl = getRestQueryUrl;
         vm.processRecord = processRecord;
 

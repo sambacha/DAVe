@@ -7,8 +7,8 @@
 
     angular.module('dave').controller('MarginComponentHistoryController', MarginComponentHistoryController);
 
-    function MarginComponentHistoryController($scope, $routeParams, $http, $interval, $filter, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService) {
-        BaseHistoryController.call(this, $scope, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService);
+    function MarginComponentHistoryController($scope, $routeParams, $http, $interval, $filter, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService) {
+        BaseHistoryController.call(this, $scope, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService);
         var vm = this;
         vm.route = {
             "clearer": $routeParams.clearer,
@@ -19,6 +19,9 @@
         };
         vm.defaultOrdering = ["-received"];
         vm.ordering = vm.defaultOrdering;
+        vm.exportKeys = ["clearer", "member", "account", "clss", "ccy", "bizDt", "variationMargin", "premiumMargin", "liquiMargin", "spreadMargin",
+            "additionalMargin", "variLiqui", "received"
+        ];
         vm.getTickFromRecord = getTickFromRecord;
         vm.getRestQueryUrl = getRestQueryUrl;
         vm.processData = processData;

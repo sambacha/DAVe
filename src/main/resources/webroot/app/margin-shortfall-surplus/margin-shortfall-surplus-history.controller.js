@@ -7,8 +7,8 @@
 
     angular.module('dave').controller('MarginShortfallSurplusHistoryController', MarginShortfallSurplusHistoryController);
 
-    function MarginShortfallSurplusHistoryController($scope, $routeParams, $http, $interval, $filter, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService) {
-        BaseHistoryController.call(this, $scope, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService);
+    function MarginShortfallSurplusHistoryController($scope, $routeParams, $http, $interval, $filter, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService) {
+        BaseHistoryController.call(this, $scope, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService);
         var vm = this;
         vm.route = {
             "clearer": $routeParams.clearer,
@@ -19,6 +19,9 @@
         };
         vm.defaultOrdering = ["-received"];
         vm.ordering = vm.defaultOrdering;
+        vm.exportKeys = ["clearer", "pool", "poolType", "member", "clearingCcy", "ccy", "bizDt", "marginRequirement", "securityCollateral", "cashBalance", "shortfallSurplus",
+            "marginCall", "received"
+        ];
         vm.getTickFromRecord = getTickFromRecord;
         vm.getRestQueryUrl = getRestQueryUrl;
         vm.loadData();
