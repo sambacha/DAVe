@@ -58,16 +58,7 @@
                     id: 'margin',
                     type: 'number'
                 }],
-                rows: [
-                    {
-                        c: [{
-                            v:'all'
-                        }, {
-                            v:null
-                        }, {
-                            v:0
-                        }]
-                    }]
+                rows: []
             };
 
             var index;
@@ -86,65 +77,53 @@
 
                 if (!(member in members))
                 {
-                    chartObject.data.rows.push({c: [{
-                                v: member
-                            }, {
-                                v: 'all'
-                            }, {
-                                v: 0
-                            }
-                        ]});
-
                     members[member] = true;
                     tree.add({id: member, value: 0}, 'all');
                 }
 
                 if (!(account in accounts))
                 {
-                    chartObject.data.rows.push({c: [{
-                                v: account
-                            }, {
-                                v: member
-                            }, {
-                                v: 0
-                            }
-                        ]});
-
                     accounts[account] = true;
                     tree.add({id: account, value: 0}, member);
                 }
 
                 if (!(clss in classes))
                 {
-                    chartObject.data.rows.push({c: [{
-                        v: clss
-                    }, {
-                        v: account
-                    }, {
-                        v: 0
-                    }
-                    ]});
-
                     classes[clss] = true;
                     tree.add({id: clss, value: 0}, account);
                 }
 
-                chartObject.data.rows.push({c: [{
-                            v: ccy
-                        }, {
-                            v: clss
-                        }, {
-                            v: data[index].additionalMargin
-                        }
-                    ]});
                 tree.add({id: ccy, value: data[index].additionalMargin}, clss);
             }
             tree.traverseDF(function(node) {
-                node.children.sort(function(a, b) {return a.data.value - b.data.value;});
+                node.children.sort(function(a, b) {return b.data.value - a.data.value;});
             });
-//            tree.traverseDF(function(node) {
-//                console.log(node.data)
-//            });
+            tree.traverseBF(function(node) {
+                var restNode = new Node({id: node.data.id + "-REST", value: 0});
+                restNode.parent = node;
+                var aggregateCount = Math.max(node.children.length - 10, 0);
+                for (var i = 0; i < aggregateCount; i++) {
+                    var smallNode = node.children.pop();
+                    restNode.data.value += smallNode.data.value;
+                    restNode.children = restNode.children.concat(smallNode.children);
+                    for (var j = 0; j < smallNode.children.length; j++) {
+                        smallNode.children[j].parent = restNode;
+                    }
+                }
+                if (aggregateCount > 0) {
+                    node.children.push(restNode);
+                }
+            });
+            tree.traverseDF(function(node) {
+                chartObject.data.rows.push({c: [{
+                            v: node.data.id
+                        }, {
+                            v: node.parent !== null ? node.parent.data.id : null
+                        }, {
+                            v: node.children.length > 0 ? 0 : node.data.value
+                        }
+                    ]});
+            });
             vm.chartObject = chartObject;
         }
 
@@ -172,6 +151,19 @@
                 }
                 callback(currentNode);
             })(this._root);
+        };
+        
+        Tree.prototype.traverseBF = function(callback) {
+          var queue = [];
+          queue.push(this._root);
+          var currentTree = queue.pop();
+          while(currentTree){
+              callback(currentTree);
+              for (var i = 0, length = currentTree.children.length; i < length; i++) {
+                  queue.push(currentTree.children[i]);
+              }
+              currentTree = queue.pop();
+          }
         };
 
         Tree.prototype.contains = function(callback) {
