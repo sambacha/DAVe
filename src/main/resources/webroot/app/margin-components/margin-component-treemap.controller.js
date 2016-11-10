@@ -71,39 +71,32 @@
             };
 
             var index;
-            var classes = {};
-            var accounts = {};
             var members = {};
+            var accounts = {};
+            var classes = {};
+            var tree = new Tree({id: 'all', value: 0});
 
             for (index = 0; index < data.length; ++index) {
                 if (data[index].additionalMargin === 0) continue;
 
-                var ccy = data[index].clearer + '-' + data[index].member + '-' + data[index].account + '-' + data[index].clss + '-' + data[index].ccy;
-                var clss = data[index].clearer + '-' + data[index].member + '-' + data[index].account + '-' + data[index].clss;
-                var account = data[index].clearer + '-' + data[index].member + '-' + data[index].account;
                 var member = data[index].clearer + '-' + data[index].member;
+                var account = data[index].clearer + '-' + data[index].member + '-' + data[index].account;
+                var clss = data[index].clearer + '-' + data[index].member + '-' + data[index].account + '-' + data[index].clss;
+                var ccy = data[index].clearer + '-' + data[index].member + '-' + data[index].account + '-' + data[index].clss + '-' + data[index].ccy;
 
-                chartObject.data.rows.push({c: [{
-                            v: ccy
-                        }, {
-                            v: clss
-                        }, {
-                            v: data[index].additionalMargin
-                        }
-                    ]});
-
-                if (!(clss in classes))
+                if (!(member in members))
                 {
                     chartObject.data.rows.push({c: [{
-                        v: clss
-                    }, {
-                        v: account
-                    }, {
-                        v: 0
-                    }
-                    ]});
+                                v: member
+                            }, {
+                                v: 'all'
+                            }, {
+                                v: 0
+                            }
+                        ]});
 
-                    classes[clss] = true;
+                    members[member] = true;
+                    tree.add({id: member, value: 0}, 'all');
                 }
 
                 if (!(account in accounts))
@@ -118,23 +111,40 @@
                         ]});
 
                     accounts[account] = true;
+                    tree.add({id: account, value: 0}, member);
                 }
 
-                if (!(member in members))
+                if (!(clss in classes))
                 {
                     chartObject.data.rows.push({c: [{
-                                v: member
-                            }, {
-                                v: 'all'
-                            }, {
-                                v: 0
-                            }
-                        ]});
+                        v: clss
+                    }, {
+                        v: account
+                    }, {
+                        v: 0
+                    }
+                    ]});
 
-                    members[member] = true;
+                    classes[clss] = true;
+                    tree.add({id: clss, value: 0}, account);
                 }
-            }
 
+                chartObject.data.rows.push({c: [{
+                            v: ccy
+                        }, {
+                            v: clss
+                        }, {
+                            v: data[index].additionalMargin
+                        }
+                    ]});
+                tree.add({id: ccy, value: data[index].additionalMargin}, clss);
+            }
+            tree.traverseDF(function(node) {
+                node.children.sort(function(a, b) {return a.data.value - b.data.value;});
+            });
+//            tree.traverseDF(function(node) {
+//                console.log(node.data)
+//            });
             vm.chartObject = chartObject;
         }
 
@@ -143,5 +153,51 @@
                 $interval.cancel(refresh);
             }
         });
+
+        function Node(data) {
+            this.data = data;
+            this.parent = null;
+            this.children = [];
+        }
+
+        function Tree(data) {
+            var node = new Node(data);
+            this._root = node;
+        }
+
+        Tree.prototype.traverseDF = function(callback) {
+            (function recurse(currentNode) {
+                for (var i = 0, length = currentNode.children.length; i < length; i++) {
+                    recurse(currentNode.children[i]);
+                }
+                callback(currentNode);
+            })(this._root);
+        };
+
+        Tree.prototype.contains = function(callback) {
+            this.traverseDF(callback);
+        };
+
+        Tree.prototype.add = function(data, parentId) {
+            var child = new Node(data),
+                parent = null,
+                callback = function(node) {
+                    if (node.data.id === parentId) {
+                        parent = node;
+                    }
+            };
+            this.contains(callback);
+            if (parent) {
+                parent.children.push(child);
+                child.parent = parent;
+                while (parent !== null) {
+                    parent.data.value += child.data.value;
+                    parent = parent.parent;
+                }
+            } else {
+                throw new Error('Cannot add node to a non-existent parent.');
+            }
+        };
+
     };
 })();
