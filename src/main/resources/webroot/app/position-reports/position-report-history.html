@@ -37,11 +37,9 @@
                     <tr>
                         <th class="sorting">Last update <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Time when DAVe received the last update" aria-hidden="true"></i> <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('received')"></span></th>
                         <th>NetLS <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Net position" aria-hidden="true"></i> <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('netLS')"></span></th>
-                        <th>NetEA <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="?????" aria-hidden="true"></i> <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('netEA')"></span></th>
-                        <th>MVar <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="?????" aria-hidden="true"></i> <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('mVar')"></span></th>
-                        <th>CompVar <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="?????" aria-hidden="true"></i> <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('compVar')"></span></th>
-                        <th>Delta <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="?????" aria-hidden="true"></i> <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('delta')"></span></th>
-                        <th>LiquiAddOn <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Time when DAVe received the last update" aria-hidden="true"></i> <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('compLiquidityAddOn')"></span></th>
+                        <th>Position VaR <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="PnL of the position when calculating portfolio VaR" aria-hidden="true"></i> <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('compVar')"></span></th>
+                        <th>EuroDelta <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Position sensibility to underlying move in Euro" aria-hidden="true"></i> <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('delta')"></span></th>
+                        <th>LA <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Liquidity Addon of the position" aria-hidden="true"></i> <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('compLiquidityAddOn')"></span></th>
                         <th></th>
                     </tr>
                     </thead>
@@ -49,8 +47,6 @@
                     <tr ng-repeat-start="record in vm.viewWindow track by record.id.$oid" row-highlighter="record.id.$oid" ng-click="vm.showExtraInfo(record.id.$oid)">
                         <td highlighter="record.received">{{record.received | date:'HH:mm:ss'}}</td>
                         <td highlighter="record.netLS">{{record.netLS | number:2}}</td>
-                        <td highlighter="record.netEA">{{record.netEA | number:2}}</td>
-                        <td highlighter="record.mVar">{{record.mVar | number:2}}</td>
                         <td highlighter="record.compVar">{{record.compVar | number:2}}</td>
                         <td highlighter="record.delta">{{record.delta | number:2}}</td>
                         <td highlighter="record.compLiquidityAddOn">{{record.compLiquidityAddOn | number:2}}</td>
@@ -61,14 +57,32 @@
                             <table class="table table-condensed">
                                 <thead>
                                 <tr row-highlighter="record.id.$oid">
-                                    <th>ClrCcy</th>
-                                    <th>PrdCcy</th>
+                                    <th>Clearing Ccy</th>
+                                    <th>Product Ccy</th>
                                     <th>CrMrgLQty</th>
                                     <th>CrMrgSQty</th>
+                                    <th>NetEA</th>
                                     <th>OptExcQty</th>
                                     <th>OptAssQty</th>
                                     <th>AllTrQty</th>
-                                    <th>DelNtQty</th>
+                                    <th colspan="2">DelNtQty</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr row-highlighter="record.id.$oid">
+                                    <td highlighter="record.clearingCcy">{{record.clearingCcy}}</td>
+                                    <td highlighter="record.productCcy">{{record.productCcy}}</td>
+                                    <td highlighter="record.crossMarginLongQty">{{record.crossMarginLongQty | number:2}}</td>
+                                    <td highlighter="record.crossMarginShortQty">{{record.crossMarginShortQty | number:2}}</td>
+                                    <td highlighter="record.netEA">{{record.netEA | number:2}}</td>
+                                    <td highlighter="record.optionExcerciseQty">{{record.optionExcerciseQty | number:2}}</td>
+                                    <td highlighter="record.optionAssignmentQty">{{record.optionAssignmentQty | number:2}}</td>
+                                    <td highlighter="record.allocationTradeQty">{{record.allocationTradeQty | number:2}}</td>
+                                    <td colspan="2" highlighter="record.deliveryNoticeQty">{{record.deliveryNoticeQty | number:2}}</td>
+                                </tr>
+                                </tbody>
+                                <thead>
+                                <tr row-highlighter="record.id.$oid">
                                     <th>CorrBreak</th>
                                     <th>CopmError</th>
                                     <th>LonOptCredit</th>
@@ -78,18 +92,11 @@
                                     <th>Vega</th>
                                     <th>Rho</th>
                                     <th>Theta</th>
+                                    <th>MVar</th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 <tr row-highlighter="record.id.$oid">
-                                    <td highlighter="record.clearingCcy">{{record.clearingCcy}}</td>
-                                    <td highlighter="record.productCcy">{{record.productCcy}}</td>
-                                    <td highlighter="record.crossMarginLongQty">{{record.crossMarginLongQty | number:2}}</td>
-                                    <td highlighter="record.crossMarginShortQty">{{record.crossMarginShortQty | number:2}}</td>
-                                    <td highlighter="record.optionExcerciseQty">{{record.optionExcerciseQty | number:2}}</td>
-                                    <td highlighter="record.optionAssignmentQty">{{record.optionAssignmentQty | number:2}}</td>
-                                    <td highlighter="record.allocationTradeQty">{{record.allocationTradeQty | number:2}}</td>
-                                    <td highlighter="record.deliveryNoticeQty">{{record.deliveryNoticeQty | number:2}}</td>
                                     <td highlighter="record.compCorrelationBreak">{{record.compCorrelationBreak | number:2}}</td>
                                     <td highlighter="record.compCompressionError">{{record.compCompressionError | number:2}}</td>
                                     <td highlighter="record.compLongOptionCredit">{{record.compLongOptionCredit | number:2}}</td>
@@ -99,6 +106,7 @@
                                     <td highlighter="record.vega">{{record.vega | number:2}}</td>
                                     <td highlighter="record.rho">{{record.rho | number:2}}</td>
                                     <td highlighter="record.theta">{{record.theta | number:2}}</td>
+                                    <td highlighter="record.mVar">{{record.mVar | number:2}}</td>
                                 </tr>
                                 </tbody>
                             </table>
