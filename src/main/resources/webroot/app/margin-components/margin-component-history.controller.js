@@ -21,18 +21,29 @@
         vm.ordering = vm.defaultOrdering;
         vm.getTickFromRecord = getTickFromRecord;
         vm.getRestQueryUrl = getRestQueryUrl;
+        vm.processData = processData;
         vm.loadData();
 
         function getTickFromRecord(record) {
             var tick = {
                 period: $filter('date')(record.received, "yyyy-MM-dd HH:mm:ss"),
-                variationMargin: record.variationMargin,
+                variLiqui: record.variLiqui,
                 premiumMargin: record.premiumMargin,
-                liquiMargin: record.liquiMargin,
                 spreadMargin: record.spreadMargin,
                 additionalMargin: record.additionalMargin
             };
             return tick;
+        }
+
+        function processData(data) {
+            for (var index = 0; index < data.length; ++index) {
+                data[index].variLiqui = data[index].variationMargin + data[index].liquiMargin;
+            }
+
+            vm.sourceData = data;
+            vm.recordCount = data.length;
+            vm.updateViewWindow(vm.currentPage);
+            vm.processGraphData(data);
         }
 
         function getRestQueryUrl() {

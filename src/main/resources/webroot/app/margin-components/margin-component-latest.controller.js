@@ -28,6 +28,7 @@
 
         function processRecord(record) {
             record.functionalKey = record.clearer + '-' + record.member + '-' + record.account + '-' + record.clss + '-' + record.ccy;
+            record.variLiqui = record.variationMargin + record.liquiMargin;
         }
 
         function getRestQueryUrl() {
