@@ -41,11 +41,10 @@
 
 <body>
 
-    <div id="wrapper">
+    <div id="wrapper" ng-controller="LoginController as login">
 
-        <!-- Navigation -->
-        <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
-            <div class="navbar-header">
+        <nav class="navbar navbar-default navbar-fixed-top navbar-inverse" role="navigation" style="margin-bottom: 0">
+            <div class="navbar-header" style="margin-right: 25px;">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                     <span class="sr-only">Toggle navigation</span>
                     <span class="icon-bar"></span>
@@ -54,79 +53,60 @@
                 </button>
                 <a class="navbar-brand" href="#/"><span class="glyphicon glyphicon-fire"></span> DAVe</a>
             </div>
-            <!-- /.navbar-header -->
 
-            <ul class="nav navbar-top-links navbar-right">
-                <li ng-controller="TradingSessionStatusController as status" ng-if="authStatus == true">
-                        <span ng-if="status.tss[0].stat==2" class="label label-success">ERS Status: Online</span>
-                        <span ng-if="status.tss[0].stat==1" class="label label-danger">ERS Status: Halted</span>
-                        <span ng-if="status.tss[0].stat==3" class="label label-danger">ERS Status: Closed</span>
-                        <span ng-if="status.tss[0].stat!=3 && status.tss[0].stat!=1 && status.tss[0].stat!=2" class="label label-warning">ERS Status: Unknown</span>
-                </li>
-                <li class="dropdown" ng-controller="LoginController as login">
-                    <a class="dropdown-toggle" data-toggle="dropdown">
-                        <i class="fa fa-user fa-fw"></i> <i class="fa fa-caret-down"></i>
-                    </a>
-                    <ul class="dropdown-menu dropdown-user">
-                        <!--<li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
-                        </li>
-                        <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
-                        </li>
-                        <li class="divider"></li>-->
-                        <li ng-click="login.logout()" ng-if="authStatus == true"><a href="#/login"><i class="fa fa-sign-out fa-fw"></i> Logout</a></li>
-                        <li ng-if="authStatus == false"><a href="#/login"><i class="fa fa-sign-out fa-fw"></i> Login</a></li>
-                    </ul>
-                    <!-- /.dropdown-user -->
-                </li>
-                <!-- /.dropdown -->
-            </ul>
-            <!-- /.navbar-top-links -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1" ng-if="authStatus == true">
+                <ul class="nav navbar-nav navbar-top-links navbar-right">
+                    <li ng-controller="TradingSessionStatusController as status">
+                        <p class="navbar-text">
+                            <span ng-if="status.tss[0].stat==2" class="label label-success">ERS Status: Online</span>
+                            <span ng-if="status.tss[0].stat==1" class="label label-danger">ERS Status: Halted</span>
+                            <span ng-if="status.tss[0].stat==3" class="label label-danger">ERS Status: Closed</span>
+                            <span ng-if="status.tss[0].stat!=3 && status.tss[0].stat!=1 && status.tss[0].stat!=2" class="label label-warning">ERS Status: Unknown</span>
+                        </p>
+                    </li>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown">
+                            <i class="fa fa-user fa-fw"></i> <i class="fa fa-caret-down"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-user">
+                            <!--<li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                            </li>
+                            <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                            </li>
+                            <li class="divider"></li>-->
+                            <li ng-click="login.logout()" ng-if="authStatus == true"><a href="#/login"><i class="fa fa-sign-out fa-fw"></i> Logout</a></li>
+                            <li ng-if="authStatus == false"><a href="#/login"><i class="fa fa-sign-out fa-fw"></i> Login</a></li>
+                        </ul>
+                    </li>
+                </ul>
 
-            <div class="navbar-default sidebar" role="navigation">
-                <div class="sidebar-nav navbar-collapse">
-                    <ul class="nav" id="side-menu" ng-controller="MenuController as menu">
-                        <li ng-class="menu.amIActive('/dashboard')">
-                            <a href="#/dashboard"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
-                        </li>
-                        <li ng-class="menu.amIActive('/positionReport')">
-                            <a href="#"><i class="fa fa-line-chart fa-fw"></i> Margin Requirement<span class="fa arrow"></a>
-                            <ul class="nav nav-second-level">
-                                <li ng-class="menu.amIActive('/positionReport')">
-                                    <a href="#/positionReportLatest">Position Reports</a>
-                                </li>
-                                <li ng-class="menu.amIActive('/marginComponent')">
-                                    <a href="#/marginComponentLatest">Margin Components</a>
-                                </li>
-                                <li ng-class="menu.amIActive('/totalMarginRequirement')">
-                                    <a href="#/totalMarginRequirementLatest">Total Margin Requirements</a>
-                                </li>
-                                <li ng-class="menu.amIActive('/marginShortfallSurplus')">
-                                    <a href="#/marginShortfallSurplusLatest">Margin Shortfall Surplus</a>
-                                </li>
-                            </ul>
-                        </li>
-
-                        <!-- Experimental drop dow menu
-                        <li ng-class="menu.amIActive('/positionReport')">
-                            <a href="#/positionReportLatest"><i class="fa fa-list fa-fw"></i> Position Reports</a>
-                        </li>
-                        <li ng-class="menu.amIActive('/marginComponent')">
-                            <a href="#/marginComponentLatest"><i class="fa fa-th fa-fw"></i> Margin Components</a>
-                        </li>
-                        <li ng-class="menu.amIActive('/totalMarginRequirement')">
-                            <a href="#/totalMarginRequirementLatest"><i class="fa fa-th-list fa-fw"></i> Total Margin Requirements</a>
-                        </li>
-                        <li ng-class="menu.amIActive('/marginShortfallSurplus')">
-                            <a href="#/marginShortfallSurplusLatest"><i class="fa fa-th-large fa-fw"></i> Margin Shortfall Surplus</a>
-                        </li>-->
-                        <li ng-class="menu.amIActive('/riskLimit')">
-                            <a href="#/riskLimitLatest"><i class="fa fa-fire-extinguisher fa-fw"></i> Risk Limits</a>
-                        </li>
-                    </ul>
-                </div>
-                <!-- /.sidebar-collapse -->
+                <ul class="nav navbar-nav" ng-controller="MenuController as menu">
+                    <li class="nav-divider"></li>
+                    <li ng-class="menu.amIActive('/dashboard')">
+                        <a href="#/dashboard"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
+                    </li>
+                    <li class="dropdown" ng-class="[menu.amIActive('/positionReport'), menu.amIActive('/marginComponent'), menu.amIActive('/totalMarginRequirement'), menu.amIActive('/marginShortfallSurplus')]">
+                        <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-line-chart fa-fw"></i> Margin Requirement <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li ng-class="menu.amIActive('/positionReport')">
+                                <a href="#/positionReportLatest">Position Reports</a>
+                            </li>
+                            <li ng-class="menu.amIActive('/marginComponent')">
+                                <a href="#/marginComponentLatest">Margin Components</a>
+                            </li>
+                            <li ng-class="menu.amIActive('/totalMarginRequirement')">
+                                <a href="#/totalMarginRequirementLatest">Total Margin Requirements</a>
+                            </li>
+                            <li ng-class="menu.amIActive('/marginShortfallSurplus')">
+                                <a href="#/marginShortfallSurplusLatest">Margin Shortfall Surplus</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li ng-class="menu.amIActive('/riskLimit')">
+                        <a href="#/riskLimitLatest"><i class="fa fa-fire-extinguisher fa-fw"></i> Risk Limits</a>
+                    </li>
+                </ul>
             </div>
-            <!-- /.navbar-static-side -->
         </nav>
 
         <!-- Page Content -->
