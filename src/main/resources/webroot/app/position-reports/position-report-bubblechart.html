@@ -1,0 +1,36 @@
+<div class="panel panel-default" ng-controller="PositionReportBubbleChartController as bubbleChart" style="border-top: 0px">
+    <div class="panel-body">
+        <div class="pull-right">
+            <label for="seriesSelect">{{bubbleChart.accountSelection.selectedOption.member}}
+                / </label>
+            <select name="seriesSelect" id="seriesSelect"
+                    ng-options="option.account group by option.member for option in bubbleChart.accountSelection.availableOptions"
+                    ng-model="bubbleChart.accountSelection.selectedOption"
+                    ng-change="bubbleChart.selectionChanged(bubbleChart.accountSelection.selectedOption)">
+            </select>
+            <label for="bubblesCount">Records</label>
+            <select name="bubblesCount" id="bubblesCount"
+                    ng-model="bubbleChart.topRecordsCount"
+                    ng-change="bubbleChart.selectionChanged(bubbleChart.accountSelection.selectedOption)">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="30">30</option>
+            </select>
+        </div>
+    </div>
+    <div class="panel-body">
+        <initial-load
+                ng-if="bubbleChart.chartObject.data.rows.length <= 1 && bubbleChart.initialLoad === true && bubbleChart.errorMessage === ''"/>
+
+        <no-data
+                ng-if="bubbleChart.chartObject.data.rows.length <= 1 && bubbleChart.initialLoad === false && bubbleChart.errorMessage === ''"/>
+
+        <update-failed ng-if="bubbleChart.errorMessage !== ''" message="bubbleChart.errorMessage"/>
+
+        <div google-chart chart="bubbleChart.chartObject" style="height:345px; width:100%;"
+             ng-if="bubbleChart.chartObject.data.rows.length > 0"></div>
+        <br />
+
+        <a href="#/positionReportLatest" class="btn btn-default btn-block">View Details</a>
+    </div>
+</div>
