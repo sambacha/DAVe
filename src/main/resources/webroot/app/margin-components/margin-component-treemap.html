@@ -8,7 +8,7 @@
 
         <update-failed ng-if="treemap2.errorMessage != ''" message="treemap2.errorMessage"/>
 
-        <div google-chart chart="treemap2.chartObject" style="height:345px; width:100%;"
+        <div google-chart chart="treemap2.chartObject" agc-on-select="treemap2.selectHandler(selectedItem)" style="height:345px; width:100%;"
              ng-if="treemap2.chartObject.data.rows.length > 1"></div>
         <br />
 

@@ -7,14 +7,16 @@
 
     angular.module('dave').controller('MarginComponentTreemapController', MarginComponentTreemapController);
 
-    function MarginComponentTreemapController($scope, $http, $interval) {
+    function MarginComponentTreemapController($scope, $http, $interval, $location) {
         var vm = this;
         vm.initialLoad= true;
         vm.errorMessage = "";
         vm.chartObject = {};
+        vm.selectHandler = selectHandler;
 
         var refresh = $interval(loadData, 60000);
         var restQueryUrl = '/api/v1.0/mc/latest/';
+        var clearer;
 
         loadData();
 
@@ -69,6 +71,7 @@
             for (index = 0; index < data.length; ++index) {
                 if (data[index].additionalMargin === 0) continue;
 
+                clearer = data[index].clearer;
                 var member = data[index].clearer + '-' + data[index].member;
                 var account = data[index].clearer + '-' + data[index].member + '-' + data[index].account;
                 var clss = data[index].clearer + '-' + data[index].member + '-' + data[index].account + '-' + data[index].clss;
@@ -124,6 +127,14 @@
                     ]});
             });
             vm.chartObject = chartObject;
+        }
+
+        function selectHandler(selectedItem) {
+            var parentId = vm.chartObject.data.rows[selectedItem.row].c[1].v;
+            var items = parentId.split("-");
+            if (items.length === 3) {
+                $location.path('/marginComponentLatest/' + clearer + "/" + items.join("/"));
+            }
         }
 
         $scope.$on("$destroy", function() {
