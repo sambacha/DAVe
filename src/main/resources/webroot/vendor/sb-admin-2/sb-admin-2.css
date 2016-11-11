@@ -10,14 +10,15 @@ body {
   width: 100%;
 }
 #page-wrapper {
-  padding: 0 15px;
+  margin-top: 50px;
+  padding: 0 15px 0px;
   min-height: 568px;
   background-color: white;
 }
 @media (min-width: 768px) {
   #page-wrapper {
     position: inherit;
-    margin: 0 0 0 0px;
+    margin: 50px 0 0 0px;
     padding: 0 30px;
     border-left: 1px solid #e7e7e7;
   }
