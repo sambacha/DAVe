@@ -36,16 +36,15 @@
                     backgroundColor: {
                         fill: 'transparent'
                     },
-                    minColor: '#f5f50a',
-                    //minColor: '#c88c5a',
-//                    midColor: '#ddd',
-                    maxColor: '#FA6969',
+                    minColor: '#f39d3c',
+                    midColor: '#ec7a08',
+                    maxColor: '#b35c00',
                     fontColor: 'black',
                     showScale: false,
                     highlightOnMouseOver: true,
                     headerHeight: 15,
                     maxDepth: 1,
-                    maxPostDepth: 2
+                    maxPostDepth: 1
                 };
             chartObject.data = {
                 cols: [{
