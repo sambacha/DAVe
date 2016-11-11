@@ -64,7 +64,7 @@
             var members = {};
             var accounts = {};
             var classes = {};
-            var tree = new Tree({id: 'all', value: 0});
+            var tree = new Tree({id: 'all', text: 'all', value: 0});
 
             for (index = 0; index < data.length; ++index) {
                 if (data[index].additionalMargin === 0) continue;
@@ -77,28 +77,28 @@
                 if (!(member in members))
                 {
                     members[member] = true;
-                    tree.add({id: member, value: 0}, 'all');
+                    tree.add({id: member, text: member.replace(/\w+-/, ""), value: 0}, 'all');
                 }
 
                 if (!(account in accounts))
                 {
                     accounts[account] = true;
-                    tree.add({id: account, value: 0}, member);
+                    tree.add({id: account, text: account.replace(/\w+-/, ""), value: 0}, member);
                 }
 
                 if (!(clss in classes))
                 {
                     classes[clss] = true;
-                    tree.add({id: clss, value: 0}, account);
+                    tree.add({id: clss, text: clss.replace(/\w+-/, ""), value: 0}, account);
                 }
 
-                tree.add({id: ccy, value: data[index].additionalMargin}, clss);
+                tree.add({id: ccy, text: ccy.replace(/\w+-/, ""), value: data[index].additionalMargin}, clss);
             }
             tree.traverseDF(function(node) {
                 node.children.sort(function(a, b) {return b.data.value - a.data.value;});
             });
             tree.traverseBF(function(node) {
-                var restNode = new Node({id: node.data.id + "-REST", value: 0});
+                var restNode = new Node({id: node.data.id + "-Rest", text: node.data.text + "-Rest", value: 0});
                 restNode.parent = node;
                 var aggregateCount = Math.max(node.children.length - 10, 0);
                 for (var i = 0; i < aggregateCount; i++) {
@@ -115,9 +115,9 @@
             });
             tree.traverseDF(function(node) {
                 chartObject.data.rows.push({c: [{
-                            v: node.data.id
+                            v: node.data.text
                         }, {
-                            v: node.parent !== null ? node.parent.data.id : null
+                            v: node.parent !== null ? node.parent.data.text : null
                         }, {
                             v: node.children.length > 0 ? 0 : node.data.value
                         }
@@ -151,7 +151,7 @@
                 callback(currentNode);
             })(this._root);
         };
-        
+
         Tree.prototype.traverseBF = function(callback) {
           var queue = [];
           queue.push(this._root);
