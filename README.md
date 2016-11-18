@@ -103,7 +103,7 @@ The `CSRF` subsection configures Cross-site request forgery (CSRF) protection. W
 
 Use script `start_dave.sh|bat` to start the application depending on your operating system (Linux,MacOS | Windows).
 
-## Run only UI
+## Run UI only
 
 If you want to decouple UI from the back-end and assuming you have DAVe already running on some host (as described in the previous step) with CORS option enabled, you can deploy and work on UI part of the application on another machine than back-end is running.
 
@@ -116,8 +116,8 @@ On the host where the UI simple web server should be started:
  - Install Grunt CLI using `npm install -g grunt-cli`. Use `sudo` on Linux or MacOS if necessary. You may need to setup http(s) proxy using:
    - `npm config set proxy http://proxy.company.com:8080`
    - `npm config set https-proxy http://proxy.company.com:8080`
- - Run `npm install` to download necessary packages.
  - `cd` into the directory where UI related files reside: `cd src/main/resources/webroot`.
+ - Run `npm install` to download necessary packages. 
  - Run `npm start` to start the simple web server and use the host/port written to the standard output in the browser.
  - Whenever there is a change to the files related to the UI, the server gets notified immediately - no restart is needed.
  - Point your UI to the host, where the back-end for DAVe is running - see `app.js` file, section `hostConfig`.
