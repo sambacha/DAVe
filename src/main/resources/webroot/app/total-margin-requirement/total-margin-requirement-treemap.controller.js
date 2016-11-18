@@ -7,14 +7,14 @@
 
     angular.module('dave').controller('TotalMarginRequirementTreemapController', TotalMarginRequirementTreemapController);
 
-    function TotalMarginRequirementTreemapController($scope, $http, $interval) {
+    function TotalMarginRequirementTreemapController($scope, $http, $interval, hostConfig) {
         var vm = this;
         vm.initialLoad= true;
         vm.errorMessage = "";
         vm.chartObject = {};
 
         var refresh = $interval(loadData, 60000);
-        var restQueryUrl = '/api/v1.0/tmr/latest/';
+        var restQueryUrl = hostConfig.restURL + '/tmr/latest/';
 
         loadData();
 

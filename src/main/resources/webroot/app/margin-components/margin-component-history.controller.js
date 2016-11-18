@@ -7,7 +7,7 @@
 
     angular.module('dave').controller('MarginComponentHistoryController', MarginComponentHistoryController);
 
-    function MarginComponentHistoryController($scope, $routeParams, $http, $interval, $filter, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService) {
+    function MarginComponentHistoryController($scope, $routeParams, $http, $interval, $filter, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService, hostConfig) {
         BaseHistoryController.call(this, $scope, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService);
         var vm = this;
         vm.route = {
@@ -50,7 +50,7 @@
         }
 
         function getRestQueryUrl() {
-            return '/api/v1.0/mc/history/' + vm.route.clearer + '/' + vm.route.member + '/' + vm.route.account + '/' + vm.route.class + '/' + vm.route.ccy;
+            return hostConfig.restURL + '/mc/history/' + vm.route.clearer + '/' + vm.route.member + '/' + vm.route.account + '/' + vm.route.class + '/' + vm.route.ccy;
         }
     };
 })();

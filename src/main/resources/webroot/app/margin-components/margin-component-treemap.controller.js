@@ -7,7 +7,7 @@
 
     angular.module('dave').controller('MarginComponentTreemapController', MarginComponentTreemapController);
 
-    function MarginComponentTreemapController($scope, $http, $interval, $location) {
+    function MarginComponentTreemapController($scope, $http, $interval, $location, hostConfig) {
         var vm = this;
         vm.initialLoad= true;
         vm.errorMessage = "";
@@ -15,7 +15,7 @@
         vm.selectHandler = selectHandler;
 
         var refresh = $interval(loadData, 60000);
-        var restQueryUrl = '/api/v1.0/mc/latest/';
+        var restQueryUrl = hostConfig.restURL + '/mc/latest/';
         var clearer;
 
         loadData();

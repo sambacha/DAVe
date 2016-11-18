@@ -7,7 +7,7 @@
 
     angular.module('dave').controller('RiskLimitHistoryController', RiskLimitHistoryController);
 
-    function RiskLimitHistoryController($scope, $routeParams, $http, $interval, $filter, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService) {
+    function RiskLimitHistoryController($scope, $routeParams, $http, $interval, $filter, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService, hostConfig) {
         BaseHistoryController.call(this, $scope, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService);
         var vm = this;
         vm.route = {
@@ -57,7 +57,7 @@
         }
 
         function getRestQueryUrl() {
-            return '/api/v1.0/rl/history/' + vm.route.clearer + '/' + vm.route.member + '/' + vm.route.maintainer + '/' + vm.route.limitType;
+            return hostConfig.restURL + '/rl/history/' + vm.route.clearer + '/' + vm.route.member + '/' + vm.route.maintainer + '/' + vm.route.limitType;
         }
     };
 })();

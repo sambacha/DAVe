@@ -7,7 +7,7 @@
 
     angular.module('dave').controller('MarginShortfallSurplusLatestController', MarginShortfallSurplusLatestController);
 
-    function MarginShortfallSurplusLatestController($scope, $routeParams, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService) {
+    function MarginShortfallSurplusLatestController($scope, $routeParams, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService, hostConfig) {
         BaseLatestController.call(this, $scope, $routeParams, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService);
         var vm = this;
         vm.route = {
@@ -33,7 +33,7 @@
         }
 
         function getRestQueryUrl() {
-            return '/api/v1.0/mss/latest/' + vm.route.clearer + '/' + vm.route.pool + '/' + vm.route.member + '/' + vm.route.clearingCcy;
+            return hostConfig.restURL + '/mss/latest/' + vm.route.clearer + '/' + vm.route.pool + '/' + vm.route.member + '/' + vm.route.clearingCcy;
         }
     };
 })();

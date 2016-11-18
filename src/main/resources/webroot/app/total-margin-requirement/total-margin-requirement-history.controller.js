@@ -7,7 +7,7 @@
 
     angular.module('dave').controller('TotalMarginRequirementHistoryController', TotalMarginRequirementHistoryController);
 
-    function TotalMarginRequirementHistoryController($scope, $routeParams, $http, $interval, $filter, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService) {
+    function TotalMarginRequirementHistoryController($scope, $routeParams, $http, $interval, $filter, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService, hostConfig) {
         BaseHistoryController.call(this, $scope, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService);
         var vm = this;
         vm.route = {
@@ -34,7 +34,7 @@
         }
 
         function getRestQueryUrl() {
-            return '/api/v1.0/tmr/history/' + vm.route.clearer + '/' + vm.route.pool + '/' + vm.route.member + '/' + vm.route.account + '/' + vm.route.ccy;
+            return hostConfig.restURL + '/tmr/history/' + vm.route.clearer + '/' + vm.route.pool + '/' + vm.route.member + '/' + vm.route.account + '/' + vm.route.ccy;
         }
     };
 })();

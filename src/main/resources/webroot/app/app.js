@@ -5,9 +5,13 @@
 (function() {
     'use strict';
 
-    angular.module('dave', [
+    var dave = angular.module('dave', [
         'ngRoute',
         'angular.morris',
         'googlechart'
     ]);
+
+    dave.constant('hostConfig', {
+        restURL: '/api/v1.0' // 'http(s)://someUrl:port/path'
+    });
 })();
