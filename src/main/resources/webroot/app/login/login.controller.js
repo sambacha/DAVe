@@ -7,7 +7,7 @@
 
     angular.module('dave').controller('LoginController', LoginController);
 
-    function LoginController($scope, $http, $interval, $rootScope, $location) {
+    function LoginController($scope, $http, $interval, $rootScope, $location, hostConfig) {
         $rootScope.authStatus = false;
         $rootScope.authUsername = "";
 
@@ -19,9 +19,9 @@
         vm.logout = logout;
 
         var url = {
-            "status": '/api/v1.0/user/loginStatus',
-            "login": '/api/v1.0/user/login',
-            "logout": '/api/v1.0/user/logout'
+            "status": hostConfig.restURL + '/user/loginStatus',
+            "login": hostConfig.restURL + '/user/login',
+            "logout": hostConfig.restURL + '/user/logout'
         };
 
         checkAuth();

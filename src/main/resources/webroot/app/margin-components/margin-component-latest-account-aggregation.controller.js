@@ -7,7 +7,7 @@
 
     angular.module('dave').controller('MarginComponentLatestAccountAggregationController', MarginComponentLatestAccountAggregationController);
 
-    function MarginComponentLatestAccountAggregationController($scope, $http, $interval, $filter, sortRecordsService) {
+    function MarginComponentLatestAccountAggregationController($scope, $http, $interval, $filter, sortRecordsService, hostConfig) {
         var vm = this;
         vm.defaultOrdering = ["clearer", "member", "account"];
         vm.ordering = vm.defaultOrdering;
@@ -97,7 +97,7 @@
         }
 
         function getRestQueryUrl() {
-            return '/api/v1.0/mc/latest/';
+            return hostConfig.restURL + '/mc/latest/';
         }
 
         $scope.$on("$destroy", function() {

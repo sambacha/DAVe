@@ -7,11 +7,11 @@
 
     angular.module('dave').controller('TradingSessionStatusController', TradingSessionStatusController);
 
-    function TradingSessionStatusController($scope, $http, $interval, $rootScope) {
+    function TradingSessionStatusController($scope, $http, $interval, $rootScope, hostConfig) {
         var vm = this;
         vm.tss = null;
 
-        var url = '/api/v1.0/tss/latest';
+        var url = hostConfig.restURL + '/tss/latest';
         var refresh = null;
 
         getTradingSessionStatus()

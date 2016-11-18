@@ -7,7 +7,7 @@
 
     angular.module('dave').controller('MarginShortfallSurplusHistoryController', MarginShortfallSurplusHistoryController);
 
-    function MarginShortfallSurplusHistoryController($scope, $routeParams, $http, $interval, $filter, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService) {
+    function MarginShortfallSurplusHistoryController($scope, $routeParams, $http, $interval, $filter, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService, hostConfig) {
         BaseHistoryController.call(this, $scope, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService);
         var vm = this;
         vm.route = {
@@ -38,7 +38,7 @@
         }
 
         function getRestQueryUrl() {
-            return '/api/v1.0/mss/history/' + vm.route.clearer + '/' + vm.route.pool + '/' + vm.route.member + '/' + vm.route.clearingCcy + '/' + vm.route.ccy;
+            return hostConfig.restURL + '/mss/history/' + vm.route.clearer + '/' + vm.route.pool + '/' + vm.route.member + '/' + vm.route.clearingCcy + '/' + vm.route.ccy;
         }
     };
 })();

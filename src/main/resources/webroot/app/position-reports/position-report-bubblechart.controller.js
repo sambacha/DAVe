@@ -8,7 +8,7 @@
 
     angular.module('dave').controller('PositionReportBubbleChartController', PositionReportBubbleChartController);
 
-    function PositionReportBubbleChartController($scope, $http, $interval, $filter) {
+    function PositionReportBubbleChartController($scope, $http, $interval, $filter, hostConfig) {
         var vm = this;
         vm.initialLoad= true;
         vm.errorMessage = "";
@@ -18,7 +18,7 @@
         vm.topRecordsCount = "20";
 
         var refresh = $interval(loadData, 60000);
-        var restQueryUrl = '/api/v1.0/pr/latest/';
+        var restQueryUrl = hostConfig.restURL + '/pr/latest/';
         var bubblesMap = new Map();
         var compVarPositiveLegend = "Positive";
         var compVarNegativeLegend = "Negative";

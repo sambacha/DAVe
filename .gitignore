@@ -16,3 +16,4 @@ tmp
 /db/*
 /old-play-framework/db/*
 /.vertx
+/src/main/resources/webroot/node_modules

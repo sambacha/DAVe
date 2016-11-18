@@ -7,7 +7,7 @@
 
     angular.module('dave').controller('MarginShortfallSurplusLatestSummaryController', MarginShortfallSurplusLatestSummaryController);
 
-    function MarginShortfallSurplusLatestSummaryController($scope, $http, $interval) {
+    function MarginShortfallSurplusLatestSummaryController($scope, $http, $interval, hostConfig) {
         var vm = this;
         vm.initialLoad= true;
         vm.errorMessage = "";
@@ -57,7 +57,7 @@
         }
 
         function getRestQueryUrl() {
-            return '/api/v1.0/mss/latest/';
+            return hostConfig.restURL + '/mss/latest/';
         }
 
         $scope.$on("$destroy", function() {
