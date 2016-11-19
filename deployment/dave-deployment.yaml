@@ -15,7 +15,7 @@ spec:
         project: dave
     spec:
       containers:
-        - image: scholzj/dave:master
+        - image: scholzj/dave:4cd3a16682bde7ca473721a78269d11325c63167
           name: dave
           imagePullPolicy: Always
           env:
