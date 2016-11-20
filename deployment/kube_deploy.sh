@@ -7,4 +7,4 @@ chmod +x kubectl
 ./kubectl config set-credentials ${KUBE_USERNAME} --token ${KUBE_PASSWORD}
 ./kubectl config set-context default-context --cluster=dave --user=${KUBE_USERNAME}
 ./kubectl config use-context default-context
-./kubectl set image deployment/dave-deployment dave=scholzj/dave:${CIRCLE_SHA1}
+./kubectl set image deployment/dave-deployment dave=scholzj/dave:${CIRCLE_SHA1} --namespace=ttsave
