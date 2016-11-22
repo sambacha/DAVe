@@ -5,6 +5,7 @@ metadata:
     name: dave
     project: dave
   name: dave
+  namespace: ttsave
 spec:
   ports:
     - port: 8080
