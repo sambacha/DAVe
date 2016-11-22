@@ -7,7 +7,8 @@ metadata:
   name: dave
 spec:
   ports:
-    - port: 8080
+    - port: 443
+      targetPort: 8080
   selector:
     name: dave
   type: LoadBalancer

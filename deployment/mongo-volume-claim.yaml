@@ -2,6 +2,8 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: mongo-storage
+  annotations:
+    volume.beta.kubernetes.io/storage-class: ssd-eu-central-1b
 spec:
   accessModes:
     - ReadWriteOnce
