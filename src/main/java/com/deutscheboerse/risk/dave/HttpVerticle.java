@@ -3,6 +3,7 @@ package com.deutscheboerse.risk.dave;
 import com.deutscheboerse.risk.dave.restapi.ers.*;
 import com.deutscheboerse.risk.dave.restapi.user.UserApi;
 import com.deutscheboerse.risk.dave.auth.ApiAuthHandler;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -11,6 +12,7 @@ import io.vertx.core.http.ClientAuth;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -30,11 +32,15 @@ import java.util.List;
  * Created by schojak on 19.8.16.
  */
 public class HttpVerticle extends AbstractVerticle {
+    public static enum Mode {
+        HTTP, HTTP_REDIRECT, HTTPS
+    };
     private static final Logger LOG = LoggerFactory.getLogger(HttpVerticle.class);
 
     private static final Integer MAX_BODY_SIZE = 1024*1024; // 1MB
 
     private static final Integer DEFAULT_HTTP_PORT = 8080;
+    private static final Integer DEFAULT_HTTPS_PORT = 8181;
 
     private static final Boolean DEFAULT_SSL = false;
     private static final Boolean DEFAULT_SSL_REQUIRE_CLIENT_AUTH = false;
@@ -64,7 +70,7 @@ public class HttpVerticle extends AbstractVerticle {
         eb = vertx.eventBus();
 
         List<Future> futures = new ArrayList<>();
-        futures.add(startHttpServer());
+        futures.add(startServer());
 
         CompositeFuture.all(futures).setHandler(ar -> {
             if (ar.succeeded()) {
@@ -94,16 +100,56 @@ public class HttpVerticle extends AbstractVerticle {
         return authProvider;
     }
 
-    private Future<HttpServer> startHttpServer() {
+    private Future<HttpServer> startServer() {
+        Future<HttpServer> webServerFuture;
+        switch (HttpVerticle.Mode.valueOf(config().getString("mode"))) {
+            case HTTP:
+                webServerFuture = startHttpServer(config().getInteger("httpPort", HttpVerticle.DEFAULT_HTTP_PORT));
+                break;
+            case HTTPS:
+                webServerFuture = startHttpServer(config().getJsonObject("ssl", new JsonObject()).getInteger("httpsPort", HttpVerticle.DEFAULT_HTTPS_PORT));
+                break;
+            case HTTP_REDIRECT:
+                int httpPort = config().getInteger("httpPort", HttpVerticle.DEFAULT_HTTP_PORT);
+                int httpsPort = config().getJsonObject("ssl", new JsonObject()).getInteger("httpsPort", HttpVerticle.DEFAULT_HTTPS_PORT);
+                webServerFuture = startHttpRedirectorServer(httpPort, httpsPort);
+                break;
+            default:
+                webServerFuture = Future.failedFuture("Unknown mode");
+                break;
+        }
+        return webServerFuture;
+    }
+
+    private Future<HttpServer> startHttpServer(int port) {
         Future<HttpServer> webServerFuture = Future.future();
         Router router = configureRouter();
         HttpServerOptions httpOptions = configureWebServer();
 
-        LOG.info("Starting web server on port {}", config().getInteger("httpPort", HttpVerticle.DEFAULT_HTTP_PORT));
+        LOG.info("Starting web server on port {}", port);
         server = vertx.createHttpServer(httpOptions)
                 .requestHandler(router::accept)
-                .listen(config().getInteger("httpPort", HttpVerticle.DEFAULT_HTTP_PORT), webServerFuture.completer());
+                .listen(port, webServerFuture.completer());
 
+        return webServerFuture;
+    }
+
+    private Future<HttpServer> startHttpRedirectorServer(int httpPort, int httpsPort) {
+        Future<HttpServer> webServerFuture = Future.future();
+
+        LOG.info("Starting web server (redirector) on port {}", httpPort);
+        server = vertx.createHttpServer();
+        server.requestHandler(request -> {
+            String redirectAddress = String.format("https://%s:%d", request.localAddress().host(), httpsPort);
+            HttpServerResponse response = request.response();
+            response.headersEndHandler(unused -> {
+                request.response().headers().set("Location", redirectAddress);
+            });
+            response.setStatusCode(HttpResponseStatus.MOVED_PERMANENTLY.code());
+            response.setStatusMessage("Server requires HTTPS");
+            response.end();
+        });
+        server.listen(httpPort, webServerFuture.completer());
         return webServerFuture;
     }
 
@@ -117,6 +163,9 @@ public class HttpVerticle extends AbstractVerticle {
 
     private void setSsl(HttpServerOptions httpOptions)
     {
+        if (!HttpVerticle.Mode.valueOf(config().getString("mode")).equals(HttpVerticle.Mode.HTTPS)) {
+            return;
+        }
         if (config().getJsonObject("ssl", new JsonObject()).getBoolean("enable", DEFAULT_SSL) && config().getJsonObject("ssl", new JsonObject()).getString("keystore") != null && config().getJsonObject("ssl", new JsonObject()).getString("keystorePassword") != null)
         {
             LOG.info("Enabling SSL on webserver");

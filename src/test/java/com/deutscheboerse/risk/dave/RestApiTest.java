@@ -30,13 +30,14 @@ public class RestApiTest {
         RestApiTest.port = Integer.getInteger("http.port", 8080);
 
         JsonObject config = new JsonObject().put("httpPort", port);
+        config.put("mode", HttpVerticle.Mode.HTTP);
         vertx.deployVerticle(HttpVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
     }
 
     @Test
     public void testTradingSessionStatusLatest(TestContext context) {
         final Async asyncQuery = context.async();
-        MessageConsumer cons = vertx.eventBus().consumer("query.latestTradingSessionStatus", msg -> {
+        MessageConsumer<?> cons = vertx.eventBus().consumer("query.latestTradingSessionStatus", msg -> {
             try
             {
                 JsonObject params = (JsonObject)msg.body();
@@ -69,7 +70,7 @@ public class RestApiTest {
     @Test
     public void testTradingSessionStatusHistory(TestContext context) {
         final Async asyncQuery = context.async();
-        MessageConsumer cons = vertx.eventBus().consumer("query.historyTradingSessionStatus", msg -> {
+        MessageConsumer<?> cons = vertx.eventBus().consumer("query.historyTradingSessionStatus", msg -> {
             try
             {
                 JsonObject params = (JsonObject)msg.body();
@@ -102,7 +103,7 @@ public class RestApiTest {
     @Test
     public void testPositionReportLatest(TestContext context) {
         final Async asyncQuery = context.async();
-        MessageConsumer cons = vertx.eventBus().consumer("query.latestPositionReport", msg -> {
+        MessageConsumer<?> cons = vertx.eventBus().consumer("query.latestPositionReport", msg -> {
             try
             {
                 JsonObject params = (JsonObject)msg.body();
@@ -144,7 +145,7 @@ public class RestApiTest {
     @Test
     public void testPositionReportHistory(TestContext context) {
         final Async asyncQuery = context.async();
-        MessageConsumer cons = vertx.eventBus().consumer("query.historyPositionReport", msg -> {
+        MessageConsumer<?> cons = vertx.eventBus().consumer("query.historyPositionReport", msg -> {
             try
             {
                 JsonObject params = (JsonObject)msg.body();
@@ -186,7 +187,7 @@ public class RestApiTest {
     @Test
     public void testMarginComponentLatest(TestContext context) {
         final Async asyncQuery = context.async();
-        MessageConsumer cons = vertx.eventBus().consumer("query.latestMarginComponent", msg -> {
+        MessageConsumer<?> cons = vertx.eventBus().consumer("query.latestMarginComponent", msg -> {
             try
             {
                 JsonObject params = (JsonObject)msg.body();
@@ -224,7 +225,7 @@ public class RestApiTest {
     @Test
     public void testMarginComponentHistory(TestContext context) {
         final Async asyncQuery = context.async();
-        MessageConsumer cons = vertx.eventBus().consumer("query.historyMarginComponent", msg -> {
+        MessageConsumer<?> cons = vertx.eventBus().consumer("query.historyMarginComponent", msg -> {
             try
             {
                 JsonObject params = (JsonObject)msg.body();
@@ -262,7 +263,7 @@ public class RestApiTest {
     @Test
     public void testTotalMarginRequirementLatest(TestContext context) {
         final Async asyncQuery = context.async();
-        MessageConsumer cons = vertx.eventBus().consumer("query.latestTotalMarginRequirement", msg -> {
+        MessageConsumer<?> cons = vertx.eventBus().consumer("query.latestTotalMarginRequirement", msg -> {
             try
             {
                 JsonObject params = (JsonObject)msg.body();
@@ -300,7 +301,7 @@ public class RestApiTest {
     @Test
     public void testTotalMarginRequirementHistory(TestContext context) {
         final Async asyncQuery = context.async();
-        MessageConsumer cons = vertx.eventBus().consumer("query.historyTotalMarginRequirement", msg -> {
+        MessageConsumer<?> cons = vertx.eventBus().consumer("query.historyTotalMarginRequirement", msg -> {
             try
             {
                 JsonObject params = (JsonObject)msg.body();
@@ -338,7 +339,7 @@ public class RestApiTest {
     @Test
     public void testMarginShortfallSurplusLatest(TestContext context) {
         final Async asyncQuery = context.async();
-        MessageConsumer cons = vertx.eventBus().consumer("query.latestMarginShortfallSurplus", msg -> {
+        MessageConsumer<?> cons = vertx.eventBus().consumer("query.latestMarginShortfallSurplus", msg -> {
             try
             {
                 JsonObject params = (JsonObject)msg.body();
@@ -376,7 +377,7 @@ public class RestApiTest {
     @Test
     public void testMarginShortfallSurplusHistory(TestContext context) {
         final Async asyncQuery = context.async();
-        MessageConsumer cons = vertx.eventBus().consumer("query.historyMarginShortfallSurplus", msg -> {
+        MessageConsumer<?> cons = vertx.eventBus().consumer("query.historyMarginShortfallSurplus", msg -> {
             try
             {
                 JsonObject params = (JsonObject)msg.body();
@@ -414,7 +415,7 @@ public class RestApiTest {
     @Test
     public void testRiskLimitLatest(TestContext context) {
         final Async asyncQuery = context.async();
-        MessageConsumer cons = vertx.eventBus().consumer("query.latestRiskLimit", msg -> {
+        MessageConsumer<?> cons = vertx.eventBus().consumer("query.latestRiskLimit", msg -> {
             try
             {
                 JsonObject params = (JsonObject)msg.body();
@@ -451,7 +452,7 @@ public class RestApiTest {
     @Test
     public void testRiskLimitHistory(TestContext context) {
         final Async asyncQuery = context.async();
-        MessageConsumer cons = vertx.eventBus().consumer("query.historyRiskLimit", msg -> {
+        MessageConsumer<?> cons = vertx.eventBus().consumer("query.historyRiskLimit", msg -> {
             try
             {
                 JsonObject params = (JsonObject)msg.body();
@@ -488,7 +489,7 @@ public class RestApiTest {
     @Test
     public void testIncompleteUrl(TestContext context) {
         final Async asyncQuery = context.async();
-        MessageConsumer cons = vertx.eventBus().consumer("query.latestPositionReport", msg -> {
+        MessageConsumer<?> cons = vertx.eventBus().consumer("query.latestPositionReport", msg -> {
             try
             {
                 JsonObject params = (JsonObject)msg.body();
@@ -529,7 +530,7 @@ public class RestApiTest {
     @Test
     public void testStars(TestContext context) {
         final Async asyncQuery = context.async();
-        MessageConsumer cons = vertx.eventBus().consumer("query.latestPositionReport", msg -> {
+        MessageConsumer<?> cons = vertx.eventBus().consumer("query.latestPositionReport", msg -> {
             try
             {
                 JsonObject params = (JsonObject)msg.body();

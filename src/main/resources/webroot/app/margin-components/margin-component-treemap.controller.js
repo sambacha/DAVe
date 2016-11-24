@@ -16,7 +16,6 @@
 
         var refresh = $interval(loadData, 60000);
         var restQueryUrl = hostConfig.restURL + '/mc/latest/';
-        var clearer;
 
         loadData();
 
@@ -71,7 +70,7 @@
             for (index = 0; index < data.length; ++index) {
                 if (data[index].additionalMargin === 0) continue;
 
-                clearer = data[index].clearer;
+                var clearer = data[index].clearer;
                 var member = data[index].clearer + '-' + data[index].member;
                 var account = data[index].clearer + '-' + data[index].member + '-' + data[index].account;
                 var clss = data[index].clearer + '-' + data[index].member + '-' + data[index].account + '-' + data[index].clss;
@@ -80,28 +79,28 @@
                 if (!(member in members))
                 {
                     members[member] = true;
-                    tree.add({id: member, text: member.replace(/\w+-/, ""), value: 0}, 'all');
+                    tree.add({id: member, text: member.replace(/\w+-/, ""), value: 0, clearer: clearer}, 'all');
                 }
 
                 if (!(account in accounts))
                 {
                     accounts[account] = true;
-                    tree.add({id: account, text: account.replace(/\w+-/, ""), value: 0}, member);
+                    tree.add({id: account, text: account.replace(/\w+-/, ""), value: 0, clearer: clearer}, member);
                 }
 
                 if (!(clss in classes))
                 {
                     classes[clss] = true;
-                    tree.add({id: clss, text: clss.replace(/\w+-/, ""), value: 0}, account);
+                    tree.add({id: clss, text: clss.replace(/\w+-/, ""), value: 0, clearer: clearer}, account);
                 }
 
-                tree.add({id: ccy, text: ccy.replace(/\w+-/, ""), value: data[index].additionalMargin}, clss);
+                tree.add({id: ccy, text: ccy.replace(/\w+-/, ""), value: data[index].additionalMargin, clearer: clearer, leaf: true}, clss);
             }
             tree.traverseDF(function(node) {
                 node.children.sort(function(a, b) {return b.data.value - a.data.value;});
             });
             tree.traverseBF(function(node) {
-                var restNode = new Node({id: node.data.id + "-Rest", text: node.data.text + "-Rest", value: 0});
+                var restNode = new Node({id: node.data.id + "-Rest", text: node.data.text + "-Rest", value: 0, clearer: node.data.clearer});
                 restNode.parent = node;
                 var aggregateCount = Math.max(node.children.length - 10, 0);
                 for (var i = 0; i < aggregateCount; i++) {
@@ -124,15 +123,17 @@
                         }, {
                             v: node.children.length > 0 ? 0 : node.data.value
                         }
-                    ]});
+                    ], clearer: node.data.clearer, leaf: node.data.leaf});
             });
             vm.chartObject = chartObject;
         }
 
         function selectHandler(selectedItem) {
             var parentId = vm.chartObject.data.rows[selectedItem.row].c[1].v;
+            var leaf = vm.chartObject.data.rows[selectedItem.row].leaf;
             var items = parentId.split("-");
-            if (items.length === 3) {
+            if ((typeof leaf !== 'undefined') && (leaf === true) && (!items.includes("Rest"))) {
+                var clearer = vm.chartObject.data.rows[selectedItem.row].clearer;
                 $location.path('/marginComponentLatest/' + clearer + "/" + items.join("/"));
             }
         }

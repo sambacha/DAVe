@@ -2,7 +2,6 @@ package com.deutscheboerse.risk.dave;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
@@ -143,6 +142,7 @@ public class AuthIT {
     @Test
     public void testAuthDisabled(TestContext context) {
         JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", false));
+        config.put("mode", HttpVerticle.Mode.HTTP);
         deployHttpVerticle(context, config);
 
         final Async asyncLoginStatus = context.async();
@@ -171,6 +171,7 @@ public class AuthIT {
     @Test
     public void testLoginStatus(TestContext context) {
         JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        config.put("mode", HttpVerticle.Mode.HTTP);
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();
@@ -190,6 +191,7 @@ public class AuthIT {
     @Test
     public void testUnauthorizedAccess(TestContext context) {
         JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        config.put("mode", HttpVerticle.Mode.HTTP);
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();
@@ -205,6 +207,7 @@ public class AuthIT {
     @Test
     public void testLoginWrongPassword(TestContext context) {
         JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        config.put("mode", HttpVerticle.Mode.HTTP);
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();
@@ -221,6 +224,7 @@ public class AuthIT {
     @Test
     public void testLoginWithBinaryData(TestContext context) {
         JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        config.put("mode", HttpVerticle.Mode.HTTP);
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();
@@ -237,6 +241,7 @@ public class AuthIT {
     @Test
     public void testLoginNonexistentUser(TestContext context) {
         JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        config.put("mode", HttpVerticle.Mode.HTTP);
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();
@@ -253,6 +258,7 @@ public class AuthIT {
     @Test
     public void testLoginWrongRequest(TestContext context) {
         JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        config.put("mode", HttpVerticle.Mode.HTTP);
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();
@@ -285,6 +291,7 @@ public class AuthIT {
     @Test
     public void testLogin(TestContext context) {
         JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        config.put("mode", HttpVerticle.Mode.HTTP);
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();
@@ -336,6 +343,7 @@ public class AuthIT {
     @Test
     public void testLoginWithCSRF(TestContext context) {
         JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false)).put("CSRF", new JsonObject().put("enable", true).put("secret", "big-secret"));
+        config.put("mode", HttpVerticle.Mode.HTTP);
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();
@@ -380,9 +388,10 @@ public class AuthIT {
 
     @Test
     public void testAuthWithSslClientAuth(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port)
-                .put("ssl", new JsonObject().put("enable", true).put("keystore", getClass().getResource("http.keystore").getPath()).put("keystorePassword", "123456").put("truststore", getClass().getResource("http.truststore").getPath()).put("truststorePassword", "123456").put("requireTLSClientAuth", true))
+        JsonObject config = new JsonObject().put("ssl", new JsonObject().put("httpsPort", port)
+                .put("enable", true).put("keystore", getClass().getResource("http.keystore").getPath()).put("keystorePassword", "123456").put("truststore", getClass().getResource("http.truststore").getPath()).put("truststorePassword", "123456").put("requireTLSClientAuth", true))
                 .put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", true));
+        config.put("mode", HttpVerticle.Mode.HTTPS);
         deployHttpVerticle(context, config);
 
         HttpClientOptions sslClientAuthOpts = new HttpClientOptions().setSsl(true).setTrustStoreOptions(new JksOptions().setPath(getClass().getResource("client.truststore").getPath()).setPassword("123456")).setKeyStoreOptions(new JksOptions().setPath(getClass().getResource("client.keystore").getPath()).setPassword("123456"));
@@ -427,9 +436,10 @@ public class AuthIT {
 
     @Test
     public void testAuthWithSslClientAuthWithoutClientCert(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port)
-                .put("ssl", new JsonObject().put("enable", true).put("keystore", getClass().getResource("http.keystore").getPath()).put("keystorePassword", "123456").put("requireTLSClientAuth", false))
+        JsonObject config = new JsonObject().put("ssl", new JsonObject().put("httpsPort", port)
+                .put("enable", true).put("keystore", getClass().getResource("http.keystore").getPath()).put("keystorePassword", "123456").put("requireTLSClientAuth", false))
                 .put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", true));
+        config.put("mode", HttpVerticle.Mode.HTTPS);
         deployHttpVerticle(context, config);
 
         HttpClientOptions sslClientAuthOpts = new HttpClientOptions().setSsl(true).setTrustStoreOptions(new JksOptions().setPath(getClass().getResource("client.truststore").getPath()).setPassword("123456"));
@@ -446,9 +456,10 @@ public class AuthIT {
 
     @Test
     public void testAuthWithSslClientAuthWithoutActualSsl(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port)
-                .put("ssl", new JsonObject().put("enable", false))
+        JsonObject config = new JsonObject().put("ssl", new JsonObject().put("httpsPort", port)
+                .put("enable", false))
                 .put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", true));
+        config.put("mode", HttpVerticle.Mode.HTTPS);
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();
@@ -465,6 +476,7 @@ public class AuthIT {
     @Test
     public void testLogout(TestContext context) {
         JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        config.put("mode", HttpVerticle.Mode.HTTP);
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();
