@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dave-config
+  namespace: ttsave
+data:
+  db.name: "DAVe-TTSave"
+  db.hostname: "mongo.default"
+  db.port: "27017"
+  http.enable: "TRUE"
+  http.compression: "TRUE"
+  http.auth: "TRUE"

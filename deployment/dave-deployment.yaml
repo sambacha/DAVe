@@ -21,71 +21,52 @@ spec:
           imagePullPolicy: Always
           env:
             - name: DAVE_DB_NAME
-              value: DAVe-TTSave
+              valueFrom:
+                configMapKeyRef:
+                  name: dave-config
+                  key: db.name
             - name: DAVE_DB_HOSTNAME
-              value: mongo.default
+              valueFrom:
+                configMapKeyRef:
+                  name: dave-config
+                  key: db.hostname
             - name: DAVE_DB_PORT
-              value: "27017"
+              valueFrom:
+                configMapKeyRef:
+                  name: dave-config
+                  key: db.port
             - name: DAVE_HTTP_ENABLE
-              value: "TRUE"
+              valueFrom:
+                configMapKeyRef:
+                  name: dave-config
+                  key: http.enable
             - name: DAVE_HTTP_COMPRESSION
-              value: "TRUE"
+              valueFrom:
+                configMapKeyRef:
+                  name: dave-config
+                  key: http.compression
             - name: DAVE_HTTP_AUTH
-              value: "TRUE"
+              valueFrom:
+                configMapKeyRef:
+                  name: dave-config
+                  key: http.auth
             - name: DAVE_HTTP_AUTH_SALT
-              value: DAVe
+              valueFrom:
+                secretKeyRef:
+                  name: dave-secret
+                  key: http.auth_salt
             - name: DAVE_HTTP_SSL_SERVER_PUBLIC_KEY
-              value: |
-                    -----BEGIN CERTIFICATE-----
-                    MIIDWTCCAkGgAwIBAgIBAjANBgkqhkiG9w0BAQsFADBPMQswCQYDVQQGEwJDWjEP
-                    MA0GA1UECAwGUHJhZ3VlMQ8wDQYDVQQHDAZQcmFndWUxDjAMBgNVBAoMBU9wbkZp
-                    MQ4wDAYDVQQDDAVPcG5GaTAeFw0xNjA4MzExNDA2MDNaFw0xNzA4MzExNDA2MDNa
-                    MBQxEjAQBgNVBAMTCWxvY2FsaG9zdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCC
-                    AQoCggEBAI1MHKwFsFkVZwtX4ybaulMNZ/omhyxwdjj5TSbZy5x6+ierqTh6uqLk
-                    kIQmDOgdmdHk65Ym7gd9c5OLjAEndHNpcsMY//u9PW3rL3+OW+kqxip/Q8lgsbMA
-                    xX8qlGwcEso4drGdZAGyqpB6cSu/TX3Okk9LIiD/bbvsza8/3y/+WLTDV8uF30+4
-                    uflUopX5ybAO8HjrsPdU5fAn3J1B97OvvRh21rDLndFU94OEfWEvshV38pZRYhl6
-                    xLpiN0YArIxUHo7GHJA3WSSXUf1IgOLlX8UMHM1ikhx8I4JzPECwc0zshqDLMQ2k
-                    yBHyBRl4fFLi1unTMwCFYkjzG1jyBnECAwEAAaN7MHkwCQYDVR0TBAIwADAsBglg
-                    hkgBhvhCAQ0EHxYdT3BlblNTTCBHZW5lcmF0ZWQgQ2VydGlmaWNhdGUwHQYDVR0O
-                    BBYEFEJPfusccISg3DEbTDkTRDXQYD4mMB8GA1UdIwQYMBaAFNXE9ls04KHuhMnv
-                    mOqmMIRuSicEMA0GCSqGSIb3DQEBCwUAA4IBAQB3/Kt1sRccGYo2EtEv1wcTLeyU
-                    QtU3QI8KvwXDAuvx9x202kgetzwcXGZVhwiJsbduVjvYFBSTdiKMy3O3OTgeUU15
-                    PMGscxHoJj/51wJ6XgeQX/yZpjQV3bHMYTP/7xWvtfFBd1Ulct8LR08L6MImdwDF
-                    NAUk6p0lDc4+PvAiaaEfpHQIZI03UaMUA3SLxgP7D+WjifJBCKHGLsdlBh4z9nik
-                    4U9zLx0KY6MXHWnW9US2cAXc+MpTvoycVJhQPHGgls6jl0XD/cRNXxvULvfaWux6
-                    Xr34JlV2ulmLJaYj2tikCluX3Ce+QV0nIb2HLeOUhdOpYPeJtkV06SU+Q8b4
-                    -----END CERTIFICATE-----
+              valueFrom:
+                secretKeyRef:
+                  name: dave-secret
+                  key: http.public_key
             - name: DAVE_HTTP_SSL_SERVER_PRIVATE_KEY
-              value: |
-                    -----BEGIN PRIVATE KEY-----
-                    MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCNTBysBbBZFWcL
-                    V+Mm2rpTDWf6JocscHY4+U0m2cucevonq6k4erqi5JCEJgzoHZnR5OuWJu4HfXOT
-                    i4wBJ3RzaXLDGP/7vT1t6y9/jlvpKsYqf0PJYLGzAMV/KpRsHBLKOHaxnWQBsqqQ
-                    enErv019zpJPSyIg/2277M2vP98v/li0w1fLhd9PuLn5VKKV+cmwDvB467D3VOXw
-                    J9ydQfezr70Ydtawy53RVPeDhH1hL7IVd/KWUWIZesS6YjdGAKyMVB6OxhyQN1kk
-                    l1H9SIDi5V/FDBzNYpIcfCOCczxAsHNM7IagyzENpMgR8gUZeHxS4tbp0zMAhWJI
-                    8xtY8gZxAgMBAAECggEAXWJ6aK7x2E6u5e5WMK3LC20G1Wt1V0eUux75gL3dNjSI
-                    9IMdujhS9am+YbiMOzSlHvX/RiPAma6uHkvSYkjjTAvbT1pMhOKToPwZTmKWGEqu
-                    4hNuh7+icj4GSX+ozLLZMFGVENqG6CBfXlGuTk2HN6i5RjLQAaMPsW5WmobKSXsD
-                    LVjIY8DTLa6Cz8PTvVoEQHwxbm+Py6ThdrujVfiX93Uw3iLfVSliS7sjyEmJuG76
-                    PfEhM9vQ8axUraoyQRjicFNjL+mR671mNxL/MpZJ+6yaxybeUTaMLf0urCfduCuE
-                    iCs17/ku6pCuGm6tVKgrBpYu2OSBQve2s+REp665qQKBgQDFglylniR4ZZmP15xr
-                    bYhJCqexnt1xsMx9w38Oq2eDLo7GsR+ymxWpoYBfNmzlRcfx3721nTegDTE7t9Mn
-                    ZxKMmwu417KlXJepxcXFe/TwC9MkZtLAqX4opEwrpA4O1yw3jZTbe9JtP/X2vcpf
-                    pBwaVesLiJ6zgd9r7uSPKupu2wKBgQC3JDFl8VMIzqoH37KLYpEmFceYoD8r5/mz
-                    jpxVUTYEskDROEis9L0bypDyu4leMqP8Ipr6Q2Mu5UiKSWIPrI49A6EmUzjzLkjr
-                    8s5YBh9r5pmfgJa8BF+NJyMLWmQIEgxVEbLRJxS9NYGQc0w1gkin7TEp2BPTJxM4
-                    /LcVUsijowKBgQDEnsRQc6Bm4u3+jmw/XekgnaTXZAmbVqAcSvQ/zE7d/wlPr6CY
-                    k177YbWEE5BQpikoFs6q7/oiMT/j7VodjbSfmPIQb1p+2DB7aFE8CeyK05q8UEha
-                    V+Ep4HWbtFPyXi68lwurfBa9f8ECg2nl0F/Rr9qvvrAOj6m1rzqFc/mxpQKBgGJ/
-                    5NGfabli7bAucCjnaonBTQiZp2BF89bO7OY2N4dvF81vKCdduhgoaq0ikE9JjUke
-                    k5vmgoHGb61wqn0joZzPRu0F9atVSYMdpD1TjbLK4/UVg/y7nWidlAuXIhX1Hwzh
-                    5/r1ugHJtVWrrWFaIRmwSLDotkDq0zvjL9UYITFhAoGBAKmguflgeKpGlIXIXvq0
-                    DuIPF3oA62f0nYaH1sqc0QGav2wZJojQZw9AIS07ZNPnkpk6VQpK84rX4heMli52
-                    OU1X5triOjBPiTahUcEFCK2SZGdw6L3Z1KZ/1xEPZmIxdqIpa+agTLghcYEBwizB
-                    E3D7Oto0gulBAN3YKaBS32Lc
-                    -----END PRIVATE KEY-----
+              valueFrom:
+                secretKeyRef:
+                  name: dave-secret
+                  key: http.private_key
           ports:
             - containerPort: 8080
+              name: http
+            - containerPort: 8181
               name: https
