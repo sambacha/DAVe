@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dave-config
+data:
+  db.name: "DAVe"
+  db.hostname: "mongo"
+  db.port: "27017"
+  http.enable: "TRUE"
+  http.compression: "TRUE"
+  http.auth: "TRUE"
