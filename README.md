@@ -61,6 +61,8 @@ The `ssl` section configures the SSL/TLS support in the webserver.
 | Option | Explanation | Example |
 |--------|-------------|---------|
 | `enable` | Enable HTTPS protocol | `true` |
+| `httpsPort` | Port of the HTTSP server | `8181` |
+| `httpRedirect` | Redirect HTTP connections to HTTPS | `true` |
 | `keystore` | JKS file with the private key |  |
 | `keystorePassword` | Password to the JKS file containing the private key |  |
 | `truststore` | JKS file with trusted client CAs |  |
@@ -117,7 +119,7 @@ On the host where the UI simple web server should be started:
    - `npm config set proxy http://proxy.company.com:8080`
    - `npm config set https-proxy http://proxy.company.com:8080`
  - `cd` into the directory where UI related files reside: `cd src/main/resources/webroot`.
- - Run `npm install` to download necessary packages. 
+ - Run `npm install` to download necessary packages.
  - Run `npm start` to start the simple web server and use the host/port written to the standard output in the browser.
  - Whenever there is a change to the files related to the UI, the server gets notified immediately - no restart is needed.
  - Point your UI to the host, where the back-end for DAVe is running - see `app.js` file, section `hostConfig`.

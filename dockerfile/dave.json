@@ -3,6 +3,8 @@
     "httpPort": 8080,
     "ssl": {
       "enable": true,
+      "httpsPort": 8181,
+      "redirectHttp": true,
       "keystore": "web.keystore",
       "keystorePassword": "123456",
       "truststore": "web.truststore",
