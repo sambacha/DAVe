@@ -17,7 +17,7 @@
             "class": "*",
             "ccy": "*"
         };
-        vm.defaultOrdering = ["clearer", "member", "account", "class", "ccy"];
+        vm.defaultOrdering = ["-absAdditionalMargin", "clearer", "member", "account", "class", "ccy"];
         vm.routingKeys = ["clearer", "member", "account", "class", "ccy"];
         vm.ordering = vm.defaultOrdering;
         vm.exportKeys = ["clearer", "member", "account", "clss", "ccy", "bizDt", "variationMargin", "premiumMargin", "liquiMargin", "spreadMargin",
@@ -32,6 +32,7 @@
         function processRecord(record) {
             record.functionalKey = record.clearer + '-' + record.member + '-' + record.account + '-' + record.clss + '-' + record.ccy;
             record.variLiqui = record.variationMargin + record.liquiMargin;
+            record.absAdditionalMargin = Math.abs(record.additionalMargin);
         }
 
         function getRestQueryUrl() {

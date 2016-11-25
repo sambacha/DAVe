@@ -16,7 +16,7 @@
             "maintainer": "*",
             "limitType": "*"
         };
-        vm.defaultOrdering = ["clearer", "member", "maintainer", "limitType"];
+        vm.defaultOrdering = ["-rejectUtil", "clearer", "member", "maintainer", "limitType"];
         vm.routingKeys = ["clearer", "member", "maintainer", "limitType"];
         vm.ordering = vm.defaultOrdering;
         vm.exportKeys = ["clearer", "member", "maintainer", "limitType", "utilization", "warningLevel", "warningUtil", "throttleLevel", "throttleUtil", "rejectLevel", "rejectUtil", "received"];
