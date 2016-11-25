@@ -88,11 +88,13 @@
                 }
             }
 
-            for (index = 0; index < newViewWindow.length; ++index) {
-                newViewWindow[index].absAdditionalMargin = Math.abs(newViewWindow[index].additionalMargin)
+            var newViewWindowArray = Object.keys(newViewWindow).map(function (key) { return newViewWindow[key]; });
+
+            for (index = 0; index < newViewWindowArray.length; ++index) {
+                newViewWindowArray[index].absAdditionalMargin = Math.abs(newViewWindowArray[index].additionalMargin)
             }
 
-            vm.viewWindow = $filter('orderBy')(Object.keys(newViewWindow).map(function (key) { return newViewWindow[key]; }), vm.ordering);
+            vm.viewWindow = $filter('orderBy')(newViewWindowArray, vm.ordering);
             vm.viewSum = sum;
         }
 
