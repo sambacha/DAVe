@@ -9,7 +9,7 @@
 
     function MarginComponentLatestAccountAggregationController($scope, $http, $interval, $filter, sortRecordsService, hostConfig) {
         var vm = this;
-        vm.defaultOrdering = ["clearer", "member", "account"];
+        vm.defaultOrdering = ["-absAdditionalMargin", "clearer", "member", "account"];
         vm.ordering = vm.defaultOrdering;
         vm.initialLoad= true;
         vm.recordCount = 0;
@@ -86,6 +86,10 @@
                     sum.spreadMargin += data[index].spreadMargin;
                     sum.additionalMargin += data[index].additionalMargin;
                 }
+            }
+
+            for (index = 0; index < newViewWindow.length; ++index) {
+                newViewWindow[index].absAdditionalMargin = Math.abs(newViewWindow[index].additionalMargin)
             }
 
             vm.viewWindow = $filter('orderBy')(Object.keys(newViewWindow).map(function (key) { return newViewWindow[key]; }), vm.ordering);

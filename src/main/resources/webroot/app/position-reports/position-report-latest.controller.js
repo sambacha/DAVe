@@ -21,7 +21,7 @@
             "optAttribute": "*",
             "maturityMonthYear": "*"
         };
-        vm.defaultOrdering = ["clearer", "member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
+        vm.defaultOrdering = ["-absCompVar", "clearer", "member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
         vm.routingKeys = ["clearer", "member", "account", "class", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
         vm.ordering = vm.defaultOrdering;
         vm.exportKeys = ["clearer", "member", "account", "bizDt", "symbol", "putCall", "maturityMonthYear", "strikePrice", "optAttribute",
@@ -40,6 +40,7 @@
             record.functionalKey = record.clearer + '-' + record.member + '-' + record.account + '-' + record.clss + '-' + record.symbol + '-' + record.putCall + '-' + record.maturityMonthYear + '-' + record.strikePrice.replace("\.", "") + '-' + record.optAttribute + '-' + record.maturityMonthYear;
             record.netLS = record.crossMarginLongQty - record.crossMarginShortQty;
             record.netEA = (record.optionExcerciseQty - record.optionAssignmentQty) + (record.allocationTradeQty - record.deliveryNoticeQty);
+            record.absCompVar = Math.abs(record.compVar);
         }
 
         function getRestQueryUrl() {
