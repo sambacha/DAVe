@@ -100,6 +100,16 @@ if [ "$1" = "./bin/start_dave.sh" ]; then
       keytool -importkeystore -srckeystore $tempDir/keystore.p12 -srcstoretype PKCS12 -srcstorepass $jks_password -destkeystore $keystorePath -deststoretype JKS -deststorepass $jks_password
       rm -rf $tempDir
 
+      if [ "$DAVE_HTTP_REDIRECT" ]; then
+        httpRedirect="true"
+        if [ "$DAVE_HTTP_REDIRECT_URI" ]; then
+          httpRedirectUri="$DAVE_HTTP_REDIRECT_URI"
+        fi
+      else
+        httpRedirect="false"
+        httpRedirectUri=""
+      fi
+
       if [ "$DAVE_HTTP_SSL_TRUSTED_CA" ]; then
         truststorePath="$(pwd)/etc/http.truststore"
         tempDir="$(mktemp -d)"
@@ -124,9 +134,9 @@ if [ "$1" = "./bin/start_dave.sh" ]; then
           ssl_client_auth=false
         fi
 
-        http_ssl="\"ssl\": { \"enable\": true, \"keystore\": \"${keystorePath}\", \"keystorePassword\": \"${jks_password}\", \"truststore\": \"${truststorePath}\", \"truststorePassword\": \"${jks_password}\", \"requireTLSClientAuth\": ${ssl_client_auth} }"
+        http_ssl="\"ssl\": { \"enable\": true, \"keystore\": \"${keystorePath}\", \"keystorePassword\": \"${jks_password}\", \"redirectHttp\": ${httpRedirect}, \"redirectUri\": \"${httpRedirectUri}\", \"truststore\": \"${truststorePath}\", \"truststorePassword\": \"${jks_password}\", \"requireTLSClientAuth\": ${ssl_client_auth} }"
       else
-        http_ssl="\"ssl\": { \"enable\": true, \"keystore\": \"${keystorePath}\", \"keystorePassword\": \"${jks_password}\" }"
+        http_ssl="\"ssl\": { \"enable\": true, \"keystore\": \"${keystorePath}\", \"keystorePassword\": \"${jks_password}\", \"redirectHttp\": ${httpRedirect}, \"redirectUri\": \"${httpRedirectUri}\"}"
       fi
 
       CONFIG_HTTP+=("$http_ssl")

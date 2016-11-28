@@ -4,6 +4,7 @@
     "ssl": {
       "enable": true,
       "redirectHttp": true,
+      "redirectUri": "ttsave.snapshot.dave.dbg-devops.com",
       "httpsPort": 8181,
       "keystore": "web.keystore",
       "keystorePassword": "123456",

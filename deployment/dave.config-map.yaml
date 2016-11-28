@@ -10,3 +10,5 @@ data:
   http.enable: "TRUE"
   http.compression: "TRUE"
   http.auth: "TRUE"
+  http.redirect: "TRUE"
+  http.redirectUri: "ttsave.snapshot.dave.dbg-devops.com"

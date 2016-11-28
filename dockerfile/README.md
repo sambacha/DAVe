@@ -35,6 +35,8 @@ To actually use the application, you have to point to a host running the MongoDB
 | `DAVE_HTTP_CSRF_SECRET` | Configures the domain secret used to generate CSFR tokens | `61d77a85-276b-476a-8810-f8408b5cfa19` |
 | `DAVE_HTTP_SSL_SERVER_PUBLIC_KEY` | Public key of the HTTP server in CRT format | |
 | `DAVE_HTTP_SSL_SERVER_PRIVATE_KEY` | Private key of the HTTP server in PEM format | |
+| `DAVE_HTTP_REDIRECT` | Enabled redirecting HTTP connections to HTTPS | `1` |
+| `DAVE_HTTP_REDIRECT_URI` | The URI which should be used for the redirect from HTTP to HTTPS | `ssl.mydomain.com` |
 | `DAVE_HTTP_SSL_TRUSTED_CA` | List of trusted CA for SSL client authentication | |
 | `DAVE_HTTP_SSL_CLIENT_AUTH` | MAke SSL Client Authentication required | `1` |
 | `DAVE_HTTP_AUTH` | Enable authentication | `1` |

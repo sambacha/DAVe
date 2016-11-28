@@ -45,6 +45,16 @@ spec:
                 configMapKeyRef:
                   name: dave-config
                   key: http.compression
+            - name: DAVE_HTTP_REDIRECT
+              valueFrom:
+                configMapKeyRef:
+                  name: dave-config
+                  key: http.redirect
+            - name: DAVE_HTTP_REDIRECT_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: dave-config
+                  key: http.redirectUri
             - name: DAVE_HTTP_AUTH
               valueFrom:
                 configMapKeyRef:

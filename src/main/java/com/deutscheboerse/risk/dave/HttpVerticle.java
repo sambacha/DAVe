@@ -111,8 +111,8 @@ public class HttpVerticle extends AbstractVerticle {
                 break;
             case HTTP_REDIRECT:
                 int httpPort = config().getInteger("httpPort", HttpVerticle.DEFAULT_HTTP_PORT);
-                int httpsPort = config().getJsonObject("ssl", new JsonObject()).getInteger("httpsPort", HttpVerticle.DEFAULT_HTTPS_PORT);
-                webServerFuture = startHttpRedirectorServer(httpPort, httpsPort);
+                String redirectUri = config().getJsonObject("ssl", new JsonObject()).getString("redirectUri");
+                webServerFuture = startHttpRedirectorServer(httpPort, redirectUri);
                 break;
             default:
                 webServerFuture = Future.failedFuture("Unknown mode");
@@ -134,13 +134,13 @@ public class HttpVerticle extends AbstractVerticle {
         return webServerFuture;
     }
 
-    private Future<HttpServer> startHttpRedirectorServer(int httpPort, int httpsPort) {
+    private Future<HttpServer> startHttpRedirectorServer(int httpPort, String redirectUri) {
         Future<HttpServer> webServerFuture = Future.future();
 
         LOG.info("Starting web server (redirector) on port {}", httpPort);
         server = vertx.createHttpServer();
         server.requestHandler(request -> {
-            String redirectAddress = String.format("https://%s:%d", request.localAddress().host(), httpsPort);
+            String redirectAddress = String.format("https://%s", ((redirectUri == null || redirectUri.equals("")) ? request.localAddress().host() : redirectUri));
             HttpServerResponse response = request.response();
             response.headersEndHandler(unused -> {
                 request.response().headers().set("Location", redirectAddress);

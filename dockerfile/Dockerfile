@@ -16,5 +16,5 @@ ENTRYPOINT ["/docker-entrypoint.sh"]
 USER dave
 
 # Expose port and run
-EXPOSE 8080
+EXPOSE 8080 8181
 CMD ["./bin/start_dave.sh"]
