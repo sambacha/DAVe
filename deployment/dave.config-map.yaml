@@ -2,13 +2,13 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: dave-config
-  namespace: ttsave
+  namespace: demo
 data:
-  db.name: "DAVe-TTSave"
+  db.name: "DAVe-Demo"
   db.hostname: "mongo.default"
   db.port: "27017"
   http.enable: "TRUE"
   http.compression: "TRUE"
   http.auth: "TRUE"
   http.redirect: "TRUE"
-  http.redirectUri: "ttsave.snapshot.dave.dbg-devops.com"
+  http.redirectUri: "demo.dave.dbg-devops.com"

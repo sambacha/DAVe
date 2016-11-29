@@ -5,7 +5,7 @@ metadata:
   labels:
     app: dave
     project: dave
-  namespace: ttsave
+  namespace: demo
 spec:
   replicas: 1
   template:
@@ -16,7 +16,7 @@ spec:
         project: dave
     spec:
       containers:
-        - image: scholzj/dave:ttsave
+        - image: scholzj/dave:demo
           name: dave
           imagePullPolicy: Always
           env:
