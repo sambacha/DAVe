@@ -16,7 +16,7 @@
             "member": "*",
             "clearingCcy": "*"
         };
-        vm.defaultOrdering = ["clearer", "pool", "member", "clearingCcy", "ccy"];
+        vm.defaultOrdering = ["shortfallSurplus", "clearer", "pool", "member", "clearingCcy", "ccy"];
         vm.routingKeys = ["clearer", "pool", "member", "clearingCcy"];
         vm.ordering = vm.defaultOrdering;
         vm.exportKeys = ["clearer", "pool", "poolType", "member", "clearingCcy", "ccy", "bizDt", "marginRequirement", "securityCollateral", "cashBalance", "shortfallSurplus",

@@ -14,9 +14,11 @@
                                       ng-click="mc.sortRecords('member')"></span></th>
             <th>Account <span class="fa fa-sort" aria-hidden="true"
                               ng-click="mc.sortRecords('account')"></span></th>
-            <th>Variation / Liquidation Margin <span class="fa fa-sort" aria-hidden="true"
-                                                     ng-click="mc.sortRecords('variLiqui')"></span></th>
-            <th>Premium Value <span class="fa fa-sort" aria-hidden="true"
+            <th>Variation Margin <span class="fa fa-sort" aria-hidden="true"
+                                                     ng-click="mc.sortRecords('variationMargin')"></span></th>
+            <th>Liquidation Margin <span class="fa fa-sort" aria-hidden="true"
+                                                     ng-click="mc.sortRecords('liquiMargin')"></span></th>
+            <th>Premium Margin <span class="fa fa-sort" aria-hidden="true"
                                     ng-click="mc.sortRecords('premiumMargin')"></span></th>
             <th>Spread Margin <span class="fa fa-sort" aria-hidden="true"
                                     ng-click="mc.sortRecords('spreadMargin')"></span></th>
@@ -37,7 +39,8 @@
             <td highlighter="record.account"><a
                     href="#/marginComponentLatest/{{record.clearer}}/{{record.member}}/{{record.account}}">{{record.account}}</a>
             </td>
-            <td highlighter="record.variLiqui">{{record.variLiqui | number:2}}</td>
+            <td highlighter="record.variationMargin">{{record.variationMargin | number:2}}</td>
+            <td highlighter="record.liquiMargin">{{record.liquiMargin | number:2}}</td>
             <td highlighter="record.premiumMargin">{{record.premiumMargin | number:2}}</td>
             <td highlighter="record.spreadMargin">{{record.spreadMargin | number:2}}</td>
             <td highlighter="record.additionalMargin">{{record.additionalMargin | number:2}}</td>
@@ -52,7 +55,8 @@
             <th></th>
             <th></th>
             <th></th>
-            <th highlighter="mc.viewSum.variLiqui">{{mc.viewSum.variLiqui | number:2}}</th>
+            <th highlighter="mc.viewSum.variationMargin">{{mc.viewSum.variationMargin | number:2}}</th>
+            <th highlighter="mc.viewSum.liquiMargin">{{mc.viewSum.liquiMargin | number:2}}</th>
             <th highlighter="mc.viewSum.premiumMargin">{{mc.viewSum.premiumMargin | number:2}}</th>
             <th highlighter="mc.viewSum.spreadMargin">{{mc.viewSum.spreadMargin | number:2}}</th>
             <th highlighter="mc.viewSum.additionalMargin">{{mc.viewSum.additionalMargin | number:2}}</th>

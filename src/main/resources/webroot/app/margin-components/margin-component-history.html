@@ -38,8 +38,9 @@
                     <thead>
                     <tr>
                         <th class="sorting">Last update <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('received')"></span></th>
-                        <th>Variation / Liquidation Margin <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('variLiqui')"></span></th>
-                        <th>Premium Value <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('premiumMargin')"></span></th>
+                        <th>Variation Margin <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('variationMargin')"></span></th>
+                        <th>Liquidation Margin <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('liquiMargin')"></span></th>
+                        <th>Premium Margin <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('premiumMargin')"></span></th>
                         <th>Spread Margin <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('spreadMargin')"></span></th>
                         <th>Total Margin <span class="fa fa-sort" aria-hidden="true" ng-click="vm.sortRecords('additionalMargin')"></span></th>
                     </tr>
@@ -47,7 +48,8 @@
                     <tbody>
                     <tr ng-repeat="record in vm.viewWindow track by record.id.$oid" row-highlighter="record.id.$oid">
                         <td highlighter="record.received">{{record.received | date:'HH:mm:ss'}}</td>
-                        <td highlighter="record.variLiqui">{{record.variLiqui | number:2}}</td>
+                        <td highlighter="record.variationMargin">{{record.variationMargin | number:2}}</td>
+                        <td highlighter="record.liquiMargin">{{record.liquiMargin | number:2}}</td>
                         <td highlighter="record.premiumMargin">{{record.premiumMargin | number:2}}</td>
                         <td highlighter="record.spreadMargin">{{record.spreadMargin | number:2}}</td>
                         <td highlighter="record.additionalMargin">{{record.additionalMargin | number:2}}</td>

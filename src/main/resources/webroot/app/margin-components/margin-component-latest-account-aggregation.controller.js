@@ -17,6 +17,8 @@
         vm.viewWindow = [];
         vm.viewSum = {
             "variLiqui": 0,
+            "variationMargin": 0,
+            "liquiMargin": 0,
             "premiumMargin": 0,
             "spreadMargin": 0,
             "additionalMargin": 0};
@@ -49,6 +51,8 @@
             var newViewWindow = {};
             var sum = {
                 "variLiqui": 0,
+                "variationMargin": 0,
+                "liquiMargin": 0,
                 "premiumMargin": 0,
                 "spreadMargin": 0,
                 "additionalMargin": 0
@@ -60,11 +64,15 @@
                 if (fKey in newViewWindow)
                 {
                     newViewWindow[fKey].variLiqui += data[index].variationMargin + data[index].liquiMargin;
+                    newViewWindow[fKey].variationMargin += data[index].variationMargin;
+                    newViewWindow[fKey].liquiMargin += data[index].liquiMargin;
                     newViewWindow[fKey].premiumMargin += data[index].premiumMargin;
                     newViewWindow[fKey].spreadMargin += data[index].spreadMargin;
                     newViewWindow[fKey].additionalMargin += data[index].additionalMargin;
 
                     sum.variLiqui += data[index].variationMargin + data[index].liquiMargin;
+                    sum.variationMargin += data[index].variationMargin;
+                    sum.liquiMargin += data[index].liquiMargin;
                     sum.premiumMargin += data[index].premiumMargin;
                     sum.spreadMargin += data[index].spreadMargin;
                     sum.additionalMargin += data[index].additionalMargin;
@@ -76,12 +84,16 @@
                         "member": data[index].member,
                         "account": data[index].account,
                         "variLiqui": data[index].variationMargin + data[index].liquiMargin,
+                        "variationMargin": data[index].variationMargin,
+                        "liquiMargin": data[index].liquiMargin,
                         "premiumMargin": data[index].premiumMargin,
                         "spreadMargin": data[index].spreadMargin,
                         "additionalMargin": data[index].additionalMargin
                     };
 
                     sum.variLiqui += data[index].variationMargin + data[index].liquiMargin;
+                    sum.variationMargin += data[index].variationMargin;
+                    sum.liquiMargin += data[index].liquiMargin;
                     sum.premiumMargin += data[index].premiumMargin;
                     sum.spreadMargin += data[index].spreadMargin;
                     sum.additionalMargin += data[index].additionalMargin;
