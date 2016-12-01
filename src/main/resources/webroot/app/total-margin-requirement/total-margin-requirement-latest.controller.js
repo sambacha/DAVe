@@ -17,7 +17,7 @@
             "account": "*",
             "ccy": "*"
         };
-        vm.defaultOrdering = ["clearer", "pool", "member", "account", "ccy"];
+        vm.defaultOrdering = ["-adjustedMargin", "clearer", "pool", "member", "account", "ccy"];
         vm.routingKeys = ["clearer", "pool", "member", "account", "ccy"];
         vm.ordering = vm.defaultOrdering;
         vm.exportKeys = ["clearer", "pool", "member", "account", "ccy", "bizDt", "unadjustedMargin", "adjustedMargin", "received"];
