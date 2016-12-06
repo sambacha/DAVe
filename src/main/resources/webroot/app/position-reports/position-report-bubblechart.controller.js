@@ -211,7 +211,7 @@
                         }
                     ]});
             }
-            vm.chartObject.options.title = vm.topRecordsCount + " top risk positions represent " + $filter('number')(positiveCoveragePerc, 2) + "%  of total portfolio VaR. " + vm.topRecordsCount + " top offsetting positions represent " + $filter('number')(negativeCoveragePerc, 2) + "% of total offsetting positions. Total portfolio VaR is <nobr>" + $filter('number')(totalCompVar, 2) + "</nobr>.";
+            vm.chartObject.options.title = vm.topRecordsCount + " top risk positions represent " + $filter('number')(positiveCoveragePerc, 2) + "%  of total portfolio VaR. " + vm.topRecordsCount + " top offsetting positions represent " + $filter('number')(negativeCoveragePerc, 2) + "% of total offsetting positions. Total portfolio VaR is " + $filter('number')(totalCompVar, 2) + ".";
             vm.chartObject.options.hAxis.ticks = hTicks;
             vm.chartObject.options.vAxis.ticks = vTicks;
             vm.chartObject.data.rows = rows;
