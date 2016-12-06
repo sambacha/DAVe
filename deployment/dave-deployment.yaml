@@ -60,6 +60,16 @@ spec:
                 configMapKeyRef:
                   name: dave-config
                   key: http.auth
+            - name: DAVE_HTTP_CORS
+              valueFrom:
+                configMapKeyRef:
+                  name: dave-config
+                  key: http.cors
+            - name: DAVE_HTTP_CORS_ORIGIN
+              valueFrom:
+                configMapKeyRef:
+                  name: dave-config
+                  key: http.cors_origin
             - name: DAVE_HTTP_AUTH_SALT
               valueFrom:
                 secretKeyRef:
