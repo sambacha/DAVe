@@ -16,6 +16,7 @@
         vm.accountSelection = { accountSet: {}, availableOptions: [], selectedOption: null };
         vm.selectionChanged = selectionChanged;
         vm.topRecordsCount = "20";
+        vm.title = null;
 
         var refresh = $interval(loadData, 60000);
         var restQueryUrl = hostConfig.restURL + '/pr/latest/';
@@ -34,7 +35,7 @@
                     legend: {position: 'right'},
                     hAxis: {title: 'Series-Maturity', ticks: [],  slantedText:true },
                     vAxis: {title: 'Underlying', ticks: []},
-                    chartArea: {height: "50%"},
+                    chartArea: {height: "90%"},
                     backgroundColor: {
                         fill: 'transparent'
                     },
@@ -211,7 +212,8 @@
                         }
                     ]});
             }
-            vm.chartObject.options.title = vm.topRecordsCount + " top risk positions represent " + $filter('number')(positiveCoveragePerc, 2) + "%  of total portfolio VaR. " + vm.topRecordsCount + " top offsetting positions represent " + $filter('number')(negativeCoveragePerc, 2) + "% of total offsetting positions. Total portfolio VaR is " + $filter('number')(totalCompVar, 2) + ".";
+            //vm.chartObject.options.title = vm.topRecordsCount + " top risk positions represent " + $filter('number')(positiveCoveragePerc, 2) + "%  of total portfolio VaR. " + vm.topRecordsCount + " top offsetting positions represent " + $filter('number')(negativeCoveragePerc, 2) + "% of total offsetting positions. Total portfolio VaR is " + $filter('number')(totalCompVar, 2) + ".";
+            vm.title = vm.topRecordsCount + " top risk positions represent " + $filter('number')(positiveCoveragePerc, 2) + "%  of total portfolio VaR. " + vm.topRecordsCount + " top offsetting positions represent " + $filter('number')(negativeCoveragePerc, 2) + "% of total offsetting positions. Total portfolio VaR is " + $filter('number')(totalCompVar, 2) + ".";
             vm.chartObject.options.hAxis.ticks = hTicks;
             vm.chartObject.options.vAxis.ticks = vTicks;
             vm.chartObject.data.rows = rows;
