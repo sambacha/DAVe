@@ -37,14 +37,17 @@
                     legend: {position: 'right'},
                     hAxis: {title: 'Series-Maturity', ticks: [],  slantedText:true },
                     vAxis: {title: 'Underlying', ticks: []},
-                    chartArea: {height: "95%"},
+                    chartArea: {height: "50%"},
                     backgroundColor: {
                         fill: 'transparent'
                     },
                     bubble: {textStyle: {color: 'none'}},
                     series: {Positive: {color: 'red'}, Negative: {color: 'green'}},
                     fontColor: 'black',
-                    sortBubblesBySize: true
+                    sortBubblesBySize: true,
+                    titlePosition: 'none',
+                    titleTextStyle: { display: 'none' },
+                    title: 'no'
                 };
             chartObject.data = {
                 cols: [{
