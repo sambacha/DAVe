@@ -33,7 +33,7 @@
         <update-failed ng-if="bubbleChart.errorMessage !== ''" message="bubbleChart.errorMessage"/>
 
         <div class="panel-body" ng-if="bubbleChart.title != null">
-            <div class="alert alert-info" role="info"><span ng-bind-html="bubbleChart.title" /></div>
+            <div class="alert alert-info" role="info" ng-bind-html="bubbleChart.title"></div>
         </div>
 
         <div google-chart chart="bubbleChart.chartObject" style="height:345px; width:100%;"
