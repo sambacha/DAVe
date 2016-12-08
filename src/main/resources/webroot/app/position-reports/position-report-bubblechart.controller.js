@@ -8,13 +8,15 @@
 
     angular.module('dave').controller('PositionReportBubbleChartController', PositionReportBubbleChartController);
 
-    function PositionReportBubbleChartController($scope, $http, $interval, $filter, hostConfig) {
+    function PositionReportBubbleChartController($scope, $http, $interval, $filter, $sce, hostConfig) {
         var vm = this;
         vm.initialLoad= true;
         vm.errorMessage = "";
         vm.chartObject = createEmptyChartObject();
+        vm.memberSelection = { memberSet: {}, availableOptions: [], selectedOption: null };
         vm.accountSelection = { accountSet: {}, availableOptions: [], selectedOption: null };
         vm.selectionChanged = selectionChanged;
+        vm.memberSelectionChanged = memberSelectionChanged;
         vm.topRecordsCount = "20";
         vm.title = null;
 
@@ -35,7 +37,7 @@
                     legend: {position: 'right'},
                     hAxis: {title: 'Series-Maturity', ticks: [],  slantedText:true },
                     vAxis: {title: 'Underlying', ticks: []},
-                    chartArea: {height: "90%"},
+                    chartArea: {height: "95%"},
                     backgroundColor: {
                         fill: 'transparent'
                     },
@@ -87,6 +89,20 @@
             selectionChanged(vm.accountSelection.selectedOption);
 
             function addAccountToSelection(record) {
+                var memberKey = record.clearer + '-' + record.member;
+
+                if (!(memberKey in vm.memberSelection.memberSet)) {
+                    vm.memberSelection.memberSet[memberKey] = {
+                        clearer: record.clearer,
+                        member: record.member
+                    };
+                    vm.memberSelection.availableOptions.push(vm.memberSelection.memberSet[memberKey]);
+                    if (vm.memberSelection.selectedOption === null) {
+                        vm.memberSelection.selectedOption = vm.memberSelection.memberSet[memberKey];
+                    }
+                    vm.accountSelection.availableOptions[memberKey] = [];
+                }
+
                 var accountKey = record.clearer + '-' + record.member + '-' + record.account;
                 if (!(accountKey in vm.accountSelection.accountSet)) {
                     vm.accountSelection.accountSet[accountKey] = {
@@ -94,7 +110,8 @@
                       member: record.member,
                       account: record.account
                     };
-                    vm.accountSelection.availableOptions.push(vm.accountSelection.accountSet[accountKey]);
+
+                    vm.accountSelection.availableOptions[memberKey].push(vm.accountSelection.accountSet[accountKey]);
                     if (vm.accountSelection.selectedOption === null) {
                         vm.accountSelection.selectedOption = vm.accountSelection.accountSet[accountKey];
                     }
@@ -169,6 +186,12 @@
             return bubbles;
         }
 
+        function memberSelectionChanged(selection) {
+            var key = selection.clearer + '-' + selection.member;
+            vm.accountSelection.selectedOption = vm.accountSelection.availableOptions[key][0];
+            selectionChanged(vm.accountSelection.selectedOption);
+        }
+
         function selectionChanged(selection) {
             if (selection === null) return;
             var series = {};
@@ -213,7 +236,7 @@
                     ]});
             }
             //vm.chartObject.options.title = vm.topRecordsCount + " top risk positions represent " + $filter('number')(positiveCoveragePerc, 2) + "%  of total portfolio VaR. " + vm.topRecordsCount + " top offsetting positions represent " + $filter('number')(negativeCoveragePerc, 2) + "% of total offsetting positions. Total portfolio VaR is " + $filter('number')(totalCompVar, 2) + ".";
-            vm.title = vm.topRecordsCount + " top risk positions represent " + $filter('number')(positiveCoveragePerc, 2) + "%  of total portfolio VaR. " + vm.topRecordsCount + " top offsetting positions represent " + $filter('number')(negativeCoveragePerc, 2) + "% of total offsetting positions. Total portfolio VaR is " + $filter('number')(totalCompVar, 2) + ".";
+            vm.title = $sce.trustAsHtml("<strong>" + vm.topRecordsCount + "</strong> top risk positions represent <strong>" + $filter('number')(positiveCoveragePerc, 2) + "%</strong> of total portfolio VaR. <strong>" + vm.topRecordsCount + "</strong> top offsetting positions represent <strong>" + $filter('number')(negativeCoveragePerc, 2) + "%</strong> of total offsetting positions. Total portfolio VaR is <strong>" + $filter('number')(totalCompVar, 2) + "</strong>.");
             vm.chartObject.options.hAxis.ticks = hTicks;
             vm.chartObject.options.vAxis.ticks = vTicks;
             vm.chartObject.data.rows = rows;
