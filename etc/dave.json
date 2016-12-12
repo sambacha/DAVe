@@ -22,8 +22,8 @@
     },
     "auth": {
       "enable": true,
-      "db_name": "DAVe-TTSave",
-      "connection_string": "mongodb://localhost:27017",
+      "dbName": "DAVe-TTSave",
+      "connectionUrl": "mongodb://localhost:27017",
       "salt": "DAVe",
       "checkUserAgainstCertificate": false,
       "sessionTimeout": 3600000,
@@ -33,8 +33,8 @@
   },
   "ers": [],
   "mongodb": {
-    "db_name": "DAVe-TTSave",
-    "connection_string": "mongodb://localhost:27017"
+    "dbName": "DAVe-TTSave",
+    "connectionUrl": "mongodb://localhost:27017"
   },
   "ersDebugger":{
     "enable": false

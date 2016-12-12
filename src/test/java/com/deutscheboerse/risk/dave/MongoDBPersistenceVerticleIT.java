@@ -10,16 +10,18 @@ import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import java.text.ParseException;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.text.ParseException;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @RunWith(VertxUnitRunner.class)
 public class MongoDBPersistenceVerticleIT {
@@ -84,11 +86,15 @@ public class MongoDBPersistenceVerticleIT {
     public static void setUp(TestContext context) {
         MongoDBPersistenceVerticleIT.vertx = Vertx.vertx();
         JsonObject config = new JsonObject();
-        config.put("db_name", "DAVe-Test" + UUID.randomUUID().getLeastSignificantBits());
-        config.put("connection_string", "mongodb://localhost:" + System.getProperty("mongodb.port", "27017"));
+        config.put("dbName", "DAVe-Test" + UUID.randomUUID().getLeastSignificantBits());
+        config.put("connectionUrl", "mongodb://localhost:" + System.getProperty("mongodb.port", "27017"));
         DeploymentOptions options = new DeploymentOptions().setConfig(config);
         MongoDBPersistenceVerticleIT.vertx.deployVerticle(MongoDBPersistenceVerticle.class.getName(), options, context.asyncAssertSuccess());
-        MongoDBPersistenceVerticleIT.mongoClient = MongoClient.createShared(MongoDBPersistenceVerticleIT.vertx, config);
+
+        JsonObject dbConfig = new JsonObject();
+        dbConfig.put("db_name", "DAVe-Test" + UUID.randomUUID().getLeastSignificantBits());
+        dbConfig.put("connection_string", "mongodb://localhost:" + System.getProperty("mongodb.port", "27017"));
+        MongoDBPersistenceVerticleIT.mongoClient = MongoClient.createShared(MongoDBPersistenceVerticleIT.vertx, dbConfig);
     }
 
     private JsonObject transformDatesInDummyData(JsonObject data) throws ParseException {

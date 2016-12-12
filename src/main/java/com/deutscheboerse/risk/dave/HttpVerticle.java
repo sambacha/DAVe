@@ -82,16 +82,16 @@ public class HttpVerticle extends AbstractVerticle {
     }
 
     private AuthProvider createAuthenticationProvider() {
-        JsonObject config = new JsonObject();
+        JsonObject dbConfig = new JsonObject();
         LOG.info("Auth config: {}", config().getJsonObject("auth").encodePrettily());
-        config.put("db_name", config()
+        dbConfig.put("db_name", config()
                 .getJsonObject("auth")
-                .getString("db_name", HttpVerticle.DEFAULT_AUTH_DB_NAME));
-        config.put("useObjectId", true);
-        config.put("connection_string", config()
+                .getString("dbName", HttpVerticle.DEFAULT_AUTH_DB_NAME));
+        dbConfig.put("useObjectId", true);
+        dbConfig.put("connection_string", config()
                 .getJsonObject("auth")
-                .getString("connection_string", HttpVerticle.DEFAULT_AUTH_CONNECTION_STRING));
-        MongoClient client = MongoClient.createShared(vertx, config);
+                .getString("connectionUrl", HttpVerticle.DEFAULT_AUTH_CONNECTION_STRING));
+        MongoClient client = MongoClient.createShared(vertx, dbConfig);
 
         JsonObject authProperties = new JsonObject();
         MongoAuth authProvider = MongoAuth.create(client, authProperties);
