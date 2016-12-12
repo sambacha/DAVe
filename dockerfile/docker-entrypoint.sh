@@ -48,7 +48,7 @@ if [ "$1" = "./bin/start_dave.sh" ]; then
       DAVE_DB_URL="mongodb://${DAVE_DB_HOSTNAME}:${DAVE_DB_PORT}"
     fi
 
-    db_config="\"db_name\": \"${DAVE_DB_NAME}\", \"connection_string\": \"${DAVE_DB_URL}\""
+    db_config="\"dbName\": \"${DAVE_DB_NAME}\", \"connectionUrl\": \"${DAVE_DB_URL}\""
     CONFIG_DB+=("$db_config")
 
   #####
@@ -152,7 +152,7 @@ if [ "$1" = "./bin/start_dave.sh" ]; then
         DAVE_HTTP_AUTH_LINK_SSL="false"
       fi
 
-      http_auth="\"auth\": { \"enable\": true, \"salt\": \"${DAVE_HTTP_AUTH_SALT}\", \"db_name\": \"${DAVE_DB_NAME}\", \"connection_string\": \"${DAVE_DB_URL}\", \"checkUserAgainstCertificate\": ${DAVE_HTTP_AUTH_LINK_SSL} }"
+      http_auth="\"auth\": { \"enable\": true, \"salt\": \"${DAVE_HTTP_AUTH_SALT}\", \"dbName\": \"${DAVE_DB_NAME}\", \"connectionUrl\": \"${DAVE_DB_URL}\", \"checkUserAgainstCertificate\": ${DAVE_HTTP_AUTH_LINK_SSL} }"
       CONFIG_HTTP+=("$http_auth")
     fi
   fi

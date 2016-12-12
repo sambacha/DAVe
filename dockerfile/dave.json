@@ -17,8 +17,8 @@
     },
     "auth": {
       "enable": true,
-      "db_name": "DAVe-TTSave",
-      "connection_string": "mongodb://mongo.default:27017",
+      "dbName": "DAVe-TTSave",
+      "connectionUrl": "mongodb://mongo.default:27017",
       "salt": "DAVe",
       "checkUserAgainstCertificate": false
     },
@@ -26,8 +26,8 @@
   },
   "ers": [],
   "mongodb": {
-    "db_name": "DAVe-TTSave",
-    "connection_string": "mongodb://mongo.default:27017"
+    "dbName": "DAVe-TTSave",
+    "connectionUrl": "mongodb://mongo.default:27017"
   },
   "ersDebugger":{
     "enable": false

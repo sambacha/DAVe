@@ -1,12 +1,6 @@
 package com.deutscheboerse.risk.dave.util;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
 import io.vertx.core.*;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -15,6 +9,10 @@ import io.vertx.ext.auth.mongo.HashSaltStyle;
 import io.vertx.ext.auth.mongo.MongoAuth;
 import io.vertx.ext.mongo.MongoClient;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -61,12 +59,12 @@ public class UserManagerVerticle extends AbstractVerticle {
     }
 
     private void connectDb(Handler<AsyncResult<Void>> completer) {
-        JsonObject config = new JsonObject();
-        config.put("db_name", config().getJsonObject("http").getJsonObject("auth").getString("db_name", UserManagerVerticle.DEFAULT_DB_NAME));
-        config.put("useObjectId", true);
-        config.put("connection_string", config().getJsonObject("http").getJsonObject("auth").getString("connection_string", UserManagerVerticle.DEFAULT_CONNECTION_STRING));
+        JsonObject dbConfig = new JsonObject();
+        dbConfig.put("db_name", config().getJsonObject("http").getJsonObject("auth").getString("dbName", UserManagerVerticle.DEFAULT_DB_NAME));
+        dbConfig.put("useObjectId", true);
+        dbConfig.put("connection_string", config().getJsonObject("http").getJsonObject("auth").getString("connectionUrl", UserManagerVerticle.DEFAULT_CONNECTION_STRING));
 
-        mongo = MongoClient.createShared(vertx, config);
+        mongo = MongoClient.createShared(vertx, dbConfig);
         completer.handle(Future.succeededFuture());
     }
 

@@ -40,7 +40,7 @@ public class MainVerticleIT {
         JsonObject config = new JsonObject();
         config.put("ers", new JsonArray().add(new JsonObject().put("brokerHost", "localhost").put("brokerPort", sslPort).put("member", "ABCFR").put("sslCertAlias", "abcfr").put("truststore", MainVerticleIT.class.getResource("ers.truststore").getPath()).put("truststorePassword", "123456").put("keystore", MainVerticleIT.class.getResource("ers.keystore").getPath()).put("keystorePassword", "123456")));
         config.put("http", new JsonObject().put("httpPort", httpPort));
-        config.put("mongodb", new JsonObject().put("db_name", "DAVe-MainVerticleTest").put("connection_string", "mongodb://localhost:" + mongoPort));
+        config.put("mongodb", new JsonObject().put("dbName", "DAVe-MainVerticleTest").put("connectionUrl", "mongodb://localhost:" + mongoPort));
         config.put("ersDebugger", new JsonObject().put("enable", true));
 
         //config.put("masterdata", new JsonObject().put("clearers", new JsonArray()));

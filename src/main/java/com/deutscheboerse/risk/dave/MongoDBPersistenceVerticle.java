@@ -63,12 +63,12 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
     }
 
     private Future<Void> connectDb() {
-        JsonObject config = new JsonObject();
-        config.put("db_name", config().getString("db_name", MongoDBPersistenceVerticle.DEFAULT_DB_NAME));
-        config.put("useObjectId", true);
-        config.put("connection_string", config().getString("connection_string", MongoDBPersistenceVerticle.DEFAULT_CONNECTION_STRING));
+        JsonObject dbConfig = new JsonObject();
+        dbConfig.put("db_name", config().getString("dbName", MongoDBPersistenceVerticle.DEFAULT_DB_NAME));
+        dbConfig.put("useObjectId", true);
+        dbConfig.put("connection_string", config().getString("connectionUrl", MongoDBPersistenceVerticle.DEFAULT_CONNECTION_STRING));
 
-        mongo = MongoClient.createShared(vertx, config);
+        mongo = MongoClient.createShared(vertx, dbConfig);
         LOG.info("Connected to MongoDB");
         return Future.succeededFuture();
     }
