@@ -12,3 +12,5 @@ data:
   http.auth: "TRUE"
   http.redirect: "TRUE"
   http.redirectUri: "demo.dave.dbg-devops.com"
+  http.cors: "TRUE"
+  http.cors_origin: "*"
