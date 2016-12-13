@@ -166,10 +166,10 @@
         });
     };
 
-    function loginRedirect($rootScope, $location) {
+    function loginRedirect($rootScope, $location, $localStorage) {
         // register listener to watch route changes
         $rootScope.$on("$routeChangeStart", function (event, next, current) {
-            if ($rootScope.authStatus == false) {
+            if (!$localStorage.currentUser) {
                 // no logged user, we should be going to #login
                 if (next.templateUrl == "app/login/login.html") {
                     // already going to #login, no redirect needed

@@ -9,6 +9,8 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.jwt.JWTAuth;
+import io.vertx.ext.auth.jwt.JWTOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
@@ -24,17 +26,19 @@ import javax.security.cert.X509Certificate;
 public class UserApi {
     private static final Logger LOG = LoggerFactory.getLogger(UserApi.class);
     private final Vertx vertx;
-    private final AuthProvider authProvider;
+    private final JWTAuth jwtAuthProvider;
+    private final AuthProvider mongoAuthProvider;
     private final Boolean checkUserAgainstCertificate;
 
-    public UserApi(Vertx vertx, AuthProvider ap, Boolean checkUserAgainstCertificate) {
+    public UserApi(Vertx vertx, JWTAuth jwtAuthProvider, AuthProvider mongoAuthProvider, Boolean checkUserAgainstCertificate) {
         this.vertx = vertx;
         this.checkUserAgainstCertificate = checkUserAgainstCertificate;
-        this.authProvider = ap;
+        this.jwtAuthProvider = jwtAuthProvider;
+        this.mongoAuthProvider = mongoAuthProvider;
     }
 
     public void login(RoutingContext routingContext) {
-        if (authProvider != null) {
+        if (jwtAuthProvider != null) {
             LOG.info("Starting authentication for login request from {}!", routingContext.request().remoteAddress().toString());
 
             try {
@@ -110,13 +114,14 @@ public class UserApi {
                     }
 
                     JsonObject authInfo = new JsonObject().put("username", username).put("password", password);
-                    authProvider.authenticate(authInfo, res -> {
+                    mongoAuthProvider.authenticate(authInfo, res -> {
                         if (res.succeeded()) {
                             User user = res.result();
 
-                            JsonObject resp = new JsonObject().put("username", user.principal().getString("username"));
+                            JsonObject tokenObject = new JsonObject().put("username", user.principal().getString("username"));
+                            String token = jwtAuthProvider.generateToken(tokenObject, new JWTOptions());
+                            JsonObject resp = new JsonObject().put("token", token);
 
-                            routingContext.setUser(user);
                             routingContext.response()
                                     .putHeader("content-type", "application/json; charset=utf-8")
                                     .end(Json.encodePrettily(resp));
@@ -141,7 +146,7 @@ public class UserApi {
     }
 
     public void logout(RoutingContext routingContext) {
-        if (authProvider != null) {
+        if (jwtAuthProvider != null) {
             routingContext.clearUser();
         }
         routingContext.response().setStatusCode(HttpResponseStatus.OK.code()).end();
@@ -149,7 +154,7 @@ public class UserApi {
 
     public void loginStatus(RoutingContext routingContext) {
         JsonObject response = new JsonObject();
-        if (authProvider != null) {
+        if (jwtAuthProvider != null) {
             if (routingContext.user() != null) {
                 response.put("username", routingContext.user().principal().getString("username"));
             }

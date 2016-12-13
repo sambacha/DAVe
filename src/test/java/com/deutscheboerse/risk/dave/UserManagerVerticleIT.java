@@ -19,9 +19,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.slf4j.LoggerFactory;
 
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -84,7 +81,7 @@ public class UserManagerVerticleIT {
         System.setProperty("userName", USER);
         System.setProperty("userPassword", PASSWORD);
 
-        JsonObject config = new JsonObject().put("http", new JsonObject().put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT)));
+        JsonObject config = new JsonObject().put("http", new JsonObject().put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT)));
         deployUserManagerVerticle(context, vertx, config);
 
         final Async query = context.async();
@@ -118,7 +115,7 @@ public class UserManagerVerticleIT {
 
         testAppender.start();
         System.setProperty("cmd", "list");
-        JsonObject config = new JsonObject().put("http", new JsonObject().put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT)));
+        JsonObject config = new JsonObject().put("http", new JsonObject().put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT)));
         deployUserManagerVerticle(context, vertx, config);
         testAppender.stop();
 
@@ -150,7 +147,7 @@ public class UserManagerVerticleIT {
         System.setProperty("cmd", "delete");
         System.setProperty("userName", USER);
 
-        JsonObject config = new JsonObject().put("http", new JsonObject().put("auth", new JsonObject().put("enable", true).put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT)));
+        JsonObject config = new JsonObject().put("http", new JsonObject().put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT)));
         deployUserManagerVerticle(context, vertx, config);
 
         final Async query = context.async();

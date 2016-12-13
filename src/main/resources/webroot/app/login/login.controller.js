@@ -7,7 +7,7 @@
 
     angular.module('dave').controller('LoginController', LoginController);
 
-    function LoginController($scope, $http, $interval, $rootScope, $location, hostConfig) {
+    function LoginController($scope, $http, $interval, $rootScope, $location, $localStorage, hostConfig) {
         $rootScope.authStatus = false;
         $rootScope.authUsername = "";
 
@@ -64,18 +64,25 @@
             vm.errorMessage = null;
             var loginData = { "username": username, "password": password };
 
-            $http.post(url.login, loginData).success(function(data) {
-                $rootScope.authStatus = true;
-                $rootScope.authUsername = username;
-
-                if ($rootScope.authRequestedPath) {
-                    var path = $rootScope.authRequestedPath;
-                    $rootScope.authRequestedPath = null;
-                    $location.path(path);
-                }
-                else {
-                    var path = "/dashboard";
-                    $location.path(path);
+            $http.post(url.login, loginData).success(function(response) {
+                if (response.token) {
+                    $rootScope.authStatus = true;
+                    $rootScope.authUsername = username;
+                    // store username and token in local storage to keep user logged in between page refreshes
+                    $localStorage.currentUser = { username: username, token: response.token };
+                    // add jwt token to auth header for all requests made by the $http service
+                    $http.defaults.headers.common.Authorization = 'Bearer ' + response.token;
+                    if ($rootScope.authRequestedPath) {
+                        var path = $rootScope.authRequestedPath;
+                        $rootScope.authRequestedPath = null;
+                        $location.path(path);
+                    }
+                    else {
+                        var path = "/dashboard";
+                        $location.path(path);
+                    }
+                } else {
+                    vm.errorMessage = "Authentication failed. Server didn't generate a token.";
                 }
             }).error(function(data) {
                 vm.errorMessage = "Authentication failed. Is the username and password correct?";
@@ -83,13 +90,9 @@
         }
 
         function logout() {
-            $http.get(url.logout).success(function(data) {
-                $rootScope.authStatus = false;
-                $rootScope.authUsername = "";
-                $location.path("/login");
-            }).error(function(data) {
-                // Nothing
-            });
+            // remove user from local storage and clear http auth header
+            delete $localStorage.currentUser;
+            $http.defaults.headers.common.Authorization = '';
         }
 
         $scope.$on("$destroy", function() {
