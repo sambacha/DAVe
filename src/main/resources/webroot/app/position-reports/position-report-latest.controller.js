@@ -21,10 +21,10 @@
             "optAttribute": "*",
             "maturityMonthYear": "*"
         };
-        vm.defaultOrdering = ["-absCompVar", "clearer", "member", "account", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
+        vm.defaultOrdering = ["-absCompVar", "clearer", "member", "account", "symbol", "putCall", "strikePriceFloat", "optAttribute", "maturityMonthYear"];
         vm.routingKeys = ["clearer", "member", "account", "class", "symbol", "putCall", "strikePrice", "optAttribute", "maturityMonthYear"];
         vm.ordering = vm.defaultOrdering;
-        vm.exportKeys = ["clearer", "member", "account", "bizDt", "symbol", "putCall", "maturityMonthYear", "strikePrice", "optAttribute",
+        vm.exportKeys = ["clearer", "member", "account", "bizDt", "symbol", "putCall", "maturityMonthYear", "strikePriceFloat", "optAttribute",
             "crossMarginLongQty", "crossMarginShortQty", "optionExcerciseQty", "optionAssignmentQty", "allocationTradeQty", "deliveryNoticeQty",
             "clearingCcy", "mVar", "compVar", "compCorrelationBreak", "compCompressionError", "compLiquidityAddOn", "compLongOptionCredit",
             "productCcy", "variationMarginPremiumPayment", "premiumMargin", "delta", "gamma", "vega", "rho", "theta", "received", "clss",
@@ -41,6 +41,14 @@
             record.netLS = record.crossMarginLongQty - record.crossMarginShortQty;
             record.netEA = (record.optionExcerciseQty - record.optionAssignmentQty) + (record.allocationTradeQty - record.deliveryNoticeQty);
             record.absCompVar = Math.abs(record.compVar);
+
+            if (record.strikePrice != "")
+            {
+                record.strikePriceFloat = parseFloat(record.strikePrice);
+            }
+            else {
+                record.strikePriceFloat = null;
+            }
         }
 
         function getRestQueryUrl() {
