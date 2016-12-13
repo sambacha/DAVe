@@ -19,7 +19,7 @@
                     var match = true;
 
                     for (index2 = 0; index2 < filters.length; index2++) {
-                        if (items[index].functionalKey.toLowerCase().indexOf(filters[index2]) == -1) {
+                        if (MatchObject(items[index], filters[index2]) == -1) {
                             match = false;
                             break;
                         }
@@ -34,6 +34,17 @@
             }
             else {
                 return items;
+            }
+
+            function MatchObject(item, search) {
+                for(var key in item) {
+                    if (String(item[key]).toLowerCase().indexOf(search) != -1 && key !== "functionalKey") {
+                        return 1;
+                        break;
+                    }
+                }
+
+                return -1;
             }
         };
     };

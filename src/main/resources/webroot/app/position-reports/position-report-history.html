@@ -15,7 +15,7 @@
                 / <a href="#/positionReportLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.class}}">{{vm.route.class}}</a> 
                 / <a href="#/positionReportLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.class}}/{{vm.route.symbol}}">{{vm.route.symbol}}</a> 
                 / <a href="#/positionReportLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.class}}/{{vm.route.symbol}}/{{vm.route.putCall}}">{{vm.route.putCall}}</a> 
-                / <a href="#/positionReportLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.class}}/{{vm.route.symbol}}/{{vm.route.putCall}}/{{vm.route.strikePrice}}">{{vm.route.strikePrice}}</a> 
+                / <a href="#/positionReportLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.class}}/{{vm.route.symbol}}/{{vm.route.putCall}}/{{vm.route.strikePrice}}">{{vm.route.strikePrice | number:2 | nullHandler:'*'}}</a>
                 / <a href="#/positionReportLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.class}}/{{vm.route.symbol}}/{{vm.route.putCall}}/{{vm.route.strikePrice}}/{{vm.route.optAttribute}}">{{vm.route.optAttribute}}</a> 
                 / <a href="#/positionReportLatest/{{vm.route.clearer}}/{{vm.route.member}}/{{vm.route.account}}/{{vm.route.class}}/{{vm.route.symbol}}/{{vm.route.putCall}}/{{vm.route.strikePrice}}/{{vm.route.optAttribute}}/{{vm.route.maturityMonthYear}}">{{vm.route.maturityMonthYear}}</a>
 
