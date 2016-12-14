@@ -262,7 +262,7 @@ public class HttpVerticle extends AbstractVerticle
         if (config().getJsonObject("CSRF", new JsonObject()).getBoolean("enable", HttpVerticle.DEFAULT_CSRF))
         {
             LOG.info("Enabling CSRF handler");
-
+            router.route().handler(CookieHandler.create());
             router.route().handler(CSRFHandler.create(config().getJsonObject("CSRF", new JsonObject()).getString("secret", HttpVerticle.DEFAULT_CSRF_SECRET)));
         }
     }

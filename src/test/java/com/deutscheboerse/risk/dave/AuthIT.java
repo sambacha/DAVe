@@ -216,7 +216,6 @@ public class AuthIT {
         final Async asyncLogin = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(403, res.statusCode());
-            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLogin.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", "wrongpassword")));
     }
@@ -233,7 +232,6 @@ public class AuthIT {
         final Async asyncLogin = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(HttpResponseStatus.BAD_REQUEST.code(), res.statusCode());
-            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLogin.complete();
         }).end(Buffer.buffer(new byte[] {1, 3, 5, 7, 9}));
     }
@@ -250,7 +248,6 @@ public class AuthIT {
         final Async asyncLogin = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(403, res.statusCode());
-            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLogin.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", "idonotexist").put("password", PASSWORD)));
     }
@@ -267,7 +264,6 @@ public class AuthIT {
         final Async asyncLoginEmptyJson = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(400, res.statusCode());
-            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLoginEmptyJson.complete();
         }).end(Json.encodePrettily(new JsonObject()));
 
@@ -275,7 +271,6 @@ public class AuthIT {
         final Async asyncLoginNoPassword = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(400, res.statusCode());
-            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLoginNoPassword.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER)));
 
@@ -283,7 +278,6 @@ public class AuthIT {
         final Async asyncLoginNoUsername = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(400, res.statusCode());
-            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLoginNoUsername.complete();
         }).end(Json.encodePrettily(new JsonObject().put("password", PASSWORD)));
     }
@@ -298,29 +292,28 @@ public class AuthIT {
 
         // Log in
         final Async asyncLogin = context.async();
+        final Async asyncLoginStatus = context.async();
+        final Async asyncAuthorized = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(200, res.statusCode());
-            context.assertNotNull(res.getHeader(HttpHeaders.SET_COOKIE));
-            String sessionCookie = res.getHeader(HttpHeaders.SET_COOKIE);
+            res.bodyHandler(loginBody -> {
+                String token = loginBody.toJsonObject().getString("token");
+                // Logged in => loginStatus should return JsonObject with username
+                client.get(port, "localhost", "/api/v1.0/user/loginStatus", statusRes -> {
+                    context.assertEquals(200, statusRes.statusCode());
+                    statusRes.bodyHandler(body -> {
+                        JsonObject bd = body.toJsonObject();
+                        context.assertEquals(new JsonObject().put("username", "user1"), bd);
+                        asyncLoginStatus.complete();
+                    });
+                }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
 
-            // Logged in => loginStatus should return JsonObject with username
-            final Async asyncLoginStatus = context.async();
-            client.get(port, "localhost", "/api/v1.0/user/loginStatus", statusRes -> {
-                context.assertEquals(200, statusRes.statusCode());
-                statusRes.bodyHandler(body -> {
-                    JsonObject bd = body.toJsonObject();
-                    context.assertEquals(new JsonObject().put("username", "user1"), bd);
-                    asyncLoginStatus.complete();
-                });
-            }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
-
-            // Logged in => REST access should return 200
-            final Async asyncAuthorized = context.async();
-            client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
-                context.assertEquals(200, tssRes.statusCode());
-                asyncAuthorized.complete();
-            }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
-
+                // Logged in => REST access should return 200
+                client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
+                    context.assertEquals(200, tssRes.statusCode());
+                    asyncAuthorized.complete();
+                }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
+            });
             asyncLogin.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
     }
@@ -350,6 +343,8 @@ public class AuthIT {
 
         // Get the initial token
         final Async asyncToken = context.async();
+        final Async asyncLoginStatus = context.async();
+        final Async asyncAuthorized = context.async();
         client.getNow(port, "localhost", "/api/v1.0/user/loginStatus", tokenRes -> {
             String csrfToken = getCsrfCookie(tokenRes.cookies());
 
@@ -357,27 +352,24 @@ public class AuthIT {
             final Async asyncLogin = context.async();
             client.post(port, "localhost", "/api/v1.0/user/login", res -> {
                 context.assertEquals(200, res.statusCode());
-                context.assertNotNull(res.getHeader(HttpHeaders.SET_COOKIE));
-                String sessionCookie = res.getHeader(HttpHeaders.SET_COOKIE);
+                res.bodyHandler(loginBody -> {
+                    String token = loginBody.toJsonObject().getString("token");
+                    // Logged in => loginStatus should return JsonObject with username
+                    client.get(port, "localhost", "/api/v1.0/user/loginStatus", statusRes -> {
+                        context.assertEquals(200, statusRes.statusCode());
+                        statusRes.bodyHandler(body -> {
+                            JsonObject bd = body.toJsonObject();
+                            context.assertEquals(new JsonObject().put("username", "user1"), bd);
+                            asyncLoginStatus.complete();
+                        });
+                    }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
 
-                // Logged in => loginStatus should return JsonObject with username
-                final Async asyncLoginStatus = context.async();
-                client.get(port, "localhost", "/api/v1.0/user/loginStatus", statusRes -> {
-                    context.assertEquals(200, statusRes.statusCode());
-                    statusRes.bodyHandler(body -> {
-                        JsonObject bd = body.toJsonObject();
-                        context.assertEquals(new JsonObject().put("username", "user1"), bd);
-                        asyncLoginStatus.complete();
-                    });
-                }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
-
-                // Logged in => REST access should return 200
-                final Async asyncAuthorized = context.async();
-                client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
-                    context.assertEquals(200, tssRes.statusCode());
-                    asyncAuthorized.complete();
-                }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
-
+                    // Logged in => REST access should return 200
+                    client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
+                        context.assertEquals(200, tssRes.statusCode());
+                        asyncAuthorized.complete();
+                    }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
+                });
                 asyncLogin.complete();
             }).putHeader("X-XSRF-TOKEN", csrfToken).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
             asyncToken.complete();
@@ -401,35 +393,33 @@ public class AuthIT {
         final Async asyncLoginWithWrongUser = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(403, res.statusCode());
-            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLoginWithWrongUser.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER2).put("password", PASSWORD)));
 
         // Log in with proper certificate subject
         final Async asyncLogin = context.async();
+        final Async asyncLoginStatus = context.async();
+        final Async asyncAuthorized = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(200, res.statusCode());
-            context.assertNotNull(res.getHeader(HttpHeaders.SET_COOKIE));
-            String sessionCookie = res.getHeader(HttpHeaders.SET_COOKIE);
+            res.bodyHandler(loginBody -> {
+                String token = loginBody.toJsonObject().getString("token");
+                // Logged in => loginStatus should return JsonObject with username
+                client.get(port, "localhost", "/api/v1.0/user/loginStatus", statusRes -> {
+                    context.assertEquals(200, statusRes.statusCode());
+                    statusRes.bodyHandler(body -> {
+                        JsonObject bd = body.toJsonObject();
+                        context.assertEquals(new JsonObject().put("username", "user1"), bd);
+                        asyncLoginStatus.complete();
+                    });
+                }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
 
-            // Logged in => loginStatus should return JsonObject with username
-            final Async asyncLoginStatus = context.async();
-            client.get(port, "localhost", "/api/v1.0/user/loginStatus", statusRes -> {
-                context.assertEquals(200, statusRes.statusCode());
-                statusRes.bodyHandler(body -> {
-                    JsonObject bd = body.toJsonObject();
-                    context.assertEquals(new JsonObject().put("username", "user1"), bd);
-                    asyncLoginStatus.complete();
-                });
-            }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
-
-            // Logged in => REST access should return 200
-            final Async asyncAuthorized = context.async();
-            client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
-                context.assertEquals(200, tssRes.statusCode());
-                asyncAuthorized.complete();
-            }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
-
+                // Logged in => REST access should return 200
+                client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
+                    context.assertEquals(200, tssRes.statusCode());
+                    asyncAuthorized.complete();
+                }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
+            });
             asyncLogin.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
     }
@@ -449,7 +439,6 @@ public class AuthIT {
         final Async asyncLoginWithoutSSL = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(403, res.statusCode());
-            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLoginWithoutSSL.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
     }
@@ -468,53 +457,7 @@ public class AuthIT {
         final Async asyncLoginWithoutSSL = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(403, res.statusCode());
-            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLoginWithoutSSL.complete();
-        }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
-    }
-
-    @Test
-    public void testLogout(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("db_name", dbName).put("connection_string", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
-        config.put("mode", HttpVerticle.Mode.HTTP);
-        deployHttpVerticle(context, config);
-
-        HttpClient client = vertx.createHttpClient();
-
-        // Log in
-        final Async asyncLogin = context.async();
-        client.post(port, "localhost", "/api/v1.0/user/login", res -> {
-            context.assertEquals(200, res.statusCode());
-            context.assertNotNull(res.getHeader(HttpHeaders.SET_COOKIE));
-            String sessionCookie = res.getHeader(HttpHeaders.SET_COOKIE);
-
-            // Logged in => loginStatus should return JsonObject with username
-            final Async asyncLoginStatus = context.async();
-            client.get(port, "localhost", "/api/v1.0/user/loginStatus", statusRes -> {
-                context.assertEquals(200, statusRes.statusCode());
-                statusRes.bodyHandler(body -> {
-                    JsonObject bd = body.toJsonObject();
-                    context.assertEquals(new JsonObject().put("username", "user1"), bd);
-                    asyncLoginStatus.complete();
-                });
-            }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
-
-            // Logout
-            final Async asyncLogout = context.async();
-            client.get(port, "localhost", "/api/v1.0/user/logout", logoutRes -> {
-                context.assertEquals(200, logoutRes.statusCode());
-
-                // Logged out in => REST access should return 401
-                final Async asyncUnauthorized = context.async();
-                client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
-                    context.assertEquals(401, tssRes.statusCode());
-                    asyncUnauthorized.complete();
-                }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
-
-                asyncLogout.complete();
-            }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
-
-            asyncLogin.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
     }
 

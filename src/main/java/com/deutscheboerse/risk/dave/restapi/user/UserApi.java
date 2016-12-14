@@ -2,6 +2,7 @@ package com.deutscheboerse.risk.dave.restapi.user;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -117,7 +118,7 @@ public class UserApi {
                     mongoAuthProvider.authenticate(authInfo, res -> {
                         if (res.succeeded()) {
                             User user = res.result();
-
+                            routingContext.setUser(user);
                             JsonObject tokenObject = new JsonObject().put("username", user.principal().getString("username"));
                             String token = jwtAuthProvider.generateToken(tokenObject, new JWTOptions());
                             JsonObject resp = new JsonObject().put("token", token);
@@ -154,9 +155,19 @@ public class UserApi {
 
     public void loginStatus(RoutingContext routingContext) {
         JsonObject response = new JsonObject();
+        String token = routingContext.request().getHeader(HttpHeaders.AUTHORIZATION);
         if (jwtAuthProvider != null) {
-            if (routingContext.user() != null) {
-                response.put("username", routingContext.user().principal().getString("username"));
+            if (token != null) {
+                token = token.replaceFirst("Bearer", "").trim();
+                JsonObject authInfo = new JsonObject().put("jwt", token);
+                jwtAuthProvider.authenticate(authInfo, res -> {
+                    if (res.succeeded()) {
+                        User user = res.result();
+                        if (user != null) {
+                            response.put("username", user.principal().getString("username"));
+                        }
+                    }
+                });
             }
         } else {
             response.put("username", "Annonymous");
