@@ -76,7 +76,9 @@ The `auth` subsection configures authentication to the UI and REST interface. Th
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `enable` | Disables or enables authetication | `true` |
+| `enable` | Disables or enables authentication | `true` |
+| `jwtKeystorePath` | Path to the keystore (JCEKS type) required by JWT authentication provider | |
+| `jwtKeystorePassword`| Password to the JWT keystore (JCEKS type) used by authentication provider | |
 | `db_name` | Name of the database which will be used | `DAVe` |
 | `connection_string` | Connection URL to connect to the database | `mongodb://localhost:27017` |
 | `salt` | Salt string used in hashed passwords | `sdf8hdgss3_a` |

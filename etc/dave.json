@@ -27,7 +27,6 @@
       "salt": "DAVe",
       "checkUserAgainstCertificate": false,
       "jwtKeystorePath": "jwt-keystore.jceks",
-      "jwtKeystoreType": "jceks",
       "jwtKeystorePassword": "secret"
     },
     "compression": true

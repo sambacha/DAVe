@@ -277,7 +277,7 @@ public class HttpVerticle extends AbstractVerticle
 
             // Create a JWT Auth Provider
             JsonObject jwtConfig = new JsonObject().put("keyStore", new JsonObject()
-                    .put("type", config().getJsonObject("auth").getString("jwtKeystoreType"))
+                    .put("type", "jceks")
                     .put("path", config().getJsonObject("auth").getString("jwtKeystorePath"))
                     .put("password", config().getJsonObject("auth").getString("jwtKeystorePassword")));
             JWTAuth jwtAuthenticationProvider = JWTAuth.create(vertx, jwtConfig);
