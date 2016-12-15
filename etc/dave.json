@@ -4,7 +4,7 @@
     "ssl": {
       "enable": true,
       "redirectHttp": true,
-      "redirectUri": "ttsave.snapshot.dave.dbg-devops.com",
+      "redirectUri": "",
       "httpsPort": 8181,
       "keystore": "web.keystore",
       "keystorePassword": "123456",
@@ -26,8 +26,8 @@
       "connectionUrl": "mongodb://localhost:27017",
       "salt": "DAVe",
       "checkUserAgainstCertificate": false,
-      "sessionTimeout": 3600000,
-      "sessionCookieName": "dave-sess-id"
+      "jwtKeystorePath": "jwt-keystore.jceks",
+      "jwtKeystorePassword": "secret"
     },
     "compression": true
   },
