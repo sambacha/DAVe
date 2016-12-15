@@ -85,7 +85,7 @@ public class HttpVerticle extends AbstractVerticle
 
     private AuthProvider createMongoAuthenticationProvider()
     {
-        JsonObject config = new JsonObject();
+        JsonObject dbConfig = new JsonObject();
         LOG.info("Auth config: {}", config().getJsonObject("auth").encodePrettily());
         dbConfig.put("db_name", config()
                 .getJsonObject("auth")
