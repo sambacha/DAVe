@@ -152,7 +152,27 @@ if [ "$1" = "./bin/start_dave.sh" ]; then
         DAVE_HTTP_AUTH_LINK_SSL="false"
       fi
 
-      http_auth="\"auth\": { \"enable\": true, \"salt\": \"${DAVE_HTTP_AUTH_SALT}\", \"db_name\": \"${DAVE_DB_NAME}\", \"connection_string\": \"${DAVE_DB_URL}\", \"checkUserAgainstCertificate\": ${DAVE_HTTP_AUTH_LINK_SSL} }"
+      if [[ "$DAVE_HTTP_JWT_BASE64_KEYSTORE" && "$DAVE_HTTP_JWT_KEYSTORE_PASSWORD" ]]; then
+        jwtKeystorePath="$(pwd)/etc/jwt.keystore"
+        jwtKeystorePassword="${DAVE_HTTP_JWT_KEYSTORE_PASSWORD}"
+        echo "${DAVE_HTTP_JWT_BASE64_KEYSTORE}" | base64 -d > ${jwtKeystorePath}
+      else
+        jwtKeystorePath="$(pwd)/etc/jwt.keystore"
+        jwtKeystorePassword="123456"
+        keytool -genseckey -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg HMacSHA256 -keysize 2048 -alias HS256 -keypass ${jwtKeystorePassword}
+        keytool -genseckey -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg HMacSHA384 -keysize 2048 -alias HS384 -keypass ${jwtKeystorePassword}
+        keytool -genseckey -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg HMacSHA512 -keysize 2048 -alias HS512 -keypass ${jwtKeystorePassword}
+
+        keytool -genkey -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg RSA -keysize 2048 -alias RS256 -keypass ${jwtKeystorePassword} -sigalg SHA256withRSA -dname "CN=,OU=,O=,L=,ST=,C=" -validity 360
+        keytool -genkey -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg RSA -keysize 2048 -alias RS384 -keypass ${jwtKeystorePassword} -sigalg SHA384withRSA -dname "CN=,OU=,O=,L=,ST=,C=" -validity 360
+        keytool -genkey -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg RSA -keysize 2048 -alias RS512 -keypass ${jwtKeystorePassword} -sigalg SHA512withRSA -dname "CN=,OU=,O=,L=,ST=,C=" -validity 360
+
+        keytool -genkeypair -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg EC -keysize 256 -alias ES256 -keypass ${jwtKeystorePassword} -sigalg SHA256withECDSA -dname "CN=,OU=,O=,L=,ST=,C=" -validity 360
+        keytool -genkeypair -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg EC -keysize 256 -alias ES384 -keypass ${jwtKeystorePassword} -sigalg SHA384withECDSA -dname "CN=,OU=,O=,L=,ST=,C=" -validity 360
+        keytool -genkeypair -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg EC -keysize 256 -alias ES512 -keypass ${jwtKeystorePassword} -sigalg SHA512withECDSA -dname "CN=,OU=,O=,L=,ST=,C=" -validity 360
+      fi
+
+      http_auth="\"auth\": { \"enable\": true, \"salt\": \"${DAVE_HTTP_AUTH_SALT}\", \"db_name\": \"${DAVE_DB_NAME}\", \"connection_string\": \"${DAVE_DB_URL}\", \"checkUserAgainstCertificate\": ${DAVE_HTTP_AUTH_LINK_SSL}, \"jwtKeystorePath\": \"${jwtKeystorePath}\", \"jwtKeystorePassword\": \"${jwtKeystorePassword}\" }"
       CONFIG_HTTP+=("$http_auth")
     fi
   fi
