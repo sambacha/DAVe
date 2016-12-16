@@ -7,7 +7,7 @@
 
     angular.module('dave').controller('LoginController', LoginController);
 
-    function LoginController($scope, $http, $interval, $rootScope, $location, $localStorage, hostConfig) {
+    function LoginController($scope, $http, $interval, $rootScope, $location, $localStorage, jwtHelper, hostConfig) {
         $rootScope.authStatus = false;
         $rootScope.authUsername = "";
 
@@ -21,15 +21,30 @@
         var url = {
             "status": hostConfig.restURL + '/user/loginStatus',
             "login": hostConfig.restURL + '/user/login',
-            "logout": hostConfig.restURL + '/user/logout'
+            "logout": hostConfig.restURL + '/user/logout',
+            "refresh": hostConfig.restURL + '/user/refreshToken'
         };
 
         checkAuth();
-        var refresh = $interval(checkAuth,60000);
+        var refresh = $interval(checkAuth, 60000);
 
-        ////////////////////
+        // if the current token is about to expire in less then 10 minutes -> ask for a new one
+        function refreshTokenIfExpires() {
+            if ($localStorage.currentUser) {
+                var expirationThreshold = new Date();
+                expirationThreshold.setMinutes(expirationThreshold.getMinutes() + 10);
+                var tokenExpires = jwtHelper.getTokenExpirationDate($localStorage.currentUser.token) < expirationThreshold;
+                if (tokenExpires) {
+                  $http.get(url.refresh).success(function (response) {
+                      $localStorage.currentUser.token = response.token;
+                      $http.defaults.headers.common.Authorization = 'Bearer ' + response.token;
+                  });
+                }
+            }
+        }
 
         function checkAuth() {
+            refreshTokenIfExpires();
             $http.get(url.status).success(function (data) {
                 if (data.username != null) {
                     $rootScope.authStatus = true;
@@ -96,7 +111,7 @@
         }
 
         $scope.$on("$destroy", function() {
-            if ($scope.refresh != null) {
+            if ($scope.refresh !== null) {
                 $interval.cancel(refresh);
             }
         });

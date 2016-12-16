@@ -26,16 +26,25 @@ import javax.security.cert.X509Certificate;
  */
 public class UserApi {
     private static final Logger LOG = LoggerFactory.getLogger(UserApi.class);
+    private static final Long DEFAULT_JWT_TOKEN_EXPIRATION_MINUTES = 60L;
+    private static final Boolean DEFAULT_AUTH_CHECK_USER_AGAINST_CERTIFICATE = false;
+
     private final Vertx vertx;
     private final JWTAuth jwtAuthProvider;
     private final AuthProvider mongoAuthProvider;
     private final Boolean checkUserAgainstCertificate;
+    private final JsonObject config;
 
-    public UserApi(Vertx vertx, JWTAuth jwtAuthProvider, AuthProvider mongoAuthProvider, Boolean checkUserAgainstCertificate) {
+    public UserApi(Vertx vertx, JWTAuth jwtAuthProvider, AuthProvider mongoAuthProvider, JsonObject config) {
         this.vertx = vertx;
-        this.checkUserAgainstCertificate = checkUserAgainstCertificate;
+        this.config = config;
+        this.checkUserAgainstCertificate = config.getBoolean("checkUserAgainstCertificate", UserApi.DEFAULT_AUTH_CHECK_USER_AGAINST_CERTIFICATE);
         this.jwtAuthProvider = jwtAuthProvider;
         this.mongoAuthProvider = mongoAuthProvider;
+    }
+
+    public UserApi(Vertx vertx, JsonObject config) {
+        this(vertx, null, null, config);
     }
 
     public void login(RoutingContext routingContext) {
@@ -120,7 +129,8 @@ public class UserApi {
                             User user = res.result();
                             routingContext.setUser(user);
                             JsonObject tokenObject = new JsonObject().put("username", user.principal().getString("username"));
-                            String token = jwtAuthProvider.generateToken(tokenObject, new JWTOptions());
+                            Long tokenExpiration = this.config.getLong("jwtTokenExpiration", UserApi.DEFAULT_JWT_TOKEN_EXPIRATION_MINUTES);
+                            String token = jwtAuthProvider.generateToken(tokenObject, new JWTOptions().setExpiresInMinutes(tokenExpiration));
                             JsonObject resp = new JsonObject().put("token", token);
 
                             routingContext.response()
@@ -177,6 +187,16 @@ public class UserApi {
                 .end(response.encodePrettily());
     }
 
+    public void refreshToken(RoutingContext routingContext) {
+        JsonObject tokenObject = new JsonObject().put("username", routingContext.user().principal().getString("username"));
+        Long tokenExpiration = this.config.getLong("jwtTokenExpiration", UserApi.DEFAULT_JWT_TOKEN_EXPIRATION_MINUTES);
+        String newToken = jwtAuthProvider.generateToken(tokenObject, new JWTOptions().setExpiresInMinutes(tokenExpiration));
+        JsonObject resp = new JsonObject().put("token", newToken);
+        routingContext.response()
+                .putHeader("content-type", "application/json; charset=utf-8")
+                .end(Json.encodePrettily(resp));
+    }
+
     public Router getRoutes()
     {
         Router router = Router.router(vertx);
@@ -184,6 +204,7 @@ public class UserApi {
         router.post("/login").handler(this::login);
         router.get("/logout").handler(this::logout);
         router.get("/loginStatus").handler(this::loginStatus);
+        router.get("/refreshToken").handler(this::refreshToken);
 
         return router;
     }

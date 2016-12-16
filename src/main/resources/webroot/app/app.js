@@ -9,7 +9,8 @@
         'ngRoute',
         'ngStorage',
         'angular.morris',
-        'googlechart'
+        'googlechart',
+        'angular-jwt'
     ]);
 
     dave.config(['$httpProvider', function($httpProvider) {

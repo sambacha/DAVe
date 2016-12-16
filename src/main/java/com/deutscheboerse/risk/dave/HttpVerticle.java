@@ -58,7 +58,6 @@ public class HttpVerticle extends AbstractVerticle
     private static final String DEFAULT_AUTH_DB_NAME = "DAVe";
     private static final String DEFAULT_AUTH_CONNECTION_STRING = "mongodb://localhost:27017";
     private static final String DEFAULT_AUTH_SALT = "DAVe";
-    private static final Boolean DEFAULT_AUTH_CHECK_USER_AGAINST_CERTIFICATE = false;
 
     private HttpServer server;
 
@@ -288,11 +287,11 @@ public class HttpVerticle extends AbstractVerticle
             addSecurityHeaders(router);
 
             AuthProvider mongoAuthenticationProvider = this.createMongoAuthenticationProvider();
-            userApi = new UserApi(vertx, jwtAuthenticationProvider, mongoAuthenticationProvider, config().getJsonObject("auth").getBoolean("checkUserAgainstCertificate", HttpVerticle.DEFAULT_AUTH_CHECK_USER_AGAINST_CERTIFICATE));
+            userApi = new UserApi(vertx, jwtAuthenticationProvider, mongoAuthenticationProvider, config().getJsonObject("auth", new JsonObject()));
         }
         else
         {
-            userApi = new UserApi(vertx, null, null, false);
+            userApi = new UserApi(vertx, config().getJsonObject("auth", new JsonObject()));
         }
 
         return userApi;
