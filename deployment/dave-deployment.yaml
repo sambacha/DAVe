@@ -85,6 +85,16 @@ spec:
                 secretKeyRef:
                   name: dave-secret
                   key: http.private_key
+            - name: DAVE_HTTP_JWT_BASE64_KEYSTORE
+              valueFrom:
+                secretKeyRef:
+                  name: dave-secret
+                  key: jwt.keystore
+            - name: DAVE_HTTP_JWT_KEYSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dave-secret
+                  key: jwt.keystore_password
           ports:
             - containerPort: 8080
               name: http
