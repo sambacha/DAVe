@@ -155,7 +155,8 @@ if [ "$1" = "./bin/start_dave.sh" ]; then
       if [[ "$DAVE_HTTP_JWT_BASE64_KEYSTORE" && "$DAVE_HTTP_JWT_KEYSTORE_PASSWORD" ]]; then
         jwtKeystorePath="$(pwd)/etc/jwt.keystore"
         jwtKeystorePassword="${DAVE_HTTP_JWT_KEYSTORE_PASSWORD}"
-        echo "${DAVE_HTTP_JWT_BASE64_KEYSTORE}" | base64 -d > ${jwtKeystorePath}
+        #echo "${DAVE_HTTP_JWT_BASE64_KEYSTORE}" | base64 -d > ${jwtKeystorePath}
+        echo "${DAVE_HTTP_JWT_BASE64_KEYSTORE}" > ${jwtKeystorePath}
       else
         jwtKeystorePath="$(pwd)/etc/jwt.keystore"
         jwtKeystorePassword="123456"
