@@ -156,13 +156,6 @@ public class UserApi {
         }
     }
 
-    public void logout(RoutingContext routingContext) {
-        if (jwtAuthProvider != null) {
-            routingContext.clearUser();
-        }
-        routingContext.response().setStatusCode(HttpResponseStatus.OK.code()).end();
-    }
-
     public void loginStatus(RoutingContext routingContext) {
         JsonObject response = new JsonObject();
         String token = routingContext.request().getHeader(HttpHeaders.AUTHORIZATION);
@@ -202,7 +195,6 @@ public class UserApi {
         Router router = Router.router(vertx);
 
         router.post("/login").handler(this::login);
-        router.get("/logout").handler(this::logout);
         router.get("/loginStatus").handler(this::loginStatus);
         router.get("/refreshToken").handler(this::refreshToken);
 

@@ -21,7 +21,6 @@
         var url = {
             "status": hostConfig.restURL + '/user/loginStatus',
             "login": hostConfig.restURL + '/user/login',
-            "logout": hostConfig.restURL + '/user/logout',
             "refresh": hostConfig.restURL + '/user/refreshToken'
         };
 
