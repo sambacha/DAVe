@@ -318,6 +318,57 @@ public class AuthIT {
         }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
     }
 
+    @Test
+    public void testLoginWithExpiredToken(TestContext context) {
+        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        config.put("mode", HttpVerticle.Mode.HTTP);
+        deployHttpVerticle(context, config);
+
+        HttpClient client = vertx.createHttpClient();
+
+        // Log in
+        final String expiredToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE0ODIxNTE4NTIsImlhdCI6MTQ4MjE1MTc5MiwidXNlcm5hbWUiOiJzY2hvamFrIn0=.fUgxPZyKBPml0siTJZD7YWF-7_XrD0k9-R9izrM1_xw=";
+        final Async asyncExpired = context.async();
+        client.get(port, "localhost", "/api/v1.0/tss/latest", res -> {
+            context.assertEquals(401, res.statusCode());
+            asyncExpired.complete();
+        }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", expiredToken)).end();;
+    }
+
+    @Test
+    public void testTokenRefresh(TestContext context) {
+        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        config.put("mode", HttpVerticle.Mode.HTTP);
+        deployHttpVerticle(context, config);
+
+        HttpClient client = vertx.createHttpClient();
+
+        // Log in
+        final Async asyncLogin = context.async();
+        final Async asyncRefresh = context.async();
+        final Async asyncAuthorized = context.async();
+        client.post(port, "localhost", "/api/v1.0/user/login", res -> {
+            context.assertEquals(200, res.statusCode());
+            res.bodyHandler(loginBody -> {
+                String token = loginBody.toJsonObject().getString("token");
+                // Logged in => let's ask for a new token
+                client.get(port, "localhost", "/api/v1.0/user/refreshToken", statusRes -> {
+                    context.assertEquals(200, statusRes.statusCode());
+                    statusRes.bodyHandler(body -> {
+                        String refreshToken = body.toJsonObject().getString("token");
+                        // REST access with refreshed token should return 200
+                        client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
+                            context.assertEquals(200, tssRes.statusCode());
+                            asyncAuthorized.complete();
+                        }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", refreshToken)).end();
+                        asyncRefresh.complete();
+                    });
+                }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
+            });
+            asyncLogin.complete();
+        }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
+    }
+
     private String getCsrfCookie(List<String> cookies)
     {
         String token = null;
