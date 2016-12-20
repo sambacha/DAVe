@@ -24,7 +24,7 @@
     <link href="./vendor/sb-admin-2/sb-admin-2.css" rel="stylesheet">
 
     <!-- DAVe CSS -->
-    <link href="app/styles.css" rel="stylesheet">
+    <link href="app/app.component.scss" rel="stylesheet">
 
     <!-- Custom Fonts -->
     <link href="./vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
@@ -33,32 +33,13 @@
     <!-- Polyfill(s) for older browsers -->
     <script src="node_modules/core-js/client/shim.min.js"></script>
     <script src="node_modules/web-animations-js/web-animations.min.js"></script>
-
-    <!-- jQuery -->
-    <script src="./vendor/jquery/jquery.min.js"></script>
-
-    <!-- Bootstrap Core JavaScript -->
-    <script src="./vendor/bootstrap/js/bootstrap.min.js"></script>
-
-    <!-- Angular required libs -->
     <script src="node_modules/zone.js/dist/zone.min.js"></script>
-    <script src="node_modules/reflect-metadata/Reflect.js"></script>
-    <script src="node_modules/systemjs/dist/system.js"></script>
-
-    <!-- Configure SystemJS -->
-    <script src="systemjs.config.js"></script>
-    <script>
-        //<![CDATA[
-        System.import('app').catch(function (err) {
-            console.error(err);
-        });
-        //]]>
-    </script>
-
+    <script>window.module = 'aot';</script>
 </head>
 
 <body>
 <dave></dave>
+<script src="./dave.js"></script>
 </body>
 
 </html>
