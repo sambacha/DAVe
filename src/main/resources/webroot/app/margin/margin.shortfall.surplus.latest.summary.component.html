@@ -1,10 +1,12 @@
-<div ng-controller="MarginShortfallSurplusLatestSummaryController as msssum">
+<div>
     <div class="col-lg-3 col-md-6">
-        <div ng-class="msssum.viewSum.shortfallSurplus >= 0 ? 'panel panel-green' : 'panel panel-red'">
+        <div class="panel"
+             [class.panel-green]="shortfallSurplus >= 0"
+             [class.panel-red]="shortfallSurplus < 0">
             <div class="panel-heading">
                 <div class="row">
                     <div class="col-xs-12 text-right">
-                        <div class="huge">{{msssum.viewSum.shortfallSurplus | number:2}}</div>
+                        <div class="huge">{{shortfallSurplus | number:'.2-2'}}</div>
                         <div>Margin Shortfall/Surplus</div>
                     </div>
                 </div>
@@ -12,11 +14,13 @@
         </div>
     </div>
     <div class="col-lg-3 col-md-6">
-        <div ng-class="msssum.viewSum.marginRequirement >= 0 ? 'panel panel-green' : 'panel panel-red'">
+        <div class="panel"
+             [class.panel-green]="marginRequirement >= 0"
+             [class.panel-red]="marginRequirement < 0">
             <div class="panel-heading">
                 <div class="row">
                     <div class="col-xs-12 text-right">
-                        <div class="huge">{{msssum.viewSum.marginRequirement | number:2}}</div>
+                        <div class="huge">{{marginRequirement | number:'.2-2'}}</div>
                         <div>Margin Requirement</div>
                     </div>
                 </div>
@@ -24,11 +28,13 @@
         </div>
     </div>
     <div class="col-lg-3 col-md-6">
-        <div ng-class="msssum.viewSum.securityCollateral >= 0 ? 'panel panel-green' : 'panel panel-red'">
+        <div class="panel"
+             [class.panel-green]="securityCollateral >= 0"
+             [class.panel-red]="securityCollateral < 0">
             <div class="panel-heading">
                 <div class="row">
                     <div class="col-xs-12 text-right">
-                        <div class="huge">{{msssum.viewSum.securityCollateral | number:2}}</div>
+                        <div class="huge">{{securityCollateral | number:'.2-2'}}</div>
                         <div>Collateral</div>
                     </div>
                 </div>
@@ -36,11 +42,13 @@
         </div>
     </div>
     <div class="col-lg-3 col-md-6">
-        <div ng-class="msssum.viewSum.cashBalance >= 0 ? 'panel panel-green' : 'panel panel-red'">
+        <div class="panel"
+             [class.panel-green]="cashBalance >= 0"
+             [class.panel-red]="cashBalance < 0">
             <div class="panel-heading">
                 <div class="row">
                     <div class="col-xs-12 text-right">
-                        <div class="huge">{{msssum.viewSum.cashBalance | number:2}}</div>
+                        <div class="huge">{{cashBalance | number:'.2-2'}}</div>
                         <div>Cash Balance</div>
                     </div>
                 </div>
@@ -48,11 +56,13 @@
         </div>
     </div>
     <!--<div class="col-lg-2 col-md-4">
-        <div ng-class="msssum.viewSum.marginCall >= 0 ? 'panel panel-green' : 'panel panel-red'">
+        <div class="panel"
+             [class.panel-green]="marginCall >= 0"
+             [class.panel-red]="marginCall < 0">
             <div class="panel-heading">
                 <div class="row">
                     <div class="col-xs-12 text-right">
-                        <div class="huge">{{msssum.viewSum.marginCall | number:2}}</div>
+                        <div class="huge">{{marginCall | number:'.2-2'}}</div>
                         <div>Margin Call</div>
                     </div>
                 </div>
