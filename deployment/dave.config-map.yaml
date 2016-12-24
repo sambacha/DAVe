@@ -4,6 +4,7 @@ metadata:
   name: dave-config
   namespace: ttsave
 data:
+  log.level: "INFO"
   db.name: "DAVe-TTSave"
   db.hostname: "mongo.default"
   db.port: "27017"
