@@ -13,11 +13,20 @@ To actually use the application, you have to point to a host running the MongoDB
 
 ## Options
 
+### Logging
+
+Allows to configure logging parameters. Supported log levels are `OFF`, `ERROR`, `WARN`, `INFO`, `DEBUG`, `TRACE` and `ALL`.
+
+| Option | Explanation | Example |
+|--------|-------------|---------|
+| `DAVE_LOG_LEVEL` | Logging level which should be used | `INFO` |
+
+
 ### Database
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `DAVE_DB_NAME` | Name of the database wich will be used | |
+| `DAVE_DB_NAME` | Name of the database which will be used | |
 | `DAVE_DB_HOSTNAME` | Hostname of the Mongo server | `mongo.mydomain.tld` |
 | `DAVE_DB_PORT` | Port where the Mongo database is listening | `27017` |
 | `DAVE_DB_USERNAME` | Username to connect into Mongo | |
@@ -42,6 +51,9 @@ To actually use the application, you have to point to a host running the MongoDB
 | `DAVE_HTTP_AUTH` | Enable authentication | `1` |
 | `DAVE_HTTP_AUTH_SALT` | Set the salt for password hashing | `sdf8hdgss3_a` |
 | `DAVE_HTTP_AUTH_LINK_SSL` | Validate the username against the CN of the SSL client certificate | `1` |
+| `DAVE_HTTP_JWT_BASE64_KEYSTORE` | Base64 encoded JCEKS keystore required by JWT authentication provider | |
+| `DAVE_HTTP_JWT_KEYSTORE_PASSWORD` | Password to the JWT keystore | `123456` |
+| `DAVE_HTTP_JWT_TOKEN_EXPIRATION` | Expiration time (in minutes) when the JWT token expires | `60` minutes |
 
 ### ERS
 

@@ -7,7 +7,7 @@ metadata:
     project: dave
   namespace: demo
 spec:
-  replicas: 1
+  replicas: 3
   template:
     metadata:
       name: dave
@@ -20,6 +20,11 @@ spec:
           name: dave
           imagePullPolicy: Always
           env:
+            - name: DAVE_LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: dave-config
+                  key: log.level
             - name: DAVE_DB_NAME
               valueFrom:
                 configMapKeyRef:
@@ -85,6 +90,16 @@ spec:
                 secretKeyRef:
                   name: dave-secret
                   key: http.private_key
+            - name: DAVE_HTTP_JWT_BASE64_KEYSTORE
+              valueFrom:
+                secretKeyRef:
+                  name: dave-secret
+                  key: jwt.keystore
+            - name: DAVE_HTTP_JWT_KEYSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dave-secret
+                  key: jwt.keystore_password
           ports:
             - containerPort: 8080
               name: http

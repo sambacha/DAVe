@@ -2,6 +2,7 @@ package com.deutscheboerse.risk.dave.restapi.user;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -9,6 +10,8 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.jwt.JWTAuth;
+import io.vertx.ext.auth.jwt.JWTOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
@@ -23,18 +26,29 @@ import javax.security.cert.X509Certificate;
  */
 public class UserApi {
     private static final Logger LOG = LoggerFactory.getLogger(UserApi.class);
-    private final Vertx vertx;
-    private final AuthProvider authProvider;
-    private final Boolean checkUserAgainstCertificate;
+    private static final Long DEFAULT_JWT_TOKEN_EXPIRATION_MINUTES = 60L;
+    private static final Boolean DEFAULT_AUTH_CHECK_USER_AGAINST_CERTIFICATE = false;
 
-    public UserApi(Vertx vertx, AuthProvider ap, Boolean checkUserAgainstCertificate) {
+    private final Vertx vertx;
+    private final JWTAuth jwtAuthProvider;
+    private final AuthProvider mongoAuthProvider;
+    private final Boolean checkUserAgainstCertificate;
+    private final JsonObject config;
+
+    public UserApi(Vertx vertx, JWTAuth jwtAuthProvider, AuthProvider mongoAuthProvider, JsonObject config) {
         this.vertx = vertx;
-        this.checkUserAgainstCertificate = checkUserAgainstCertificate;
-        this.authProvider = ap;
+        this.config = config;
+        this.checkUserAgainstCertificate = config.getBoolean("checkUserAgainstCertificate", UserApi.DEFAULT_AUTH_CHECK_USER_AGAINST_CERTIFICATE);
+        this.jwtAuthProvider = jwtAuthProvider;
+        this.mongoAuthProvider = mongoAuthProvider;
+    }
+
+    public UserApi(Vertx vertx, JsonObject config) {
+        this(vertx, null, null, config);
     }
 
     public void login(RoutingContext routingContext) {
-        if (authProvider != null) {
+        if (jwtAuthProvider != null) {
             LOG.info("Starting authentication for login request from {}!", routingContext.request().remoteAddress().toString());
 
             try {
@@ -110,13 +124,15 @@ public class UserApi {
                     }
 
                     JsonObject authInfo = new JsonObject().put("username", username).put("password", password);
-                    authProvider.authenticate(authInfo, res -> {
+                    mongoAuthProvider.authenticate(authInfo, res -> {
                         if (res.succeeded()) {
                             User user = res.result();
-
-                            JsonObject resp = new JsonObject().put("username", user.principal().getString("username"));
-
                             routingContext.setUser(user);
+                            JsonObject tokenObject = new JsonObject().put("username", user.principal().getString("username"));
+                            Long tokenExpiration = this.config.getLong("jwtTokenExpiration", UserApi.DEFAULT_JWT_TOKEN_EXPIRATION_MINUTES);
+                            String token = jwtAuthProvider.generateToken(tokenObject, new JWTOptions().setExpiresInMinutes(tokenExpiration));
+                            JsonObject resp = new JsonObject().put("token", token);
+
                             routingContext.response()
                                     .putHeader("content-type", "application/json; charset=utf-8")
                                     .end(Json.encodePrettily(resp));
@@ -140,18 +156,21 @@ public class UserApi {
         }
     }
 
-    public void logout(RoutingContext routingContext) {
-        if (authProvider != null) {
-            routingContext.clearUser();
-        }
-        routingContext.response().setStatusCode(HttpResponseStatus.OK.code()).end();
-    }
-
     public void loginStatus(RoutingContext routingContext) {
         JsonObject response = new JsonObject();
-        if (authProvider != null) {
-            if (routingContext.user() != null) {
-                response.put("username", routingContext.user().principal().getString("username"));
+        String token = routingContext.request().getHeader(HttpHeaders.AUTHORIZATION);
+        if (jwtAuthProvider != null) {
+            if (token != null) {
+                token = token.replaceFirst("Bearer", "").trim();
+                JsonObject authInfo = new JsonObject().put("jwt", token);
+                jwtAuthProvider.authenticate(authInfo, res -> {
+                    if (res.succeeded()) {
+                        User user = res.result();
+                        if (user != null) {
+                            response.put("username", user.principal().getString("username"));
+                        }
+                    }
+                });
             }
         } else {
             response.put("username", "Annonymous");
@@ -161,13 +180,23 @@ public class UserApi {
                 .end(response.encodePrettily());
     }
 
+    public void refreshToken(RoutingContext routingContext) {
+        JsonObject tokenObject = new JsonObject().put("username", routingContext.user().principal().getString("username"));
+        Long tokenExpiration = this.config.getLong("jwtTokenExpiration", UserApi.DEFAULT_JWT_TOKEN_EXPIRATION_MINUTES);
+        String newToken = jwtAuthProvider.generateToken(tokenObject, new JWTOptions().setExpiresInMinutes(tokenExpiration));
+        JsonObject resp = new JsonObject().put("token", newToken);
+        routingContext.response()
+                .putHeader("content-type", "application/json; charset=utf-8")
+                .end(Json.encodePrettily(resp));
+    }
+
     public Router getRoutes()
     {
         Router router = Router.router(vertx);
 
         router.post("/login").handler(this::login);
-        router.get("/logout").handler(this::logout);
         router.get("/loginStatus").handler(this::loginStatus);
+        router.get("/refreshToken").handler(this::refreshToken);
 
         return router;
     }

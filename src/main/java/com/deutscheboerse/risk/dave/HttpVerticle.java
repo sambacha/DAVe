@@ -2,12 +2,10 @@ package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.restapi.ers.*;
 import com.deutscheboerse.risk.dave.restapi.user.UserApi;
-import com.deutscheboerse.risk.dave.auth.ApiAuthHandler;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.ClientAuth;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
@@ -18,12 +16,12 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.net.JksOptions;
 import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.mongo.HashSaltStyle;
 import io.vertx.ext.auth.mongo.MongoAuth;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.sstore.LocalSessionStore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,13 +29,16 @@ import java.util.List;
 /**
  * Created by schojak on 19.8.16.
  */
-public class HttpVerticle extends AbstractVerticle {
-    public static enum Mode {
+public class HttpVerticle extends AbstractVerticle
+{
+
+    public static enum Mode
+    {
         HTTP, HTTP_REDIRECT, HTTPS
     };
     private static final Logger LOG = LoggerFactory.getLogger(HttpVerticle.class);
 
-    private static final Integer MAX_BODY_SIZE = 1024*1024; // 1MB
+    private static final Integer MAX_BODY_SIZE = 1024 * 1024; // 1MB
 
     private static final Integer DEFAULT_HTTP_PORT = 8080;
     private static final Integer DEFAULT_HTTPS_PORT = 8181;
@@ -57,31 +58,32 @@ public class HttpVerticle extends AbstractVerticle {
     private static final String DEFAULT_AUTH_DB_NAME = "DAVe";
     private static final String DEFAULT_AUTH_CONNECTION_STRING = "mongodb://localhost:27017";
     private static final String DEFAULT_AUTH_SALT = "DAVe";
-    private static final Integer DEFAULT_AUTH_SESSION_TIMEOUT = 60*60*1000;
-    private static final String DEFAULT_AUTH_SESSION_COOKIE_NAME = "dave-sess-id";
-    private static final Boolean DEFAULT_AUTH_CHECK_USER_AGAINST_CERTIFICATE = false;
 
     private HttpServer server;
-    private EventBus eb;
 
     @Override
-    public void start(Future<Void> startFuture) throws Exception {
+    public void start(Future<Void> startFuture) throws Exception
+    {
         LOG.info("Starting {} with configuration: {}", HttpVerticle.class.getSimpleName(), config().encodePrettily());
-        eb = vertx.eventBus();
 
         List<Future> futures = new ArrayList<>();
         futures.add(startServer());
 
-        CompositeFuture.all(futures).setHandler(ar -> {
-            if (ar.succeeded()) {
-                startFuture.complete();
-            } else {
-                startFuture.fail(ar.cause());
-            }
+        CompositeFuture.all(futures).setHandler(ar ->
+                {
+                    if (ar.succeeded())
+                    {
+                        startFuture.complete();
+                    }
+                    else
+                    {
+                        startFuture.fail(ar.cause());
+                    }
         });
     }
 
-    private AuthProvider createAuthenticationProvider() {
+    private AuthProvider createMongoAuthenticationProvider()
+    {
         JsonObject dbConfig = new JsonObject();
         LOG.info("Auth config: {}", config().getJsonObject("auth").encodePrettily());
         dbConfig.put("db_name", config()
@@ -100,9 +102,11 @@ public class HttpVerticle extends AbstractVerticle {
         return authProvider;
     }
 
-    private Future<HttpServer> startServer() {
+    private Future<HttpServer> startServer()
+    {
         Future<HttpServer> webServerFuture;
-        switch (HttpVerticle.Mode.valueOf(config().getString("mode"))) {
+        switch (HttpVerticle.Mode.valueOf(config().getString("mode")))
+        {
             case HTTP:
                 webServerFuture = startHttpServer(config().getInteger("httpPort", HttpVerticle.DEFAULT_HTTP_PORT));
                 break;
@@ -121,7 +125,8 @@ public class HttpVerticle extends AbstractVerticle {
         return webServerFuture;
     }
 
-    private Future<HttpServer> startHttpServer(int port) {
+    private Future<HttpServer> startHttpServer(int port)
+    {
         Future<HttpServer> webServerFuture = Future.future();
         Router router = configureRouter();
         HttpServerOptions httpOptions = configureWebServer();
@@ -134,20 +139,23 @@ public class HttpVerticle extends AbstractVerticle {
         return webServerFuture;
     }
 
-    private Future<HttpServer> startHttpRedirectorServer(int httpPort, String redirectUri) {
+    private Future<HttpServer> startHttpRedirectorServer(int httpPort, String redirectUri)
+    {
         Future<HttpServer> webServerFuture = Future.future();
 
         LOG.info("Starting web server (redirector) on port {}", httpPort);
         server = vertx.createHttpServer();
-        server.requestHandler(request -> {
-            String redirectAddress = String.format("https://%s", ((redirectUri == null || redirectUri.equals("")) ? request.localAddress().host() : redirectUri));
-            HttpServerResponse response = request.response();
-            response.headersEndHandler(unused -> {
-                request.response().headers().set("Location", redirectAddress);
-            });
-            response.setStatusCode(HttpResponseStatus.MOVED_PERMANENTLY.code());
-            response.setStatusMessage("Server requires HTTPS");
-            response.end();
+        server.requestHandler(request ->
+                {
+                    String redirectAddress = String.format("https://%s", ((redirectUri == null || redirectUri.equals("")) ? request.localAddress().host() : redirectUri));
+                    HttpServerResponse response = request.response();
+                    response.headersEndHandler(unused ->
+                            {
+                                request.response().headers().set("Location", redirectAddress);
+                    });
+                    response.setStatusCode(HttpResponseStatus.MOVED_PERMANENTLY.code());
+                    response.setStatusMessage("Server requires HTTPS");
+                    response.end();
         });
         server.listen(httpPort, webServerFuture.completer());
         return webServerFuture;
@@ -163,7 +171,8 @@ public class HttpVerticle extends AbstractVerticle {
 
     private void setSsl(HttpServerOptions httpOptions)
     {
-        if (!HttpVerticle.Mode.valueOf(config().getString("mode")).equals(HttpVerticle.Mode.HTTPS)) {
+        if (!HttpVerticle.Mode.valueOf(config().getString("mode")).equals(HttpVerticle.Mode.HTTPS))
+        {
             return;
         }
         if (config().getJsonObject("ssl", new JsonObject()).getBoolean("enable", DEFAULT_SSL) && config().getJsonObject("ssl", new JsonObject()).getString("keystore") != null && config().getJsonObject("ssl", new JsonObject()).getString("keystorePassword") != null)
@@ -228,7 +237,8 @@ public class HttpVerticle extends AbstractVerticle {
 
     private void setCorsHandler(Router router)
     {
-        if (config().getJsonObject("CORS", new JsonObject()).getBoolean("enable", HttpVerticle.DEFAULT_CORS)) {
+        if (config().getJsonObject("CORS", new JsonObject()).getBoolean("enable", HttpVerticle.DEFAULT_CORS))
+        {
             LOG.info("Enabling CORS handler");
 
             //Wildcard(*) not allowed if allowCredentials is true
@@ -248,9 +258,10 @@ public class HttpVerticle extends AbstractVerticle {
 
     private void setCsrfHandler(Router router)
     {
-        if (config().getJsonObject("CSRF", new JsonObject()).getBoolean("enable", HttpVerticle.DEFAULT_CSRF)) {
+        if (config().getJsonObject("CSRF", new JsonObject()).getBoolean("enable", HttpVerticle.DEFAULT_CSRF))
+        {
             LOG.info("Enabling CSRF handler");
-
+            router.route().handler(CookieHandler.create());
             router.route().handler(CSRFHandler.create(config().getJsonObject("CSRF", new JsonObject()).getString("secret", HttpVerticle.DEFAULT_CSRF_SECRET)));
         }
     }
@@ -259,25 +270,28 @@ public class HttpVerticle extends AbstractVerticle {
     {
         UserApi userApi;
 
-        if (config().getJsonObject("auth", new JsonObject()).getBoolean("enable", HttpVerticle.DEFAULT_AUTH_ENABLED)) {
+        if (config().getJsonObject("auth", new JsonObject()).getBoolean("enable", HttpVerticle.DEFAULT_AUTH_ENABLED))
+        {
             LOG.info("Enabling authentication");
 
-            AuthProvider authenticationProvider = this.createAuthenticationProvider();
+            // Create a JWT Auth Provider
+            JsonObject jwtConfig = new JsonObject().put("keyStore", new JsonObject()
+                    .put("type", "jceks")
+                    .put("path", config().getJsonObject("auth").getString("jwtKeystorePath"))
+                    .put("password", config().getJsonObject("auth").getString("jwtKeystorePassword")));
+            JWTAuth jwtAuthenticationProvider = JWTAuth.create(vertx, jwtConfig);
+            router.route("/api/v1.0/*").handler(JWTAuthHandler.create(jwtAuthenticationProvider, "/api/v1.0/user/login"));
 
-            router.route().handler(CookieHandler.create());
             router.route().handler(BodyHandler.create().setBodyLimit(MAX_BODY_SIZE));
-            router.route().handler(getSessionHandler());
-            router.route().handler(UserSessionHandler.create(authenticationProvider));
             setCsrfHandler(router);
             addSecurityHeaders(router);
 
-            router.routeWithRegex("^/api/v1.0/(?!user/login).*$").handler(ApiAuthHandler.create(authenticationProvider));
-
-            userApi = new UserApi(vertx, authenticationProvider, config().getJsonObject("auth").getBoolean("checkUserAgainstCertificate", HttpVerticle.DEFAULT_AUTH_CHECK_USER_AGAINST_CERTIFICATE));
+            AuthProvider mongoAuthenticationProvider = this.createMongoAuthenticationProvider();
+            userApi = new UserApi(vertx, jwtAuthenticationProvider, mongoAuthenticationProvider, config().getJsonObject("auth", new JsonObject()));
         }
         else
         {
-            userApi = new UserApi(vertx, null, false);
+            userApi = new UserApi(vertx, config().getJsonObject("auth", new JsonObject()));
         }
 
         return userApi;
@@ -286,41 +300,31 @@ public class HttpVerticle extends AbstractVerticle {
     private void addSecurityHeaders(Router router)
     {
         // From http://vertx.io/blog/writing-secure-vert-x-web-apps/
-        router.route().handler(ctx -> {
-            ctx.response()
-                    // do not allow proxies to cache the data
-                    .putHeader("Cache-Control", "no-store, no-cache")
-                    // prevents Internet Explorer from MIME - sniffing a
-                    // response away from the declared content-type
-                    .putHeader("X-Content-Type-Options", "nosniff")
-                    // Strict HTTPS (for about ~6Months)
-                    .putHeader("Strict-Transport-Security", "max-age=" + 15768000)
-                    // IE8+ do not allow opening of attachments in the context of this resource
-                    .putHeader("X-Download-Options", "noopen")
-                    // enable XSS for IE
-                    .putHeader("X-XSS-Protection", "1; mode=block")
-                    // deny frames
-                    .putHeader("X-FRAME-OPTIONS", "DENY")
-                    .putHeader("Expires", "0");
+        router.route().handler(ctx ->
+                {
+                    ctx.response()
+                            // do not allow proxies to cache the data
+                            .putHeader("Cache-Control", "no-store, no-cache")
+                            // prevents Internet Explorer from MIME - sniffing a
+                            // response away from the declared content-type
+                            .putHeader("X-Content-Type-Options", "nosniff")
+                            // Strict HTTPS (for about ~6Months)
+                            .putHeader("Strict-Transport-Security", "max-age=" + 15768000)
+                            // IE8+ do not allow opening of attachments in the context of this resource
+                            .putHeader("X-Download-Options", "noopen")
+                            // enable XSS for IE
+                            .putHeader("X-XSS-Protection", "1; mode=block")
+                            // deny frames
+                            .putHeader("X-FRAME-OPTIONS", "DENY")
+                            .putHeader("Expires", "0");
 
-            ctx.next();
+                    ctx.next();
         });
     }
 
-    private SessionHandler getSessionHandler()
-    {
-        SessionHandler sesHandler = SessionHandler.create(LocalSessionStore.create(vertx));
-        sesHandler.setSessionCookieName(config().getJsonObject("auth", new JsonObject()).getString("sessionCookieName", HttpVerticle.DEFAULT_AUTH_SESSION_COOKIE_NAME));
-        sesHandler.setCookieHttpOnlyFlag(true);
-        sesHandler.setCookieSecureFlag(config().getJsonObject("ssl", new JsonObject()).getBoolean("enabled", HttpVerticle.DEFAULT_SSL));
-        sesHandler.setNagHttps(true);
-        sesHandler.setSessionTimeout(config().getJsonObject("auth", new JsonObject()).getInteger("sessionTimeout", HttpVerticle.DEFAULT_AUTH_SESSION_TIMEOUT));
-
-        return sesHandler;
-    }
-
     @Override
-    public void stop() throws Exception {
+    public void stop() throws Exception
+    {
         LOG.info("Shutting down webserver");
         server.close();
     }

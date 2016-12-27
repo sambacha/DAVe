@@ -5,6 +5,7 @@ metadata:
   namespace: demo
 data:
   db.name: "DAVe-Demo"
+  log.level: "INFO"
   db.hostname: "mongo.default"
   db.port: "27017"
   http.enable: "TRUE"

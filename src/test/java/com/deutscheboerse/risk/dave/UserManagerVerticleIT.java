@@ -81,7 +81,7 @@ public class UserManagerVerticleIT {
         System.setProperty("userName", USER);
         System.setProperty("userPassword", PASSWORD);
 
-        JsonObject config = new JsonObject().put("http", new JsonObject().put("auth", new JsonObject().put("enable", true).put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT)));
+        JsonObject config = new JsonObject().put("http", new JsonObject().put("auth", new JsonObject().put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT)));
         deployUserManagerVerticle(context, vertx, config);
 
         final Async query = context.async();
@@ -115,7 +115,7 @@ public class UserManagerVerticleIT {
 
         testAppender.start();
         System.setProperty("cmd", "list");
-        JsonObject config = new JsonObject().put("http", new JsonObject().put("auth", new JsonObject().put("enable", true).put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT)));
+        JsonObject config = new JsonObject().put("http", new JsonObject().put("auth", new JsonObject().put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT)));
         deployUserManagerVerticle(context, vertx, config);
         testAppender.stop();
 
@@ -147,7 +147,7 @@ public class UserManagerVerticleIT {
         System.setProperty("cmd", "delete");
         System.setProperty("userName", USER);
 
-        JsonObject config = new JsonObject().put("http", new JsonObject().put("auth", new JsonObject().put("enable", true).put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT)));
+        JsonObject config = new JsonObject().put("http", new JsonObject().put("auth", new JsonObject().put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT)));
         deployUserManagerVerticle(context, vertx, config);
 
         final Async query = context.async();

@@ -67,7 +67,7 @@ The `ssl` section configures the SSL/TLS support in the webserver.
 | `keystore` | JKS file with the private key |  |
 | `keystorePassword` | Password to the JKS file containing the private key |  |
 | `truststore` | JKS file with trusted client CAs |  |
-| `truststore` | Password to the JKS file containing the trusted certificates |  |
+| `truststorePassword` | Password to the JKS file containing the trusted certificates |  |
 | `requireTLSClientAuth` | Sets TLS client authentication as required | `false` |
 
 #### Auth
@@ -79,6 +79,9 @@ The `auth` subsection configures authentication to the UI and REST interface. Th
 | `enable` | Disables or enables authetication | `true` |
 | `dbName` | Name of the database which will be used | `DAVe` |
 | `connectionUrl` | Connection URL to connect to the database | `mongodb://localhost:27017` |
+| `jwtKeystorePath` | Path to the keystore (JCEKS type) required by JWT authentication provider | |
+| `jwtKeystorePassword`| Password to the JWT keystore (JCEKS type) used by authentication provider | |
+| `jwtTokenExpiration`| Expiration time (in minutes) when the JWT token expires | `60` |
 | `salt` | Salt string used in hashed passwords | `sdf8hdgss3_a` |
 | `checkUserAgainstCertificate` | Validate username against the CN from the TLS client certificate subject. Unless the CN is equal to the username, authentication will be refused. _*)_ | `false` |
 

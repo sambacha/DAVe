@@ -170,7 +170,7 @@ public class AuthIT {
 
     @Test
     public void testLoginStatus(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
         config.put("mode", HttpVerticle.Mode.HTTP);
         deployHttpVerticle(context, config);
 
@@ -190,7 +190,7 @@ public class AuthIT {
 
     @Test
     public void testUnauthorizedAccess(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
         config.put("mode", HttpVerticle.Mode.HTTP);
         deployHttpVerticle(context, config);
 
@@ -206,7 +206,7 @@ public class AuthIT {
 
     @Test
     public void testLoginWrongPassword(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
         config.put("mode", HttpVerticle.Mode.HTTP);
         deployHttpVerticle(context, config);
 
@@ -216,14 +216,13 @@ public class AuthIT {
         final Async asyncLogin = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(403, res.statusCode());
-            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLogin.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", "wrongpassword")));
     }
 
     @Test
     public void testLoginWithBinaryData(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
         config.put("mode", HttpVerticle.Mode.HTTP);
         deployHttpVerticle(context, config);
 
@@ -233,14 +232,13 @@ public class AuthIT {
         final Async asyncLogin = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(HttpResponseStatus.BAD_REQUEST.code(), res.statusCode());
-            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLogin.complete();
         }).end(Buffer.buffer(new byte[] {1, 3, 5, 7, 9}));
     }
 
     @Test
     public void testLoginNonexistentUser(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
         config.put("mode", HttpVerticle.Mode.HTTP);
         deployHttpVerticle(context, config);
 
@@ -250,14 +248,13 @@ public class AuthIT {
         final Async asyncLogin = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(403, res.statusCode());
-            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLogin.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", "idonotexist").put("password", PASSWORD)));
     }
 
     @Test
     public void testLoginWrongRequest(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
         config.put("mode", HttpVerticle.Mode.HTTP);
         deployHttpVerticle(context, config);
 
@@ -267,7 +264,6 @@ public class AuthIT {
         final Async asyncLoginEmptyJson = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(400, res.statusCode());
-            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLoginEmptyJson.complete();
         }).end(Json.encodePrettily(new JsonObject()));
 
@@ -275,7 +271,6 @@ public class AuthIT {
         final Async asyncLoginNoPassword = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(400, res.statusCode());
-            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLoginNoPassword.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER)));
 
@@ -283,14 +278,13 @@ public class AuthIT {
         final Async asyncLoginNoUsername = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(400, res.statusCode());
-            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLoginNoUsername.complete();
         }).end(Json.encodePrettily(new JsonObject().put("password", PASSWORD)));
     }
 
     @Test
     public void testLogin(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
         config.put("mode", HttpVerticle.Mode.HTTP);
         deployHttpVerticle(context, config);
 
@@ -298,29 +292,79 @@ public class AuthIT {
 
         // Log in
         final Async asyncLogin = context.async();
+        final Async asyncLoginStatus = context.async();
+        final Async asyncAuthorized = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(200, res.statusCode());
-            context.assertNotNull(res.getHeader(HttpHeaders.SET_COOKIE));
-            String sessionCookie = res.getHeader(HttpHeaders.SET_COOKIE);
+            res.bodyHandler(loginBody -> {
+                String token = loginBody.toJsonObject().getString("token");
+                // Logged in => loginStatus should return JsonObject with username
+                client.get(port, "localhost", "/api/v1.0/user/loginStatus", statusRes -> {
+                    context.assertEquals(200, statusRes.statusCode());
+                    statusRes.bodyHandler(body -> {
+                        JsonObject bd = body.toJsonObject();
+                        context.assertEquals(new JsonObject().put("username", "user1"), bd);
+                        asyncLoginStatus.complete();
+                    });
+                }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
 
-            // Logged in => loginStatus should return JsonObject with username
-            final Async asyncLoginStatus = context.async();
-            client.get(port, "localhost", "/api/v1.0/user/loginStatus", statusRes -> {
-                context.assertEquals(200, statusRes.statusCode());
-                statusRes.bodyHandler(body -> {
-                    JsonObject bd = body.toJsonObject();
-                    context.assertEquals(new JsonObject().put("username", "user1"), bd);
-                    asyncLoginStatus.complete();
-                });
-            }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
+                // Logged in => REST access should return 200
+                client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
+                    context.assertEquals(200, tssRes.statusCode());
+                    asyncAuthorized.complete();
+                }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
+            });
+            asyncLogin.complete();
+        }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
+    }
 
-            // Logged in => REST access should return 200
-            final Async asyncAuthorized = context.async();
-            client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
-                context.assertEquals(200, tssRes.statusCode());
-                asyncAuthorized.complete();
-            }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
+    @Test
+    public void testLoginWithExpiredToken(TestContext context) {
+        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        config.put("mode", HttpVerticle.Mode.HTTP);
+        deployHttpVerticle(context, config);
 
+        HttpClient client = vertx.createHttpClient();
+
+        // Log in
+        final String expiredToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE0ODIxNTE4NTIsImlhdCI6MTQ4MjE1MTc5MiwidXNlcm5hbWUiOiJzY2hvamFrIn0=.fUgxPZyKBPml0siTJZD7YWF-7_XrD0k9-R9izrM1_xw=";
+        final Async asyncExpired = context.async();
+        client.get(port, "localhost", "/api/v1.0/tss/latest", res -> {
+            context.assertEquals(401, res.statusCode());
+            asyncExpired.complete();
+        }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", expiredToken)).end();;
+    }
+
+    @Test
+    public void testTokenRefresh(TestContext context) {
+        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
+        config.put("mode", HttpVerticle.Mode.HTTP);
+        deployHttpVerticle(context, config);
+
+        HttpClient client = vertx.createHttpClient();
+
+        // Log in
+        final Async asyncLogin = context.async();
+        final Async asyncRefresh = context.async();
+        final Async asyncAuthorized = context.async();
+        client.post(port, "localhost", "/api/v1.0/user/login", res -> {
+            context.assertEquals(200, res.statusCode());
+            res.bodyHandler(loginBody -> {
+                String token = loginBody.toJsonObject().getString("token");
+                // Logged in => let's ask for a new token
+                client.get(port, "localhost", "/api/v1.0/user/refreshToken", statusRes -> {
+                    context.assertEquals(200, statusRes.statusCode());
+                    statusRes.bodyHandler(body -> {
+                        String refreshToken = body.toJsonObject().getString("token");
+                        // REST access with refreshed token should return 200
+                        client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
+                            context.assertEquals(200, tssRes.statusCode());
+                            asyncAuthorized.complete();
+                        }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", refreshToken)).end();
+                        asyncRefresh.complete();
+                    });
+                }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
+            });
             asyncLogin.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
     }
@@ -342,7 +386,7 @@ public class AuthIT {
 
     @Test
     public void testLoginWithCSRF(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false)).put("CSRF", new JsonObject().put("enable", true).put("secret", "big-secret"));
+        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false)).put("CSRF", new JsonObject().put("enable", true).put("secret", "big-secret"));
         config.put("mode", HttpVerticle.Mode.HTTP);
         deployHttpVerticle(context, config);
 
@@ -350,6 +394,8 @@ public class AuthIT {
 
         // Get the initial token
         final Async asyncToken = context.async();
+        final Async asyncLoginStatus = context.async();
+        final Async asyncAuthorized = context.async();
         client.getNow(port, "localhost", "/api/v1.0/user/loginStatus", tokenRes -> {
             String csrfToken = getCsrfCookie(tokenRes.cookies());
 
@@ -357,27 +403,24 @@ public class AuthIT {
             final Async asyncLogin = context.async();
             client.post(port, "localhost", "/api/v1.0/user/login", res -> {
                 context.assertEquals(200, res.statusCode());
-                context.assertNotNull(res.getHeader(HttpHeaders.SET_COOKIE));
-                String sessionCookie = res.getHeader(HttpHeaders.SET_COOKIE);
+                res.bodyHandler(loginBody -> {
+                    String token = loginBody.toJsonObject().getString("token");
+                    // Logged in => loginStatus should return JsonObject with username
+                    client.get(port, "localhost", "/api/v1.0/user/loginStatus", statusRes -> {
+                        context.assertEquals(200, statusRes.statusCode());
+                        statusRes.bodyHandler(body -> {
+                            JsonObject bd = body.toJsonObject();
+                            context.assertEquals(new JsonObject().put("username", "user1"), bd);
+                            asyncLoginStatus.complete();
+                        });
+                    }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
 
-                // Logged in => loginStatus should return JsonObject with username
-                final Async asyncLoginStatus = context.async();
-                client.get(port, "localhost", "/api/v1.0/user/loginStatus", statusRes -> {
-                    context.assertEquals(200, statusRes.statusCode());
-                    statusRes.bodyHandler(body -> {
-                        JsonObject bd = body.toJsonObject();
-                        context.assertEquals(new JsonObject().put("username", "user1"), bd);
-                        asyncLoginStatus.complete();
-                    });
-                }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
-
-                // Logged in => REST access should return 200
-                final Async asyncAuthorized = context.async();
-                client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
-                    context.assertEquals(200, tssRes.statusCode());
-                    asyncAuthorized.complete();
-                }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
-
+                    // Logged in => REST access should return 200
+                    client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
+                        context.assertEquals(200, tssRes.statusCode());
+                        asyncAuthorized.complete();
+                    }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
+                });
                 asyncLogin.complete();
             }).putHeader("X-XSRF-TOKEN", csrfToken).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
             asyncToken.complete();
@@ -390,7 +433,7 @@ public class AuthIT {
     public void testAuthWithSslClientAuth(TestContext context) {
         JsonObject config = new JsonObject().put("ssl", new JsonObject().put("httpsPort", port)
                 .put("enable", true).put("keystore", getClass().getResource("http.keystore").getPath()).put("keystorePassword", "123456").put("truststore", getClass().getResource("http.truststore").getPath()).put("truststorePassword", "123456").put("requireTLSClientAuth", true))
-                .put("auth", new JsonObject().put("enable", true).put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", true));
+                .put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", true));
         config.put("mode", HttpVerticle.Mode.HTTPS);
         deployHttpVerticle(context, config);
 
@@ -401,35 +444,33 @@ public class AuthIT {
         final Async asyncLoginWithWrongUser = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(403, res.statusCode());
-            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLoginWithWrongUser.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER2).put("password", PASSWORD)));
 
         // Log in with proper certificate subject
         final Async asyncLogin = context.async();
+        final Async asyncLoginStatus = context.async();
+        final Async asyncAuthorized = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(200, res.statusCode());
-            context.assertNotNull(res.getHeader(HttpHeaders.SET_COOKIE));
-            String sessionCookie = res.getHeader(HttpHeaders.SET_COOKIE);
+            res.bodyHandler(loginBody -> {
+                String token = loginBody.toJsonObject().getString("token");
+                // Logged in => loginStatus should return JsonObject with username
+                client.get(port, "localhost", "/api/v1.0/user/loginStatus", statusRes -> {
+                    context.assertEquals(200, statusRes.statusCode());
+                    statusRes.bodyHandler(body -> {
+                        JsonObject bd = body.toJsonObject();
+                        context.assertEquals(new JsonObject().put("username", "user1"), bd);
+                        asyncLoginStatus.complete();
+                    });
+                }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
 
-            // Logged in => loginStatus should return JsonObject with username
-            final Async asyncLoginStatus = context.async();
-            client.get(port, "localhost", "/api/v1.0/user/loginStatus", statusRes -> {
-                context.assertEquals(200, statusRes.statusCode());
-                statusRes.bodyHandler(body -> {
-                    JsonObject bd = body.toJsonObject();
-                    context.assertEquals(new JsonObject().put("username", "user1"), bd);
-                    asyncLoginStatus.complete();
-                });
-            }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
-
-            // Logged in => REST access should return 200
-            final Async asyncAuthorized = context.async();
-            client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
-                context.assertEquals(200, tssRes.statusCode());
-                asyncAuthorized.complete();
-            }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
-
+                // Logged in => REST access should return 200
+                client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
+                    context.assertEquals(200, tssRes.statusCode());
+                    asyncAuthorized.complete();
+                }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
+            });
             asyncLogin.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
     }
@@ -438,7 +479,7 @@ public class AuthIT {
     public void testAuthWithSslClientAuthWithoutClientCert(TestContext context) {
         JsonObject config = new JsonObject().put("ssl", new JsonObject().put("httpsPort", port)
                 .put("enable", true).put("keystore", getClass().getResource("http.keystore").getPath()).put("keystorePassword", "123456").put("requireTLSClientAuth", false))
-                .put("auth", new JsonObject().put("enable", true).put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", true));
+                .put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", true));
         config.put("mode", HttpVerticle.Mode.HTTPS);
         deployHttpVerticle(context, config);
 
@@ -449,7 +490,6 @@ public class AuthIT {
         final Async asyncLoginWithoutSSL = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(403, res.statusCode());
-            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLoginWithoutSSL.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
     }
@@ -458,7 +498,7 @@ public class AuthIT {
     public void testAuthWithSslClientAuthWithoutActualSsl(TestContext context) {
         JsonObject config = new JsonObject().put("ssl", new JsonObject().put("httpsPort", port)
                 .put("enable", false))
-                .put("auth", new JsonObject().put("enable", true).put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", true));
+                .put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", true));
         config.put("mode", HttpVerticle.Mode.HTTPS);
         deployHttpVerticle(context, config);
 
@@ -468,53 +508,7 @@ public class AuthIT {
         final Async asyncLoginWithoutSSL = context.async();
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(403, res.statusCode());
-            context.assertNull(res.getHeader(HttpHeaders.SET_COOKIE));
             asyncLoginWithoutSSL.complete();
-        }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
-    }
-
-    @Test
-    public void testLogout(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
-        config.put("mode", HttpVerticle.Mode.HTTP);
-        deployHttpVerticle(context, config);
-
-        HttpClient client = vertx.createHttpClient();
-
-        // Log in
-        final Async asyncLogin = context.async();
-        client.post(port, "localhost", "/api/v1.0/user/login", res -> {
-            context.assertEquals(200, res.statusCode());
-            context.assertNotNull(res.getHeader(HttpHeaders.SET_COOKIE));
-            String sessionCookie = res.getHeader(HttpHeaders.SET_COOKIE);
-
-            // Logged in => loginStatus should return JsonObject with username
-            final Async asyncLoginStatus = context.async();
-            client.get(port, "localhost", "/api/v1.0/user/loginStatus", statusRes -> {
-                context.assertEquals(200, statusRes.statusCode());
-                statusRes.bodyHandler(body -> {
-                    JsonObject bd = body.toJsonObject();
-                    context.assertEquals(new JsonObject().put("username", "user1"), bd);
-                    asyncLoginStatus.complete();
-                });
-            }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
-
-            // Logout
-            final Async asyncLogout = context.async();
-            client.get(port, "localhost", "/api/v1.0/user/logout", logoutRes -> {
-                context.assertEquals(200, logoutRes.statusCode());
-
-                // Logged out in => REST access should return 401
-                final Async asyncUnauthorized = context.async();
-                client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
-                    context.assertEquals(401, tssRes.statusCode());
-                    asyncUnauthorized.complete();
-                }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
-
-                asyncLogout.complete();
-            }).putHeader(HttpHeaders.COOKIE, sessionCookie).end();
-
-            asyncLogin.complete();
         }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
     }
 

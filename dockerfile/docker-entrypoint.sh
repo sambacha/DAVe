@@ -13,43 +13,69 @@ if [ "$1" = "./bin/start_dave.sh" ]; then
   CONFIG_ERS=()
   CONFIG_MASTERDATA=()
 
+
+  #####
+  # Logging
+  #####
+  if [ -z "$DAVE_LOG_LEVEL" ]; then
+    DAVE_LOG_LEVEL="INFO"
+  fi
+
+  # Write the logging configuration file
+  loggingConfigFile="$(pwd)/etc/logback.xml"
+  cat > $loggingConfigFile <<-EOS
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <Pattern>
+        %d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+      </Pattern>
+    </layout>
+  </appender>
+  <root level="${DAVE_LOG_LEVEL}">
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>
+EOS
+
   #####
   # DB
   #####
-    # DB name
-    if [ -z "$DAVE_DB_NAME" ]; then
-      DAVE_DB_NAME="DAVe"
-    fi
+  # DB name
+  if [ -z "$DAVE_DB_NAME" ]; then
+    DAVE_DB_NAME="DAVe"
+  fi
 
-    # DB hostname
-    if [ -z "$DAVE_DB_HOSTNAME" ]; then
-      DAVE_DB_HOSTNAME="mongo"
-    fi
+  # DB hostname
+  if [ -z "$DAVE_DB_HOSTNAME" ]; then
+    DAVE_DB_HOSTNAME="mongo"
+  fi
 
-    # DB port
-    if [ -z "$DAVE_DB_PORT" ]; then
-      DAVE_DB_PORT=27017
-    fi
+  # DB port
+  if [ -z "$DAVE_DB_PORT" ]; then
+    DAVE_DB_PORT=27017
+  fi
 
-    # DB username
-    if [ -z "$DAVE_DB_USERNAME" ]; then
-      DAVE_DB_USERNAME=""
-    fi
+  # DB username
+  if [ -z "$DAVE_DB_USERNAME" ]; then
+    DAVE_DB_USERNAME=""
+  fi
 
-    # DB password
-    if [ -z "$DAVE_DB_PASSWORD" ]; then
-      DAVE_DB_PASSWORD=""
-    fi
+  # DB password
+  if [ -z "$DAVE_DB_PASSWORD" ]; then
+    DAVE_DB_PASSWORD=""
+  fi
 
-    # DB URL
-    if [[ "$DAVE_DB_USERNAME" && "$DAVE_DB_PASSWORD" ]]; then
-      DAVE_DB_URL="mongodb://${DAVE_DB_USERNAME}:${DAVE_DB_PASSWORD}@${DAVE_DB_HOSTNAME}:${DAVE_DB_PORT}"
-    else
-      DAVE_DB_URL="mongodb://${DAVE_DB_HOSTNAME}:${DAVE_DB_PORT}"
-    fi
+  # DB URL
+  if [[ "$DAVE_DB_USERNAME" && "$DAVE_DB_PASSWORD" ]]; then
+    DAVE_DB_URL="mongodb://${DAVE_DB_USERNAME}:${DAVE_DB_PASSWORD}@${DAVE_DB_HOSTNAME}:${DAVE_DB_PORT}"
+  else
+    DAVE_DB_URL="mongodb://${DAVE_DB_HOSTNAME}:${DAVE_DB_PORT}"
+  fi
 
-    db_config="\"dbName\": \"${DAVE_DB_NAME}\", \"connectionUrl\": \"${DAVE_DB_URL}\""
-    CONFIG_DB+=("$db_config")
+  db_config="\"dbName\": \"${DAVE_DB_NAME}\", \"connectionUrl\": \"${DAVE_DB_URL}\""
+  CONFIG_DB+=("$db_config")
 
   #####
   # HTTP
@@ -152,7 +178,31 @@ if [ "$1" = "./bin/start_dave.sh" ]; then
         DAVE_HTTP_AUTH_LINK_SSL="false"
       fi
 
-      http_auth="\"auth\": { \"enable\": true, \"salt\": \"${DAVE_HTTP_AUTH_SALT}\", \"dbName\": \"${DAVE_DB_NAME}\", \"connectionUrl\": \"${DAVE_DB_URL}\", \"checkUserAgainstCertificate\": ${DAVE_HTTP_AUTH_LINK_SSL} }"
+      if [[ "$DAVE_HTTP_JWT_BASE64_KEYSTORE" && "$DAVE_HTTP_JWT_KEYSTORE_PASSWORD" ]]; then
+        jwtKeystorePath="$(pwd)/etc/jwt.keystore"
+        jwtKeystorePassword="${DAVE_HTTP_JWT_KEYSTORE_PASSWORD}"
+        echo "${DAVE_HTTP_JWT_BASE64_KEYSTORE}" | base64 -d > ${jwtKeystorePath}
+      else
+        jwtKeystorePath="$(pwd)/etc/jwt.keystore"
+        jwtKeystorePassword="123456"
+        keytool -genseckey -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg HMacSHA256 -keysize 2048 -alias HS256 -keypass ${jwtKeystorePassword}
+        keytool -genseckey -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg HMacSHA384 -keysize 2048 -alias HS384 -keypass ${jwtKeystorePassword}
+        keytool -genseckey -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg HMacSHA512 -keysize 2048 -alias HS512 -keypass ${jwtKeystorePassword}
+
+        keytool -genkey -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg RSA -keysize 2048 -alias RS256 -keypass ${jwtKeystorePassword} -sigalg SHA256withRSA -dname "CN=,OU=,O=,L=,ST=,C=" -validity 360
+        keytool -genkey -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg RSA -keysize 2048 -alias RS384 -keypass ${jwtKeystorePassword} -sigalg SHA384withRSA -dname "CN=,OU=,O=,L=,ST=,C=" -validity 360
+        keytool -genkey -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg RSA -keysize 2048 -alias RS512 -keypass ${jwtKeystorePassword} -sigalg SHA512withRSA -dname "CN=,OU=,O=,L=,ST=,C=" -validity 360
+
+        keytool -genkeypair -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg EC -keysize 256 -alias ES256 -keypass ${jwtKeystorePassword} -sigalg SHA256withECDSA -dname "CN=,OU=,O=,L=,ST=,C=" -validity 360
+        keytool -genkeypair -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg EC -keysize 256 -alias ES384 -keypass ${jwtKeystorePassword} -sigalg SHA384withECDSA -dname "CN=,OU=,O=,L=,ST=,C=" -validity 360
+        keytool -genkeypair -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg EC -keysize 256 -alias ES512 -keypass ${jwtKeystorePassword} -sigalg SHA512withECDSA -dname "CN=,OU=,O=,L=,ST=,C=" -validity 360
+      fi
+
+      if [ -z "$DAVE_HTTP_JWT_TOKEN_EXPIRATION" ] ; then
+        DAVE_HTTP_JWT_TOKEN_EXPIRATION=60
+      fi
+      jwtTokenExpiration="${DAVE_HTTP_JWT_TOKEN_EXPIRATION}"
+      http_auth="\"auth\": { \"enable\": true, \"salt\": \"${DAVE_HTTP_AUTH_SALT}\", \"dbName\": \"${DAVE_DB_NAME}\", \"connectionUrl\": \"${DAVE_DB_URL}\", \"checkUserAgainstCertificate\": ${DAVE_HTTP_AUTH_LINK_SSL}, \"jwtKeystorePath\": \"${jwtKeystorePath}\", \"jwtKeystorePassword\": \"${jwtKeystorePassword}\", \"jwtTokenExpiration\": ${DAVE_HTTP_JWT_TOKEN_EXPIRATION} }"
       CONFIG_HTTP+=("$http_auth")
     fi
   fi
@@ -245,7 +295,7 @@ if [ "$1" = "./bin/start_dave.sh" ]; then
   ## Write the config file
   #####
   configFile="$(pwd)/etc/dave.json"
-  cat >> $configFile <<-EOS
+  cat > $configFile <<-EOS
 {
 EOS
   IFSBAK="$IFS"
