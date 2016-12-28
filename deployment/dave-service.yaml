@@ -3,6 +3,7 @@ kind: Service
 metadata:
   labels:
     name: dave
+    layer: frontend
     project: dave
   name: dave
   namespace: ttsave
