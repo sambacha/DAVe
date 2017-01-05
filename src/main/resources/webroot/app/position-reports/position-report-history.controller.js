@@ -2,7 +2,7 @@
  * Created by jakub on 20/10/2016.
  */
 
-(function() {
+(function () {
     'use strict';
 
     angular.module('dave').controller('PositionReportHistoryController', PositionReportHistoryController);

@@ -2,7 +2,7 @@
  * Created by jakub on 20/10/2016.
  */
 
-(function() {
+(function () {
     'use strict';
 
     angular.module('dave').controller('MarginShortfallSurplusHistoryController', MarginShortfallSurplusHistoryController);
@@ -33,7 +33,8 @@
                 securityCollateral: record.securityCollateral,
                 cashBalance: record.cashBalance,
                 shortfallSurplus: record.shortfallSurplus,
-                marginCall: record.marginCall            };
+                marginCall: record.marginCall
+            };
             return tick;
         }
 

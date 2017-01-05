@@ -1,6 +1,6 @@
 function BaseController($scope, $http, $interval, sortRecordsService, recordCountService, updateViewWindowService, showExtraInfoService, downloadAsCsvService) {
     var vm = this;
-    vm.initialLoad= true;
+    vm.initialLoad = true;
     vm.recordCount = 0;
     vm.errorMessage = "";
     vm.pageSize = 20;
@@ -18,19 +18,19 @@ function BaseController($scope, $http, $interval, sortRecordsService, recordCoun
     var refresh = $interval(vm.loadData, 60000);
 
     function loadData() {
-        $http.get(vm.getRestQueryUrl()).success(function(data) {
+        $http.get(vm.getRestQueryUrl()).success(function (data) {
             vm.processData(data);
             vm.errorMessage = "";
             vm.initialLoad = false;
-        }).error(function(data, status, headers, config) {
+        }).error(function (data, status, headers, config) {
             vm.errorMessage = "Server returned status " + status;
             vm.initialLoad = false;
         });
     }
 
     function updateViewWindow(page) {
-      vm.currentPage = page;
-      vm.viewWindow = updateViewWindowService(vm.sourceData, vm.filterQuery, vm.ordering, vm.currentPage, vm.pageSize);
+        vm.currentPage = page;
+        vm.viewWindow = updateViewWindowService(vm.sourceData, vm.filterQuery, vm.ordering, vm.currentPage, vm.pageSize);
     }
 
     function sortRecords(column) {
@@ -52,7 +52,7 @@ function BaseController($scope, $http, $interval, sortRecordsService, recordCoun
         downloadAsCsvService("download.csv", vm.sourceData, vm.exportKeys);
     }
 
-    $scope.$on("$destroy", function() {
+    $scope.$on("$destroy", function () {
         if (refresh != null) {
             $interval.cancel(refresh);
         }

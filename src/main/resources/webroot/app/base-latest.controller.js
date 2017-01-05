@@ -6,7 +6,7 @@ function BaseLatestController($scope, $routeParams, $http, $interval, sortRecord
     vm.processData = processData;
 
     function processRouting() {
-        vm.routingKeys.forEach(function(entry) {
+        vm.routingKeys.forEach(function (entry) {
             if ($routeParams[entry]) {
                 vm.route[entry] = $routeParams[entry];
             } else {

@@ -2,18 +2,17 @@
  * Created by jakub on 20/10/2016.
  */
 
-(function() {
+(function () {
     'use strict';
 
     angular.module('dave').factory('showExtraInfoService', ShowExtraInfoService);
 
     function ShowExtraInfoService($filter) {
-        return function(key) {
+        return function (key) {
             var extra = $("#extra-" + key);
             var extraIcon = $("#extra-icon-" + key);
 
-            if (extra.hasClass("hidden"))
-            {
+            if (extra.hasClass("hidden")) {
                 extra.removeClass("hidden");
                 extraIcon.removeClass("fa-chevron-circle-down");
                 extraIcon.addClass("fa-chevron-circle-up");

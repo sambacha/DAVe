@@ -2,13 +2,13 @@
  * Created by jakub on 20/10/2016.
  */
 
-(function() {
+(function () {
     'use strict';
 
     angular.module('dave').filter('spacedFilter', SpaceFilter);
 
     function SpaceFilter() {
-        return function(items, filter) {
+        return function (items, filter) {
             if (filter) {
                 var filters = filter.toLowerCase().split(" ");
                 var index;
@@ -37,7 +37,7 @@
             }
 
             function MatchObject(item, search) {
-                for(var key in item) {
+                for (var key in item) {
                     if (String(item[key]).toLowerCase().indexOf(search) != -1 && key !== "functionalKey") {
                         return 1;
                         break;
