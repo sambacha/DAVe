@@ -7,7 +7,29 @@
 ![DAVe - Dashboard](https://github.com/Deutsche-Boerse-Risk/DAVe/blob/master/doc/screenshots/dave-screenshots.gif "DAVe - Dashboard")
 
 ## Build
-    mvn clean package
+
+### 1) Prerequisites
+ - Install [npm](http://blog.npmjs.org/post/85484771375/how-to-install-npm) first.
+ - Install Grunt CLI using `npm install -g grunt-cli`. Use `sudo` on Linux or Mac if necessary. You may need to setup http(s) proxy using:
+   - `npm config set proxy http://proxy.company.com:8080`
+   - `npm config set https-proxy http://proxy.company.com:8080`
+ - Install TypeScript compiler using `npm install -g typescript`. Use `sudo` on Linux or Mac if necessary. TypeScript compiler is required to install project dependencies.
+ - `cd` into the directory where UI related files reside: `cd src/main/resources/webroot`.
+ - Run `npm install` to download necessary packages.
+
+### 2) Build UI
+
+Update `npm` dependencies every time you are going to build the UI.
+```
+cd src/main/resources/webroot
+npm update
+```
+Then build the UI using `grunt dist` or `npm run dist`. Both are equivalent.
+
+### 3) Package UI and BE
+```
+mvn clean package
+```
 
 The shippable artifact will be built in `target/dave-VERSION` directory.
 
@@ -118,15 +140,11 @@ On the host where the back-end should be started:
  - Start DAVe using `start_dave.sh|bat` script.
 
 On the host where the UI simple web server should be started:
- - Install [npm](http://blog.npmjs.org/post/85484771375/how-to-install-npm) first
- - Install Grunt CLI using `npm install -g grunt-cli`. Use `sudo` on Linux or MacOS if necessary. You may need to setup http(s) proxy using:
-   - `npm config set proxy http://proxy.company.com:8080`
-   - `npm config set https-proxy http://proxy.company.com:8080`
- - `cd` into the directory where UI related files reside: `cd src/main/resources/webroot`.
- - Run `npm install` to download necessary packages.
- - Run `npm start` to start the simple web server and use the host/port written to the standard output in the browser.
+ - Install [prerequisites](#build).
+ - Run `grunt run` or `npm start` to start the simple web server and use the host/port written to the standard output in the browser.
  - Whenever there is a change to the files related to the UI, the server gets notified immediately - no restart is needed.
- - Point your UI to the host, where the back-end for DAVe is running - see `app.js` file, section `hostConfig`.
+ - Point your UI to the host, where the back-end for DAVe is running
+   - see `app/http.service.ts` file, section `export const defaultURL`.
 
 ## Managing user database
 
