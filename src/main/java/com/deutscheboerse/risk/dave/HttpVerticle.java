@@ -70,15 +70,15 @@ public class HttpVerticle extends AbstractVerticle
         futures.add(startServer());
 
         CompositeFuture.all(futures).setHandler(ar ->
-                {
-                    if (ar.succeeded())
-                    {
-                        startFuture.complete();
-                    }
-                    else
-                    {
-                        startFuture.fail(ar.cause());
-                    }
+        {
+            if (ar.succeeded())
+            {
+                startFuture.complete();
+            }
+            else
+            {
+                startFuture.fail(ar.cause());
+            }
         });
     }
 
@@ -146,16 +146,16 @@ public class HttpVerticle extends AbstractVerticle
         LOG.info("Starting web server (redirector) on port {}", httpPort);
         server = vertx.createHttpServer();
         server.requestHandler(request ->
-                {
-                    String redirectAddress = String.format("https://%s", ((redirectUri == null || redirectUri.equals("")) ? request.localAddress().host() : redirectUri));
-                    HttpServerResponse response = request.response();
-                    response.headersEndHandler(unused ->
-                            {
-                                request.response().headers().set("Location", redirectAddress);
-                    });
-                    response.setStatusCode(HttpResponseStatus.MOVED_PERMANENTLY.code());
-                    response.setStatusMessage("Server requires HTTPS");
-                    response.end();
+        {
+            String redirectAddress = String.format("https://%s", ((redirectUri == null || redirectUri.equals("")) ? request.localAddress().host() : redirectUri));
+            HttpServerResponse response = request.response();
+            response.headersEndHandler(unused ->
+            {
+                request.response().headers().set("Location", redirectAddress);
+            });
+            response.setStatusCode(HttpResponseStatus.MOVED_PERMANENTLY.code());
+            response.setStatusMessage("Server requires HTTPS");
+            response.end();
         });
         server.listen(httpPort, webServerFuture.completer());
         return webServerFuture;
@@ -230,7 +230,7 @@ public class HttpVerticle extends AbstractVerticle
         router.mountSubRouter("/api/v1.0/pr", new PositionReportApi(vertx).getRoutes());
         router.mountSubRouter("/api/v1.0/rl", new RiskLimitApi(vertx).getRoutes());
 
-        router.route("/*").handler(StaticHandler.create("webroot"));
+        router.route("/*").handler(StaticHandler.create("webroot/dist"));
 
         return router;
     }
@@ -301,24 +301,24 @@ public class HttpVerticle extends AbstractVerticle
     {
         // From http://vertx.io/blog/writing-secure-vert-x-web-apps/
         router.route().handler(ctx ->
-                {
-                    ctx.response()
-                            // do not allow proxies to cache the data
-                            .putHeader("Cache-Control", "no-store, no-cache")
-                            // prevents Internet Explorer from MIME - sniffing a
-                            // response away from the declared content-type
-                            .putHeader("X-Content-Type-Options", "nosniff")
-                            // Strict HTTPS (for about ~6Months)
-                            .putHeader("Strict-Transport-Security", "max-age=" + 15768000)
-                            // IE8+ do not allow opening of attachments in the context of this resource
-                            .putHeader("X-Download-Options", "noopen")
-                            // enable XSS for IE
-                            .putHeader("X-XSS-Protection", "1; mode=block")
-                            // deny frames
-                            .putHeader("X-FRAME-OPTIONS", "DENY")
-                            .putHeader("Expires", "0");
+        {
+            ctx.response()
+                    // do not allow proxies to cache the data
+                    .putHeader("Cache-Control", "no-store, no-cache")
+                    // prevents Internet Explorer from MIME - sniffing a
+                    // response away from the declared content-type
+                    .putHeader("X-Content-Type-Options", "nosniff")
+                    // Strict HTTPS (for about ~6Months)
+                    .putHeader("Strict-Transport-Security", "max-age=" + 15768000)
+                    // IE8+ do not allow opening of attachments in the context of this resource
+                    .putHeader("X-Download-Options", "noopen")
+                    // enable XSS for IE
+                    .putHeader("X-XSS-Protection", "1; mode=block")
+                    // deny frames
+                    .putHeader("X-FRAME-OPTIONS", "DENY")
+                    .putHeader("Expires", "0");
 
-                    ctx.next();
+            ctx.next();
         });
     }
 
