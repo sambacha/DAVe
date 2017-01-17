@@ -45,23 +45,12 @@
 
     <!-- Angular required libs -->
     <script src="node_modules/zone.js/dist/zone.min.js"></script>
-    <script src="node_modules/reflect-metadata/Reflect.js"></script>
-    <script src="node_modules/systemjs/dist/system.js"></script>
-
-    <!-- Configure SystemJS -->
-    <script src="systemjs.config.js"></script>
-    <script>
-        //<![CDATA[
-        System.import('app').catch(function (err) {
-            console.error(err);
-        });
-        //]]>
-    </script>
-
+    <script>window.module = 'aot';</script>
 </head>
 
 <body>
 <dave></dave>
+<script src="./dave.js"></script>
 </body>
 
 </html>
