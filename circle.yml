@@ -4,8 +4,16 @@ machine:
   services:
     - docker
 
+dependencies:
+  pre:
+    - npm install -g grunt-cli
+    - npm install -g typescript
+  override:
+    - cd src/main/resources/webroot && npm install
+
 test:
   override:
+    - cd src/main/resources/webroot && grunt dist
     - mvn -Ddocker.keepContainer clean verify
   post:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/

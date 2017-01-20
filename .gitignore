@@ -16,4 +16,15 @@ tmp
 /db/*
 /old-play-framework/db/*
 /.vertx
-/src/main/resources/webroot/node_modules
+
+/src/main/resources/webroot/node_modules/
+*.css
+*.js
+!gruntfile.js
+!systemjs.config.js
+*.js.map
+npm-debug.log
+/src/main/resources/webroot/dist/
+/src/main/resources/webroot/.DS_Store/
+/src/main/resources/webroot/ngFactories/
+
