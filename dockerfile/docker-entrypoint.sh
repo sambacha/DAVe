@@ -208,7 +208,7 @@ EOS
         DAVE_HTTP_JWT_TOKEN_EXPIRATION=60
       fi
       jwtTokenExpiration="${DAVE_HTTP_JWT_TOKEN_EXPIRATION}"
-      http_auth="\"auth\": { \"enable\": true, \"salt\": \"${DAVE_HTTP_AUTH_SALT}\", \"dbName\": \"${DAVE_DB_NAME}\", \"connectionUrl\": \"${DAVE_DB_URL}\", \"checkUserAgainstCertificate\": ${DAVE_HTTP_AUTH_LINK_SSL}, \"jwtKeystorePath\": \"${jwtKeystorePath}\", \"jwtKeystorePassword\": \"${jwtKeystorePassword}\", \"jwtTokenExpiration\": ${DAVE_HTTP_JWT_TOKEN_EXPIRATION} }"
+      http_auth="\"auth\": { \"enable\": true, \"salt\": \"${DAVE_HTTP_AUTH_SALT}\", \"dbName\": \"${DAVE_DB_NAME}\", \"connectionUrl\": \"${db_url}\", \"checkUserAgainstCertificate\": ${DAVE_HTTP_AUTH_LINK_SSL}, \"jwtKeystorePath\": \"${jwtKeystorePath}\", \"jwtKeystorePassword\": \"${jwtKeystorePassword}\", \"jwtTokenExpiration\": ${DAVE_HTTP_JWT_TOKEN_EXPIRATION} }"
       CONFIG_HTTP+=("$http_auth")
     fi
   fi
