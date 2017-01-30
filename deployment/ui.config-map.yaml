@@ -8,5 +8,5 @@ metadata:
     layer: frontend
     project: dave
 data:
-  dave.api: "https://api.ttsave.dave.dbg-devops.com"
+  dave.api: "https://api.ttsave.snapshot.dave.dbg-devops.com"
   http.compression: "1"

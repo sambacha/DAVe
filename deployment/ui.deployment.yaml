@@ -13,6 +13,7 @@ spec:
     metadata:
       name: ui
       labels:
+        name: ui
         app: dave
         layer: frontend
         project: dave
