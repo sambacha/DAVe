@@ -230,8 +230,6 @@ public class HttpVerticle extends AbstractVerticle
         router.mountSubRouter("/api/v1.0/pr", new PositionReportApi(vertx).getRoutes());
         router.mountSubRouter("/api/v1.0/rl", new RiskLimitApi(vertx).getRoutes());
 
-        router.route("/*").handler(StaticHandler.create("webroot/dist"));
-
         return router;
     }
 
