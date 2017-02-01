@@ -1,12 +1,13 @@
-[![CircleCI](https://circleci.com/gh/Deutsche-Boerse-Risk/DAVe.svg?style=shield)](https://circleci.com/gh/Deutsche-Boerse-Risk/DAVe) [![Build Status](https://travis-ci.org/Deutsche-Boerse-Risk/DAVe.svg?branch=master)](https://travis-ci.org/Deutsche-Boerse-Risk/DAVe) [![Coverage Status](https://coveralls.io/repos/github/Deutsche-Boerse-Risk/DAVe/badge.svg?branch=master)](https://coveralls.io/github/Deutsche-Boerse-Risk/DAVe?branch=master) [![codebeat badge](https://codebeat.co/badges/54fe7c25-2329-4b95-8172-f80a01611474)](https://codebeat.co/projects/github-com-deutsche-boerse-risk-dave)
+[![CircleCI](https://circleci.com/gh/Deutsche-Boerse-Risk/DAVe.svg?style=shield)](https://circleci.com/gh/Deutsche-Boerse-Risk/DAVe) [![Build Status](https://travis-ci.org/Deutsche-Boerse-Risk/DAVe.svg?branch=master)](https://travis-ci.org/Deutsche-Boerse-Risk/DAVe) [![Coverage Status](https://coveralls.io/repos/github/Deutsche-Boerse-Risk/DAVe/badge.svg?branch=master)](https://coveralls.io/github/Deutsche-Boerse-Risk/DAVe?branch=master) [![codebeat badge](https://codebeat.co/badges/54fe7c25-2329-4b95-8172-f80a01611474)](https://codebeat.co/projects/github-com-deutsche-boerse-risk-dave) [![Dependency Status](https://dependencyci.com/github/Deutsche-Boerse-Risk/DAVe/badge)](https://dependencyci.com/github/Deutsche-Boerse-Risk/DAVe)
 
 # DAVe
 
-**DAVe** is **D**ata **A**nalytics and **V**isualisation S**e**rvice. It is free open source client which connects to [Eurex Clearing Enhanced Risk Interface](http://www.eurexclearing.com/clearing-en/risk-management/system-based-risk-controls/post-trade-risk-control/enhanced-risk-interface) AMQP interface (ERS). It provides a UI and REST interface to access latest as well as historical data data received over ERS.
+**DAVe** is **D**ata **A**nalytics and **V**isualisation S**e**rvice. It provides REST interface to access latest risk and margining data from Eurex Clearing Prisma.
 
 ![DAVe - Dashboard](https://github.com/Deutsche-Boerse-Risk/DAVe/blob/master/doc/screenshots/dave-screenshots.gif "DAVe - Dashboard")
 
 ## Build
+
 ```
 mvn clean package
 ```
@@ -16,22 +17,6 @@ The shippable artifact will be built in `target/dave-VERSION` directory.
 ## Configure
 
 Configuration is stored in `dave.json` file in JSON format. Configuration is split into several sections:
-
-### ERS
-
-The `ers` section configures the Enhanced Risk Solution connection. It is an array which might contain several JSON objects - each object representing one ERS connection.
-
-| Option | Explanation | Example |
-|--------|-------------|---------|
-| `brokerHost` | ERS broker hostname | `localhost.de` |
-| `brokerPort` | ERS broker port | `18080` |
-| `member` | Member ID which will be used for the ERS connection | `ABCFR` |
-| `truststore` | JKS file with the public key of the ERS broker |  |
-| `truststorePassword` | Password to the JKS file containing the public key |  |
-| `keystore` | JKS file with the private key |  |
-| `keystorePassword` | Password to the JKS file containing the private key |  |
-| `sslCertAlias` | Alias of the private key which should be used for the connection |  |
-| `connectionPoolSize` | Defines the pool size of the connection factory | `10` |
 
 ### MongoDB
 
