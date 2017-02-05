@@ -15,38 +15,6 @@ public class TotalMarginRequirementModel extends AbstractModel {
     }
 
     @Override
-    public JsonObject queryLatestDocument(Message<?> msg) {
-        JsonObject message = (JsonObject)msg.body();
-        JsonObject query = new JsonObject();
-        query.put("clearer", message.getString("clearer"));
-        query.put("pool", message.getString("pool"));
-        query.put("member", message.getString("member"));
-        query.put("account", message.getString("account"));
-        query.put("ccy", message.getString("ccy"));
-        return query;
-    }
-
-    @Override
-    public JsonObject makeLatestDocument(Message<?> msg) {
-        JsonObject message = (JsonObject)msg.body();
-        JsonObject document = new JsonObject();
-        document.put("clearer", message.getValue("clearer"));
-        document.put("pool", message.getValue("pool"));
-        document.put("member", message.getValue("member"));
-        document.put("account", message.getValue("account"));
-        document.put("ccy", message.getValue("ccy"));
-        document.put("txnTm", message.getJsonObject("txnTm").getString("$date"));
-        document.put("bizDt", message.getValue("bizDt"));
-        document.put("reqId", message.getValue("reqId"));
-        document.put("rptId", message.getValue("rptId"));
-        document.put("sesId", message.getValue("sesId"));
-        document.put("unadjustedMargin", message.getValue("unadjustedMargin"));
-        document.put("adjustedMargin", message.getValue("adjustedMargin"));
-        document.put("received", message.getJsonObject("received").getString("$date"));
-        return document;
-    }
-
-    @Override
     protected JsonObject getProject() {
         JsonObject project = new JsonObject();
         project.put("_id", 0);

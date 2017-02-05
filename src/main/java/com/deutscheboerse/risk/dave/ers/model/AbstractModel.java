@@ -1,6 +1,5 @@
 package com.deutscheboerse.risk.dave.ers.model;
 
-import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -12,8 +11,6 @@ public abstract class AbstractModel {
     private final String mongoHistoryCollection;
     private final String mongoLatestCollection;
 
-    public abstract JsonObject queryLatestDocument(Message<?> msg);
-    public abstract JsonObject makeLatestDocument(Message<?> msg);
     protected abstract JsonObject getProject();
 
     protected AbstractModel(String historyCollection, String latestCollection) {

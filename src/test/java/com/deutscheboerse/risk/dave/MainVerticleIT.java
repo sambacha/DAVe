@@ -1,11 +1,13 @@
 package com.deutscheboerse.risk.dave;
 
+import com.deutscheboerse.risk.dave.ers.model.PositionReportModel;
 import com.deutscheboerse.risk.dave.utils.DummyData;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
+import io.vertx.ext.mongo.UpdateOptions;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -42,14 +44,34 @@ public class MainVerticleIT {
     }
 
     private void sendDummyData(TestContext context) {
-        DummyData.positionReportJson.forEach(pr -> {
-            final Async asyncSend = context.async();
-            vertx.eventBus().send("ers.PositionReport", pr, ar -> {
-                context.assertTrue(ar.succeeded());
-                asyncSend.complete();
+        PositionReportModel model = new PositionReportModel();
+        DummyData.positionReportJson.forEach(doc -> {
+            final Async asyncHistory = context.async();
+            final Async asyncLatest = context.async();
+
+            mongoClient.insert(model.getHistoryCollection(), doc.copy(), res -> {
+                context.assertTrue(res.succeeded());
+                asyncHistory.complete();
             });
 
-            asyncSend.awaitSuccess();
+            JsonObject query = new JsonObject();
+            query.put("clearer", doc.getValue("clearer"));
+            query.put("member", doc.getValue("member"));
+            query.put("account", doc.getValue("account"));
+            query.put("clss", doc.getValue("clss"));
+            query.put("symbol", doc.getValue("symbol"));
+            query.put("putCall", doc.getValue("putCall"));
+            query.put("strikePrice", doc.getValue("strikePrice"));
+            query.put("optAttribute", doc.getValue("optAttribute"));
+            query.put("maturityMonthYear", doc.getValue("maturityMonthYear"));
+
+            mongoClient.replaceDocumentsWithOptions(model.getLatestCollection(), query, doc.copy().put("received", doc.getJsonObject("received").getString("$date")), new UpdateOptions().setUpsert(true), res -> {
+                context.assertTrue(res.succeeded());
+                asyncLatest.complete();
+            });
+
+            asyncHistory.awaitSuccess();
+            asyncLatest.awaitSuccess();
         });
     }
 

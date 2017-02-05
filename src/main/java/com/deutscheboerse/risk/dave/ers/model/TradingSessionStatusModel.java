@@ -1,6 +1,5 @@
 package com.deutscheboerse.risk.dave.ers.model;
 
-import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -12,29 +11,6 @@ public class TradingSessionStatusModel extends AbstractModel {
 
     public TradingSessionStatusModel() {
         super(MONGO_HISTORY_COLLECTION, MONGO_LATEST_COLLECTION);
-    }
-
-    @Override
-    public JsonObject queryLatestDocument(Message<?> msg)
-    {
-        JsonObject message = (JsonObject)msg.body();
-        JsonObject query = new JsonObject();
-        query.put("sesId", message.getValue("sesId"));
-        return query;
-    }
-
-    @Override
-    public JsonObject makeLatestDocument(Message<?> msg)
-    {
-        JsonObject message = (JsonObject)msg.body();
-        JsonObject document = new JsonObject();
-        document.put("reqId", message.getValue("reqId"));
-        document.put("sesId", message.getValue("sesId"));
-        document.put("stat", message.getValue("stat"));
-        document.put("statRejRsn", message.getValue("statRejRsn"));
-        document.put("txt", message.getValue("txt"));
-        document.put("received", message.getJsonObject("received").getString("$date"));
-        return document;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.deutscheboerse.risk.dave;
 
+import com.deutscheboerse.risk.dave.ers.model.*;
 import com.deutscheboerse.risk.dave.utils.DummyData;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -7,6 +8,7 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
+import io.vertx.ext.mongo.UpdateOptions;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -187,14 +189,26 @@ public class MongoDBPersistenceVerticleIT {
     @Test
     public void testTradingSessionStatus(TestContext context) throws InterruptedException {
         // Feed the data into the store
-        DummyData.tradingSessionStatusJson.forEach(tss -> {
-            final Async asyncSend = context.async();
-            vertx.eventBus().send("ers.TradingSessionStatus", tss, ar -> {
-                context.assertTrue(ar.succeeded());
-                asyncSend.complete();
-                });
+        TradingSessionStatusModel model = new TradingSessionStatusModel();
+        DummyData.tradingSessionStatusJson.forEach(doc -> {
+            final Async asyncHistory = context.async();
+            final Async asyncLatest = context.async();
 
-            asyncSend.awaitSuccess();
+            mongoClient.insert(model.getHistoryCollection(), doc.copy(), res -> {
+                context.assertTrue(res.succeeded());
+                asyncHistory.complete();
+            });
+
+            JsonObject query = new JsonObject();
+            query.put("sesId", doc.getValue("sesId"));
+
+            mongoClient.replaceDocumentsWithOptions(model.getLatestCollection(), query, doc.copy().put("received", doc.getJsonObject("received").getString("$date")), new UpdateOptions().setUpsert(true), res -> {
+                context.assertTrue(res.succeeded());
+                asyncLatest.complete();
+            });
+
+            asyncHistory.awaitSuccess();
+            asyncLatest.awaitSuccess();
         });
 
         // Test the latest query
@@ -223,7 +237,7 @@ public class MongoDBPersistenceVerticleIT {
 
         asyncLatest.awaitSuccess();
 
-        // Test the latest query
+        // Test the history query
         final Async asyncHistory = context.async();
         vertx.eventBus().send("query.historyTradingSessionStatus", new JsonObject(), ar -> {
             if (ar.succeeded())
@@ -253,14 +267,34 @@ public class MongoDBPersistenceVerticleIT {
     @Test
     public void testPositionReport(TestContext context) throws InterruptedException {
         // Feed the data into the store
-        DummyData.positionReportJson.forEach(pr -> {
-            final Async asyncSend = context.async();
-            vertx.eventBus().send("ers.PositionReport", pr, ar -> {
-                context.assertTrue(ar.succeeded());
-                asyncSend.complete();
+        PositionReportModel model = new PositionReportModel();
+        DummyData.positionReportJson.forEach(doc -> {
+            final Async asyncHistory = context.async();
+            final Async asyncLatest = context.async();
+
+            mongoClient.insert(model.getHistoryCollection(), doc.copy(), res -> {
+                context.assertTrue(res.succeeded());
+                asyncHistory.complete();
             });
 
-            asyncSend.awaitSuccess();
+            JsonObject query = new JsonObject();
+            query.put("clearer", doc.getValue("clearer"));
+            query.put("member", doc.getValue("member"));
+            query.put("account", doc.getValue("account"));
+            query.put("clss", doc.getValue("clss"));
+            query.put("symbol", doc.getValue("symbol"));
+            query.put("putCall", doc.getValue("putCall"));
+            query.put("strikePrice", doc.getValue("strikePrice"));
+            query.put("optAttribute", doc.getValue("optAttribute"));
+            query.put("maturityMonthYear", doc.getValue("maturityMonthYear"));
+
+            mongoClient.replaceDocumentsWithOptions(model.getLatestCollection(), query, doc.copy().put("received", doc.getJsonObject("received").getString("$date")), new UpdateOptions().setUpsert(true), res -> {
+                context.assertTrue(res.succeeded());
+                asyncLatest.complete();
+            });
+
+            asyncHistory.awaitSuccess();
+            asyncLatest.awaitSuccess();
         });
 
         // Test the latest query
@@ -376,14 +410,30 @@ public class MongoDBPersistenceVerticleIT {
     @Test
     public void testMarginComponent(TestContext context) throws InterruptedException {
         // Feed the data into the store
-        DummyData.marginComponentJson.forEach(mc -> {
-            final Async asyncSend = context.async();
-            vertx.eventBus().send("ers.MarginComponent", mc, ar -> {
-                context.assertTrue(ar.succeeded());
-                asyncSend.complete();
+        MarginComponentModel model = new MarginComponentModel();
+        DummyData.marginComponentJson.forEach(doc -> {
+            final Async asyncHistory = context.async();
+            final Async asyncLatest = context.async();
+
+            mongoClient.insert(model.getHistoryCollection(), doc.copy(), res -> {
+                context.assertTrue(res.succeeded());
+                asyncHistory.complete();
             });
 
-            asyncSend.awaitSuccess();
+            JsonObject query = new JsonObject();
+            query.put("clearer", doc.getValue("clearer"));
+            query.put("member", doc.getValue("member"));
+            query.put("account", doc.getValue("account"));
+            query.put("clss", doc.getValue("clss"));
+            query.put("ccy", doc.getValue("ccy"));
+
+            mongoClient.replaceDocumentsWithOptions(model.getLatestCollection(), query, doc.copy().put("received", doc.getJsonObject("received").getString("$date")).put("txnTm", doc.getJsonObject("txnTm").getString("$date")), new UpdateOptions().setUpsert(true), res -> {
+                context.assertTrue(res.succeeded());
+                asyncLatest.complete();
+            });
+
+            asyncHistory.awaitSuccess();
+            asyncLatest.awaitSuccess();
         });
 
         // Test the latest query
@@ -500,14 +550,30 @@ public class MongoDBPersistenceVerticleIT {
     @Test
     public void testTotalMarginRequirement(TestContext context) throws InterruptedException {
         // Feed the data into the store
-        DummyData.totalMarginRequirementJson.forEach(tmr -> {
-            final Async asyncSend = context.async();
-            vertx.eventBus().send("ers.TotalMarginRequirement", tmr, ar -> {
-                context.assertTrue(ar.succeeded());
-                asyncSend.complete();
+        TotalMarginRequirementModel model = new TotalMarginRequirementModel();
+        DummyData.totalMarginRequirementJson.forEach(doc -> {
+            final Async asyncHistory = context.async();
+            final Async asyncLatest = context.async();
+
+            mongoClient.insert(model.getHistoryCollection(), doc.copy(), res -> {
+                context.assertTrue(res.succeeded());
+                asyncHistory.complete();
             });
 
-            asyncSend.awaitSuccess();
+            JsonObject query = new JsonObject();
+            query.put("clearer", doc.getString("clearer"));
+            query.put("pool", doc.getString("pool"));
+            query.put("member", doc.getString("member"));
+            query.put("account", doc.getString("account"));
+            query.put("ccy", doc.getString("ccy"));
+
+            mongoClient.replaceDocumentsWithOptions(model.getLatestCollection(), query, doc.copy().put("received", doc.getJsonObject("received").getString("$date")).put("txnTm", doc.getJsonObject("txnTm").getString("$date")), new UpdateOptions().setUpsert(true), res -> {
+                context.assertTrue(res.succeeded());
+                asyncLatest.complete();
+            });
+
+            asyncHistory.awaitSuccess();
+            asyncLatest.awaitSuccess();
         });
 
         // Test the latest query
@@ -623,14 +689,30 @@ public class MongoDBPersistenceVerticleIT {
     @Test
     public void testMarginShortfallSurplus(TestContext context) throws InterruptedException {
         // Feed the data into the store
-        DummyData.marginShortfallSurplusJson.forEach(mss -> {
-            final Async asyncSend = context.async();
-            vertx.eventBus().send("ers.MarginShortfallSurplus", mss, ar -> {
-                context.assertTrue(ar.succeeded());
-                asyncSend.complete();
+        MarginShortfallSurplusModel model = new MarginShortfallSurplusModel();
+        DummyData.marginShortfallSurplusJson.forEach(doc -> {
+            final Async asyncHistory = context.async();
+            final Async asyncLatest = context.async();
+
+            mongoClient.insert(model.getHistoryCollection(), doc.copy(), res -> {
+                context.assertTrue(res.succeeded());
+                asyncHistory.complete();
             });
 
-            asyncSend.awaitSuccess();
+            JsonObject query = new JsonObject();
+            query.put("clearer", doc.getValue("clearer"));
+            query.put("pool", doc.getValue("pool"));
+            query.put("member", doc.getValue("member"));
+            query.put("clearingCcy", doc.getValue("clearingCcy"));
+            query.put("ccy", doc.getValue("ccy"));
+
+            mongoClient.replaceDocumentsWithOptions(model.getLatestCollection(), query, doc.copy().put("received", doc.getJsonObject("received").getString("$date")).put("txnTm", doc.getJsonObject("txnTm").getString("$date")), new UpdateOptions().setUpsert(true), res -> {
+                context.assertTrue(res.succeeded());
+                asyncLatest.complete();
+            });
+
+            asyncHistory.awaitSuccess();
+            asyncLatest.awaitSuccess();
         });
 
         // Test the latest query
@@ -746,14 +828,29 @@ public class MongoDBPersistenceVerticleIT {
     @Test
     public void testRiskLimit(TestContext context) throws InterruptedException {
         // Feed the data into the store
-        DummyData.riskLimitJson.forEach(rl -> {
-            final Async asyncSend = context.async();
-            vertx.eventBus().send("ers.RiskLimit", rl, ar -> {
-                context.assertTrue(ar.succeeded());
-                asyncSend.complete();
+        RiskLimitModel model = new RiskLimitModel();
+        DummyData.riskLimitJson.forEach(doc -> {
+            final Async asyncHistory = context.async();
+            final Async asyncLatest = context.async();
+
+            mongoClient.insert(model.getHistoryCollection(), doc.copy(), res -> {
+                context.assertTrue(res.succeeded());
+                asyncHistory.complete();
             });
 
-            asyncSend.awaitSuccess();
+            JsonObject query = new JsonObject();
+            query.put("clearer", doc.getValue("clearer"));
+            query.put("member", doc.getValue("member"));
+            query.put("maintainer", doc.getValue("maintainer"));
+            query.put("limitType", doc.getValue("limitType"));
+
+            mongoClient.replaceDocumentsWithOptions(model.getLatestCollection(), query, doc.copy().put("received", doc.getJsonObject("received").getString("$date")).put("txnTm", doc.getJsonObject("txnTm").getString("$date")), new UpdateOptions().setUpsert(true), res -> {
+                context.assertTrue(res.succeeded());
+                asyncLatest.complete();
+            });
+
+            asyncHistory.awaitSuccess();
+            asyncLatest.awaitSuccess();
         });
 
         // Test the latest query

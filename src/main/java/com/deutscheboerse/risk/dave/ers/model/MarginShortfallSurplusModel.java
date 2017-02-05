@@ -1,6 +1,5 @@
 package com.deutscheboerse.risk.dave.ers.model;
 
-import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -12,42 +11,6 @@ public class MarginShortfallSurplusModel extends AbstractModel {
 
     public MarginShortfallSurplusModel() {
         super(MONGO_HISTORY_COLLECTION, MONGO_LATEST_COLLECTION);
-    }
-
-    @Override
-    public JsonObject queryLatestDocument(Message<?> msg) {
-        JsonObject message = (JsonObject)msg.body();
-        JsonObject query = new JsonObject();
-        query.put("clearer", message.getValue("clearer"));
-        query.put("pool", message.getValue("pool"));
-        query.put("member", message.getValue("member"));
-        query.put("clearingCcy", message.getValue("clearingCcy"));
-        query.put("ccy", message.getValue("ccy"));
-        return query;
-    }
-
-    @Override
-    public JsonObject makeLatestDocument(Message<?> msg) {
-        JsonObject message = (JsonObject)msg.body();
-        JsonObject document = new JsonObject();
-        document.put("clearer", message.getValue("clearer"));
-        document.put("pool", message.getValue("pool"));
-        document.put("poolType", message.getValue("poolType"));
-        document.put("member", message.getValue("member"));
-        document.put("clearingCcy", message.getValue("clearingCcy"));
-        document.put("ccy", message.getValue("ccy"));
-        document.put("txnTm", message.getJsonObject("txnTm").getString("$date"));
-        document.put("bizDt", message.getValue("bizDt"));
-        document.put("reqId", message.getValue("reqId"));
-        document.put("rptId", message.getValue("rptId"));
-        document.put("sesId", message.getValue("sesId"));
-        document.put("marginRequirement", message.getValue("marginRequirement"));
-        document.put("securityCollateral", message.getValue("securityCollateral"));
-        document.put("cashBalance", message.getValue("cashBalance"));
-        document.put("shortfallSurplus", message.getValue("shortfallSurplus"));
-        document.put("marginCall", message.getValue("marginCall"));
-        document.put("received", message.getJsonObject("received").getString("$date"));
-        return document;
     }
 
     @Override

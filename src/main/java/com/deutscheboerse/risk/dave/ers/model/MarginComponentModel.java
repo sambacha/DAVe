@@ -15,41 +15,6 @@ public class MarginComponentModel extends AbstractModel {
     }
 
     @Override
-    public JsonObject queryLatestDocument(Message<?> msg) {
-        JsonObject message = (JsonObject)msg.body();
-        JsonObject query = new JsonObject();
-        query.put("clearer", message.getValue("clearer"));
-        query.put("member", message.getValue("member"));
-        query.put("account", message.getValue("account"));
-        query.put("clss", message.getValue("clss"));
-        query.put("ccy", message.getValue("ccy"));
-        return query;
-    }
-
-    @Override
-    public JsonObject makeLatestDocument(Message<?> msg) {
-        JsonObject message = (JsonObject)msg.body();
-        JsonObject document = new JsonObject();
-        document.put("clearer", message.getValue("clearer"));
-        document.put("member", message.getValue("member"));
-        document.put("account", message.getValue("account"));
-        document.put("clss", message.getValue("clss"));
-        document.put("ccy", message.getValue("ccy"));
-        document.put("txnTm", message.getJsonObject("txnTm").getString("$date"));
-        document.put("bizDt", message.getValue("bizDt"));
-        document.put("reqId", message.getValue("reqId"));
-        document.put("rptId", message.getValue("rptId"));
-        document.put("sesId", message.getValue("sesId"));
-        document.put("variationMargin", message.getValue("variationMargin"));
-        document.put("premiumMargin", message.getValue("premiumMargin"));
-        document.put("liquiMargin", message.getValue("liquiMargin"));
-        document.put("spreadMargin", message.getValue("spreadMargin"));
-        document.put("additionalMargin", message.getValue("additionalMargin"));
-        document.put("received", message.getJsonObject("received").getString("$date"));
-        return document;
-    }
-
-    @Override
     protected JsonObject getProject() {
         JsonObject project = new JsonObject();
         project.put("_id", 0);

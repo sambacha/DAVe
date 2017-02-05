@@ -1,6 +1,5 @@
 package com.deutscheboerse.risk.dave.ers.model;
 
-import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -12,38 +11,6 @@ public class RiskLimitModel extends AbstractModel {
 
     public RiskLimitModel() {
         super(MONGO_HISTORY_COLLECTION, MONGO_LATEST_COLLECTION);
-    }
-
-    @Override
-    public JsonObject queryLatestDocument(Message<?> msg) {
-        JsonObject message = (JsonObject)msg.body();
-        JsonObject query = new JsonObject();
-        query.put("clearer", message.getValue("clearer"));
-        query.put("member", message.getValue("member"));
-        query.put("maintainer", message.getValue("maintainer"));
-        query.put("limitType", message.getValue("limitType"));
-        return query;
-    }
-
-    @Override
-    public JsonObject makeLatestDocument(Message<?> msg) {
-        JsonObject message = (JsonObject)msg.body();
-        JsonObject document = new JsonObject();
-        document.put("clearer", message.getValue("clearer"));
-        document.put("member", message.getValue("member"));
-        document.put("maintainer", message.getValue("maintainer"));
-        document.put("reqId", message.getValue("reqId"));
-        document.put("rptId", message.getValue("rptId"));
-        document.put("txnTm", message.getJsonObject("txnTm").getString("$date"));
-        document.put("reqRslt", message.getValue("reqRslt"));
-        document.put("txt", message.getValue("txt"));
-        document.put("limitType", message.getValue("limitType"));
-        document.put("utilization", message.getValue("utilization"));
-        document.put("warningLevel", message.getValue("warningLevel"));
-        document.put("throttleLevel", message.getValue("throttleLevel"));
-        document.put("rejectLevel", message.getValue("rejectLevel"));
-        document.put("received", message.getJsonObject("received").getString("$date"));
-        return document;
     }
 
     @Override
