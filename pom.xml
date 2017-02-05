@@ -10,12 +10,8 @@
 
   <properties>
     <vertx.version>3.3.3</vertx.version>
-    <camel.version>2.16.3</camel.version>
     <junit.version>4.12</junit.version>
-    <h2.version>1.4.192</h2.version>
-    <slf4j.version>1.7.21</slf4j.version>
     <logback.version>1.1.7</logback.version>
-    <woodstox.version>5.0.2</woodstox.version>
     <docker.maven.plugin.fabric8.version>0.15.16</docker.maven.plugin.fabric8.version>
     <build.helper.maven.plugin>1.12</build.helper.maven.plugin>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -29,34 +25,9 @@
       <version>${vertx.version}</version>
     </dependency>
     <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-all</artifactId>
-      <version>4.1.5.Final</version>
-    </dependency>
-    <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web</artifactId>
       <version>${vertx.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-camel-bridge</artifactId>
-      <version>${vertx.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.camel</groupId>
-      <artifactId>camel-core</artifactId>
-      <version>${camel.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.camel</groupId>
-      <artifactId>camel-amqp</artifactId>
-      <version>${camel.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.camel</groupId>
-      <artifactId>camel-jaxb</artifactId>
-      <version>${camel.version}</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -71,31 +42,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.qpid</groupId>
-      <artifactId>qpid-client</artifactId>
-      <version>6.0.4</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.geronimo.specs</groupId>
-      <artifactId>geronimo-jms_1.1_spec</artifactId>
-      <version>1.1</version>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-jdbc-client</artifactId>
-      <version>${vertx.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <version>${h2.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
-    <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-core</artifactId>
       <version>${logback.version}</version>
@@ -104,11 +50,6 @@
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
       <version>${logback.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.woodstox</groupId>
-      <artifactId>woodstox-core</artifactId>
-      <version>${woodstox.version}</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
@@ -340,9 +281,9 @@
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
         <configuration>
-          <excludes>
+          <!--<excludes>
             <exclude>com/deutscheboerse/risk/dave/ers/jaxb/*.class</exclude>
-          </excludes>
+          </excludes>-->
         </configuration>
         <executions>
           <execution>
