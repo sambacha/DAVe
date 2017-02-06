@@ -1,8 +1,7 @@
 package com.deutscheboerse.risk.dave;
 
-import com.deutscheboerse.risk.dave.restapi.ers.*;
+import com.deutscheboerse.risk.dave.restapi.margin.*;
 import com.deutscheboerse.risk.dave.restapi.user.UserApi;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -10,7 +9,6 @@ import io.vertx.core.http.ClientAuth;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;

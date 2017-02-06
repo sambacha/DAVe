@@ -1,13 +1,12 @@
-package com.deutscheboerse.risk.dave.restapi.ers;
+package com.deutscheboerse.risk.dave.restapi.margin;
 
 import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.EventBus;
 import io.vertx.ext.web.Router;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PositionReportApi extends AbstractErsApi {
+public class PositionReportApi extends AbstractApi {
 
     public PositionReportApi(Vertx vertx) {
         super(vertx, "query.latestPositionReport", "query.historyPositionReport", "pr");

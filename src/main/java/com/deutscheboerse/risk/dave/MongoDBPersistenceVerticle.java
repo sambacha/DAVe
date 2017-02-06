@@ -1,6 +1,6 @@
 package com.deutscheboerse.risk.dave;
 
-import com.deutscheboerse.risk.dave.ers.model.*;
+import com.deutscheboerse.risk.dave.model.*;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;

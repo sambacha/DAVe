@@ -1,7 +1,6 @@
-package com.deutscheboerse.risk.dave.restapi.ers;
+package com.deutscheboerse.risk.dave.restapi.margin;
 
 import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.EventBus;
 import io.vertx.ext.web.Router;
 
 import java.util.ArrayList;
@@ -10,7 +9,7 @@ import java.util.List;
 /**
  * Created by schojak on 29.8.16.
  */
-public class MarginComponentApi extends AbstractErsApi {
+public class MarginComponentApi extends AbstractApi {
 
     public MarginComponentApi(Vertx vertx) {
         super(vertx, "query.latestMarginComponent", "query.historyMarginComponent", "mc");

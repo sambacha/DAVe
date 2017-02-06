@@ -1,4 +1,4 @@
-package com.deutscheboerse.risk.dave.ers.model;
+package com.deutscheboerse.risk.dave.model;
 
 import io.vertx.core.json.JsonObject;
 

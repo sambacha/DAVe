@@ -1,6 +1,6 @@
 package com.deutscheboerse.risk.dave;
 
-import com.deutscheboerse.risk.dave.ers.model.*;
+import com.deutscheboerse.risk.dave.model.*;
 import com.deutscheboerse.risk.dave.utils.DummyData;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;

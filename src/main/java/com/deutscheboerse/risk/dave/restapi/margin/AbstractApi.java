@@ -1,4 +1,4 @@
-package com.deutscheboerse.risk.dave.restapi.ers;
+package com.deutscheboerse.risk.dave.restapi.margin;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Vertx;
@@ -9,8 +9,8 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
 import java.util.List;
 
-public abstract class AbstractErsApi {
-    private static final Logger LOG = LoggerFactory.getLogger(AbstractErsApi.class);
+public abstract class AbstractApi {
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractApi.class);
 
     private final EventBus eb;
     protected final Vertx vertx;
@@ -18,7 +18,7 @@ public abstract class AbstractErsApi {
     private final String historyEbAddress;
     private final String requestName;
 
-    public AbstractErsApi(Vertx vertx, String latestAddress, String historyAddress, String requestName) {
+    public AbstractApi(Vertx vertx, String latestAddress, String historyAddress, String requestName) {
         this.eb = vertx.eventBus();
         this.vertx = vertx;
         this.latestEbAddress = latestAddress;
