@@ -215,6 +215,7 @@ EOS
   "mongodb": {
     ${CONFIG_DB[*]}
   }
+EOS
   IFS="$IFSBAK"
   cat >> $configFile <<-EOS
 }
