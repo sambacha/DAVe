@@ -29,8 +29,7 @@ public class RestApiTest {
         RestApiTest.vertx = Vertx.vertx();
         RestApiTest.port = Integer.getInteger("http.port", 8080);
 
-        JsonObject config = new JsonObject().put("httpPort", port);
-        config.put("mode", HttpVerticle.Mode.HTTP);
+        JsonObject config = new JsonObject().put("port", port);
         vertx.deployVerticle(HttpVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
     }
 

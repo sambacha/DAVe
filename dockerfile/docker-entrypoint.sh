@@ -9,10 +9,6 @@ fi
 if [ "$1" = "./bin/start_dave.sh" ]; then
   CONFIG_DB=()
   CONFIG_HTTP=()
-  CONFIG_ERS_DEBUGGER=()
-  CONFIG_ERS=()
-  CONFIG_MASTERDATA=()
-
 
   #####
   # Logging
@@ -132,16 +128,6 @@ EOS
       keytool -importkeystore -srckeystore $tempDir/keystore.p12 -srcstoretype PKCS12 -srcstorepass $jks_password -destkeystore $keystorePath -deststoretype JKS -deststorepass $jks_password
       rm -rf $tempDir
 
-      if [ "$DAVE_HTTP_REDIRECT" ]; then
-        httpRedirect="true"
-        if [ "$DAVE_HTTP_REDIRECT_URI" ]; then
-          httpRedirectUri="$DAVE_HTTP_REDIRECT_URI"
-        fi
-      else
-        httpRedirect="false"
-        httpRedirectUri=""
-      fi
-
       if [ "$DAVE_HTTP_SSL_TRUSTED_CA" ]; then
         truststorePath="$(pwd)/etc/http.truststore"
         tempDir="$(mktemp -d)"
@@ -166,9 +152,9 @@ EOS
           ssl_client_auth=false
         fi
 
-        http_ssl="\"ssl\": { \"enable\": true, \"keystore\": \"${keystorePath}\", \"keystorePassword\": \"${jks_password}\", \"redirectHttp\": ${httpRedirect}, \"redirectUri\": \"${httpRedirectUri}\", \"truststore\": \"${truststorePath}\", \"truststorePassword\": \"${jks_password}\", \"requireTLSClientAuth\": ${ssl_client_auth} }"
+        http_ssl="\"ssl\": { \"enable\": true, \"keystore\": \"${keystorePath}\", \"keystorePassword\": \"${jks_password}\", \"truststore\": \"${truststorePath}\", \"truststorePassword\": \"${jks_password}\", \"requireTLSClientAuth\": ${ssl_client_auth} }"
       else
-        http_ssl="\"ssl\": { \"enable\": true, \"keystore\": \"${keystorePath}\", \"keystorePassword\": \"${jks_password}\", \"redirectHttp\": ${httpRedirect}, \"redirectUri\": \"${httpRedirectUri}\"}"
+        http_ssl="\"ssl\": { \"enable\": true, \"keystore\": \"${keystorePath}\", \"keystorePassword\": \"${jks_password}\" }"
       fi
 
       CONFIG_HTTP+=("$http_ssl")
@@ -214,90 +200,6 @@ EOS
   fi
 
   #####
-  # ERS Debugger
-  #####
-  if [ "$DAVE_ERS_DEBUGGER" ]; then
-    dbg_config="\"enable\": true"
-    CONFIG_ERS_DEBUGGER+=("$dbg_config")
-  else
-    dbg_config="\"enable\": false"
-    CONFIG_ERS_DEBUGGER+=("$dbg_config")
-  fi
-
-  #####
-  # ERS
-  #####
-  if [ "$DAVE_ERS_ENABLE" ]; then
-    if [ -z "$DAVE_ERS_HOSTNAME" ]; then
-      DAVE_ERS_HOSTNAME=ersp01.deutsche-boerse.com
-    fi
-
-    ers_host_config="\"brokerHost\": \"${DAVE_ERS_HOSTNAME}\""
-    CONFIG_ERS+=("$ers_host_config")
-
-    if [ -z "$DAVE_ERS_PORT" ]; then
-      DAVE_ERS_PORT=18080
-    fi
-
-    ers_port_config="\"brokerPort\": ${DAVE_ERS_PORT}"
-    CONFIG_ERS+=("$ers_port_config")
-
-    if [ "$DAVE_ERS_MEMBER" ]; then
-      ers_member_config="\"member\": \"${DAVE_ERS_MEMBER}\""
-      CONFIG_ERS+=("$ers_member_config")
-    fi
-
-    # SSL
-    if [ "$DAVE_ERS_SSL_BROKER_CA" ]; then
-      jks_password="$(date +%s | sha256sum | base64 | head -c 32 ; echo)"
-      truststorePath="$(pwd)/etc/ers.truststore"
-      tempDir="$(mktemp -d)"
-
-      pushd $tempDir
-      echo "$DAVE_ERS_SSL_BROKER_CA" > db.ca
-      csplit db.ca '/^-----END CERTIFICATE-----$/1' '{*}' --elide-empty-files --silent --prefix=ca_
-
-      counter=1
-      for cert in $(ls ca_*); do
-        cat $cert
-        keytool -importcert -noprompt -keystore $truststorePath -storepass $jks_password -storetype JKS -file $cert -alias "broker_ca_${counter}"
-        let counter=$counter+1
-      done
-
-      rm ca_*
-      rm db.ca
-      popd
-
-      http_ssl="\"ssl\": { \"enable\": true, \"keystore\": \"${keystorePath}\", \"keystorePassword\": \"${jks_password}\", \"truststore\": \"${truststorePath}\", \"truststorePassword\": \"${jks_password}\", \"requireTLSClientAuth\": ${ssl_client_auth} }"
-      ers_truststore_config="\"truststore\": \"${truststorePath}\", \"truststorePassword\": \"${jks_password}\""
-      CONFIG_ERS+=("$ers_truststore_config")
-
-      if [[ "$DAVE_ERS_SSL_MEMBER_PUBLIC_KEY" && "$DAVE_ERS_SSL_MEMBER_PRIVATE_KEY" ]]; then
-        keystorePath="$(pwd)/etc/ers.keystore"
-        tempDir="$(mktemp -d)"
-
-        echo "$DAVE_ERS_SSL_MEMBER_PUBLIC_KEY" > $tempDir/keystore.crt
-        echo "$DAVE_ERS_SSL_MEMBER_PRIVATE_KEY" > $tempDir/keystore.pem
-
-        openssl pkcs12 -export -in $tempDir/keystore.crt -inkey $tempDir/keystore.pem -out $tempDir/keystore.p12 -passout pass:$jks_password
-        keytool -importkeystore -srckeystore $tempDir/keystore.p12 -srcstoretype PKCS12 -srcstorepass $jks_password -destkeystore $keystorePath -deststoretype JKS -deststorepass $jks_password -srcalias 1 -destalias erskey -noprompt
-
-        rm -rf $tempDir
-
-        ers_keystore_config="\"keystore\": \"${keystorePath}\", \"keystorePassword\": \"${jks_password}\", \"sslCertAlias\": \"erskey\""
-        CONFIG_ERS+=("$ers_keystore_config")
-      fi
-    fi
-  fi
-
-  #####
-  # MASTERDATA
-  #####
-  if [ "$DAVE_MASTERDATA" ]; then
-    CONFIG_MASTERDATA+=("${DAVE_MASTERDATA}")
-  fi
-
-  #####
   ## Write the config file
   #####
   configFile="$(pwd)/etc/dave.json"
@@ -312,27 +214,7 @@ EOS
   },
   "mongodb": {
     ${CONFIG_DB[*]}
-  },
-  "ersDebugger": {
-    ${CONFIG_ERS_DEBUGGER[*]}
-  },
-  "masterdata": {
-    ${CONFIG_MASTERDATA[*]}
-  },
-EOS
-  if [ ""${#CONFIG_ERS[@]}"" -gt 0 ]; then
-    cat >> $configFile <<-EOS
-  "ers": [
-    {
-      ${CONFIG_ERS[*]}
-    }
-  ]
-EOS
-  else
-    cat >> $configFile <<-EOS
-  "ers": []
-EOS
-  fi
+  }
   IFS="$IFSBAK"
   cat >> $configFile <<-EOS
 }

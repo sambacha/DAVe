@@ -32,16 +32,15 @@ import java.util.List;
 public class HttpVerticle extends AbstractVerticle
 {
 
-    public static enum Mode
+    private enum Mode
     {
-        HTTP, HTTP_REDIRECT, HTTPS
+        HTTP, HTTPS
     };
     private static final Logger LOG = LoggerFactory.getLogger(HttpVerticle.class);
 
     private static final Integer MAX_BODY_SIZE = 1024 * 1024; // 1MB
 
-    private static final Integer DEFAULT_HTTP_PORT = 8080;
-    private static final Integer DEFAULT_HTTPS_PORT = 8181;
+    private static final Integer DEFAULT_PORT = 8080;
 
     private static final Boolean DEFAULT_SSL = false;
     private static final Boolean DEFAULT_SSL_REQUIRE_CLIENT_AUTH = false;
@@ -60,14 +59,20 @@ public class HttpVerticle extends AbstractVerticle
     private static final String DEFAULT_AUTH_SALT = "DAVe";
 
     private HttpServer server;
+    private Mode operationMode;
 
     @Override
     public void start(Future<Void> startFuture) throws Exception
     {
         LOG.info("Starting {} with configuration: {}", HttpVerticle.class.getSimpleName(), config().encodePrettily());
 
+        if (config().getJsonObject("ssl", new JsonObject()).getBoolean("enable", DEFAULT_SSL)) {
+            this.operationMode = Mode.HTTPS;
+        } else {
+            this.operationMode = Mode.HTTP;
+        }
         List<Future> futures = new ArrayList<>();
-        futures.add(startServer());
+        futures.add(startHttpServer());
 
         CompositeFuture.all(futures).setHandler(ar ->
         {
@@ -102,62 +107,18 @@ public class HttpVerticle extends AbstractVerticle
         return authProvider;
     }
 
-    private Future<HttpServer> startServer()
-    {
-        Future<HttpServer> webServerFuture;
-        switch (HttpVerticle.Mode.valueOf(config().getString("mode")))
-        {
-            case HTTP:
-                webServerFuture = startHttpServer(config().getInteger("httpPort", HttpVerticle.DEFAULT_HTTP_PORT));
-                break;
-            case HTTPS:
-                webServerFuture = startHttpServer(config().getJsonObject("ssl", new JsonObject()).getInteger("httpsPort", HttpVerticle.DEFAULT_HTTPS_PORT));
-                break;
-            case HTTP_REDIRECT:
-                int httpPort = config().getInteger("httpPort", HttpVerticle.DEFAULT_HTTP_PORT);
-                String redirectUri = config().getJsonObject("ssl", new JsonObject()).getString("redirectUri");
-                webServerFuture = startHttpRedirectorServer(httpPort, redirectUri);
-                break;
-            default:
-                webServerFuture = Future.failedFuture("Unknown mode");
-                break;
-        }
-        return webServerFuture;
-    }
-
-    private Future<HttpServer> startHttpServer(int port)
+    private Future<HttpServer> startHttpServer()
     {
         Future<HttpServer> webServerFuture = Future.future();
         Router router = configureRouter();
         HttpServerOptions httpOptions = configureWebServer();
 
+        int port = config().getInteger("port", HttpVerticle.DEFAULT_PORT);
         LOG.info("Starting web server on port {}", port);
         server = vertx.createHttpServer(httpOptions)
                 .requestHandler(router::accept)
                 .listen(port, webServerFuture.completer());
 
-        return webServerFuture;
-    }
-
-    private Future<HttpServer> startHttpRedirectorServer(int httpPort, String redirectUri)
-    {
-        Future<HttpServer> webServerFuture = Future.future();
-
-        LOG.info("Starting web server (redirector) on port {}", httpPort);
-        server = vertx.createHttpServer();
-        server.requestHandler(request ->
-        {
-            String redirectAddress = String.format("https://%s", ((redirectUri == null || redirectUri.equals("")) ? request.localAddress().host() : redirectUri));
-            HttpServerResponse response = request.response();
-            response.headersEndHandler(unused ->
-            {
-                request.response().headers().set("Location", redirectAddress);
-            });
-            response.setStatusCode(HttpResponseStatus.MOVED_PERMANENTLY.code());
-            response.setStatusMessage("Server requires HTTPS");
-            response.end();
-        });
-        server.listen(httpPort, webServerFuture.completer());
         return webServerFuture;
     }
 
@@ -171,7 +132,7 @@ public class HttpVerticle extends AbstractVerticle
 
     private void setSsl(HttpServerOptions httpOptions)
     {
-        if (!HttpVerticle.Mode.valueOf(config().getString("mode")).equals(HttpVerticle.Mode.HTTPS))
+        if (!this.operationMode.equals(HttpVerticle.Mode.HTTPS))
         {
             return;
         }

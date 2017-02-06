@@ -26,7 +26,6 @@ public class MainVerticle extends AbstractVerticle {
     public void start(Future<Void> startFuture) {
         Future<Void> chainFuture = Future.future();
         deployMongoDBVerticle()
-                .compose(this::deployHttpsVerticle)
                 .compose(this::deployHttpVerticle)
                 .compose(chainFuture::complete, chainFuture);
 
@@ -57,33 +56,9 @@ public class MainVerticle extends AbstractVerticle {
         return mongoDbVerticleFuture;
     }
 
-    private Future<Void> deployHttpsVerticle(Void unused) {
-        DeploymentOptions webOptions = new DeploymentOptions().setConfig(config().getJsonObject("http"));
-        if (!webOptions.getConfig().getJsonObject("ssl", new JsonObject()).getBoolean("enable", false)) {
-            return Future.succeededFuture();
-        }
-        Future<Void> httpVerticleFuture = Future.future();
-        webOptions.getConfig().put("mode", HttpVerticle.Mode.HTTPS);
-        vertx.deployVerticle(HttpVerticle.class.getName(), webOptions, ar -> {
-            if (ar.succeeded()) {
-                LOG.info("Deployed HttpsVerticle with ID {}", ar.result());
-                httpDeployment = ar.result();
-                httpVerticleFuture.complete();
-            } else  {
-                httpVerticleFuture.fail(ar.cause());
-            }
-        });
-        return httpVerticleFuture;
-    }
-
     private Future<Void> deployHttpVerticle(Void unused) {
         Future<Void> httpVerticleFuture = Future.future();
         DeploymentOptions webOptions = new DeploymentOptions().setConfig(config().getJsonObject("http"));
-        if (webOptions.getConfig().getJsonObject("ssl", new JsonObject()).getBoolean("enable", false) && webOptions.getConfig().getJsonObject("ssl", new JsonObject()).getBoolean("redirectHttp", true)) {
-            webOptions.getConfig().put("mode", HttpVerticle.Mode.HTTP_REDIRECT);
-        } else {
-            webOptions.getConfig().put("mode", HttpVerticle.Mode.HTTP);
-        }
         vertx.deployVerticle(HttpVerticle.class.getName(), webOptions, ar -> {
             if (ar.succeeded()) {
                 LOG.info("Deployed HttpVerticle with ID {}", ar.result());

@@ -37,9 +37,17 @@
       <directory>${project.basedir}/src/main/resources</directory>
       <outputDirectory>etc</outputDirectory>
       <includes>
-	    <include>truststore</include>
+        <include>truststore</include>
         <include>web.keystore</include>
         <include>web.truststore</include>
+      </includes>
+    </fileSet>
+
+    <fileSet>
+      <directory>${project.basedir}/src/test/resources/com/deutscheboerse/risk/dave</directory>
+      <outputDirectory>etc</outputDirectory>
+      <includes>
+        <include>jwt-keystore.jceks</include>
       </includes>
     </fileSet>
 

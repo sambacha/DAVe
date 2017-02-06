@@ -33,7 +33,7 @@ public class MainVerticleIT {
         mongoPort = Integer.getInteger("mongodb.port", 27017);
 
         JsonObject config = new JsonObject();
-        config.put("http", new JsonObject().put("httpPort", httpPort));
+        config.put("http", new JsonObject().put("port", httpPort));
         config.put("mongodb", new JsonObject().put("dbName", "DAVe-MainVerticleTest").put("connectionUrl", "mongodb://localhost:" + mongoPort));
         vertx.deployVerticle(MainVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
 

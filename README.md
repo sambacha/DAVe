@@ -33,7 +33,7 @@ The `http` section configures the web based UI and the REST API.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `httpPort` | Port of the HTTP server | `8080` |
+| `port` | Port of the HTTP(S) server | `8080` |
 | `compression` | Enbale gzip compression of the HTTP responses | `true` |
 | `ssl` | Subsection configuring SSL/TLS on the webserver |  |
 | `CORS` | Subsection configuring Cross-origin resource sharing (see below) |  |
@@ -48,9 +48,6 @@ The `ssl` section configures the SSL/TLS support in the webserver.
 | Option | Explanation | Example |
 |--------|-------------|---------|
 | `enable` | Enable HTTPS protocol | `true` |
-| `httpsPort` | Port of the HTTSP server | `8181` |
-| `redirectHttp` | Redirect HTTP connections to HTTPS | `true` |
-| `redirectUri` | URI where the HTTP requests will be redirected. The URI should not contain the protocol and optionally might contain the port. | `ssl.mydomain.com` |
 | `keystore` | JKS file with the private key |  |
 | `keystorePassword` | Password to the JKS file containing the private key |  |
 | `truststore` | JKS file with trusted client CAs |  |

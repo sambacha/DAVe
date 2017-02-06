@@ -141,8 +141,7 @@ public class AuthIT {
 
     @Test
     public void testAuthDisabled(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", false));
-        config.put("mode", HttpVerticle.Mode.HTTP);
+        JsonObject config = new JsonObject().put("port", port).put("auth", new JsonObject().put("enable", false));
         deployHttpVerticle(context, config);
 
         final Async asyncLoginStatus = context.async();
@@ -170,8 +169,7 @@ public class AuthIT {
 
     @Test
     public void testLoginStatus(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
-        config.put("mode", HttpVerticle.Mode.HTTP);
+        JsonObject config = new JsonObject().put("port", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();
@@ -190,8 +188,7 @@ public class AuthIT {
 
     @Test
     public void testUnauthorizedAccess(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
-        config.put("mode", HttpVerticle.Mode.HTTP);
+        JsonObject config = new JsonObject().put("port", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();
@@ -206,8 +203,7 @@ public class AuthIT {
 
     @Test
     public void testLoginWrongPassword(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
-        config.put("mode", HttpVerticle.Mode.HTTP);
+        JsonObject config = new JsonObject().put("port", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();
@@ -222,8 +218,7 @@ public class AuthIT {
 
     @Test
     public void testLoginWithBinaryData(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
-        config.put("mode", HttpVerticle.Mode.HTTP);
+        JsonObject config = new JsonObject().put("port", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();
@@ -238,8 +233,7 @@ public class AuthIT {
 
     @Test
     public void testLoginNonexistentUser(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
-        config.put("mode", HttpVerticle.Mode.HTTP);
+        JsonObject config = new JsonObject().put("port", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();
@@ -254,8 +248,7 @@ public class AuthIT {
 
     @Test
     public void testLoginWrongRequest(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
-        config.put("mode", HttpVerticle.Mode.HTTP);
+        JsonObject config = new JsonObject().put("port", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();
@@ -284,8 +277,7 @@ public class AuthIT {
 
     @Test
     public void testLogin(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
-        config.put("mode", HttpVerticle.Mode.HTTP);
+        JsonObject config = new JsonObject().put("port", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();
@@ -320,8 +312,7 @@ public class AuthIT {
 
     @Test
     public void testLoginWithExpiredToken(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
-        config.put("mode", HttpVerticle.Mode.HTTP);
+        JsonObject config = new JsonObject().put("port", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();
@@ -337,8 +328,7 @@ public class AuthIT {
 
     @Test
     public void testTokenRefresh(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
-        config.put("mode", HttpVerticle.Mode.HTTP);
+        JsonObject config = new JsonObject().put("port", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false));
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();
@@ -386,8 +376,7 @@ public class AuthIT {
 
     @Test
     public void testLoginWithCSRF(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false)).put("CSRF", new JsonObject().put("enable", true).put("secret", "big-secret"));
-        config.put("mode", HttpVerticle.Mode.HTTP);
+        JsonObject config = new JsonObject().put("port", port).put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", false)).put("CSRF", new JsonObject().put("enable", true).put("secret", "big-secret"));
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();
@@ -431,10 +420,9 @@ public class AuthIT {
 
     @Test
     public void testAuthWithSslClientAuth(TestContext context) {
-        JsonObject config = new JsonObject().put("ssl", new JsonObject().put("httpsPort", port)
+        JsonObject config = new JsonObject().put("port", port).put("ssl", new JsonObject()
                 .put("enable", true).put("keystore", getClass().getResource("http.keystore").getPath()).put("keystorePassword", "123456").put("truststore", getClass().getResource("http.truststore").getPath()).put("truststorePassword", "123456").put("requireTLSClientAuth", true))
                 .put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", true));
-        config.put("mode", HttpVerticle.Mode.HTTPS);
         deployHttpVerticle(context, config);
 
         HttpClientOptions sslClientAuthOpts = new HttpClientOptions().setSsl(true).setTrustStoreOptions(new JksOptions().setPath(getClass().getResource("client.truststore").getPath()).setPassword("123456")).setKeyStoreOptions(new JksOptions().setPath(getClass().getResource("client.keystore").getPath()).setPassword("123456"));
@@ -477,10 +465,9 @@ public class AuthIT {
 
     @Test
     public void testAuthWithSslClientAuthWithoutClientCert(TestContext context) {
-        JsonObject config = new JsonObject().put("ssl", new JsonObject().put("httpsPort", port)
+        JsonObject config = new JsonObject().put("port", port).put("ssl", new JsonObject()
                 .put("enable", true).put("keystore", getClass().getResource("http.keystore").getPath()).put("keystorePassword", "123456").put("requireTLSClientAuth", false))
                 .put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", true));
-        config.put("mode", HttpVerticle.Mode.HTTPS);
         deployHttpVerticle(context, config);
 
         HttpClientOptions sslClientAuthOpts = new HttpClientOptions().setSsl(true).setTrustStoreOptions(new JksOptions().setPath(getClass().getResource("client.truststore").getPath()).setPassword("123456"));
@@ -496,10 +483,9 @@ public class AuthIT {
 
     @Test
     public void testAuthWithSslClientAuthWithoutActualSsl(TestContext context) {
-        JsonObject config = new JsonObject().put("ssl", new JsonObject().put("httpsPort", port)
+        JsonObject config = new JsonObject().put("port", port).put("ssl", new JsonObject()
                 .put("enable", false))
                 .put("auth", new JsonObject().put("enable", true).put("jwtKeystorePath", getClass().getResource("jwt-keystore.jceks").getPath()).put("jwtKeystorePassword", "secret").put("jwtKeystoreType", "jceks").put("dbName", dbName).put("connectionUrl", "mongodb://localhost:" + mongoPort).put("salt", SALT).put("checkUserAgainstCertificate", true));
-        config.put("mode", HttpVerticle.Mode.HTTPS);
         deployHttpVerticle(context, config);
 
         HttpClient client = vertx.createHttpClient();

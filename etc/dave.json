@@ -1,11 +1,8 @@
 {
   "http": {
-    "httpPort": 8080,
+    "port": 8080,
     "ssl": {
       "enable": true,
-      "redirectHttp": true,
-      "redirectUri": "",
-      "httpsPort": 8181,
       "keystore": "web.keystore",
       "keystorePassword": "123456",
       "truststore": "web.truststore",
@@ -13,7 +10,7 @@
       "requireTLSClientAuth": false
     },
     "CORS": {
-      "enable" : false,
+      "enable" : true,
       "origin" : "*"
     },
     "CSRF": {
@@ -22,7 +19,7 @@
     },
     "auth": {
       "enable": true,
-      "dbName": "DAVe-TTSave",
+      "dbName": "DAVe",
       "connectionUrl": "mongodb://localhost:27017",
       "salt": "DAVe",
       "checkUserAgainstCertificate": false,
@@ -32,7 +29,7 @@
     "compression": true
   },
   "mongodb": {
-    "dbName": "DAVe-TTSave",
+    "dbName": "DAVe",
     "connectionUrl": "mongodb://localhost:27017"
   }
 }
