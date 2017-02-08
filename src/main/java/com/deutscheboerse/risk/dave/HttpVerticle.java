@@ -2,6 +2,7 @@ package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.restapi.margin.*;
 import com.deutscheboerse.risk.dave.restapi.user.UserApi;
+import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -19,6 +20,7 @@ import io.vertx.ext.auth.mongo.HashSaltStyle;
 import io.vertx.ext.auth.mongo.MongoAuth;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.*;
 
 import java.util.ArrayList;
@@ -58,11 +60,14 @@ public class HttpVerticle extends AbstractVerticle
 
     private HttpServer server;
     private Mode operationMode;
+    private HealthCheck healthCheck;
 
     @Override
     public void start(Future<Void> startFuture) throws Exception
     {
         LOG.info("Starting {} with configuration: {}", HttpVerticle.class.getSimpleName(), config().encodePrettily());
+
+        healthCheck = new HealthCheck(this.vertx);
 
         if (config().getJsonObject("ssl", new JsonObject()).getBoolean("enable", DEFAULT_SSL)) {
             this.operationMode = Mode.HTTPS;
@@ -76,10 +81,12 @@ public class HttpVerticle extends AbstractVerticle
         {
             if (ar.succeeded())
             {
+                healthCheck.setHttpState(true);
                 startFuture.complete();
             }
             else
             {
+                healthCheck.setHttpState(false);
                 startFuture.fail(ar.cause());
             }
         });
@@ -180,6 +187,8 @@ public class HttpVerticle extends AbstractVerticle
         UserApi userApi = setAuthHandler(router);
 
         LOG.info("Adding route REST API");
+        router.get("/healthz").handler(this::healthz);
+        router.get("/readiness").handler(this::readiness);
         router.route("/api/v1.0/*").handler(BodyHandler.create());
         router.mountSubRouter("/api/v1.0/user", userApi.getRoutes());
         router.mountSubRouter("/api/v1.0/tss", new TradingSessionStatusApi(vertx).getRoutes());
@@ -277,6 +286,21 @@ public class HttpVerticle extends AbstractVerticle
 
             ctx.next();
         });
+    }
+
+    private void healthz(RoutingContext routingContext) {
+        routingContext.response().setStatusCode(200).end("ok");
+    }
+
+    private void readiness(RoutingContext routingContext) {
+        if (healthCheck.ready())
+        {
+            routingContext.response().setStatusCode(200).end("ok");
+        }
+        else
+        {
+            routingContext.response().setStatusCode(503).end("nok");
+        }
     }
 
     @Override

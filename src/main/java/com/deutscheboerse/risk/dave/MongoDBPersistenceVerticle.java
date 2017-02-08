@@ -1,5 +1,6 @@
 package com.deutscheboerse.risk.dave;
 
+import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import com.deutscheboerse.risk.dave.model.*;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
@@ -30,6 +31,8 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
     private MongoClient mongo;
     private final List<MessageConsumer<?>> eventBusConsumers = new ArrayList<>();
 
+    private HealthCheck healthCheck;
+
     private final AbstractModel tssModel = new TradingSessionStatusModel();
     private final AbstractModel mcModel = new MarginComponentModel();
     private final AbstractModel tmrModel = new TotalMarginRequirementModel();
@@ -41,6 +44,8 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
     public void start(Future<Void> fut) throws Exception {
         LOG.info("Starting {} with configuration: {}", MongoDBPersistenceVerticle.class.getSimpleName(), config().encodePrettily());
 
+        healthCheck = new HealthCheck(this.vertx);
+
         Future<Void> chainFuture = Future.future();
         connectDb()
                 .compose(this::initDb)
@@ -50,9 +55,11 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         chainFuture.setHandler(ar -> {
             if (ar.succeeded()) {
                 LOG.info("MongoDB verticle started");
+                healthCheck.setMongoState(true);
                 fut.complete();
             } else {
                 LOG.error("MongoDB verticle failed to deploy", chainFuture.cause());
+                healthCheck.setMongoState(false);
                 fut.fail(chainFuture.cause());
             }
         });

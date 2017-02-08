@@ -1,5 +1,6 @@
 package com.deutscheboerse.risk.dave;
 
+import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
@@ -23,6 +24,9 @@ public class MainVerticle extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> startFuture) {
+        // Initialize the HealthCheck
+        new HealthCheck(this.vertx).initialize();
+
         Future<Void> chainFuture = Future.future();
         deployMongoDBVerticle()
                 .compose(this::deployHttpVerticle)
