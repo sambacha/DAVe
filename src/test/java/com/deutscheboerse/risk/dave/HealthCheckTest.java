@@ -31,7 +31,7 @@ public class HealthCheckTest {
     public void testInitialization(TestContext context) {
         Vertx vertx = Vertx.vertx();
 
-        HealthCheck healthCheck = new HealthCheck(vertx).initialize();
+        HealthCheck healthCheck = new HealthCheck(vertx);
 
         context.assertNotNull(vertx.sharedData().getLocalMap(MAP_NAME).get(MONGO_KEY), "Mongo readiness should not be null");
         context.assertNotNull(vertx.sharedData().getLocalMap(MAP_NAME).get(HTTP_KEY), "HTTP readiness should not be null");
@@ -47,7 +47,7 @@ public class HealthCheckTest {
     public void testMongoReadyness(TestContext context) {
         Vertx vertx = Vertx.vertx();
 
-        HealthCheck healthCheck = new HealthCheck(vertx).initialize().setMongoState(true);
+        HealthCheck healthCheck = new HealthCheck(vertx).setMongoState(true);
 
         context.assertTrue(healthCheck.getMongoState(), "Mongo readiness should return true");
         context.assertTrue((Boolean) vertx.sharedData().getLocalMap(MAP_NAME).get(MONGO_KEY), "Mongo readiness should equal true in shared data");
@@ -59,7 +59,7 @@ public class HealthCheckTest {
     public void testHttpReadyness(TestContext context) {
         Vertx vertx = Vertx.vertx();
 
-        HealthCheck healthCheck = new HealthCheck(vertx).initialize().setHttpState(true);
+        HealthCheck healthCheck = new HealthCheck(vertx).setHttpState(true);
 
         context.assertTrue(healthCheck.getHttpState(), "Http readiness should return true");
         context.assertTrue((Boolean) vertx.sharedData().getLocalMap(MAP_NAME).get(HTTP_KEY), "Http readiness should equal true in shared data");
@@ -72,19 +72,19 @@ public class HealthCheckTest {
         Vertx vertx;
 
         vertx = Vertx.vertx();
-        context.assertFalse(new HealthCheck(vertx).initialize().ready(), "Nothing is ready, should retrun false");
+        context.assertFalse(new HealthCheck(vertx).ready(), "Nothing is ready, should retrun false");
         vertx.close();
 
         vertx = Vertx.vertx();
-        context.assertFalse(new HealthCheck(vertx).initialize().setHttpState(true).ready(), "Only HTTP is ready, not the whole application");
+        context.assertFalse(new HealthCheck(vertx).setHttpState(true).ready(), "Only HTTP is ready, not the whole application");
         vertx.close();
 
         vertx = Vertx.vertx();
-        context.assertFalse(new HealthCheck(vertx).initialize().setMongoState(true).ready(), "Only Mongo is ready, not the whole application");
+        context.assertFalse(new HealthCheck(vertx).setMongoState(true).ready(), "Only Mongo is ready, not the whole application");
         vertx.close();
 
         vertx = Vertx.vertx();
-        context.assertTrue(new HealthCheck(vertx).initialize().setMongoState(true).setHttpState(true).ready(), "Everything is ready, the whole app should ne ready");
+        context.assertTrue(new HealthCheck(vertx).setMongoState(true).setHttpState(true).ready(), "Everything is ready, the whole app should ne ready");
         vertx.close();
     }
 
