@@ -25,7 +25,7 @@ public class MainVerticle extends AbstractVerticle {
     @Override
     public void start(Future<Void> startFuture) {
         // Initialize the HealthCheck
-        new HealthCheck(this.vertx).initialize();
+        HealthCheck healthCheck = new HealthCheck(this.vertx);
 
         Future<Void> chainFuture = Future.future();
         deployMongoDBVerticle()

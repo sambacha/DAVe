@@ -17,7 +17,7 @@ public class HealthCheck {
     private final static String MONGO_KEY = "mongoReady";
 
     private final Vertx vertx;
-    private LocalMap healthCheck;
+    private LocalMap<String, Boolean> healthCheck;
 
     public HealthCheck(Vertx vertx)
     {
@@ -25,28 +25,14 @@ public class HealthCheck {
 
         this.vertx = vertx;
         healthCheck = vertx.sharedData().getLocalMap(MAP_NAME);
+        healthCheck.putIfAbsent(HTTP_KEY, false);
+        healthCheck.putIfAbsent(MONGO_KEY, false);
     }
 
-    public HealthCheck initialize() {
-        LOG.info("Initializing {}", HealthCheck.class.getCanonicalName());
+    public boolean ready() {
+        LOG.trace("Received readiness query");
 
-        if (healthCheck.get(HTTP_KEY) == null) {
-            LOG.trace("Initializing {} to false", HTTP_KEY);
-            healthCheck.put(HTTP_KEY, false);
-        }
-
-        if (healthCheck.get(MONGO_KEY) == null) {
-            LOG.trace("Initializing {} to false", MONGO_KEY);
-            healthCheck.put(MONGO_KEY, false);
-        }
-
-        return this;
-    }
-
-    public Boolean ready() {
-        LOG.trace("Received readyness query");
-
-        if ((Boolean) healthCheck.get(MONGO_KEY) && (Boolean) healthCheck.get(HTTP_KEY))
+        if (getMongoState() && getHttpState())
         {
             return true;
         }
@@ -58,31 +44,31 @@ public class HealthCheck {
 
     public HealthCheck setMongoState(Boolean state)
     {
-        LOG.info("Setting {} readyness to {}", MONGO_KEY, state);
+        LOG.info("Setting {} state to {}", MONGO_KEY, state);
 
         healthCheck.put(MONGO_KEY, state);
         return this;
     }
 
-    public Boolean getMongoState()
+    public boolean getMongoState()
     {
-        LOG.trace("Received readyness query for {}", MONGO_KEY);
+        LOG.trace("Received state query for {}", MONGO_KEY);
 
-        return (Boolean) healthCheck.get(MONGO_KEY);
+        return healthCheck.get(MONGO_KEY);
     }
 
     public HealthCheck setHttpState(Boolean state)
     {
-        LOG.info("Setting {} readyness to {}", HTTP_KEY, state);
+        LOG.info("Setting {} state to {}", HTTP_KEY, state);
 
         healthCheck.put(HTTP_KEY, state);
         return this;
     }
 
-    public Boolean getHttpState()
+    public boolean getHttpState()
     {
-        LOG.trace("Received readyness query for {}", HTTP_KEY);
+        LOG.trace("Received state query for {}", HTTP_KEY);
 
-        return (Boolean) healthCheck.get(HTTP_KEY);
+        return healthCheck.get(HTTP_KEY);
     }
 }
