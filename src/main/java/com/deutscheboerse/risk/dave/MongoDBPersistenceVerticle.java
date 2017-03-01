@@ -1,7 +1,11 @@
 package com.deutscheboerse.risk.dave;
 
-import com.deutscheboerse.risk.dave.ers.model.*;
-import io.vertx.core.*;
+import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
+import com.deutscheboerse.risk.dave.model.*;
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
@@ -11,14 +15,8 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.mongo.IndexOptions;
 import io.vertx.ext.mongo.MongoClient;
-import io.vertx.ext.mongo.MongoClientUpdateResult;
-import io.vertx.ext.mongo.UpdateOptions;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 /**
@@ -33,6 +31,8 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
     private MongoClient mongo;
     private final List<MessageConsumer<?>> eventBusConsumers = new ArrayList<>();
 
+    private HealthCheck healthCheck;
+
     private final AbstractModel tssModel = new TradingSessionStatusModel();
     private final AbstractModel mcModel = new MarginComponentModel();
     private final AbstractModel tmrModel = new TotalMarginRequirementModel();
@@ -44,19 +44,22 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
     public void start(Future<Void> fut) throws Exception {
         LOG.info("Starting {} with configuration: {}", MongoDBPersistenceVerticle.class.getSimpleName(), config().encodePrettily());
 
+        healthCheck = new HealthCheck(this.vertx);
+
         Future<Void> chainFuture = Future.future();
         connectDb()
                 .compose(this::initDb)
                 .compose(this::createIndexes)
-                .compose(this::startStoreHandlers)
                 .compose(this::startQueryHandlers)
                 .compose(chainFuture::complete, chainFuture);
         chainFuture.setHandler(ar -> {
             if (ar.succeeded()) {
                 LOG.info("MongoDB verticle started");
+                healthCheck.setMongoState(true);
                 fut.complete();
             } else {
                 LOG.error("MongoDB verticle failed to deploy", chainFuture.cause());
+                healthCheck.setMongoState(false);
                 fut.fail(chainFuture.cause());
             }
         });
@@ -156,20 +159,6 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         return initDbFuture;
     }
 
-    private Future<Void> startStoreHandlers(Void unused)
-    {
-        // Camel consumers
-        this.registerConsumer("ers.TradingSessionStatus", message -> store(message, this.tssModel));
-        this.registerConsumer("ers.MarginComponent", message -> store(message, this.mcModel));
-        this.registerConsumer("ers.TotalMarginRequirement", message -> store(message, this.tmrModel));
-        this.registerConsumer("ers.MarginShortfallSurplus", message -> store(message, this.mssModel));
-        this.registerConsumer("ers.PositionReport", message -> store(message, this.prModel));
-        this.registerConsumer("ers.RiskLimit", message -> store(message, this.rlModel));
-
-        LOG.info("Event bus store handlers subscribed");
-        return Future.succeededFuture();
-    }
-
     private Future<Void> startQueryHandlers(Void unused)
     {
         // Query endpoints
@@ -217,38 +206,6 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
                 LOG.error("{} query failed", msg.address(), res.cause());
             }
         });
-    }
-
-    private void store(Message<?> msg, AbstractModel model) {
-        List<Future> tasks = new ArrayList<>();
-        tasks.add(this.storeIntoHistoryCollection(msg, model));
-        tasks.add(this.storeIntoLatestCollection(msg, model));
-        CompositeFuture.all(tasks).setHandler(ar -> {
-            if (ar.succeeded()) {
-                msg.reply(new JsonObject());
-            } else {
-                msg.fail(1, ar.cause().getMessage());
-            }
-        });
-    }
-
-    private Future<String> storeIntoHistoryCollection(Message<?> msg, AbstractModel model) {
-        LOG.trace("Storing message into {} with body {}", model.getHistoryCollection(), msg.body().toString());
-        JsonObject document = (JsonObject)msg.body();
-        Future<String> result = Future.future();
-        mongo.insert(model.getHistoryCollection(), document, result.completer());
-        return result;
-    }
-
-    private Future<MongoClientUpdateResult> storeIntoLatestCollection(Message<?> msg, AbstractModel model) {
-        LOG.trace("Storing message into {} with body {}", model.getLatestCollection(), msg.body().toString());
-        Future<MongoClientUpdateResult> result = Future.future();
-        mongo.replaceDocumentsWithOptions(model.getLatestCollection(),
-                model.queryLatestDocument(msg),
-                model.makeLatestDocument(msg),
-                new UpdateOptions().setUpsert(true),
-                result.completer());
-        return result;
     }
 
     @Override

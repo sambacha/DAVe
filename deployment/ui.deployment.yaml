@@ -1,0 +1,50 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ui
+  labels:
+    app: dave
+    layer: frontend
+    project: dave
+  namespace: ttsave
+spec:
+  replicas: 3
+  template:
+    metadata:
+      name: ui
+      labels:
+        name: ui
+        app: dave
+        layer: frontend
+        project: dave
+    spec:
+      containers:
+        - image: scholzj/dave-ui:master
+          name: dave
+          imagePullPolicy: Always
+          env:
+            - name: DAVE_REST_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: ui-config
+                  key: dave.api
+            - name: DAVE_HTTP_COMPRESSION
+              valueFrom:
+                configMapKeyRef:
+                  name: ui-config
+                  key: http.compression
+            - name: DAVE_HTTP_SSL_SERVER_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: dave-secret
+                  key: http.public_key
+            - name: DAVE_HTTP_SSL_SERVER_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: dave-secret
+                  key: http.private_key
+          ports:
+            - containerPort: 80
+              name: http
+            - containerPort: 443
+              name: https

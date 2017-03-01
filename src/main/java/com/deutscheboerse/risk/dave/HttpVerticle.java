@@ -1,8 +1,8 @@
 package com.deutscheboerse.risk.dave;
 
-import com.deutscheboerse.risk.dave.restapi.ers.*;
+import com.deutscheboerse.risk.dave.restapi.margin.*;
 import com.deutscheboerse.risk.dave.restapi.user.UserApi;
-import io.netty.handler.codec.http.HttpResponseStatus;
+import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -10,7 +10,6 @@ import io.vertx.core.http.ClientAuth;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -21,6 +20,7 @@ import io.vertx.ext.auth.mongo.HashSaltStyle;
 import io.vertx.ext.auth.mongo.MongoAuth;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.*;
 
 import java.util.ArrayList;
@@ -32,16 +32,15 @@ import java.util.List;
 public class HttpVerticle extends AbstractVerticle
 {
 
-    public static enum Mode
+    private enum Mode
     {
-        HTTP, HTTP_REDIRECT, HTTPS
+        HTTP, HTTPS
     };
     private static final Logger LOG = LoggerFactory.getLogger(HttpVerticle.class);
 
     private static final Integer MAX_BODY_SIZE = 1024 * 1024; // 1MB
 
-    private static final Integer DEFAULT_HTTP_PORT = 8080;
-    private static final Integer DEFAULT_HTTPS_PORT = 8181;
+    private static final Integer DEFAULT_PORT = 8080;
 
     private static final Boolean DEFAULT_SSL = false;
     private static final Boolean DEFAULT_SSL_REQUIRE_CLIENT_AUTH = false;
@@ -60,25 +59,36 @@ public class HttpVerticle extends AbstractVerticle
     private static final String DEFAULT_AUTH_SALT = "DAVe";
 
     private HttpServer server;
+    private Mode operationMode;
+    private HealthCheck healthCheck;
 
     @Override
     public void start(Future<Void> startFuture) throws Exception
     {
         LOG.info("Starting {} with configuration: {}", HttpVerticle.class.getSimpleName(), config().encodePrettily());
 
+        healthCheck = new HealthCheck(this.vertx);
+
+        if (config().getJsonObject("ssl", new JsonObject()).getBoolean("enable", DEFAULT_SSL)) {
+            this.operationMode = Mode.HTTPS;
+        } else {
+            this.operationMode = Mode.HTTP;
+        }
         List<Future> futures = new ArrayList<>();
-        futures.add(startServer());
+        futures.add(startHttpServer());
 
         CompositeFuture.all(futures).setHandler(ar ->
-                {
-                    if (ar.succeeded())
-                    {
-                        startFuture.complete();
-                    }
-                    else
-                    {
-                        startFuture.fail(ar.cause());
-                    }
+        {
+            if (ar.succeeded())
+            {
+                healthCheck.setHttpState(true);
+                startFuture.complete();
+            }
+            else
+            {
+                healthCheck.setHttpState(false);
+                startFuture.fail(ar.cause());
+            }
         });
     }
 
@@ -102,62 +112,18 @@ public class HttpVerticle extends AbstractVerticle
         return authProvider;
     }
 
-    private Future<HttpServer> startServer()
-    {
-        Future<HttpServer> webServerFuture;
-        switch (HttpVerticle.Mode.valueOf(config().getString("mode")))
-        {
-            case HTTP:
-                webServerFuture = startHttpServer(config().getInteger("httpPort", HttpVerticle.DEFAULT_HTTP_PORT));
-                break;
-            case HTTPS:
-                webServerFuture = startHttpServer(config().getJsonObject("ssl", new JsonObject()).getInteger("httpsPort", HttpVerticle.DEFAULT_HTTPS_PORT));
-                break;
-            case HTTP_REDIRECT:
-                int httpPort = config().getInteger("httpPort", HttpVerticle.DEFAULT_HTTP_PORT);
-                String redirectUri = config().getJsonObject("ssl", new JsonObject()).getString("redirectUri");
-                webServerFuture = startHttpRedirectorServer(httpPort, redirectUri);
-                break;
-            default:
-                webServerFuture = Future.failedFuture("Unknown mode");
-                break;
-        }
-        return webServerFuture;
-    }
-
-    private Future<HttpServer> startHttpServer(int port)
+    private Future<HttpServer> startHttpServer()
     {
         Future<HttpServer> webServerFuture = Future.future();
         Router router = configureRouter();
         HttpServerOptions httpOptions = configureWebServer();
 
+        int port = config().getInteger("port", HttpVerticle.DEFAULT_PORT);
         LOG.info("Starting web server on port {}", port);
         server = vertx.createHttpServer(httpOptions)
                 .requestHandler(router::accept)
                 .listen(port, webServerFuture.completer());
 
-        return webServerFuture;
-    }
-
-    private Future<HttpServer> startHttpRedirectorServer(int httpPort, String redirectUri)
-    {
-        Future<HttpServer> webServerFuture = Future.future();
-
-        LOG.info("Starting web server (redirector) on port {}", httpPort);
-        server = vertx.createHttpServer();
-        server.requestHandler(request ->
-                {
-                    String redirectAddress = String.format("https://%s", ((redirectUri == null || redirectUri.equals("")) ? request.localAddress().host() : redirectUri));
-                    HttpServerResponse response = request.response();
-                    response.headersEndHandler(unused ->
-                            {
-                                request.response().headers().set("Location", redirectAddress);
-                    });
-                    response.setStatusCode(HttpResponseStatus.MOVED_PERMANENTLY.code());
-                    response.setStatusMessage("Server requires HTTPS");
-                    response.end();
-        });
-        server.listen(httpPort, webServerFuture.completer());
         return webServerFuture;
     }
 
@@ -171,7 +137,7 @@ public class HttpVerticle extends AbstractVerticle
 
     private void setSsl(HttpServerOptions httpOptions)
     {
-        if (!HttpVerticle.Mode.valueOf(config().getString("mode")).equals(HttpVerticle.Mode.HTTPS))
+        if (!this.operationMode.equals(HttpVerticle.Mode.HTTPS))
         {
             return;
         }
@@ -221,6 +187,8 @@ public class HttpVerticle extends AbstractVerticle
         UserApi userApi = setAuthHandler(router);
 
         LOG.info("Adding route REST API");
+        router.get("/healthz").handler(this::healthz);
+        router.get("/readiness").handler(this::readiness);
         router.route("/api/v1.0/*").handler(BodyHandler.create());
         router.mountSubRouter("/api/v1.0/user", userApi.getRoutes());
         router.mountSubRouter("/api/v1.0/tss", new TradingSessionStatusApi(vertx).getRoutes());
@@ -229,8 +197,6 @@ public class HttpVerticle extends AbstractVerticle
         router.mountSubRouter("/api/v1.0/mss", new MarginShortfallSurplusApi(vertx).getRoutes());
         router.mountSubRouter("/api/v1.0/pr", new PositionReportApi(vertx).getRoutes());
         router.mountSubRouter("/api/v1.0/rl", new RiskLimitApi(vertx).getRoutes());
-
-        router.route("/*").handler(StaticHandler.create("webroot"));
 
         return router;
     }
@@ -301,25 +267,40 @@ public class HttpVerticle extends AbstractVerticle
     {
         // From http://vertx.io/blog/writing-secure-vert-x-web-apps/
         router.route().handler(ctx ->
-                {
-                    ctx.response()
-                            // do not allow proxies to cache the data
-                            .putHeader("Cache-Control", "no-store, no-cache")
-                            // prevents Internet Explorer from MIME - sniffing a
-                            // response away from the declared content-type
-                            .putHeader("X-Content-Type-Options", "nosniff")
-                            // Strict HTTPS (for about ~6Months)
-                            .putHeader("Strict-Transport-Security", "max-age=" + 15768000)
-                            // IE8+ do not allow opening of attachments in the context of this resource
-                            .putHeader("X-Download-Options", "noopen")
-                            // enable XSS for IE
-                            .putHeader("X-XSS-Protection", "1; mode=block")
-                            // deny frames
-                            .putHeader("X-FRAME-OPTIONS", "DENY")
-                            .putHeader("Expires", "0");
+        {
+            ctx.response()
+                    // do not allow proxies to cache the data
+                    .putHeader("Cache-Control", "no-store, no-cache")
+                    // prevents Internet Explorer from MIME - sniffing a
+                    // response away from the declared content-type
+                    .putHeader("X-Content-Type-Options", "nosniff")
+                    // Strict HTTPS (for about ~6Months)
+                    .putHeader("Strict-Transport-Security", "max-age=" + 15768000)
+                    // IE8+ do not allow opening of attachments in the context of this resource
+                    .putHeader("X-Download-Options", "noopen")
+                    // enable XSS for IE
+                    .putHeader("X-XSS-Protection", "1; mode=block")
+                    // deny frames
+                    .putHeader("X-FRAME-OPTIONS", "DENY")
+                    .putHeader("Expires", "0");
 
-                    ctx.next();
+            ctx.next();
         });
+    }
+
+    private void healthz(RoutingContext routingContext) {
+        routingContext.response().setStatusCode(200).end("ok");
+    }
+
+    private void readiness(RoutingContext routingContext) {
+        if (healthCheck.ready())
+        {
+            routingContext.response().setStatusCode(200).end("ok");
+        }
+        else
+        {
+            routingContext.response().setStatusCode(503).end("nok");
+        }
     }
 
     @Override

@@ -50,8 +50,7 @@ public class HttpVerticleTest {
 
     @Test
     public void testPlainHttp(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port);
-        config.put("mode", HttpVerticle.Mode.HTTP);
+        JsonObject config = new JsonObject().put("port", port);
         deployHttpVerticle(context, config);
 
         final Async asyncClient = context.async();
@@ -65,8 +64,7 @@ public class HttpVerticleTest {
 
     @Test
     public void testCORS(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port).put("CORS", new JsonObject().put("enable", true).put("origin", "https://localhost:8888"));
-        config.put("mode", HttpVerticle.Mode.HTTP);
+        JsonObject config = new JsonObject().put("port", port).put("CORS", new JsonObject().put("enable", true).put("origin", "https://localhost:8888"));
         deployHttpVerticle(context, config);
 
         final Async asyncClient = context.async();
@@ -82,8 +80,7 @@ public class HttpVerticleTest {
 
     @Test
     public void testSslServerAuthentication(TestContext context) {
-        JsonObject config = new JsonObject().put("ssl", new JsonObject().put("httpsPort", port).put("enable", true).put("keystore", getClass().getResource("http.keystore").getPath()).put("keystorePassword", "123456"));
-        config.put("mode", HttpVerticle.Mode.HTTPS);
+        JsonObject config = new JsonObject().put("port", port).put("ssl", new JsonObject().put("enable", true).put("keystore", getClass().getResource("http.keystore").getPath()).put("keystorePassword", "123456"));
         deployHttpVerticle(context, config);
 
         final Async asyncSslClient = context.async();
@@ -106,8 +103,7 @@ public class HttpVerticleTest {
 
     @Test
     public void testSslClientAuthentication(TestContext context) {
-        JsonObject config = new JsonObject().put("ssl", new JsonObject().put("httpsPort", port).put("enable", true).put("keystore", getClass().getResource("http.keystore").getPath()).put("keystorePassword", "123456").put("truststore", getClass().getResource("http.truststore").getPath()).put("truststorePassword", "123456").put("requireTLSClientAuth", false));
-        config.put("mode", HttpVerticle.Mode.HTTPS);
+        JsonObject config = new JsonObject().put("port", port).put("ssl", new JsonObject().put("enable", true).put("keystore", getClass().getResource("http.keystore").getPath()).put("keystorePassword", "123456").put("truststore", getClass().getResource("http.truststore").getPath()).put("truststorePassword", "123456").put("requireTLSClientAuth", false));
         deployHttpVerticle(context, config);
 
         final Async asyncSslClient = context.async();
@@ -138,8 +134,7 @@ public class HttpVerticleTest {
 
     @Test
     public void testSslRequiredClientAuthentication(TestContext context) {
-        JsonObject config = new JsonObject().put("ssl", new JsonObject().put("httpsPort", port).put("enable", true).put("keystore", getClass().getResource("http.keystore").getPath()).put("keystorePassword", "123456").put("truststore", getClass().getResource("http.truststore").getPath()).put("truststorePassword", "123456").put("requireTLSClientAuth", true));
-        config.put("mode", HttpVerticle.Mode.HTTPS);
+        JsonObject config = new JsonObject().put("port", port).put("ssl", new JsonObject().put("enable", true).put("keystore", getClass().getResource("http.keystore").getPath()).put("keystorePassword", "123456").put("truststore", getClass().getResource("http.truststore").getPath()).put("truststorePassword", "123456").put("requireTLSClientAuth", true));
         deployHttpVerticle(context, config);
 
         final Async asyncSslClient = context.async();
@@ -167,53 +162,6 @@ public class HttpVerticleTest {
         }).exceptionHandler(res -> {
             asyncClient.complete();
         }).end();
-    }
-
-    @Test
-    public void testHttpRedirect(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port);
-        config.put("mode", HttpVerticle.Mode.HTTP_REDIRECT);
-        deployHttpVerticle(context, config);
-
-        final Async asyncClient = context.async();
-
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
-            context.assertEquals(301, res.statusCode());
-            context.assertEquals(res.getHeader("Location"), "https://127.0.0.1");
-            asyncClient.complete();
-        });
-    }
-
-    @Test
-    public void testHttpRedirectWithUri(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port);
-        config.put("mode", HttpVerticle.Mode.HTTP_REDIRECT);
-        config.put("ssl", new JsonObject().put("redirectUri", "ssl.mydomain.com"));
-        deployHttpVerticle(context, config);
-
-        final Async asyncClient = context.async();
-
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
-            context.assertEquals(301, res.statusCode());
-            context.assertEquals(res.getHeader("Location"), "https://ssl.mydomain.com");
-            asyncClient.complete();
-        });
-    }
-
-    @Test
-    public void testHttpRedirectWithEmptyUri(TestContext context) {
-        JsonObject config = new JsonObject().put("httpPort", port);
-        config.put("mode", HttpVerticle.Mode.HTTP_REDIRECT);
-        config.put("ssl", new JsonObject().put("redirectUri", ""));
-        deployHttpVerticle(context, config);
-
-        final Async asyncClient = context.async();
-
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
-            context.assertEquals(301, res.statusCode());
-            context.assertEquals(res.getHeader("Location"), "https://127.0.0.1");
-            asyncClient.complete();
-        });
     }
 
     @After

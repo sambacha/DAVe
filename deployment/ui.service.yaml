@@ -5,16 +5,16 @@ metadata:
     app: dave
     layer: frontend
     project: dave
-  name: dave
-  namespace: demo
+  name: ui
+  namespace: ttsave
 spec:
   ports:
     - name: https
       port: 443
-      targetPort: 8181
+      targetPort: 443
     - name: http
       port: 80
-      targetPort: 8080
+      targetPort: 80
   selector:
-    name: dave
+    name: ui
   type: LoadBalancer

@@ -1,35 +1,22 @@
-[![CircleCI](https://circleci.com/gh/Deutsche-Boerse-Risk/DAVe.svg?style=shield)](https://circleci.com/gh/Deutsche-Boerse-Risk/DAVe) [![Build Status](https://travis-ci.org/Deutsche-Boerse-Risk/DAVe.svg?branch=master)](https://travis-ci.org/Deutsche-Boerse-Risk/DAVe) [![Coverage Status](https://coveralls.io/repos/github/Deutsche-Boerse-Risk/DAVe/badge.svg?branch=master)](https://coveralls.io/github/Deutsche-Boerse-Risk/DAVe?branch=master) [![codebeat badge](https://codebeat.co/badges/54fe7c25-2329-4b95-8172-f80a01611474)](https://codebeat.co/projects/github-com-deutsche-boerse-risk-dave)
+[![CircleCI](https://circleci.com/gh/Deutsche-Boerse-Risk/DAVe.svg?style=shield)](https://circleci.com/gh/Deutsche-Boerse-Risk/DAVe) [![Build Status](https://travis-ci.org/Deutsche-Boerse-Risk/DAVe.svg?branch=master)](https://travis-ci.org/Deutsche-Boerse-Risk/DAVe) [![Coverage Status](https://coveralls.io/repos/github/Deutsche-Boerse-Risk/DAVe/badge.svg?branch=master)](https://coveralls.io/github/Deutsche-Boerse-Risk/DAVe?branch=master) [![codebeat badge](https://codebeat.co/badges/54fe7c25-2329-4b95-8172-f80a01611474)](https://codebeat.co/projects/github-com-deutsche-boerse-risk-dave) [![Dependency Status](https://dependencyci.com/github/Deutsche-Boerse-Risk/DAVe/badge)](https://dependencyci.com/github/Deutsche-Boerse-Risk/DAVe) [![SonarQube](https://sonarqube.com/api/badges/gate?key=com.deutscheboerse.risk:dave)](https://sonarqube.com/dashboard/index/com.deutscheboerse.risk:dave)
 
 # DAVe
 
-**DAVe** is **D**ata **A**nalytics and **V**isualisation S**e**rvice. It is free open source client which connects to [Eurex Clearing Enhanced Risk Interface](http://www.eurexclearing.com/clearing-en/risk-management/system-based-risk-controls/post-trade-risk-control/enhanced-risk-interface) AMQP interface (ERS). It provides a UI and REST interface to access latest as well as historical data data received over ERS.
+**DAVe** is **D**ata **A**nalytics and **V**isualisation S**e**rvice. It provides REST interface to access latest risk and margining data from Eurex Clearing Prisma.
 
 ![DAVe - Dashboard](https://github.com/Deutsche-Boerse-Risk/DAVe/blob/master/doc/screenshots/dave-screenshots.gif "DAVe - Dashboard")
 
 ## Build
-    mvn clean package
+
+```
+mvn clean package
+```
 
 The shippable artifact will be built in `target/dave-VERSION` directory.
 
 ## Configure
 
 Configuration is stored in `dave.json` file in JSON format. Configuration is split into several sections:
-
-### ERS
-
-The `ers` section configures the Enhanced Risk Solution connection. It is an array which might contain several JSON objects - each object representing one ERS connection.
-
-| Option | Explanation | Example |
-|--------|-------------|---------|
-| `brokerHost` | ERS broker hostname | `localhost.de` |
-| `brokerPort` | ERS broker port | `18080` |
-| `member` | Member ID which will be used for the ERS connection | `ABCFR` |
-| `truststore` | JKS file with the public key of the ERS broker |  |
-| `truststorePassword` | Password to the JKS file containing the public key |  |
-| `keystore` | JKS file with the private key |  |
-| `keystorePassword` | Password to the JKS file containing the private key |  |
-| `sslCertAlias` | Alias of the private key which should be used for the connection |  |
-| `connectionPoolSize` | Defines the pool size of the connection factory | `10` |
 
 ### MongoDB
 
@@ -46,7 +33,7 @@ The `http` section configures the web based UI and the REST API.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `httpPort` | Port of the HTTP server | `8080` |
+| `port` | Port of the HTTP(S) server | `8080` |
 | `compression` | Enbale gzip compression of the HTTP responses | `true` |
 | `ssl` | Subsection configuring SSL/TLS on the webserver |  |
 | `CORS` | Subsection configuring Cross-origin resource sharing (see below) |  |
@@ -61,9 +48,6 @@ The `ssl` section configures the SSL/TLS support in the webserver.
 | Option | Explanation | Example |
 |--------|-------------|---------|
 | `enable` | Enable HTTPS protocol | `true` |
-| `httpsPort` | Port of the HTTSP server | `8181` |
-| `redirectHttp` | Redirect HTTP connections to HTTPS | `true` |
-| `redirectUri` | URI where the HTTP requests will be redirected. The URI should not contain the protocol and optionally might contain the port. | `ssl.mydomain.com` |
 | `keystore` | JKS file with the private key |  |
 | `keystorePassword` | Password to the JKS file containing the private key |  |
 | `truststore` | JKS file with trusted client CAs |  |
@@ -108,25 +92,6 @@ The `CSRF` subsection configures Cross-site request forgery (CSRF) protection. W
 ## Run
 
 Use script `start_dave.sh|bat` to start the application depending on your operating system (Linux,MacOS | Windows).
-
-## Run UI only
-
-If you want to decouple UI from the back-end and assuming you have DAVe already running on some host (as described in the previous step) with CORS option enabled, you can deploy and work on UI part of the application on another machine than back-end is running.
-
-On the host where the back-end should be started:
- - Modify configuration file to enable CORS (see section above).
- - Start DAVe using `start_dave.sh|bat` script.
-
-On the host where the UI simple web server should be started:
- - Install [npm](http://blog.npmjs.org/post/85484771375/how-to-install-npm) first
- - Install Grunt CLI using `npm install -g grunt-cli`. Use `sudo` on Linux or MacOS if necessary. You may need to setup http(s) proxy using:
-   - `npm config set proxy http://proxy.company.com:8080`
-   - `npm config set https-proxy http://proxy.company.com:8080`
- - `cd` into the directory where UI related files reside: `cd src/main/resources/webroot`.
- - Run `npm install` to download necessary packages.
- - Run `npm start` to start the simple web server and use the host/port written to the standard output in the browser.
- - Whenever there is a change to the files related to the UI, the server gets notified immediately - no restart is needed.
- - Point your UI to the host, where the back-end for DAVe is running - see `app.js` file, section `hostConfig`.
 
 ## Managing user database
 
