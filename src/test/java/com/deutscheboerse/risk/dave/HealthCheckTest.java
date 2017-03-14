@@ -8,7 +8,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.HTTP;
-import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.MONGO;
+import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.PERSISTENCE_SERVICE;
 
 /**
  * @author Created by schojak on 8.2.17.
@@ -17,7 +17,7 @@ import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.MON
 public class HealthCheckTest {
     private final static String MAP_NAME = "healthCheck";
     private final static String HTTP_KEY = "HTTP";
-    private final static String MONGO_KEY = "MONGO";
+    private final static String PERSISTENCE_KEY = "PERSISTENCE_SERVICE";
 
     //private static Vertx vertx;
 
@@ -42,13 +42,13 @@ public class HealthCheckTest {
     }
 
     @Test
-    public void testMongoReadiness(TestContext context) {
+    public void testPersistenceReadiness(TestContext context) {
         Vertx vertx = Vertx.vertx();
 
-        HealthCheck healthCheck = new HealthCheck(vertx).setComponentReady(MONGO);
+        HealthCheck healthCheck = new HealthCheck(vertx).setComponentReady(PERSISTENCE_SERVICE);
 
-        context.assertTrue(healthCheck.isComponentReady(MONGO), "Mongo readiness should return true");
-        context.assertTrue((Boolean) vertx.sharedData().getLocalMap(MAP_NAME).get(MONGO_KEY), "Mongo readiness should equal true in shared data");
+        context.assertTrue(healthCheck.isComponentReady(PERSISTENCE_SERVICE), "Persistence readiness should return true");
+        context.assertTrue((Boolean) vertx.sharedData().getLocalMap(MAP_NAME).get(PERSISTENCE_KEY), "Persistence readiness should equal true in shared data");
 
         vertx.close();
     }
@@ -78,11 +78,11 @@ public class HealthCheckTest {
         vertx.close();
 
         vertx = Vertx.vertx();
-        context.assertFalse(new HealthCheck(vertx).setComponentReady(MONGO).ready(), "Only Mongo is ready, not the whole application");
+        context.assertFalse(new HealthCheck(vertx).setComponentReady(PERSISTENCE_SERVICE).ready(), "Only Persistence is ready, not the whole application");
         vertx.close();
 
         vertx = Vertx.vertx();
-        context.assertTrue(new HealthCheck(vertx).setComponentReady(MONGO).setComponentReady(HTTP).ready(), "Everything is ready, the whole app should ne ready");
+        context.assertTrue(new HealthCheck(vertx).setComponentReady(PERSISTENCE_SERVICE).setComponentReady(HTTP).ready(), "Everything is ready, the whole app should ne ready");
         vertx.close();
     }
 

@@ -1,6 +1,11 @@
 package com.deutscheboerse.risk.dave.restapi.margin;
 
+import com.deutscheboerse.risk.dave.model.AbstractModel;
+import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 
 import java.util.ArrayList;
@@ -8,8 +13,8 @@ import java.util.List;
 
 public class PositionReportApi extends AbstractApi {
 
-    public PositionReportApi(Vertx vertx) {
-        super(vertx, "query.latestPositionReport", "query.historyPositionReport", "pr");
+    public PositionReportApi(Vertx vertx, PersistenceService persistenceProxy) {
+        super(vertx, persistenceProxy, "pr");
     }
 
     @Override
@@ -25,6 +30,11 @@ public class PositionReportApi extends AbstractApi {
         parameters.add("optAttribute");
         parameters.add("maturityMonthYear");
         return parameters;
+    }
+
+    @Override
+    protected void doProxyCall(AbstractModel.CollectionType type, JsonObject params, Handler<AsyncResult<String>> handler) {
+        persistenceProxy.queryPositionReport(type, params, handler);
     }
 
     public Router getRoutes()

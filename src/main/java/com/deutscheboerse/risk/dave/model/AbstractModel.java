@@ -11,6 +11,8 @@ public abstract class AbstractModel {
     private final String mongoHistoryCollection;
     private final String mongoLatestCollection;
 
+    public enum CollectionType {HISTORY, LATEST}
+
     protected abstract JsonObject getProject();
 
     protected AbstractModel(String historyCollection, String latestCollection) {

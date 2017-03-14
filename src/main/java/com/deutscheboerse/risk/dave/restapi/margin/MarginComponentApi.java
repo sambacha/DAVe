@@ -1,6 +1,11 @@
 package com.deutscheboerse.risk.dave.restapi.margin;
 
+import com.deutscheboerse.risk.dave.model.AbstractModel.CollectionType;
+import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 
 import java.util.ArrayList;
@@ -11,8 +16,8 @@ import java.util.List;
  */
 public class MarginComponentApi extends AbstractApi {
 
-    public MarginComponentApi(Vertx vertx) {
-        super(vertx, "query.latestMarginComponent", "query.historyMarginComponent", "mc");
+    public MarginComponentApi(Vertx vertx, PersistenceService persistenceProxy) {
+        super(vertx, persistenceProxy, "mc");
     }
 
     @Override
@@ -24,6 +29,11 @@ public class MarginComponentApi extends AbstractApi {
         parameters.add("clss");
         parameters.add("ccy");
         return parameters;
+    }
+
+    @Override
+    protected void doProxyCall(CollectionType type, JsonObject params, Handler<AsyncResult<String>> handler) {
+        persistenceProxy.queryMarginComponent(type, params, handler);
     }
 
     public Router getRoutes()

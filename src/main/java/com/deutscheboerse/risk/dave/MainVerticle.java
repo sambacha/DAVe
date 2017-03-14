@@ -21,7 +21,7 @@ public class MainVerticle extends AbstractVerticle {
     @Override
     public void start(Future<Void> startFuture) {
         Future<Void> chainFuture = Future.future();
-        deployMongoDBVerticle()
+        deployPersistenceVerticle()
                 .compose(i -> deployHttpVerticle())
                 .compose(chainFuture::complete, chainFuture);
 
@@ -37,8 +37,8 @@ public class MainVerticle extends AbstractVerticle {
         });
     }
 
-    private Future<Void> deployMongoDBVerticle() {
-        return this.deployVerticle(MongoDBPersistenceVerticle.class, config().getJsonObject("mongodb", new JsonObject()));
+    private Future<Void> deployPersistenceVerticle() {
+        return this.deployVerticle(PersistenceVerticle.class, config().getJsonObject("mongodb", new JsonObject()));
     }
 
     private Future<Void> deployHttpVerticle() {

@@ -13,6 +13,7 @@
     <junit.version>4.12</junit.version>
     <logback.version>1.1.7</logback.version>
     <docker.maven.plugin.fabric8.version>0.15.16</docker.maven.plugin.fabric8.version>
+    <jacoco.maven.plugin.version>0.7.7.201606060606</jacoco.maven.plugin.version>
     <vertx.guice.version>2.3.1</vertx.guice.version>
     <build.helper.maven.plugin>1.12</build.helper.maven.plugin>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -77,6 +78,16 @@
       <artifactId>vertx-guice</artifactId>
       <version>${vertx.guice.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-service-proxy</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-codegen</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -88,6 +99,9 @@
           <configuration>
             <source>1.8</source>
             <target>1.8</target>
+            <annotationProcessors>
+              <annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>
+            </annotationProcessors>
           </configuration>
         </plugin>
         <plugin>
@@ -291,10 +305,13 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco.maven.plugin.version}</version>
         <configuration>
-          <!--<excludes>
-            <exclude>com/deutscheboerse/risk/dave/ers/jaxb/*.class</exclude>
-          </excludes>-->
+          <excludes>
+            <exclude>CIL/**/*</exclude>
+            <exclude>**/*PersistenceServiceVertxEBProxy.*</exclude>
+            <exclude>**/*PersistenceServiceVertxProxyHandler.*</exclude>
+          </excludes>
         </configuration>
         <executions>
           <execution>

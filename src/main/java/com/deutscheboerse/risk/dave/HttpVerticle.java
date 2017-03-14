@@ -1,8 +1,10 @@
 package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
+import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.restapi.margin.*;
 import com.deutscheboerse.risk.dave.restapi.user.UserApi;
+import com.google.inject.AbstractModule;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -23,6 +25,7 @@ import io.vertx.ext.healthchecks.Status;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.*;
+import io.vertx.serviceproxy.ProxyHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +72,7 @@ public class HttpVerticle extends AbstractVerticle
     private HttpServer server;
     private Mode operationMode;
     private HealthCheck healthCheck;
+    private PersistenceService persistenceProxy;
 
     @Override
     public void start(Future<Void> startFuture) throws Exception
@@ -76,6 +80,7 @@ public class HttpVerticle extends AbstractVerticle
         LOG.info("Starting {} with configuration: {}", HttpVerticle.class.getSimpleName(), config().encodePrettily());
 
         healthCheck = new HealthCheck(this.vertx);
+        persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
 
         if (config().getJsonObject("ssl", new JsonObject()).getBoolean(ENABLE_KEY, DEFAULT_SSL)) {
             this.operationMode = Mode.HTTPS;
@@ -205,12 +210,12 @@ public class HttpVerticle extends AbstractVerticle
         router.get(REST_READINESS).handler(readinessHandler);
         router.route("/api/v1.0/*").handler(BodyHandler.create());
         router.mountSubRouter("/api/v1.0/user", userApi.getRoutes());
-        router.mountSubRouter("/api/v1.0/tss", new TradingSessionStatusApi(vertx).getRoutes());
-        router.mountSubRouter("/api/v1.0/mc", new MarginComponentApi(vertx).getRoutes());
-        router.mountSubRouter("/api/v1.0/tmr", new TotalMarginRequirementApi(vertx).getRoutes());
-        router.mountSubRouter("/api/v1.0/mss", new MarginShortfallSurplusApi(vertx).getRoutes());
-        router.mountSubRouter("/api/v1.0/pr", new PositionReportApi(vertx).getRoutes());
-        router.mountSubRouter("/api/v1.0/rl", new RiskLimitApi(vertx).getRoutes());
+        router.mountSubRouter("/api/v1.0/tss", new TradingSessionStatusApi(vertx, persistenceProxy).getRoutes());
+        router.mountSubRouter("/api/v1.0/mc", new MarginComponentApi(vertx, persistenceProxy).getRoutes());
+        router.mountSubRouter("/api/v1.0/tmr", new TotalMarginRequirementApi(vertx, persistenceProxy).getRoutes());
+        router.mountSubRouter("/api/v1.0/mss", new MarginShortfallSurplusApi(vertx, persistenceProxy).getRoutes());
+        router.mountSubRouter("/api/v1.0/pr", new PositionReportApi(vertx, persistenceProxy).getRoutes());
+        router.mountSubRouter("/api/v1.0/rl", new RiskLimitApi(vertx, persistenceProxy).getRoutes());
 
         return router;
     }

@@ -1,6 +1,9 @@
 package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.model.PositionReportModel;
+import com.deutscheboerse.risk.dave.persistence.MongoPersistenceService;
+import com.deutscheboerse.risk.dave.persistence.MongoPersistenceServiceIT;
+import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.utils.DummyData;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -11,6 +14,7 @@ import io.vertx.ext.mongo.UpdateOptions;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.serviceproxy.ProxyHelper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -41,6 +45,7 @@ public class MainVerticleIT {
         dbConfig.put("db_name", "DAVe-Test" + UUID.randomUUID().getLeastSignificantBits());
         dbConfig.put("connection_string", "mongodb://localhost:" + System.getProperty("mongodb.port", "27017"));
         MainVerticleIT.mongoClient = MongoClient.createShared(MainVerticleIT.vertx, dbConfig);
+        ProxyHelper.registerService(PersistenceService.class, vertx, new MongoPersistenceService(vertx, mongoClient), PersistenceService.SERVICE_ADDRESS);
     }
 
     private void sendDummyData(TestContext context) {

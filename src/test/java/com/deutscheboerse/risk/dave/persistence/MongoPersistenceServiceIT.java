@@ -1,8 +1,12 @@
-package com.deutscheboerse.risk.dave;
+package com.deutscheboerse.risk.dave.persistence;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
+import com.deutscheboerse.risk.dave.log.TestAppender;
 import com.deutscheboerse.risk.dave.model.*;
 import com.deutscheboerse.risk.dave.utils.DummyData;
-import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
@@ -12,10 +16,12 @@ import io.vertx.ext.mongo.UpdateOptions;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.serviceproxy.ProxyHelper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.LoggerFactory;
 
 import java.text.ParseException;
 import java.time.ZoneOffset;
@@ -25,8 +31,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static com.deutscheboerse.risk.dave.model.AbstractModel.CollectionType.HISTORY;
+import static com.deutscheboerse.risk.dave.model.AbstractModel.CollectionType.LATEST;
+
 @RunWith(VertxUnitRunner.class)
-public class MongoDBPersistenceVerticleIT {
+public class MongoPersistenceServiceIT {
+    private static final TestAppender testAppender = TestAppender.getAppender(MongoPersistenceService.class);
+    private static final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
     private final static List<String> fields;
     static {
@@ -83,20 +94,22 @@ public class MongoDBPersistenceVerticleIT {
 
     private static Vertx vertx;
     private static MongoClient mongoClient;
+    private static PersistenceService persistenceProxy;
 
     @BeforeClass
     public static void setUp(TestContext context) {
-        MongoDBPersistenceVerticleIT.vertx = Vertx.vertx();
-        JsonObject config = new JsonObject();
-        config.put("dbName", "DAVe-Test" + UUID.randomUUID().getLeastSignificantBits());
-        config.put("connectionUrl", "mongodb://localhost:" + System.getProperty("mongodb.port", "27017"));
-        DeploymentOptions options = new DeploymentOptions().setConfig(config);
-        MongoDBPersistenceVerticleIT.vertx.deployVerticle(MongoDBPersistenceVerticle.class.getName(), options, context.asyncAssertSuccess());
+        MongoPersistenceServiceIT.vertx = Vertx.vertx();
 
-        JsonObject dbConfig = new JsonObject();
-        dbConfig.put("db_name", "DAVe-Test" + UUID.randomUUID().getLeastSignificantBits());
-        dbConfig.put("connection_string", "mongodb://localhost:" + System.getProperty("mongodb.port", "27017"));
-        MongoDBPersistenceVerticleIT.mongoClient = MongoClient.createShared(MongoDBPersistenceVerticleIT.vertx, dbConfig);
+        JsonObject mongoConfig = new JsonObject();
+        mongoConfig.put("db_name", "DAVe-Test" + UUID.randomUUID().getLeastSignificantBits());
+        mongoConfig.put("connection_string", "mongodb://localhost:" + System.getProperty("mongodb.port", "27017"));
+        MongoPersistenceServiceIT.mongoClient = MongoClient.createShared(MongoPersistenceServiceIT.vertx, mongoConfig);
+
+        ProxyHelper.registerService(PersistenceService.class, vertx, new MongoPersistenceService(vertx, mongoClient), PersistenceService.SERVICE_ADDRESS);
+        MongoPersistenceServiceIT.persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
+        MongoPersistenceServiceIT.persistenceProxy.initialize(context.asyncAssertSuccess());
+
+        rootLogger.addAppender(testAppender);
     }
 
     private JsonObject transformDatesInDummyData(JsonObject data) throws ParseException {
@@ -172,7 +185,7 @@ public class MongoDBPersistenceVerticleIT {
         requiredCollections.add("ers.RiskLimit");
         requiredCollections.add("ers.RiskLimit.latest");
         final Async async = context.async();
-        MongoDBPersistenceVerticleIT.mongoClient.getCollections(ar -> {
+        MongoPersistenceServiceIT.mongoClient.getCollections(ar -> {
             if (ar.succeeded()) {
                 if (ar.result().containsAll(requiredCollections)) {
                     async.complete();
@@ -213,11 +226,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the latest query
         final Async asyncLatest = context.async();
-        vertx.eventBus().send("query.latestTradingSessionStatus", new JsonObject(), ar -> {
+        persistenceProxy.queryTradingSessionStatus(LATEST, new JsonObject(), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(1, response.size());
 
@@ -239,11 +252,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the history query
         final Async asyncHistory = context.async();
-        vertx.eventBus().send("query.historyTradingSessionStatus", new JsonObject(), ar -> {
+        persistenceProxy.queryTradingSessionStatus(HISTORY, new JsonObject(), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(2, response.size());
                     compareMessages(context, DummyData.tradingSessionStatusJson.get(0), response.getJsonObject(0));
@@ -299,11 +312,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the latest query
         final Async asyncLatest = context.async();
-        vertx.eventBus().send("query.latestPositionReport", new JsonObject(), ar -> {
+        persistenceProxy.queryPositionReport(LATEST, new JsonObject(), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(2, response.size());
 
@@ -326,11 +339,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the latest query with filter
         final Async asyncLatestFilter = context.async();
-        vertx.eventBus().send("query.latestPositionReport", new JsonObject().put("clearer", "ABCFR").put("member", "ABCFR"), ar -> {
+        persistenceProxy.queryPositionReport(LATEST, new JsonObject().put("clearer", "ABCFR").put("member", "ABCFR"), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(1, response.size());
 
@@ -352,11 +365,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the history query
         final Async asyncHistory = context.async();
-        vertx.eventBus().send("query.historyPositionReport", new JsonObject(), ar -> {
+        persistenceProxy.queryPositionReport(HISTORY, new JsonObject(), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(4, response.size());
 
@@ -381,11 +394,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the history query with filter
         final Async asyncHistoryFilter = context.async();
-        vertx.eventBus().send("query.historyPositionReport", new JsonObject().put("clearer", "ABCFR").put("member", "ABCFR"), ar -> {
+        persistenceProxy.queryPositionReport(HISTORY, new JsonObject().put("clearer", "ABCFR").put("member", "ABCFR"), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(2, response.size());
 
@@ -438,11 +451,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the latest query
         final Async asyncLatest = context.async();
-        vertx.eventBus().send("query.latestMarginComponent", new JsonObject(), ar -> {
+        persistenceProxy.queryMarginComponent(LATEST, new JsonObject(), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(2, response.size());
 
@@ -465,11 +478,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the latest query with filter
         final Async asyncLatestFilter = context.async();
-        vertx.eventBus().send("query.latestMarginComponent", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
+        persistenceProxy.queryMarginComponent(LATEST, new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(1, response.size());
 
@@ -491,11 +504,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the history query
         final Async asyncHistory = context.async();
-        vertx.eventBus().send("query.historyMarginComponent", new JsonObject(), ar -> {
+        persistenceProxy.queryMarginComponent(HISTORY, new JsonObject(), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(4, response.size());
 
@@ -520,11 +533,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the history query with filter
         final Async asyncHistoryFilter = context.async();
-        vertx.eventBus().send("query.historyMarginComponent", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
+        persistenceProxy.queryMarginComponent(HISTORY, new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(2, response.size());
 
@@ -578,11 +591,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the latest query
         final Async asyncLatest = context.async();
-        vertx.eventBus().send("query.latestTotalMarginRequirement", new JsonObject(), ar -> {
+        persistenceProxy.queryTotalMarginRequirement(LATEST, new JsonObject(), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(2, response.size());
 
@@ -605,11 +618,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the latest query with filter
         final Async asyncLatestFilter = context.async();
-        vertx.eventBus().send("query.latestTotalMarginRequirement", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
+        persistenceProxy.queryTotalMarginRequirement(LATEST,  new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(1, response.size());
 
@@ -631,11 +644,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the history query
         final Async asyncHistory = context.async();
-        vertx.eventBus().send("query.historyTotalMarginRequirement", new JsonObject(), ar -> {
+        persistenceProxy.queryTotalMarginRequirement(HISTORY, new JsonObject(), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(4, response.size());
 
@@ -660,11 +673,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the history query with filter
         final Async asyncHistoryFilter = context.async();
-        vertx.eventBus().send("query.historyTotalMarginRequirement", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
+        persistenceProxy.queryTotalMarginRequirement(HISTORY, new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(2, response.size());
 
@@ -717,11 +730,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the latest query
         final Async asyncLatest = context.async();
-        vertx.eventBus().send("query.latestMarginShortfallSurplus", new JsonObject(), ar -> {
+        persistenceProxy.queryMarginShortfallSurplus(LATEST, new JsonObject(), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(2, response.size());
 
@@ -744,11 +757,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the latest query with filter
         final Async asyncLatestFilter = context.async();
-        vertx.eventBus().send("query.latestMarginShortfallSurplus", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
+        persistenceProxy.queryMarginShortfallSurplus(LATEST,  new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(1, response.size());
 
@@ -770,11 +783,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the history query
         final Async asyncHistory = context.async();
-        vertx.eventBus().send("query.historyMarginShortfallSurplus", new JsonObject(), ar -> {
+        persistenceProxy.queryMarginShortfallSurplus(HISTORY,  new JsonObject(), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(4, response.size());
 
@@ -799,11 +812,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the history query with filter
         final Async asyncHistoryFilter = context.async();
-        vertx.eventBus().send("query.historyMarginShortfallSurplus", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
+        persistenceProxy.queryMarginShortfallSurplus(HISTORY, new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(2, response.size());
 
@@ -855,11 +868,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the latest query
         final Async asyncLatest = context.async();
-        vertx.eventBus().send("query.latestRiskLimit", new JsonObject(), ar -> {
+        persistenceProxy.queryRiskLimit(LATEST, new JsonObject(), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(2, response.size());
 
@@ -882,11 +895,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the latest query with filter
         final Async asyncLatestFilter = context.async();
-        vertx.eventBus().send("query.latestRiskLimit", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
+        persistenceProxy.queryRiskLimit(LATEST, new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(1, response.size());
 
@@ -908,11 +921,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the history query
         final Async asyncHistory = context.async();
-        vertx.eventBus().send("query.historyRiskLimit", new JsonObject(), ar -> {
+        persistenceProxy.queryRiskLimit(HISTORY, new JsonObject(), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(4, response.size());
 
@@ -937,11 +950,11 @@ public class MongoDBPersistenceVerticleIT {
 
         // Test the history query with filter
         final Async asyncHistoryFilter = context.async();
-        vertx.eventBus().send("query.historyRiskLimit", new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
+        persistenceProxy.queryRiskLimit(HISTORY, new JsonObject().put("clearer", "ABCFR").put("member", "DEFFR"), ar -> {
             if (ar.succeeded())
             {
                 try {
-                    JsonArray response = new JsonArray((String) ar.result().body());
+                    JsonArray response = new JsonArray(ar.result());
 
                     context.assertEquals(2, response.size());
 
@@ -963,8 +976,81 @@ public class MongoDBPersistenceVerticleIT {
         asyncHistoryFilter.awaitSuccess();
     }
 
+    @Test
+    public void testGetCollectionsError(TestContext context) throws InterruptedException {
+        this.testErrorInInitialize(context, "getCollections", "Failed to get collection list");
+    }
+
+    @Test
+    public void testCreateCollectionError(TestContext context) throws InterruptedException {
+        this.testErrorInInitialize(context, "createCollection", "Failed to add all collections");
+    }
+
+    @Test
+    public void testCreateIndexWithOptionsError(TestContext context) throws InterruptedException {
+        this.testErrorInInitialize(context, "createIndexWithOptions", "Failed to create all needed indexes in Mongo");
+    }
+
+    @Test
+    public void testConnectionStatusBackOnline(TestContext context) throws InterruptedException {
+        JsonObject proxyConfig = new JsonObject().put("functionsToFail", new JsonArray().add("find"));
+
+        final PersistenceService persistenceErrorProxy = getPersistenceErrorProxy(proxyConfig);
+        persistenceErrorProxy.initialize(context.asyncAssertSuccess());
+
+        Appender<ILoggingEvent> stdout = rootLogger.getAppender("STDOUT");
+        rootLogger.detachAppender(stdout);
+        testAppender.start();
+        persistenceErrorProxy.queryRiskLimit(LATEST, new JsonObject(), context.asyncAssertFailure());
+        testAppender.waitForMessageContains(Level.INFO, "Back online");
+        testAppender.stop();
+        rootLogger.addAppender(stdout);
+
+        persistenceErrorProxy.close();
+    }
+
+    @Test
+    public void testConnectionStatusError(TestContext context) throws InterruptedException {
+        JsonObject proxyConfig = new JsonObject().put("functionsToFail", new JsonArray().add("find").add("runCommand"));
+
+        final PersistenceService persistenceErrorProxy = getPersistenceErrorProxy(proxyConfig);
+        persistenceErrorProxy.initialize(context.asyncAssertSuccess());
+
+        Appender<ILoggingEvent> stdout = rootLogger.getAppender("STDOUT");
+        rootLogger.detachAppender(stdout);
+        testAppender.start();
+        persistenceErrorProxy.queryRiskLimit(LATEST, new JsonObject(), context.asyncAssertFailure());
+        testAppender.waitForMessageContains(Level.ERROR, "Still disconnected");
+        testAppender.stop();
+        rootLogger.addAppender(stdout);
+
+        persistenceErrorProxy.close();
+    }
+
+    private void testErrorInInitialize(TestContext context, String functionToFail, String expectedErrorMessage) throws InterruptedException {
+        JsonObject proxyConfig = new JsonObject().put("functionsToFail", new JsonArray().add(functionToFail));
+        final PersistenceService persistenceErrorProxy = getPersistenceErrorProxy(proxyConfig);
+
+        testAppender.start();
+        persistenceErrorProxy.initialize(context.asyncAssertSuccess());
+        testAppender.waitForMessageContains(Level.ERROR, expectedErrorMessage);
+        testAppender.waitForMessageContains(Level.ERROR, "Initialize failed, trying again...");
+        testAppender.stop();
+
+        persistenceErrorProxy.close();
+    }
+
+    private PersistenceService getPersistenceErrorProxy(JsonObject config) {
+        MongoErrorClient mongoErrorClient = new MongoErrorClient(config);
+
+        ProxyHelper.registerService(PersistenceService.class, vertx, new MongoPersistenceService(vertx, mongoErrorClient), PersistenceService.SERVICE_ADDRESS+"Error");
+        return ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS+"Error");
+    }
+
     @AfterClass
     public static void tearDown(TestContext context) {
-        MongoDBPersistenceVerticleIT.vertx.close(context.asyncAssertSuccess());
+        MongoPersistenceServiceIT.rootLogger.detachAppender(testAppender);
+        MongoPersistenceServiceIT.persistenceProxy.close();
+        MongoPersistenceServiceIT.vertx.close(context.asyncAssertSuccess());
     }
 }

@@ -1,6 +1,11 @@
 package com.deutscheboerse.risk.dave.restapi.margin;
 
+import com.deutscheboerse.risk.dave.model.AbstractModel;
+import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 
 import java.util.ArrayList;
@@ -11,8 +16,8 @@ import java.util.List;
  */
 public class RiskLimitApi extends AbstractApi {
 
-    public RiskLimitApi(Vertx vertx) {
-        super(vertx, "query.latestRiskLimit", "query.historyRiskLimit", "rl");
+    public RiskLimitApi(Vertx vertx, PersistenceService persistenceProxy) {
+        super(vertx, persistenceProxy, "rl");
     }
 
     @Override
@@ -23,6 +28,11 @@ public class RiskLimitApi extends AbstractApi {
         parameters.add("maintainer");
         parameters.add("limitType");
         return parameters;
+    }
+
+    @Override
+    protected void doProxyCall(AbstractModel.CollectionType type, JsonObject params, Handler<AsyncResult<String>> handler) {
+        persistenceProxy.queryRiskLimit(type, params, handler);
     }
 
     public Router getRoutes()

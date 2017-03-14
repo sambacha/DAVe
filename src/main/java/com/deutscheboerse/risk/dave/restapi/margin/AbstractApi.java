@@ -1,28 +1,31 @@
 package com.deutscheboerse.risk.dave.restapi.margin;
 
+import com.deutscheboerse.risk.dave.model.AbstractModel;
+import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
+
 import java.util.List;
+
+import static com.deutscheboerse.risk.dave.model.AbstractModel.CollectionType.HISTORY;
+import static com.deutscheboerse.risk.dave.model.AbstractModel.CollectionType.LATEST;
 
 public abstract class AbstractApi {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractApi.class);
 
-    private final EventBus eb;
     protected final Vertx vertx;
-    private final String latestEbAddress;
-    private final String historyEbAddress;
     private final String requestName;
+    protected final PersistenceService persistenceProxy;
 
-    public AbstractApi(Vertx vertx, String latestAddress, String historyAddress, String requestName) {
-        this.eb = vertx.eventBus();
+    public AbstractApi(Vertx vertx, PersistenceService persistenceProxy, String requestName) {
         this.vertx = vertx;
-        this.latestEbAddress = latestAddress;
-        this.historyEbAddress = historyAddress;
+        this.persistenceProxy = persistenceProxy;
         this.requestName = requestName;
     }
 
@@ -38,27 +41,31 @@ public abstract class AbstractApi {
         return result;
     }
 
-    protected void sendRequestToEventBus(RoutingContext routingContext, String ebAddress, String requestName) {
-        LOG.trace("Received {} request", requestName);
-
-        eb.send(ebAddress, this.createParamsFromContext(routingContext), ar -> {
+    protected Handler<AsyncResult<String>> responseHandler(RoutingContext routingContext, String requestName) {
+        return ar -> {
             if (ar.succeeded()) {
                 LOG.trace("Received response {} request", requestName);
                 routingContext.response()
                         .putHeader("content-type", "application/json; charset=utf-8")
-                        .end((String)ar.result().body());
+                        .end(ar.result());
             } else {
                 LOG.error("Failed to query the DB service", ar.cause());
                 routingContext.response().setStatusCode(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).end();
             }
-        });
+        };
     }
 
     public void latestCall(RoutingContext routingContext) {
-        sendRequestToEventBus(routingContext, latestEbAddress, requestName + "/latest");
+        LOG.trace("Received {} request", requestName + "/latest");
+        doProxyCall(LATEST, this.createParamsFromContext(routingContext),
+                responseHandler(routingContext, requestName + "/latest"));
     }
 
     public void historyCall(RoutingContext routingContext) {
-        sendRequestToEventBus(routingContext, historyEbAddress, requestName + "/history");
+        LOG.trace("Received {} request", requestName + "/history");
+        doProxyCall(HISTORY, this.createParamsFromContext(routingContext),
+                responseHandler(routingContext, requestName + "/history"));
     }
+
+    protected abstract void doProxyCall(AbstractModel.CollectionType type, JsonObject params, Handler<AsyncResult<String>> handler);
 }

@@ -1,5 +1,7 @@
 package com.deutscheboerse.risk.dave;
 
+import com.deutscheboerse.risk.dave.persistence.MongoPersistenceService;
+import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -17,6 +19,7 @@ import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.serviceproxy.ProxyHelper;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -37,6 +40,7 @@ public class AuthIT {
 
     private static Vertx vertx;
     private static MongoClient mongoClient;
+    private static PersistenceService persistenceProxy;
     private static int port;
     private static int mongoPort;
     private static String dbName;
@@ -53,6 +57,9 @@ public class AuthIT {
         dbConfig.put("connection_string", "mongodb://localhost:" + mongoPort);
 
         AuthIT.mongoClient = MongoClient.createShared(AuthIT.vertx, dbConfig);
+        ProxyHelper.registerService(PersistenceService.class, vertx, new MongoPersistenceService(vertx, mongoClient), PersistenceService.SERVICE_ADDRESS);
+        AuthIT.persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
+        AuthIT.persistenceProxy.initialize(context.asyncAssertSuccess());
         initUserDb(context);
         insertUser(context, USER, PASSWORD);
         insertUser(context, USER2, PASSWORD);
@@ -504,12 +511,14 @@ public class AuthIT {
     public void cleanup(TestContext context)
     {
         vertx.deploymentIDs().forEach(id -> {
+            System.out.println(id);
             vertx.undeploy(id, context.asyncAssertSuccess());
         });
     }
 
     @AfterClass
     public static void tearDown(TestContext context) {
+        AuthIT.persistenceProxy.close();
         AuthIT.vertx.close(context.asyncAssertSuccess());
     }
 }

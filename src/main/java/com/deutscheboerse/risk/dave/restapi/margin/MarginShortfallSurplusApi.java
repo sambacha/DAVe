@@ -1,6 +1,11 @@
 package com.deutscheboerse.risk.dave.restapi.margin;
 
+import com.deutscheboerse.risk.dave.model.AbstractModel;
+import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 
 import java.util.ArrayList;
@@ -11,8 +16,8 @@ import java.util.List;
  */
 public class MarginShortfallSurplusApi extends AbstractApi {
 
-    public MarginShortfallSurplusApi(Vertx vertx) {
-        super(vertx, "query.latestMarginShortfallSurplus", "query.historyMarginShortfallSurplus", "mss");
+    public MarginShortfallSurplusApi(Vertx vertx, PersistenceService persistenceProxy) {
+        super(vertx, persistenceProxy, "mss");
     }
 
     @Override
@@ -24,6 +29,11 @@ public class MarginShortfallSurplusApi extends AbstractApi {
         parameters.add("clearingCcy");
         parameters.add("ccy");
         return parameters;
+    }
+
+    @Override
+    protected void doProxyCall(AbstractModel.CollectionType type, JsonObject params, Handler<AsyncResult<String>> handler) {
+        persistenceProxy.queryMarginShortfallSurplus(type, params, handler);
     }
 
     public Router getRoutes()
