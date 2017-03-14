@@ -2,7 +2,6 @@ package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.model.PositionReportModel;
 import com.deutscheboerse.risk.dave.persistence.MongoPersistenceService;
-import com.deutscheboerse.risk.dave.persistence.MongoPersistenceServiceIT;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.utils.DummyData;
 import io.vertx.core.DeploymentOptions;

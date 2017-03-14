@@ -13,6 +13,7 @@ public interface PersistenceService {
 
     int INIT_ERROR = 2;
     int STORE_ERROR = 3;
+    int QUERY_ERROR = 4;
 
     void initialize(Handler<AsyncResult<Void>> resultHandler);
 
