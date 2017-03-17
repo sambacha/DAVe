@@ -207,6 +207,7 @@
                 <log>
                   <prefix>DB</prefix>
                   <color>yellow</color>
+                  <file>${project.build.directory}/mongo.log</file>
                 </log>
                 <ports>
                   <port>mongodb.port:27017</port>
@@ -224,6 +225,7 @@
                 <log>
                   <prefix>ERS</prefix>
                   <color>cyan</color>
+                  <file>${project.build.directory}/ers.log</file>
                 </log>
                 <ports>
                   <port>ers.sslport:5671</port>
