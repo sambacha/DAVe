@@ -1,15 +1,12 @@
 package com.deutscheboerse.risk.dave.persistence;
 
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
-import com.deutscheboerse.risk.dave.model.*;
-import com.deutscheboerse.risk.dave.model.AbstractModel.CollectionType;
 import io.vertx.core.*;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.mongo.IndexOptions;
-import io.vertx.ext.mongo.MongoClient;
+import io.vertx.ext.mongo.*;
 import io.vertx.serviceproxy.ServiceException;
 
 import javax.inject.Inject;
@@ -17,8 +14,6 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.PERSISTENCE_SERVICE;
-import static com.deutscheboerse.risk.dave.model.AbstractModel.CollectionType.HISTORY;
-import static com.deutscheboerse.risk.dave.model.AbstractModel.CollectionType.LATEST;
 
 /**
  * @author Created by schojak on 19.8.16.
@@ -26,18 +21,13 @@ import static com.deutscheboerse.risk.dave.model.AbstractModel.CollectionType.LA
 public class MongoPersistenceService implements PersistenceService {
     private static final Logger LOG = LoggerFactory.getLogger(MongoPersistenceService.class);
 
-    private final AbstractModel tssModel = new TradingSessionStatusModel();
-    private final AbstractModel mcModel = new MarginComponentModel();
-    private final AbstractModel tmrModel = new TotalMarginRequirementModel();
-    private final AbstractModel mssModel = new MarginShortfallSurplusModel();
-    private final AbstractModel prModel = new PositionReportModel();
-    private final AbstractModel rlModel = new RiskLimitModel();
-
     private static final int RECONNECT_DELAY = 2000;
 
     private final Vertx vertx;
     private final MongoClient mongo;
     private final HealthCheck healthCheck;
+
+    private boolean closed;
 
     private final ConnectionManager connectionManager = new ConnectionManager();
 
@@ -46,6 +36,7 @@ public class MongoPersistenceService implements PersistenceService {
         this.vertx = vertx;
         this.healthCheck = new HealthCheck(this.vertx);
         this.mongo = mongo;
+        this.closed = false;
     }
 
     @Override
@@ -56,8 +47,10 @@ public class MongoPersistenceService implements PersistenceService {
                     if (ar.succeeded()) {
                         healthCheck.setComponentReady(PERSISTENCE_SERVICE);
                     } else {
-                        // Try to re-initialize in a few seconds
-                        vertx.setTimer(RECONNECT_DELAY, i -> initialize(res -> {/*empty handler*/}));
+                        if (!closed) {
+                            // Try to re-initialize in a few seconds
+                            vertx.setTimer(RECONNECT_DELAY, i -> initialize(res -> {/*empty handler*/}));
+                        }
                         LOG.error("Initialize failed, trying again...");
                     }
                     // Inform the caller that we succeeded even if the connection to mongo database
@@ -67,37 +60,39 @@ public class MongoPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void queryMarginComponent(CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        query(type, params, mcModel, resultHandler);
+    public void find(String collection, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+        LOG.trace("Received {} query with message {}", collection, query);
+        FindOptions findOptions = new FindOptions()
+                .setFields(new JsonObject().put("_id", 0))
+                .setSort(new JsonObject().put("snapshotID", 1));
+        mongo.findWithOptions(collection, query, findOptions, res -> {
+            if (res.succeeded()) {
+                resultHandler.handle(Future.succeededFuture(Json.encodePrettily(res.result())));
+            } else {
+                LOG.error("{} query failed", collection, res.cause());
+                connectionManager.startReconnection();
+                resultHandler.handle(ServiceException.fail(STORE_ERROR, res.cause().getMessage()));
+            }
+        });
     }
 
     @Override
-    public void queryMarginShortfallSurplus(CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        query(type, params, mssModel, resultHandler);
+    public void insert(String collection, JsonObject document, Handler<AsyncResult<String>> resultHandler) {
+        mongo.insert(collection, document, resultHandler);
     }
 
     @Override
-    public void queryPositionReport(CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        query(type, params, prModel, resultHandler);
-    }
+    public void upsert(String collection, JsonObject query, JsonObject document, Handler<AsyncResult<String>> resultHandler) {
+        Future<MongoClientUpdateResult> upsertFuture = Future.future();
+        mongo.replaceDocumentsWithOptions(collection, query, document,
+                new UpdateOptions().setUpsert(true), upsertFuture);
 
-    @Override
-    public void queryRiskLimit(CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        query(type, params, rlModel, resultHandler);
-    }
-
-    @Override
-    public void queryTotalMarginRequirement(CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        query(type, params, tmrModel, resultHandler);
-    }
-
-    @Override
-    public void queryTradingSessionStatus(CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        query(type, params, tssModel, resultHandler);
+        upsertFuture.map(res -> res.toJson().toString()).setHandler(resultHandler);
     }
 
     @Override
     public void close() {
+        this.closed = true;
         this.mongo.close();
     }
 
@@ -107,18 +102,18 @@ public class MongoPersistenceService implements PersistenceService {
             if (res.succeeded()) {
                 List<String> mongoCollections = res.result();
                 List<String> neededCollections = new ArrayList<>(Arrays.asList(
-                        "ers.TradingSessionStatus",
-                        "ers.TradingSessionStatus.latest",
-                        "ers.MarginComponent",
-                        "ers.MarginComponent.latest",
-                        "ers.TotalMarginRequirement",
-                        "ers.TotalMarginRequirement.latest",
-                        "ers.MarginShortfallSurplus",
-                        "ers.MarginShortfallSurplus.latest",
-                        "ers.PositionReport",
-                        "ers.PositionReport.latest",
-                        "ers.RiskLimit",
-                        "ers.RiskLimit.latest"
+                    "AccountMargin",
+                    "AccountMargin.latest",
+                    "LiquiGroupMargin",
+                    "LiquiGroupMargin.latest",
+                    "LiquiGroupSplitMargin",
+                    "LiquiGroupSplitMargin.latest",
+                    "PoolMargin",
+                    "PoolMargin.latest",
+                    "PositionReport",
+                    "PositionReport.latest",
+                    "RiskLimitUtilization",
+                    "RiskLimitUtilization.latest"
                 ));
 
                 List<Future> futs = new ArrayList<>();
@@ -184,42 +179,6 @@ public class MongoPersistenceService implements PersistenceService {
         return initDbFuture;
     }
 
-    private void query(CollectionType type, JsonObject params, AbstractModel model, Handler<AsyncResult<String>> handler) {
-        if (type == HISTORY) {
-            queryHistory(params, model, handler);
-        } else if (type == LATEST) {
-            queryLatest(params, model, handler);
-        } else {
-            throw new IllegalArgumentException("Unknown type");
-        }
-    }
-
-    private void queryLatest(JsonObject params, AbstractModel model, Handler<AsyncResult<String>> handler) {
-        LOG.trace("Received {} query with message {}", model.getLatestCollection(), params);
-        mongo.find(model.getLatestCollection(), params, res -> {
-            if (res.succeeded()) {
-                handler.handle(Future.succeededFuture(Json.encodePrettily(res.result())));
-            } else {
-                LOG.error("{} query failed", model.getLatestCollection(), res.cause());
-                connectionManager.startReconnection();
-                handler.handle(ServiceException.fail(STORE_ERROR, res.cause().getMessage()));
-            }
-        });
-    }
-
-    private void queryHistory(JsonObject params, AbstractModel model, Handler<AsyncResult<String>> handler) {
-        LOG.trace("Received {} query with message {}", model.getClass().getSimpleName(), params);
-        mongo.runCommand("aggregate", model.getHistoryCommand(params), res -> {
-            if (res.succeeded()) {
-                handler.handle(Future.succeededFuture(Json.encodePrettily(res.result().getJsonArray("result"))));
-            } else {
-                LOG.error("{} query failed", model.getHistoryCommand(params), res.cause());
-                connectionManager.startReconnection();
-                handler.handle(ServiceException.fail(STORE_ERROR, res.cause().getMessage()));
-            }
-        });
-    }
-
     private class ConnectionManager {
 
         void startReconnection() {
@@ -232,7 +191,9 @@ public class MongoPersistenceService implements PersistenceService {
         }
 
         private void scheduleConnectionStatus() {
-            vertx.setTimer(RECONNECT_DELAY, id -> checkConnectionStatus());
+            if (!closed) {
+                vertx.setTimer(RECONNECT_DELAY, id -> checkConnectionStatus());
+            }
         }
 
         private void checkConnectionStatus() {

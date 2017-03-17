@@ -1,7 +1,5 @@
 package com.deutscheboerse.risk.dave.persistence;
 
-import com.deutscheboerse.risk.dave.model.AbstractModel;
-import com.deutscheboerse.risk.dave.model.PositionReportModel;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -28,33 +26,18 @@ public class InitPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void queryMarginComponent(AbstractModel.CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "queryMarginComponent not implemented"));
+    public void find(String collection, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "Find is not implemented"));
     }
 
     @Override
-    public void queryMarginShortfallSurplus(AbstractModel.CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "queryMarginShortfallSurplus not implemented"));
+    public void insert(String collection, JsonObject document, Handler<AsyncResult<String>> resultHandler) {
+        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "Insert is not implemented"));
     }
 
     @Override
-    public void queryPositionReport(AbstractModel.CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "queryPositionReport not implemented"));
-    }
-
-    @Override
-    public void queryRiskLimit(AbstractModel.CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "queryRiskLimit not implemented"));
-    }
-
-    @Override
-    public void queryTotalMarginRequirement(AbstractModel.CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "queryTotalMarginRequirement not implemented"));
-    }
-
-    @Override
-    public void queryTradingSessionStatus(AbstractModel.CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "queryTradingSessionStatus not implemented"));
+    public void upsert(String collection, JsonObject query, JsonObject document, Handler<AsyncResult<String>> resultHandler) {
+        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "Upsert is not implemented"));
     }
 
     @Override

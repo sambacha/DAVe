@@ -204,7 +204,7 @@ public class AuthIT {
 
         // Not logged in => REST access should return
         final Async asyncUnauthorized = context.async();
-        client.getNow(port, "localhost", "/api/v1.0/tss/latest", res -> {
+        client.getNow(port, "localhost", "/api/v1.0/am/latest/XXXXX", res -> {
             context.assertEquals(401, res.statusCode());
             asyncUnauthorized.complete();
         });
@@ -310,7 +310,7 @@ public class AuthIT {
                 }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
 
                 // Logged in => REST access should return 200
-                client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
+                client.get(port, "localhost", "/api/v1.0/am/latest/XXXXX", tssRes -> {
                     context.assertEquals(200, tssRes.statusCode());
                     asyncAuthorized.complete();
                 }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
@@ -329,7 +329,7 @@ public class AuthIT {
         // Log in
         final String expiredToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE0ODIxNTE4NTIsImlhdCI6MTQ4MjE1MTc5MiwidXNlcm5hbWUiOiJzY2hvamFrIn0=.fUgxPZyKBPml0siTJZD7YWF-7_XrD0k9-R9izrM1_xw=";
         final Async asyncExpired = context.async();
-        client.get(port, "localhost", "/api/v1.0/tss/latest", res -> {
+        client.get(port, "localhost", "/api/v1.0/am/latest/XXXXX", res -> {
             context.assertEquals(401, res.statusCode());
             asyncExpired.complete();
         }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", expiredToken)).end();;
@@ -356,7 +356,7 @@ public class AuthIT {
                     statusRes.bodyHandler(body -> {
                         String refreshToken = body.toJsonObject().getString("token");
                         // REST access with refreshed token should return 200
-                        client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
+                        client.get(port, "localhost", "/api/v1.0/am/latest/XXXXX", tssRes -> {
                             context.assertEquals(200, tssRes.statusCode());
                             asyncAuthorized.complete();
                         }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", refreshToken)).end();
@@ -414,7 +414,7 @@ public class AuthIT {
                     }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
 
                     // Logged in => REST access should return 200
-                    client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
+                    client.get(port, "localhost", "/api/v1.0/am/latest", tssRes -> {
                         context.assertEquals(200, tssRes.statusCode());
                         asyncAuthorized.complete();
                     }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
@@ -463,7 +463,7 @@ public class AuthIT {
                 }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
 
                 // Logged in => REST access should return 200
-                client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
+                client.get(port, "localhost", "/api/v1.0/am/latest/XXXXX", tssRes -> {
                     context.assertEquals(200, tssRes.statusCode());
                     asyncAuthorized.complete();
                 }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();

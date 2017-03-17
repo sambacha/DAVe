@@ -9,39 +9,93 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
-import java.util.List;
-
-import static com.deutscheboerse.risk.dave.model.AbstractModel.CollectionType.HISTORY;
-import static com.deutscheboerse.risk.dave.model.AbstractModel.CollectionType.LATEST;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.Map;
 
 public abstract class AbstractApi {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractApi.class);
 
+    private static final String LATEST_URI = "/latest";
+    private static final String HISTORY_URI = "/history";
+
     protected final Vertx vertx;
     private final String requestName;
-    protected final PersistenceService persistenceProxy;
+    private final PersistenceService persistenceProxy;
+    private final AbstractModel model;
 
-    public AbstractApi(Vertx vertx, PersistenceService persistenceProxy, String requestName) {
+    public AbstractApi(Vertx vertx, PersistenceService persistenceProxy, AbstractModel model, String requestName) {
         this.vertx = vertx;
         this.persistenceProxy = persistenceProxy;
+        this.model = model;
         this.requestName = requestName;
     }
 
-    protected abstract List<String> getParameters();
+    private void latestCall(RoutingContext routingContext) {
+        LOG.trace("Received {} request", requestName + LATEST_URI);
+        persistenceProxy.find(model.getLatestCollection(), this.createParamsFromContext(routingContext),
+                responseHandler(routingContext, requestName + LATEST_URI));
+    }
 
-    protected JsonObject createParamsFromContext(RoutingContext routingContext) {
+    private void historyCall(RoutingContext routingContext) {
+        LOG.trace("Received {} request", requestName + HISTORY_URI);
+        persistenceProxy.find(model.getHistoryCollection(), this.createParamsFromContext(routingContext),
+                responseHandler(routingContext, requestName + HISTORY_URI));
+    }
+
+    public Router getRoutes() {
+        Router router = Router.router(vertx);
+
+        StringBuilder latestUrl = new StringBuilder(LATEST_URI);
+        StringBuilder historyUrl = new StringBuilder(HISTORY_URI);
+
+        router.get(latestUrl.toString()).handler(this::latestCall);
+        router.get(historyUrl.toString()).handler(this::historyCall);
+
+        for (String key: model.getKeys()) {
+            latestUrl.append("/:").append(key);
+            historyUrl.append("/:").append(key);
+            router.get(latestUrl.toString()).handler(this::latestCall);
+            router.get(historyUrl.toString()).handler(this::historyCall);
+        }
+
+        return router;
+    }
+
+    private JsonObject createParamsFromContext(RoutingContext routingContext) {
         final JsonObject result = new JsonObject();
-        for (String parameterName : getParameters()) {
-            if (routingContext.request().getParam(parameterName) != null && !"*".equals(routingContext.request().getParam(parameterName))) {
-                result.put(parameterName, routingContext.request().getParam(parameterName));
+        for (Map.Entry<String, Class<?>> entry : model.getKeysDescriptor().entrySet()) {
+            String parameterName = entry.getKey();
+            String parameterValue = routingContext.request().getParam(parameterName);
+            if (parameterValue != null && !"*" .equals(parameterValue)) {
+                try {
+                    parameterValue = URLDecoder.decode(parameterValue, "UTF-8");
+                    Class<?> convertTo = entry.getValue();
+                    result.put(parameterName, convertValue(parameterValue, convertTo));
+                } catch (UnsupportedEncodingException e) {
+                    throw new AssertionError(e);
+                }
             }
         }
         return result;
     }
 
-    protected Handler<AsyncResult<String>> responseHandler(RoutingContext routingContext, String requestName) {
+    private <T> T convertValue(String value, Class<T> clazz) {
+        if (clazz == String.class) {
+            return clazz.cast(value);
+        } else if (clazz == Integer.class) {
+            return clazz.cast(Integer.parseInt(value));
+        } else if (clazz == Double.class) {
+            return clazz.cast(Double.parseDouble(value));
+        } else {
+            throw new AssertionError("Unsupported type " + clazz);
+        }
+    }
+
+    private Handler<AsyncResult<String>> responseHandler(RoutingContext routingContext, String requestName) {
         return ar -> {
             if (ar.succeeded()) {
                 LOG.trace("Received response {} request", requestName);
@@ -54,18 +108,4 @@ public abstract class AbstractApi {
             }
         };
     }
-
-    public void latestCall(RoutingContext routingContext) {
-        LOG.trace("Received {} request", requestName + "/latest");
-        doProxyCall(LATEST, this.createParamsFromContext(routingContext),
-                responseHandler(routingContext, requestName + "/latest"));
-    }
-
-    public void historyCall(RoutingContext routingContext) {
-        LOG.trace("Received {} request", requestName + "/history");
-        doProxyCall(HISTORY, this.createParamsFromContext(routingContext),
-                responseHandler(routingContext, requestName + "/history"));
-    }
-
-    protected abstract void doProxyCall(AbstractModel.CollectionType type, JsonObject params, Handler<AsyncResult<String>> handler);
 }

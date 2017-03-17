@@ -4,7 +4,6 @@ import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.restapi.margin.*;
 import com.deutscheboerse.risk.dave.restapi.user.UserApi;
-import com.google.inject.AbstractModule;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -210,12 +209,12 @@ public class HttpVerticle extends AbstractVerticle
         router.get(REST_READINESS).handler(readinessHandler);
         router.route("/api/v1.0/*").handler(BodyHandler.create());
         router.mountSubRouter("/api/v1.0/user", userApi.getRoutes());
-        router.mountSubRouter("/api/v1.0/tss", new TradingSessionStatusApi(vertx, persistenceProxy).getRoutes());
-        router.mountSubRouter("/api/v1.0/mc", new MarginComponentApi(vertx, persistenceProxy).getRoutes());
-        router.mountSubRouter("/api/v1.0/tmr", new TotalMarginRequirementApi(vertx, persistenceProxy).getRoutes());
-        router.mountSubRouter("/api/v1.0/mss", new MarginShortfallSurplusApi(vertx, persistenceProxy).getRoutes());
+        router.mountSubRouter("/api/v1.0/am", new AccountMarginApi(vertx, persistenceProxy).getRoutes());
+        router.mountSubRouter("/api/v1.0/lgm", new LiquiGroupMarginApi(vertx, persistenceProxy).getRoutes());
+        router.mountSubRouter("/api/v1.0/lgsm", new LiquiGroupSplitMarginApi(vertx, persistenceProxy).getRoutes());
+        router.mountSubRouter("/api/v1.0/pm", new PoolMarginApi(vertx, persistenceProxy).getRoutes());
         router.mountSubRouter("/api/v1.0/pr", new PositionReportApi(vertx, persistenceProxy).getRoutes());
-        router.mountSubRouter("/api/v1.0/rl", new RiskLimitApi(vertx, persistenceProxy).getRoutes());
+        router.mountSubRouter("/api/v1.0/rlu", new RiskLimitUtilizationApi(vertx, persistenceProxy).getRoutes());
 
         return router;
     }

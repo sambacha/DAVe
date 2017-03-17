@@ -1,6 +1,5 @@
 package com.deutscheboerse.risk.dave.persistence;
 
-import com.deutscheboerse.risk.dave.model.AbstractModel.CollectionType;
 import io.vertx.codegen.annotations.ProxyClose;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.core.AsyncResult;
@@ -17,12 +16,9 @@ public interface PersistenceService {
 
     void initialize(Handler<AsyncResult<Void>> resultHandler);
 
-    void queryMarginComponent(CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler);
-    void queryMarginShortfallSurplus(CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler);
-    void queryPositionReport(CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler);
-    void queryRiskLimit(CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler);
-    void queryTotalMarginRequirement(CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler);
-    void queryTradingSessionStatus(CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler);
+    void find(String collection, JsonObject query, Handler<AsyncResult<String>> resultHandler);
+    void insert(String collection, JsonObject document, Handler<AsyncResult<String>> resultHandler);
+    void upsert(String collection, JsonObject query, JsonObject document, Handler<AsyncResult<String>> resultHandler);
 
     @ProxyClose
     void close();
