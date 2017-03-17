@@ -6,7 +6,9 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractModel extends JsonObject {
@@ -37,6 +39,16 @@ public abstract class AbstractModel extends JsonObject {
     public JsonObject getMongoDocument() {
         return this.copy()
                 .put("timestamp", new JsonObject().put("$date", this.milliToIsoDateTime(this.getLong("timestamp"))));
+    }
+
+    public static List<AbstractModel> getAllModels() {
+        return Arrays.asList(
+                new AccountMarginModel(),
+                new LiquiGroupMarginModel(),
+                new LiquiGroupSplitMarginModel(),
+                new PositionReportModel(),
+                new PositionReportModel(),
+                new RiskLimitUtilizationModel());
     }
 
     private String milliToIsoDateTime(long milli) {

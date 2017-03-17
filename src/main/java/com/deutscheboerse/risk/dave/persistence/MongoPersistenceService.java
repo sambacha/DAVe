@@ -1,6 +1,7 @@
 package com.deutscheboerse.risk.dave.persistence;
 
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
+import com.deutscheboerse.risk.dave.model.AbstractModel;
 import io.vertx.core.*;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -10,14 +11,11 @@ import io.vertx.ext.mongo.*;
 import io.vertx.serviceproxy.ServiceException;
 
 import javax.inject.Inject;
-import java.util.*;
-import java.util.Map.Entry;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.PERSISTENCE_SERVICE;
 
-/**
- * @author Created by schojak on 19.8.16.
- */
 public class MongoPersistenceService implements PersistenceService {
     private static final Logger LOG = LoggerFactory.getLogger(MongoPersistenceService.class);
 
@@ -96,47 +94,41 @@ public class MongoPersistenceService implements PersistenceService {
         this.mongo.close();
     }
 
+    private static List<String> getRequiredCollections() {
+        List<String> requiredCollections = new ArrayList<>();
+        AbstractModel.getAllModels().forEach(model -> {
+            requiredCollections.add(model.getHistoryCollection());
+            requiredCollections.add(model.getLatestCollection());
+        });
+        return requiredCollections;
+    }
+
+    private Future<Void> createMissingCollections(List<String> existingCollections) {
+        List<String> requiredCollections = getRequiredCollections();
+        requiredCollections.removeAll(existingCollections);
+
+        List<Future> futs = new ArrayList<>();
+        requiredCollections.forEach(collection -> {
+            LOG.info("Collection {} is missing and will be added", collection);
+            Future<Void> fut = Future.future();
+            mongo.createCollection(collection, fut.completer());
+            futs.add(fut);
+        });
+
+        return CompositeFuture.all(futs).mapEmpty();
+    }
+
     private Future<Void> initDb() {
         Future<Void> initDbFuture = Future.future();
         mongo.getCollections(res -> {
             if (res.succeeded()) {
-                List<String> mongoCollections = res.result();
-                List<String> neededCollections = new ArrayList<>(Arrays.asList(
-                    "AccountMargin",
-                    "AccountMargin.latest",
-                    "LiquiGroupMargin",
-                    "LiquiGroupMargin.latest",
-                    "LiquiGroupSplitMargin",
-                    "LiquiGroupSplitMargin.latest",
-                    "PoolMargin",
-                    "PoolMargin.latest",
-                    "PositionReport",
-                    "PositionReport.latest",
-                    "RiskLimitUtilization",
-                    "RiskLimitUtilization.latest"
-                ));
-
-                List<Future> futs = new ArrayList<>();
-
-                neededCollections.stream()
-                        .filter(collection -> ! mongoCollections.contains(collection))
-                        .forEach(collection -> {
-                            LOG.info("Collection {} is missing and will be added", collection);
-                            Future<Void> fut = Future.future();
-                            mongo.createCollection(collection, fut.completer());
-                            futs.add(fut);
-                        });
-
-                CompositeFuture.all(futs).setHandler(ar -> {
-                    if (ar.succeeded())
-                    {
-                        LOG.info("Mongo has all needed collections for ERS");
+                createMissingCollections(res.result()).setHandler(ar -> {
+                    if (ar.succeeded()) {
+                        LOG.info("Mongo has all needed collections for DAVe");
                         LOG.info("Initialized MongoDB");
                         initDbFuture.complete();
-                    }
-                    else
-                    {
-                        LOG.error("Failed to add all collections needed for ERS to Mongo", ar.cause());
+                    } else {
+                        LOG.error("Failed to add all collections needed for DAVe to Mongo", ar.cause());
                         initDbFuture.fail(ar.cause());
                     }
                 });
@@ -149,34 +141,40 @@ public class MongoPersistenceService implements PersistenceService {
     }
 
     private Future<Void> createIndexes() {
-        Future<Void> initDbFuture = Future.future();
-        Map<String, JsonObject> indexes = new HashMap<>();
-        indexes.put("ers.MarginComponent", new JsonObject().put("clearer", 1).put("member", 1).put("account", 1).put("clss", 1).put("ccy", 1));
-        indexes.put("ers.MarginShortfallSurplus", new JsonObject().put("clearer", 1).put("pool", 1).put("member", 1).put("clearingCcy", 1).put("ccy", 1));
-        indexes.put("ers.PositionReport", new JsonObject().put("clearer", 1).put("member", 1).put("account", 1).put("clss", 1).put("symbol", 1).put("putCall", 1).put("strikePrice", 1).put("optAttribute", 1).put("maturityMonthYear", 1));
-        indexes.put("ers.RiskLimit", new JsonObject().put("clearer", 1).put("member", 1).put("maintainer", 1).put("limitType", 1));
-        indexes.put("ers.TotalMarginRequirement", new JsonObject().put("clearer", 1).put("pool", 1).put("member", 1).put("account", 1).put("ccy", 1));
-        List<Future> futs = new ArrayList<>();
-        for (Entry<String, JsonObject> index : indexes.entrySet()) {
-            Future<Void> receivedIndexFuture = Future.future();
-            mongo.createIndexWithOptions(index.getKey(), new JsonObject().put("received", 1), new IndexOptions().name("received_idx"), receivedIndexFuture.completer());
-            futs.add(receivedIndexFuture);
+        Future<Void> createIndexesFuture = Future.future();
 
-            Future<Void> compoundIndexFuture = Future.future();
-            mongo.createIndexWithOptions(index.getKey(), index.getValue(), new IndexOptions().name("compound_idx"), compoundIndexFuture.completer());
-            futs.add(compoundIndexFuture);
+        List<Future> futs = new ArrayList<>();
+        for (AbstractModel model: AbstractModel.getAllModels()) {
+            futs.add(createIndexesForModel(model));
         }
 
         CompositeFuture.all(futs).setHandler(ar -> {
             if (ar.succeeded()) {
                 LOG.info("Mongo has all needed indexes");
-                initDbFuture.complete();
+                createIndexesFuture.complete();
             } else {
                 LOG.error("Failed to create all needed indexes in Mongo", ar.cause());
-                initDbFuture.fail(ar.cause());
+                createIndexesFuture.fail(ar.cause());
             }
         });
-        return initDbFuture;
+        return createIndexesFuture;
+    }
+
+    private Future<CompositeFuture> createIndexesForModel(AbstractModel model) {
+        IndexOptions indexOptions = new IndexOptions().name("unique_idx").unique(true);
+
+        JsonObject historyIndex = new JsonObject().put("snapshotID", 1);
+        model.getKeys().forEach(key -> historyIndex.put(key, 1));
+
+        JsonObject latestIndex = new JsonObject();
+        model.getKeys().forEach(key -> latestIndex.put(key, 1));
+
+        Future<Void> historyIndexFuture = Future.future();
+        Future<Void> latestIndexFuture = Future.future();
+        mongo.createIndexWithOptions(model.getHistoryCollection(), historyIndex, indexOptions, historyIndexFuture);
+        mongo.createIndexWithOptions(model.getLatestCollection(), latestIndex, indexOptions, latestIndexFuture);
+
+        return CompositeFuture.all(historyIndexFuture, latestIndexFuture);
     }
 
     private class ConnectionManager {
