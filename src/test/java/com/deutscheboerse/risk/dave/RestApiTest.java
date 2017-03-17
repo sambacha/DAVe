@@ -56,7 +56,7 @@ public class RestApiTest {
             });
         });
 
-        async.awaitSuccess(3000);
+        async.awaitSuccess(30000);
     }
 
     @Test
@@ -79,7 +79,7 @@ public class RestApiTest {
             });
         });
 
-        async.awaitSuccess(3000);
+        async.awaitSuccess(30000);
     }
 
     @Test
@@ -103,7 +103,7 @@ public class RestApiTest {
             });
         });
 
-        async.awaitSuccess(3000);
+        async.awaitSuccess(30000);
     }
 
     @Test
@@ -127,7 +127,7 @@ public class RestApiTest {
             });
         });
 
-        async.awaitSuccess(3000);
+        async.awaitSuccess(30000);
     }
 
     @Test
@@ -152,7 +152,7 @@ public class RestApiTest {
             });
         });
 
-        async.awaitSuccess(3000);
+        async.awaitSuccess(30000);
     }
 
     @Test
@@ -177,7 +177,7 @@ public class RestApiTest {
             });
         });
 
-        async.awaitSuccess(3000);
+        async.awaitSuccess(30000);
     }
 
     @Test
@@ -199,7 +199,7 @@ public class RestApiTest {
             });
         });
 
-        async.awaitSuccess(3000);
+        async.awaitSuccess(30000);
     }
 
     @Test
@@ -221,7 +221,7 @@ public class RestApiTest {
             });
         });
 
-        async.awaitSuccess(3000);
+        async.awaitSuccess(30000);
     }
 
     @Test
@@ -255,7 +255,7 @@ public class RestApiTest {
             });
         });
 
-        async.awaitSuccess(3000);
+        async.awaitSuccess(30000);
     }
 
     @Test
@@ -288,7 +288,7 @@ public class RestApiTest {
             });
         });
 
-        async.awaitSuccess(3000);
+        async.awaitSuccess(30000);
     }
 
     @Test
@@ -311,7 +311,7 @@ public class RestApiTest {
             });
         });
 
-        async.awaitSuccess(3000);
+        async.awaitSuccess(30000);
     }
 
     @Test
@@ -334,7 +334,7 @@ public class RestApiTest {
             });
         });
 
-        async.awaitSuccess(3000);
+        async.awaitSuccess(30000);
     }
 
     @Test
@@ -356,7 +356,7 @@ public class RestApiTest {
             });
         });
 
-        async.awaitSuccess(3000);
+        async.awaitSuccess(30000);
     }
 
     @Test
@@ -377,7 +377,7 @@ public class RestApiTest {
             });
         });
 
-        async.awaitSuccess(3000);
+        async.awaitSuccess(30000);
     }
 
     @AfterClass
