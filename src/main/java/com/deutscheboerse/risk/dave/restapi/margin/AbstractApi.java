@@ -2,6 +2,7 @@ package com.deutscheboerse.risk.dave.restapi.margin;
 
 import com.deutscheboerse.risk.dave.model.AbstractModel;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import com.deutscheboerse.risk.dave.persistence.RequestType;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -11,46 +12,50 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.serviceproxy.ProxyHelper;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.Map;
 
 public abstract class AbstractApi {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractApi.class);
 
-    private static final String LATEST_URI = "/latest";
-    private static final String HISTORY_URI = "/history";
-
     protected final Vertx vertx;
-    private final String requestName;
-    private final PersistenceService persistenceProxy;
     private final AbstractModel model;
+    protected final PersistenceService persistenceProxy;
 
-    public AbstractApi(Vertx vertx, PersistenceService persistenceProxy, AbstractModel model, String requestName) {
+    AbstractApi(Vertx vertx, AbstractModel model) {
         this.vertx = vertx;
-        this.persistenceProxy = persistenceProxy;
         this.model = model;
-        this.requestName = requestName;
+        this.persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
+    }
+
+    protected abstract String getRequestName();
+    protected abstract void proxyFind(RoutingContext routingContext, RequestType requestType);
+
+    private String getLatestUri() {
+        return String.format("/%s/%s", this.getRequestName(), "latest");
+    }
+
+    private String getHistoryUri() {
+        return String.format("/%s/%s", this.getRequestName(), "history");
     }
 
     private void latestCall(RoutingContext routingContext) {
-        LOG.trace("Received {} request", requestName + LATEST_URI);
-        persistenceProxy.find(model.getLatestCollection(), this.createParamsFromContext(routingContext),
-                responseHandler(routingContext, requestName + LATEST_URI));
+        LOG.trace("Received {} request", this.getLatestUri());
+        this.proxyFind(routingContext, RequestType.LATEST);
     }
 
     private void historyCall(RoutingContext routingContext) {
-        LOG.trace("Received {} request", requestName + HISTORY_URI);
-        persistenceProxy.find(model.getHistoryCollection(), this.createParamsFromContext(routingContext),
-                responseHandler(routingContext, requestName + HISTORY_URI));
+        LOG.trace("Received {} request", this.getHistoryUri());
+        this.proxyFind(routingContext, RequestType.HISTORY);
     }
 
     public Router getRoutes() {
         Router router = Router.router(vertx);
 
-        StringBuilder latestUrl = new StringBuilder(LATEST_URI);
-        StringBuilder historyUrl = new StringBuilder(HISTORY_URI);
+        StringBuilder latestUrl = new StringBuilder(this.getLatestUri());
+        StringBuilder historyUrl = new StringBuilder(this.getHistoryUri());
 
         router.get(latestUrl.toString()).handler(this::latestCall);
         router.get(historyUrl.toString()).handler(this::historyCall);
@@ -65,21 +70,20 @@ public abstract class AbstractApi {
         return router;
     }
 
-    private JsonObject createParamsFromContext(RoutingContext routingContext) {
+    JsonObject createParamsFromContext(RoutingContext routingContext) {
         final JsonObject result = new JsonObject();
-        for (Map.Entry<String, Class<?>> entry : model.getKeysDescriptor().entrySet()) {
-            String parameterName = entry.getKey();
-            String parameterValue = routingContext.request().getParam(parameterName);
-            if (parameterValue != null && !"*" .equals(parameterValue)) {
-                try {
-                    parameterValue = URLDecoder.decode(parameterValue, "UTF-8");
-                    Class<?> convertTo = entry.getValue();
-                    result.put(parameterName, convertValue(parameterValue, convertTo));
-                } catch (UnsupportedEncodingException e) {
-                    throw new AssertionError(e);
-                }
-            }
-        }
+        routingContext.request().params().entries().stream()
+                .filter(entry -> !"*".equals(entry.getValue()))
+                .forEach(entry -> {
+                    try {
+                        String parameterValue = URLDecoder.decode(entry.getValue(), "UTF-8");
+                        Class<?> convertTo = model.getKeysDescriptor().get(entry.getKey());
+                        result.put(entry.getKey(), convertValue(parameterValue, convertTo));
+                    } catch (UnsupportedEncodingException e) {
+                        throw new AssertionError(e);
+                    }
+
+                });
         return result;
     }
 
@@ -95,10 +99,10 @@ public abstract class AbstractApi {
         }
     }
 
-    private Handler<AsyncResult<String>> responseHandler(RoutingContext routingContext, String requestName) {
+    Handler<AsyncResult<String>> responseHandler(RoutingContext routingContext) {
         return ar -> {
             if (ar.succeeded()) {
-                LOG.trace("Received response {} request", requestName);
+                LOG.trace("Received response {} request", this.getRequestName());
                 routingContext.response()
                         .putHeader("content-type", "application/json; charset=utf-8")
                         .end(ar.result());

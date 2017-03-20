@@ -96,10 +96,10 @@ public class MongoPersistenceServiceIT {
         checkCollectionSize(context, latestModel.getLatestCollection(), ttsaveCount2);
 
         // Check data
-        persistenceProxy.find(historyModel.getHistoryCollection(), historyModel.getQueryParams(), context.asyncAssertSuccess(res ->
+        persistenceProxy.findAccountMargin(RequestType.HISTORY, historyModel.getQueryParams(), context.asyncAssertSuccess(res ->
                 context.assertEquals(historyModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
         ));
-        persistenceProxy.find(latestModel.getLatestCollection(), latestModel.getQueryParams(), context.asyncAssertSuccess(res ->
+        persistenceProxy.findAccountMargin(RequestType.LATEST, latestModel.getQueryParams(), context.asyncAssertSuccess(res ->
                 context.assertEquals(latestModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
         ));
     }
@@ -121,10 +121,10 @@ public class MongoPersistenceServiceIT {
         checkCollectionSize(context, latestModel.getLatestCollection(), ttsaveCount2);
 
         // Check data
-        persistenceProxy.find(historyModel.getHistoryCollection(), historyModel.getQueryParams(), context.asyncAssertSuccess(res ->
+        persistenceProxy.findLiquiGroupMargin(RequestType.HISTORY, historyModel.getQueryParams(), context.asyncAssertSuccess(res ->
                 context.assertEquals(historyModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
         ));
-        persistenceProxy.find(latestModel.getLatestCollection(), latestModel.getQueryParams(), context.asyncAssertSuccess(res ->
+        persistenceProxy.findLiquiGroupMargin(RequestType.LATEST, latestModel.getQueryParams(), context.asyncAssertSuccess(res ->
                 context.assertEquals(latestModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
         ));
     }
@@ -145,10 +145,10 @@ public class MongoPersistenceServiceIT {
         checkCollectionSize(context, latestModel.getLatestCollection(), ttsaveCount2);
 
         // Check data
-        persistenceProxy.find(historyModel.getHistoryCollection(), historyModel.getQueryParams(), context.asyncAssertSuccess(res ->
+        persistenceProxy.findLiquiGroupSplitMargin(RequestType.HISTORY, historyModel.getQueryParams(), context.asyncAssertSuccess(res ->
                 context.assertEquals(historyModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
         ));
-        persistenceProxy.find(latestModel.getLatestCollection(), latestModel.getQueryParams(), context.asyncAssertSuccess(res ->
+        persistenceProxy.findLiquiGroupSplitMargin(RequestType.LATEST, latestModel.getQueryParams(), context.asyncAssertSuccess(res ->
                 context.assertEquals(latestModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
         ));
     }
@@ -169,10 +169,10 @@ public class MongoPersistenceServiceIT {
         checkCollectionSize(context, latestModel.getLatestCollection(), ttsaveCount2);
 
         // Check data
-        persistenceProxy.find(historyModel.getHistoryCollection(), historyModel.getQueryParams(), context.asyncAssertSuccess(res ->
+        persistenceProxy.findPoolMargin(RequestType.HISTORY, historyModel.getQueryParams(), context.asyncAssertSuccess(res ->
                 context.assertEquals(historyModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
         ));
-        persistenceProxy.find(latestModel.getLatestCollection(), latestModel.getQueryParams(), context.asyncAssertSuccess(res ->
+        persistenceProxy.findPoolMargin(RequestType.LATEST, latestModel.getQueryParams(), context.asyncAssertSuccess(res ->
                 context.assertEquals(latestModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
         ));
     }
@@ -193,10 +193,10 @@ public class MongoPersistenceServiceIT {
         checkCollectionSize(context, latestModel.getLatestCollection(), ttsaveCount2);
 
         // Check data
-        persistenceProxy.find(historyModel.getHistoryCollection(), historyModel.getQueryParams(), context.asyncAssertSuccess(res ->
+        persistenceProxy.findPositionReport(RequestType.HISTORY, historyModel.getQueryParams(), context.asyncAssertSuccess(res ->
                 context.assertEquals(historyModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
         ));
-        persistenceProxy.find(latestModel.getLatestCollection(), latestModel.getQueryParams(), context.asyncAssertSuccess(res ->
+        persistenceProxy.findPositionReport(RequestType.LATEST, latestModel.getQueryParams(), context.asyncAssertSuccess(res ->
                 context.assertEquals(latestModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
         ));
     }
@@ -217,10 +217,10 @@ public class MongoPersistenceServiceIT {
         checkCollectionSize(context, latestModel.getLatestCollection(), ttsaveCount2);
 
         // Check data
-        persistenceProxy.find(historyModel.getHistoryCollection(), historyModel.getQueryParams(), context.asyncAssertSuccess(res ->
+        persistenceProxy.findRiskLimitUtilization(RequestType.HISTORY, historyModel.getQueryParams(), context.asyncAssertSuccess(res ->
                 context.assertEquals(historyModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
         ));
-        persistenceProxy.find(latestModel.getLatestCollection(), latestModel.getQueryParams(), context.asyncAssertSuccess(res ->
+        persistenceProxy.findRiskLimitUtilization(RequestType.LATEST, latestModel.getQueryParams(), context.asyncAssertSuccess(res ->
                 context.assertEquals(latestModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
         ));
     }
@@ -250,7 +250,7 @@ public class MongoPersistenceServiceIT {
         Appender<ILoggingEvent> stdout = rootLogger.getAppender("STDOUT");
         rootLogger.detachAppender(stdout);
         testAppender.start();
-        persistenceErrorProxy.find(new AccountMarginModel().getHistoryCollection(), new JsonObject(), context.asyncAssertFailure());
+        persistenceErrorProxy.findAccountMargin(RequestType.HISTORY, new JsonObject(), context.asyncAssertFailure());
         testAppender.waitForMessageContains(Level.INFO, "Back online");
         testAppender.stop();
         rootLogger.addAppender(stdout);
@@ -268,7 +268,7 @@ public class MongoPersistenceServiceIT {
         Appender<ILoggingEvent> stdout = rootLogger.getAppender("STDOUT");
         rootLogger.detachAppender(stdout);
         testAppender.start();
-        persistenceErrorProxy.find(new AccountMarginModel().getHistoryCollection(), new JsonObject(), context.asyncAssertFailure());
+        persistenceErrorProxy.findAccountMargin(RequestType.HISTORY, new JsonObject(), context.asyncAssertFailure());
         testAppender.waitForMessageContains(Level.ERROR, "Still disconnected");
         testAppender.stop();
         rootLogger.addAppender(stdout);

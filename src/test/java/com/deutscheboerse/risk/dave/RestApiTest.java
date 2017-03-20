@@ -39,7 +39,8 @@ public class RestApiTest {
     @Test
     public void testAccountMarginLatest(TestContext context) {
         JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("collection", "AccountMargin.latest")
+                .put("model", "AccountMarginModel")
+                .put("requestType", "LATEST")
                 .put("clearer", "CLEARER")
                 .put("member", "MEMBER")
                 .put("account", "ACCOUNT")
@@ -62,7 +63,8 @@ public class RestApiTest {
     @Test
     public void testAccountMarginHistory(TestContext context) {
         JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("collection", "AccountMargin")
+                .put("model", "AccountMarginModel")
+                .put("requestType", "HISTORY")
                 .put("clearer", "CLEARER")
                 .put("member", "MEMBER")
                 .put("account", "ACCOUNT")
@@ -85,7 +87,8 @@ public class RestApiTest {
     @Test
     public void testLiquiGroupMarginLatest(TestContext context) {
         JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("collection", "LiquiGroupMargin.latest")
+                .put("model", "LiquiGroupMarginModel")
+                .put("requestType", "LATEST")
                 .put("clearer", "CLEARER")
                 .put("member", "MEMBER")
                 .put("account", "ACCOUNT")
@@ -109,7 +112,8 @@ public class RestApiTest {
     @Test
     public void testLiquiGroupMarginHistory(TestContext context) {
         JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("collection", "LiquiGroupMargin")
+                .put("model", "LiquiGroupMarginModel")
+                .put("requestType", "HISTORY")
                 .put("clearer", "CLEARER")
                 .put("member", "MEMBER")
                 .put("account", "ACCOUNT")
@@ -133,7 +137,8 @@ public class RestApiTest {
     @Test
     public void testLiquiGroupSplitMarginLatest(TestContext context) {
         JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("collection", "LiquiGroupSplitMargin.latest")
+                .put("model", "LiquiGroupSplitMarginModel")
+                .put("requestType", "LATEST")
                 .put("clearer", "CLEARER")
                 .put("member", "MEMBER")
                 .put("account", "ACCOUNT")
@@ -158,7 +163,8 @@ public class RestApiTest {
     @Test
     public void testLiquiGroupSplitMarginHistory(TestContext context) {
         JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("collection", "LiquiGroupSplitMargin")
+                .put("model", "LiquiGroupSplitMarginModel")
+                .put("requestType", "HISTORY")
                 .put("clearer", "CLEARER")
                 .put("member", "MEMBER")
                 .put("account", "ACCOUNT")
@@ -183,7 +189,8 @@ public class RestApiTest {
     @Test
     public void testPoolMarginLatest(TestContext context) {
         JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("collection", "PoolMargin.latest")
+                .put("model", "PoolMarginModel")
+                .put("requestType", "LATEST")
                 .put("clearer", "CLEARER")
                 .put("pool", "POOL")
                 .put("marginCurrency", "CURRENCY")
@@ -205,7 +212,8 @@ public class RestApiTest {
     @Test
     public void testPoolMarginHistory(TestContext context) {
         JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("collection", "PoolMargin")
+                .put("model", "PoolMarginModel")
+                .put("requestType", "HISTORY")
                 .put("clearer", "CLEARER")
                 .put("pool", "POOL")
                 .put("marginCurrency", "CURRENCY")
@@ -228,7 +236,8 @@ public class RestApiTest {
     public void testPositionReportLatest(TestContext context) {
 
         JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("collection", "PositionReport.latest")
+                .put("model", "PositionReportModel")
+                .put("requestType", "LATEST")
                 .put("clearer", "CLEARER")
                 .put("member", "MEMBER")
                 .put("account", "ACCOUNT")
@@ -261,7 +270,8 @@ public class RestApiTest {
     @Test
     public void testPositionReportHistory(TestContext context) {
         JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("collection", "PositionReport")
+                .put("model", "PositionReportModel")
+                .put("requestType", "HISTORY")
                 .put("clearer", "CLEARER")
                 .put("member", "MEMBER")
                 .put("account", "ACCOUNT")
@@ -294,7 +304,8 @@ public class RestApiTest {
     @Test
     public void testRiskLimitUtilizationLatest(TestContext context) {
         JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("collection", "RiskLimitUtilization.latest")
+                .put("model", "RiskLimitUtilizationModel")
+                .put("requestType", "LATEST")
                 .put("clearer", "CLEARER")
                 .put("member", "MEMBER")
                 .put("maintainer", "MAINTAINER")
@@ -317,7 +328,8 @@ public class RestApiTest {
     @Test
     public void testRiskLimitUtilizationHistory(TestContext context) {
         JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("collection", "RiskLimitUtilization")
+                .put("model", "RiskLimitUtilizationModel")
+                .put("requestType", "HISTORY")
                 .put("clearer", "CLEARER")
                 .put("member", "MEMBER")
                 .put("maintainer", "MAINTAINER")
@@ -340,7 +352,8 @@ public class RestApiTest {
     @Test
     public void testIncompleteUrl(TestContext context) {
         JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("collection", "PositionReport.latest")
+                .put("model", "PositionReportModel")
+                .put("requestType", "LATEST")
                 .put("clearer", "CLEARER")
                 .put("member", "MEMBER")
                 .put("account", "ACCOUNT")
@@ -362,7 +375,8 @@ public class RestApiTest {
     @Test
     public void testStars(TestContext context) {
         JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("collection", "PositionReport.latest")
+                .put("model", "PositionReportModel")
+                .put("requestType", "LATEST")
                 .put("clearer", "CLEARER")
                 .put("contractYear", 2016)
         );

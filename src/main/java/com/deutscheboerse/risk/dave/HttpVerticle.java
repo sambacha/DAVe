@@ -1,7 +1,6 @@
 package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
-import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.restapi.margin.*;
 import com.deutscheboerse.risk.dave.restapi.user.UserApi;
 import io.vertx.core.AbstractVerticle;
@@ -24,7 +23,6 @@ import io.vertx.ext.healthchecks.Status;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.*;
-import io.vertx.serviceproxy.ProxyHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +69,6 @@ public class HttpVerticle extends AbstractVerticle
     private HttpServer server;
     private Mode operationMode;
     private HealthCheck healthCheck;
-    private PersistenceService persistenceProxy;
 
     @Override
     public void start(Future<Void> startFuture) throws Exception
@@ -79,7 +76,6 @@ public class HttpVerticle extends AbstractVerticle
         LOG.info("Starting {} with configuration: {}", HttpVerticle.class.getSimpleName(), config().encodePrettily());
 
         healthCheck = new HealthCheck(this.vertx);
-        persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
 
         if (config().getJsonObject("ssl", new JsonObject()).getBoolean(ENABLE_KEY, DEFAULT_SSL)) {
             this.operationMode = Mode.HTTPS;
@@ -209,12 +205,12 @@ public class HttpVerticle extends AbstractVerticle
         router.get(REST_READINESS).handler(readinessHandler);
         router.route("/api/v1.0/*").handler(BodyHandler.create());
         router.mountSubRouter("/api/v1.0/user", userApi.getRoutes());
-        router.mountSubRouter("/api/v1.0/am", new AccountMarginApi(vertx, persistenceProxy).getRoutes());
-        router.mountSubRouter("/api/v1.0/lgm", new LiquiGroupMarginApi(vertx, persistenceProxy).getRoutes());
-        router.mountSubRouter("/api/v1.0/lgsm", new LiquiGroupSplitMarginApi(vertx, persistenceProxy).getRoutes());
-        router.mountSubRouter("/api/v1.0/pm", new PoolMarginApi(vertx, persistenceProxy).getRoutes());
-        router.mountSubRouter("/api/v1.0/pr", new PositionReportApi(vertx, persistenceProxy).getRoutes());
-        router.mountSubRouter("/api/v1.0/rlu", new RiskLimitUtilizationApi(vertx, persistenceProxy).getRoutes());
+        router.mountSubRouter("/api/v1.0", new AccountMarginApi(vertx).getRoutes());
+        router.mountSubRouter("/api/v1.0", new LiquiGroupMarginApi(vertx).getRoutes());
+        router.mountSubRouter("/api/v1.0", new LiquiGroupSplitMarginApi(vertx).getRoutes());
+        router.mountSubRouter("/api/v1.0", new PoolMarginApi(vertx).getRoutes());
+        router.mountSubRouter("/api/v1.0", new PositionReportApi(vertx).getRoutes());
+        router.mountSubRouter("/api/v1.0", new RiskLimitUtilizationApi(vertx).getRoutes());
 
         return router;
     }
