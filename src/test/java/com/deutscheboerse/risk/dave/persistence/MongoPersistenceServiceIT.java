@@ -15,6 +15,7 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.serviceproxy.ProxyHelper;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -307,6 +308,11 @@ public class MongoPersistenceServiceIT {
             }
         });
         asyncHistoryCount.awaitSuccess(5000);
+    }
+
+    @After
+    public void cleanup() {
+        testAppender.clear();
     }
 
     @AfterClass
