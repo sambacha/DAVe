@@ -35,44 +35,20 @@ public class TestAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
         }
     }
 
-    public ILoggingEvent getLastMessage(Level level) throws InterruptedException {
-        synchronized(this) {
-            while (this.getList(level).isEmpty()) {
-                this.wait(5000);
-            }
-            return this.getList(level).get(this.getList(level).size() - 1);
+    public synchronized void waitForMessageContains(Level level, String message) throws InterruptedException {
+        while (!findHelper(level, message).isPresent()) {
+            this.wait(5000);
         }
     }
 
-    public void waitForMessageCount(Level level, int count) throws InterruptedException {
-        synchronized(this) {
-            while (this.getList(level).size() < count) {
-                this.wait(5000);
-            }
-        }
-    }
-
-    public void waitForMessageContains(Level level, String message) throws InterruptedException {
-        synchronized(this) {
-            while (!findHelper(level, message).isPresent()) {
-                this.wait(5000);
-            }
-        }
-    }
-
-    public Optional<ILoggingEvent> findMessage(Level level, String message) {
-        synchronized(this) {
-            return findHelper(level, message);
-        }
+    public synchronized Optional<ILoggingEvent> findMessage(Level level, String message) {
+        return findHelper(level, message);
     }
 
     private Optional<ILoggingEvent> findHelper(Level level, String message) {
-        for (ILoggingEvent event : this.getList(level)) {
-            if (event.getFormattedMessage().replace("\n", "").contains(message)) {
-                return Optional.of(event);
-            }
-        }
-        return Optional.empty();
+        return this.getList(level).stream()
+                .filter(event -> event.getFormattedMessage().replace("\n", "").contains(message))
+                .findFirst();
     }
 
     private List<ILoggingEvent> getList(Level level) {
