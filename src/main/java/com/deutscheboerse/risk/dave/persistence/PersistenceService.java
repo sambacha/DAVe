@@ -23,9 +23,6 @@ public interface PersistenceService {
     void findPositionReport(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler);
     void findRiskLimitUtilization(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler);
 
-    void insert(String collection, JsonObject document, Handler<AsyncResult<String>> resultHandler);
-    void upsert(String collection, JsonObject query, JsonObject document, Handler<AsyncResult<String>> resultHandler);
-
     @ProxyClose
     void close();
 }

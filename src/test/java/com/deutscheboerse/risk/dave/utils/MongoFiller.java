@@ -1,10 +1,12 @@
 package com.deutscheboerse.risk.dave.utils;
 
 import com.deutscheboerse.risk.dave.model.*;
-import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.mongo.MongoClient;
+import io.vertx.ext.mongo.MongoClientUpdateResult;
+import io.vertx.ext.mongo.UpdateOptions;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 
@@ -13,13 +15,13 @@ import java.util.function.Function;
 
 public class MongoFiller {
     private final TestContext context;
-    private final PersistenceService proxy;
+    private final MongoClient mongoClient;
 
     private AbstractModel lastModel;
 
-    public MongoFiller(TestContext context, PersistenceService proxy) {
+    public MongoFiller(TestContext context, MongoClient mongoClient) {
         this.context = context;
-        this.proxy = proxy;
+        this.mongoClient = mongoClient;
     }
 
     public int feedAccountMarginCollection(int ttsaveNo, int timeoutMillis) {
@@ -69,9 +71,11 @@ public class MongoFiller {
         return msgCount;
     }
 
-    private void insertModel(AbstractModel model, Handler<AsyncResult<String>> handler) {
-        proxy.insert(model.getHistoryCollection(), model.getMongoDocument(), res ->
-             proxy.upsert(model.getLatestCollection(), model.getQueryParams(), model.getMongoDocument(), handler));
+    private void insertModel(AbstractModel model, Handler<AsyncResult<MongoClientUpdateResult>> handler) {
+        UpdateOptions updateOptions = new UpdateOptions().setUpsert(true);
+
+        mongoClient.insert(model.getHistoryCollection(), model.getMongoDocument(), res ->
+             mongoClient.replaceDocumentsWithOptions(model.getLatestCollection(), model.getQueryParams(), model.getMongoDocument(), updateOptions, handler));
 
         lastModel = model;
     }

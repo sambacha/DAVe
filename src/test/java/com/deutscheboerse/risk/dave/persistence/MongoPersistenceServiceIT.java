@@ -82,7 +82,7 @@ public class MongoPersistenceServiceIT {
 
     @Test
     public void testAccountMargin(TestContext context) throws InterruptedException {
-        MongoFiller mongoFiller = new MongoFiller(context, persistenceProxy);
+        MongoFiller mongoFiller = new MongoFiller(context, mongoClient);
 
         // Feed the data into the store
         int ttsaveCount1 = mongoFiller.feedAccountMarginCollection(1, 30000);
@@ -107,7 +107,7 @@ public class MongoPersistenceServiceIT {
 
     @Test
     public void testLiquiGroupMargin(TestContext context) throws InterruptedException {
-        MongoFiller mongoFiller = new MongoFiller(context, persistenceProxy);
+        MongoFiller mongoFiller = new MongoFiller(context, mongoClient);
 
         // Feed the data into the store
         int ttsaveCount1 = mongoFiller.feedLiquiGroupMarginCollection(1, 30000);
@@ -131,7 +131,7 @@ public class MongoPersistenceServiceIT {
 
     @Test
     public void testLiquiGroupSplitMargin(TestContext context) throws InterruptedException {
-        MongoFiller mongoFiller = new MongoFiller(context, persistenceProxy);
+        MongoFiller mongoFiller = new MongoFiller(context, mongoClient);
 
         // Feed the data into the store
         int ttsaveCount1 = mongoFiller.feedLiquiGroupSplitMarginCollection(1, 30000);
@@ -155,7 +155,7 @@ public class MongoPersistenceServiceIT {
 
     @Test
     public void testPoolMargin(TestContext context) throws InterruptedException {
-        MongoFiller mongoFiller = new MongoFiller(context, persistenceProxy);
+        MongoFiller mongoFiller = new MongoFiller(context, mongoClient);
 
         // Feed the data into the store
         int ttsaveCount1 = mongoFiller.feedPoolMarginCollection(1, 30000);
@@ -179,7 +179,7 @@ public class MongoPersistenceServiceIT {
 
     @Test
     public void testPositionReportMargin(TestContext context) throws InterruptedException {
-        MongoFiller mongoFiller = new MongoFiller(context, persistenceProxy);
+        MongoFiller mongoFiller = new MongoFiller(context, mongoClient);
 
         // Feed the data into the store
         int ttsaveCount1 = mongoFiller.feedPositionReportCollection(1, 30000);
@@ -203,7 +203,7 @@ public class MongoPersistenceServiceIT {
 
     @Test
     public void testRiskLimitUtilization(TestContext context) throws InterruptedException {
-        MongoFiller mongoFiller = new MongoFiller(context, persistenceProxy);
+        MongoFiller mongoFiller = new MongoFiller(context, mongoClient);
 
         // Feed the data into the store
         int ttsaveCount1 = mongoFiller.feedRiskLimitUtilizationCollection(1, 30000);

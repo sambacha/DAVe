@@ -132,20 +132,6 @@ public class MongoPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void insert(String collection, JsonObject document, Handler<AsyncResult<String>> resultHandler) {
-        mongo.insert(collection, document, resultHandler);
-    }
-
-    @Override
-    public void upsert(String collection, JsonObject query, JsonObject document, Handler<AsyncResult<String>> resultHandler) {
-        Future<MongoClientUpdateResult> upsertFuture = Future.future();
-        mongo.replaceDocumentsWithOptions(collection, query, document,
-                new UpdateOptions().setUpsert(true), upsertFuture);
-
-        upsertFuture.map(res -> res.toJson().toString()).setHandler(resultHandler);
-    }
-
-    @Override
     public void close() {
         this.closed = true;
         this.mongo.close();

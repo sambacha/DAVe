@@ -56,16 +56,6 @@ public class InitPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void insert(String collection, JsonObject document, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "Insert is not implemented"));
-    }
-
-    @Override
-    public void upsert(String collection, JsonObject query, JsonObject document, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "Upsert is not implemented"));
-    }
-
-    @Override
     public void close() {
     }
 

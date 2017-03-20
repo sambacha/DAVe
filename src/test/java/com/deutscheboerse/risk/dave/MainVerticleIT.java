@@ -1,16 +1,15 @@
 package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.model.PositionReportModel;
-import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.utils.MongoFiller;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.serviceproxy.ProxyHelper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,14 +32,26 @@ public class MainVerticleIT {
     public void testPositionReport(TestContext context) throws InterruptedException, UnsupportedEncodingException {
         DeploymentOptions options = getDeploymentOptions();
 
-        vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertSuccess());
-        PersistenceService persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
+        // Create mongo client
+        JsonObject mongoConfig = options.getConfig().getJsonObject("mongodb");
+        JsonObject mongoClientConfig = new JsonObject()
+            .put("db_name", mongoConfig.getString("dbName"))
+            .put("connection_string", mongoConfig.getString("connectionUrl"));
 
-        MongoFiller mongoFiller = new MongoFiller(context, persistenceProxy);
+        MongoClient mongoClient = MongoClient.createShared(this.vertx, mongoClientConfig);
+        MongoFiller mongoFiller = new MongoFiller(context, mongoClient);
 
         // Feed the data into the store
         mongoFiller.feedPositionReportCollection(1, 30000);
         PositionReportModel latestModel = (PositionReportModel)mongoFiller.getLastModel().orElse(new PositionReportModel());
+
+        mongoClient.close();
+
+        // Deploy MainVerticle
+        final Async deployAsync = context.async();
+        vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertSuccess(res -> deployAsync.complete()));
+
+        deployAsync.awaitSuccess(30000);
 
         StringBuilder url = new StringBuilder("/api/v1.0/pr/latest");
 

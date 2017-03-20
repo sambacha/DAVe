@@ -46,25 +46,9 @@ public class EchoPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void insert(String collection, JsonObject document, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(Future.succeededFuture(echoResponse(collection, document)));
-    }
-
-    @Override
-    public void upsert(String collection, JsonObject query, JsonObject document, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(Future.succeededFuture(echoResponse(collection, document)));
-    }
-
-    @Override
     public void close() {
 
     }
-
-    private String echoResponse(String collection, JsonObject query) {
-        return Json.encodePrettily(new JsonArray().add(
-                new JsonObject().put("collection", collection).mergeIn(query)));
-    }
-
 
     private String echoResponse(String model, String requestType, JsonObject query) {
         return Json.encodePrettily(new JsonArray().add(
