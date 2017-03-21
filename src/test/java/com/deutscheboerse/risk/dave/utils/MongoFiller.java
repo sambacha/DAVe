@@ -1,7 +1,10 @@
 package com.deutscheboerse.risk.dave.utils;
 
 import com.deutscheboerse.risk.dave.model.*;
+import com.deutscheboerse.risk.dave.persistence.MongoPersistenceService;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
@@ -10,6 +13,8 @@ import io.vertx.ext.mongo.UpdateOptions;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -18,6 +23,24 @@ public class MongoFiller {
     private final MongoClient mongoClient;
 
     private AbstractModel lastModel;
+    private static final Map<Class<? extends AbstractModel>, String> latestCollectionsForModel = new HashMap<>();
+    private static final Map<Class<? extends AbstractModel>, String> historyCollectionsForModel = new HashMap<>();
+
+    static {
+        latestCollectionsForModel.put(AccountMarginModel.class, MongoPersistenceService.ACCOUNT_MARGIN_LATEST_COLLECTION);
+        latestCollectionsForModel.put(LiquiGroupMarginModel.class, MongoPersistenceService.LIQUI_GROUP_MARGIN_LATEST_COLLECTION);
+        latestCollectionsForModel.put(LiquiGroupSplitMarginModel.class, MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION);
+        latestCollectionsForModel.put(PoolMarginModel.class, MongoPersistenceService.POOL_MARGIN_LATEST_COLLECTION);
+        latestCollectionsForModel.put(PositionReportModel.class, MongoPersistenceService.POSITION_REPORT_LATEST_COLLECTION);
+        latestCollectionsForModel.put(RiskLimitUtilizationModel.class, MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION);
+
+        historyCollectionsForModel.put(AccountMarginModel.class, MongoPersistenceService.ACCOUNT_MARGIN_HISTORY_COLLECTION);
+        historyCollectionsForModel.put(LiquiGroupMarginModel.class, MongoPersistenceService.LIQUI_GROUP_MARGIN_HISTORY_COLLECTION);
+        historyCollectionsForModel.put(LiquiGroupSplitMarginModel.class, MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION);
+        historyCollectionsForModel.put(PoolMarginModel.class, MongoPersistenceService.POOL_MARGIN_HISTORY_COLLECTION);
+        historyCollectionsForModel.put(PositionReportModel.class, MongoPersistenceService.POSITION_REPORT_HISTORY_COLLECTION);
+        historyCollectionsForModel.put(RiskLimitUtilizationModel.class, MongoPersistenceService.RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION);
+    }
 
     public MongoFiller(TestContext context, MongoClient mongoClient) {
         this.context = context;
@@ -71,12 +94,28 @@ public class MongoFiller {
         return msgCount;
     }
 
-    private void insertModel(AbstractModel model, Handler<AsyncResult<MongoClientUpdateResult>> handler) {
+    private void insertModel(AbstractModel model, Handler<AsyncResult<String>> handler) {
+        Future<String> insertFuture = Future.future();
+        Future<MongoClientUpdateResult> upsertFuture = Future.future();
+        mongoClient.insert(MongoFiller.getHistoryCollectionForModel(model), DataHelper.getMongoDocument(model), insertFuture);
         UpdateOptions updateOptions = new UpdateOptions().setUpsert(true);
-
-        mongoClient.insert(model.getHistoryCollection(), model.getMongoDocument(), res ->
-             mongoClient.replaceDocumentsWithOptions(model.getLatestCollection(), model.getQueryParams(), model.getMongoDocument(), updateOptions, handler));
-
-        lastModel = model;
+        mongoClient.replaceDocumentsWithOptions(MongoFiller.getLatestCollectionForModel(model), DataHelper.getQueryParams(model), DataHelper.getMongoDocument(model), updateOptions, upsertFuture);
+        CompositeFuture.all(insertFuture, upsertFuture).setHandler(res -> {
+            if (res.succeeded()) {
+                lastModel = model;
+                handler.handle(Future.succeededFuture());
+            } else {
+                handler.handle(Future.failedFuture(res.cause()));
+            }
+        });
     }
+
+    public static String getLatestCollectionForModel(AbstractModel model) {
+        return MongoFiller.latestCollectionsForModel.get(model.getClass());
+    }
+
+    public static String getHistoryCollectionForModel(AbstractModel model) {
+        return MongoFiller.historyCollectionsForModel.get(model.getClass());
+    }
+
 }

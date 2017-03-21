@@ -6,12 +6,12 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import com.deutscheboerse.risk.dave.log.TestAppender;
 import com.deutscheboerse.risk.dave.model.*;
+import com.deutscheboerse.risk.dave.utils.DataHelper;
 import com.deutscheboerse.risk.dave.utils.MongoFiller;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
-import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.serviceproxy.ProxyHelper;
@@ -21,8 +21,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @RunWith(VertxUnitRunner.class)
@@ -51,56 +49,22 @@ public class MongoPersistenceServiceIT {
     }
 
     @Test
-    public void checkCollectionsExist(TestContext context) {
-        List<String> requiredCollections = new ArrayList<>();
-        requiredCollections.add("AccountMargin");
-        requiredCollections.add("AccountMargin.latest");
-        requiredCollections.add("LiquiGroupMargin");
-        requiredCollections.add("LiquiGroupMargin.latest");
-        requiredCollections.add("LiquiGroupSplitMargin");
-        requiredCollections.add("LiquiGroupSplitMargin.latest");
-        requiredCollections.add("PoolMargin");
-        requiredCollections.add("PoolMargin.latest");
-        requiredCollections.add("PositionReport");
-        requiredCollections.add("PositionReport.latest");
-        requiredCollections.add("RiskLimitUtilization");
-        requiredCollections.add("RiskLimitUtilization.latest");
-        final Async async = context.async();
-        MongoPersistenceServiceIT.mongoClient.getCollections(ar -> {
-            if (ar.succeeded()) {
-                if (ar.result().containsAll(requiredCollections)) {
-                    async.complete();
-                } else {
-                    requiredCollections.removeAll(ar.result());
-                    context.fail("Following collections were not created: " + requiredCollections);
-                }
-            } else {
-                context.fail(ar.cause());
-            }
-        });
-    }
-
-    @Test
     public void testAccountMargin(TestContext context) throws InterruptedException {
         MongoFiller mongoFiller = new MongoFiller(context, mongoClient);
 
         // Feed the data into the store
-        int ttsaveCount1 = mongoFiller.feedAccountMarginCollection(1, 30000);
+        mongoFiller.feedAccountMarginCollection(1, 30000);
         AccountMarginModel historyModel = (AccountMarginModel)mongoFiller.getLastModel().orElse(new AccountMarginModel());
 
-        int ttsaveCount2 = mongoFiller.feedAccountMarginCollection(2, 30000);
+        mongoFiller.feedAccountMarginCollection(2, 30000);
         AccountMarginModel latestModel = (AccountMarginModel)mongoFiller.getLastModel().orElse(new AccountMarginModel());
 
-        // Check size of collections
-        checkCollectionSize(context, historyModel.getHistoryCollection(), ttsaveCount1 + ttsaveCount2);
-        checkCollectionSize(context, latestModel.getLatestCollection(), ttsaveCount2);
-
         // Check data
-        persistenceProxy.findAccountMargin(RequestType.HISTORY, historyModel.getQueryParams(), context.asyncAssertSuccess(res ->
-                context.assertEquals(historyModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
+        persistenceProxy.findAccountMargin(RequestType.HISTORY, DataHelper.getQueryParams(historyModel), context.asyncAssertSuccess(res ->
+                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(historyModel), new JsonArray(res).getJsonObject(0))
         ));
-        persistenceProxy.findAccountMargin(RequestType.LATEST, latestModel.getQueryParams(), context.asyncAssertSuccess(res ->
-                context.assertEquals(latestModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
+        persistenceProxy.findAccountMargin(RequestType.LATEST, DataHelper.getQueryParams(latestModel), context.asyncAssertSuccess(res ->
+                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(latestModel), new JsonArray(res).getJsonObject(0))
         ));
     }
 
@@ -110,22 +74,18 @@ public class MongoPersistenceServiceIT {
         MongoFiller mongoFiller = new MongoFiller(context, mongoClient);
 
         // Feed the data into the store
-        int ttsaveCount1 = mongoFiller.feedLiquiGroupMarginCollection(1, 30000);
+        mongoFiller.feedLiquiGroupMarginCollection(1, 30000);
         LiquiGroupMarginModel historyModel = (LiquiGroupMarginModel)mongoFiller.getLastModel().orElse(new LiquiGroupMarginModel());
 
-        int ttsaveCount2 = mongoFiller.feedLiquiGroupMarginCollection(2, 30000);
+        mongoFiller.feedLiquiGroupMarginCollection(2, 30000);
         LiquiGroupMarginModel latestModel = (LiquiGroupMarginModel)mongoFiller.getLastModel().orElse(new LiquiGroupMarginModel());
 
-        // Check size of collections
-        checkCollectionSize(context, historyModel.getHistoryCollection(), ttsaveCount1 + ttsaveCount2);
-        checkCollectionSize(context, latestModel.getLatestCollection(), ttsaveCount2);
-
         // Check data
-        persistenceProxy.findLiquiGroupMargin(RequestType.HISTORY, historyModel.getQueryParams(), context.asyncAssertSuccess(res ->
-                context.assertEquals(historyModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
+        persistenceProxy.findLiquiGroupMargin(RequestType.HISTORY, DataHelper.getQueryParams(historyModel), context.asyncAssertSuccess(res ->
+                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(historyModel), new JsonArray(res).getJsonObject(0))
         ));
-        persistenceProxy.findLiquiGroupMargin(RequestType.LATEST, latestModel.getQueryParams(), context.asyncAssertSuccess(res ->
-                context.assertEquals(latestModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
+        persistenceProxy.findLiquiGroupMargin(RequestType.LATEST, DataHelper.getQueryParams(latestModel), context.asyncAssertSuccess(res ->
+                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(latestModel), new JsonArray(res).getJsonObject(0))
         ));
     }
 
@@ -134,22 +94,18 @@ public class MongoPersistenceServiceIT {
         MongoFiller mongoFiller = new MongoFiller(context, mongoClient);
 
         // Feed the data into the store
-        int ttsaveCount1 = mongoFiller.feedLiquiGroupSplitMarginCollection(1, 30000);
+        mongoFiller.feedLiquiGroupSplitMarginCollection(1, 30000);
         LiquiGroupSplitMarginModel historyModel = (LiquiGroupSplitMarginModel)mongoFiller.getLastModel().orElse(new LiquiGroupSplitMarginModel());
 
-        int ttsaveCount2 = mongoFiller.feedLiquiGroupSplitMarginCollection(2, 30000);
+        mongoFiller.feedLiquiGroupSplitMarginCollection(2, 30000);
         LiquiGroupSplitMarginModel latestModel = (LiquiGroupSplitMarginModel)mongoFiller.getLastModel().orElse(new LiquiGroupSplitMarginModel());
 
-        // Check size of collections
-        checkCollectionSize(context, historyModel.getHistoryCollection(), ttsaveCount1 + ttsaveCount2);
-        checkCollectionSize(context, latestModel.getLatestCollection(), ttsaveCount2);
-
         // Check data
-        persistenceProxy.findLiquiGroupSplitMargin(RequestType.HISTORY, historyModel.getQueryParams(), context.asyncAssertSuccess(res ->
-                context.assertEquals(historyModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
+        persistenceProxy.findLiquiGroupSplitMargin(RequestType.HISTORY, DataHelper.getQueryParams(historyModel), context.asyncAssertSuccess(res ->
+                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(historyModel), new JsonArray(res).getJsonObject(0))
         ));
-        persistenceProxy.findLiquiGroupSplitMargin(RequestType.LATEST, latestModel.getQueryParams(), context.asyncAssertSuccess(res ->
-                context.assertEquals(latestModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
+        persistenceProxy.findLiquiGroupSplitMargin(RequestType.LATEST, DataHelper.getQueryParams(latestModel), context.asyncAssertSuccess(res ->
+                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(latestModel), new JsonArray(res).getJsonObject(0))
         ));
     }
 
@@ -158,22 +114,18 @@ public class MongoPersistenceServiceIT {
         MongoFiller mongoFiller = new MongoFiller(context, mongoClient);
 
         // Feed the data into the store
-        int ttsaveCount1 = mongoFiller.feedPoolMarginCollection(1, 30000);
+        mongoFiller.feedPoolMarginCollection(1, 30000);
         PoolMarginModel historyModel = (PoolMarginModel)mongoFiller.getLastModel().orElse(new PoolMarginModel());
 
-        int ttsaveCount2 = mongoFiller.feedPoolMarginCollection(2, 30000);
+        mongoFiller.feedPoolMarginCollection(2, 30000);
         PoolMarginModel latestModel = (PoolMarginModel)mongoFiller.getLastModel().orElse(new PoolMarginModel());
 
-        // Check size of collections
-        checkCollectionSize(context, historyModel.getHistoryCollection(), ttsaveCount1 + ttsaveCount2);
-        checkCollectionSize(context, latestModel.getLatestCollection(), ttsaveCount2);
-
         // Check data
-        persistenceProxy.findPoolMargin(RequestType.HISTORY, historyModel.getQueryParams(), context.asyncAssertSuccess(res ->
-                context.assertEquals(historyModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
+        persistenceProxy.findPoolMargin(RequestType.HISTORY, DataHelper.getQueryParams(historyModel), context.asyncAssertSuccess(res ->
+                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(historyModel), new JsonArray(res).getJsonObject(0))
         ));
-        persistenceProxy.findPoolMargin(RequestType.LATEST, latestModel.getQueryParams(), context.asyncAssertSuccess(res ->
-                context.assertEquals(latestModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
+        persistenceProxy.findPoolMargin(RequestType.LATEST, DataHelper.getQueryParams(latestModel), context.asyncAssertSuccess(res ->
+                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(latestModel), new JsonArray(res).getJsonObject(0))
         ));
     }
 
@@ -182,22 +134,18 @@ public class MongoPersistenceServiceIT {
         MongoFiller mongoFiller = new MongoFiller(context, mongoClient);
 
         // Feed the data into the store
-        int ttsaveCount1 = mongoFiller.feedPositionReportCollection(1, 30000);
+        mongoFiller.feedPositionReportCollection(1, 30000);
         PositionReportModel historyModel = (PositionReportModel)mongoFiller.getLastModel().orElse(new PositionReportModel());
 
-        int ttsaveCount2 = mongoFiller.feedPositionReportCollection(2, 30000);
+        mongoFiller.feedPositionReportCollection(2, 30000);
         PositionReportModel latestModel = (PositionReportModel)mongoFiller.getLastModel().orElse(new PositionReportModel());
 
-        // Check size of collections
-        checkCollectionSize(context, historyModel.getHistoryCollection(), ttsaveCount1 + ttsaveCount2);
-        checkCollectionSize(context, latestModel.getLatestCollection(), ttsaveCount2);
-
         // Check data
-        persistenceProxy.findPositionReport(RequestType.HISTORY, historyModel.getQueryParams(), context.asyncAssertSuccess(res ->
-                context.assertEquals(historyModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
+        persistenceProxy.findPositionReport(RequestType.HISTORY, DataHelper.getQueryParams(historyModel), context.asyncAssertSuccess(res ->
+                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(historyModel), new JsonArray(res).getJsonObject(0))
         ));
-        persistenceProxy.findPositionReport(RequestType.LATEST, latestModel.getQueryParams(), context.asyncAssertSuccess(res ->
-                context.assertEquals(latestModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
+        persistenceProxy.findPositionReport(RequestType.LATEST, DataHelper.getQueryParams(latestModel), context.asyncAssertSuccess(res ->
+                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(latestModel), new JsonArray(res).getJsonObject(0))
         ));
     }
 
@@ -206,38 +154,19 @@ public class MongoPersistenceServiceIT {
         MongoFiller mongoFiller = new MongoFiller(context, mongoClient);
 
         // Feed the data into the store
-        int ttsaveCount1 = mongoFiller.feedRiskLimitUtilizationCollection(1, 30000);
+        mongoFiller.feedRiskLimitUtilizationCollection(1, 30000);
         RiskLimitUtilizationModel historyModel = (RiskLimitUtilizationModel)mongoFiller.getLastModel().orElse(new RiskLimitUtilizationModel());
 
-        int ttsaveCount2 = mongoFiller.feedRiskLimitUtilizationCollection(2, 30000);
+        mongoFiller.feedRiskLimitUtilizationCollection(2, 30000);
         RiskLimitUtilizationModel latestModel = (RiskLimitUtilizationModel)mongoFiller.getLastModel().orElse(new RiskLimitUtilizationModel());
 
-        // Check size of collections
-        checkCollectionSize(context, historyModel.getHistoryCollection(), ttsaveCount1 + ttsaveCount2);
-        checkCollectionSize(context, latestModel.getLatestCollection(), ttsaveCount2);
-
         // Check data
-        persistenceProxy.findRiskLimitUtilization(RequestType.HISTORY, historyModel.getQueryParams(), context.asyncAssertSuccess(res ->
-                context.assertEquals(historyModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
+        persistenceProxy.findRiskLimitUtilization(RequestType.HISTORY, DataHelper.getQueryParams(historyModel), context.asyncAssertSuccess(res ->
+                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(historyModel), new JsonArray(res).getJsonObject(0))
         ));
-        persistenceProxy.findRiskLimitUtilization(RequestType.LATEST, latestModel.getQueryParams(), context.asyncAssertSuccess(res ->
-                context.assertEquals(latestModel.getMongoDocument(), new JsonArray(res).getJsonObject(0))
+        persistenceProxy.findRiskLimitUtilization(RequestType.LATEST, DataHelper.getQueryParams(latestModel), context.asyncAssertSuccess(res ->
+                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(latestModel), new JsonArray(res).getJsonObject(0))
         ));
-    }
-
-    @Test
-    public void testGetCollectionsError(TestContext context) throws InterruptedException {
-        this.testErrorInInitialize(context, "getCollections", "Failed to get collection list");
-    }
-
-    @Test
-    public void testCreateCollectionError(TestContext context) throws InterruptedException {
-        this.testErrorInInitialize(context, "createCollection", "Failed to add all collections");
-    }
-
-    @Test
-    public void testCreateIndexWithOptionsError(TestContext context) throws InterruptedException {
-        this.testErrorInInitialize(context, "createIndexWithOptions", "Failed to create all needed indexes in Mongo");
     }
 
     @Test
@@ -276,19 +205,6 @@ public class MongoPersistenceServiceIT {
         persistenceErrorProxy.close();
     }
 
-    private void testErrorInInitialize(TestContext context, String functionToFail, String expectedErrorMessage) throws InterruptedException {
-        JsonObject proxyConfig = new JsonObject().put("functionsToFail", new JsonArray().add(functionToFail));
-        final PersistenceService persistenceErrorProxy = getPersistenceErrorProxy(proxyConfig);
-
-        testAppender.start();
-        persistenceErrorProxy.initialize(context.asyncAssertSuccess());
-        testAppender.waitForMessageContains(Level.ERROR, expectedErrorMessage);
-        testAppender.waitForMessageContains(Level.ERROR, "Initialize failed, trying again...");
-        testAppender.stop();
-
-        persistenceErrorProxy.close();
-    }
-
     private PersistenceService getPersistenceErrorProxy(JsonObject config) {
         MongoErrorClient mongoErrorClient = new MongoErrorClient(config);
 
@@ -296,17 +212,8 @@ public class MongoPersistenceServiceIT {
         return ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS+"Error");
     }
 
-    private void checkCollectionSize(TestContext context, String collection, long count) {
-        Async asyncHistoryCount = context.async();
-        MongoPersistenceServiceIT.mongoClient.count(collection, new JsonObject(), ar -> {
-            if (ar.succeeded()) {
-                context.assertEquals(count, ar.result());
-                asyncHistoryCount.complete();
-            } else {
-                context.fail(ar.cause());
-            }
-        });
-        asyncHistoryCount.awaitSuccess(5000);
+    private void assertDocumentsEquals(TestContext context, JsonObject expected, JsonObject document) {
+        context.assertEquals(expected.remove("_id"), document.remove("id"));
     }
 
     @AfterClass

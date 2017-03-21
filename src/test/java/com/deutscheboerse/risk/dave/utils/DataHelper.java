@@ -1,6 +1,7 @@
 package com.deutscheboerse.risk.dave.utils;
 
 import com.deutscheboerse.risk.dave.MainVerticleIT;
+import com.deutscheboerse.risk.dave.model.AbstractModel;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -10,11 +11,15 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-class DataHelper {
+public class DataHelper {
     private static final Logger LOG = LoggerFactory.getLogger(DataHelper.class);
 
     private static Optional<JsonArray> getJsonArrayFromTTSaveFile(String folderName, int ttsaveNo) {
@@ -42,4 +47,22 @@ class DataHelper {
                 .orElse(new JsonArray())
                 .size();
     }
+
+    public static JsonObject getQueryParams(AbstractModel model) {
+        JsonObject queryParams = new JsonObject();
+        model.getKeys().forEach(key -> queryParams.put(key, model.getValue(key)));
+        return queryParams;
+    }
+
+    public static JsonObject getMongoDocument(AbstractModel model) {
+        return model.copy()
+                .put("timestamp", new JsonObject().put("$date", DataHelper.milliToIsoDateTime(model.getLong("timestamp"))));
+    }
+
+    private static String milliToIsoDateTime(long milli) {
+        Instant instant = Instant.ofEpochMilli(milli);
+        return ZonedDateTime.ofInstant(instant, ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    }
+
+
 }

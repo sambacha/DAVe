@@ -10,21 +10,11 @@ import org.junit.runner.RunWith;
 import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.HTTP;
 import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.PERSISTENCE_SERVICE;
 
-/**
- * @author Created by schojak on 8.2.17.
- */
 @RunWith(VertxUnitRunner.class)
 public class HealthCheckTest {
     private final static String MAP_NAME = "healthCheck";
     private final static String HTTP_KEY = "HTTP";
     private final static String PERSISTENCE_KEY = "PERSISTENCE_SERVICE";
-
-    //private static Vertx vertx;
-
-    /*@BeforeClass
-    public static void setUp(TestContext context) throws IOException {
-        HealthCheckTest.vertx = Vertx.vertx();
-    }*/
 
     @Test
     public void testInitialization(TestContext context) {
@@ -86,8 +76,4 @@ public class HealthCheckTest {
         vertx.close();
     }
 
-    /*@AfterClass
-    public static void tearDown(TestContext context) {
-        vertx.close(context.asyncAssertSuccess());
-    }*/
 }

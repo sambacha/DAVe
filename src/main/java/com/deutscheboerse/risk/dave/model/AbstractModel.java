@@ -20,40 +20,10 @@ public abstract class AbstractModel extends JsonObject {
         this.mergeIn(json);
     }
 
-    public abstract String getLatestCollection();
-
-    public abstract String getHistoryCollection();
-
     public abstract Map<String, Class<?>> getKeysDescriptor();
 
     public Collection<String> getKeys() {
         return getKeysDescriptor().keySet();
     }
 
-    public JsonObject getQueryParams() {
-        JsonObject queryParams = new JsonObject();
-        this.getKeys().forEach(key -> queryParams.put(key, this.getValue(key)));
-        return queryParams;
-    }
-
-    public JsonObject getMongoDocument() {
-        return this.copy()
-                .put("timestamp", new JsonObject().put("$date", this.milliToIsoDateTime(this.getLong("timestamp"))));
-    }
-
-    public static List<AbstractModel> getAllModels() {
-        return Arrays.asList(
-                new AccountMarginModel(),
-                new LiquiGroupMarginModel(),
-                new LiquiGroupSplitMarginModel(),
-                new PositionReportModel(),
-                new PositionReportModel(),
-                new RiskLimitUtilizationModel());
-    }
-
-    private String milliToIsoDateTime(long milli) {
-        Instant instant = Instant.ofEpochMilli(milli);
-        return ZonedDateTime.ofInstant(instant, ZoneOffset.UTC)
-                .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-    }
 }

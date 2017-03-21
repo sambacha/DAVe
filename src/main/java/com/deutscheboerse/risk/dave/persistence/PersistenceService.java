@@ -11,8 +11,7 @@ public interface PersistenceService {
     String SERVICE_ADDRESS = "persistenceService";
 
     int INIT_ERROR = 2;
-    int STORE_ERROR = 3;
-    int QUERY_ERROR = 4;
+    int QUERY_ERROR = 3;
 
     void initialize(Handler<AsyncResult<Void>> resultHandler);
 

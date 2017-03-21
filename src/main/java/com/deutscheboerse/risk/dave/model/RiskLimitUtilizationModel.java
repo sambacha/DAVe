@@ -5,8 +5,6 @@ import io.vertx.core.json.JsonObject;
 import java.util.*;
 
 public class RiskLimitUtilizationModel extends AbstractModel {
-    private static final String HISTORY_COLLECTION = "RiskLimitUtilization";
-    private static final String LATEST_COLLECTION = "RiskLimitUtilization.latest";
 
     public RiskLimitUtilizationModel() {
         // Empty constructor
@@ -14,16 +12,6 @@ public class RiskLimitUtilizationModel extends AbstractModel {
 
     public RiskLimitUtilizationModel(JsonObject json) {
         super(json);
-    }
-
-    @Override
-    public String getLatestCollection() {
-        return LATEST_COLLECTION;
-    }
-
-    @Override
-    public String getHistoryCollection() {
-        return HISTORY_COLLECTION;
     }
 
     @Override

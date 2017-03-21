@@ -5,8 +5,6 @@ import io.vertx.core.json.JsonObject;
 import java.util.*;
 
 public class PositionReportModel extends AbstractModel {
-    private static final String HISTORY_COLLECTION = "PositionReport";
-    private static final String LATEST_COLLECTION = "PositionReport.latest";
 
     public PositionReportModel() {
         // Empty constructor
@@ -14,16 +12,6 @@ public class PositionReportModel extends AbstractModel {
 
     public PositionReportModel(JsonObject json) {
         super(json);
-    }
-
-    @Override
-    public String getLatestCollection() {
-        return LATEST_COLLECTION;
-    }
-
-    @Override
-    public String getHistoryCollection() {
-        return HISTORY_COLLECTION;
     }
 
     @Override

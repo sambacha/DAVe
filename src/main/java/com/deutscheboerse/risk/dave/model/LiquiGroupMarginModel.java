@@ -5,8 +5,6 @@ import io.vertx.core.json.JsonObject;
 import java.util.*;
 
 public class LiquiGroupMarginModel extends AbstractModel {
-    private static final String HISTORY_COLLECTION = "LiquiGroupMargin";
-    private static final String LATEST_COLLECTION = "LiquiGroupMargin.latest";
 
     public LiquiGroupMarginModel() {
         // Empty constructor
@@ -14,16 +12,6 @@ public class LiquiGroupMarginModel extends AbstractModel {
 
     public LiquiGroupMarginModel(JsonObject json) {
         super(json);
-    }
-
-    @Override
-    public String getLatestCollection() {
-        return LATEST_COLLECTION;
-    }
-
-    @Override
-    public String getHistoryCollection() {
-        return HISTORY_COLLECTION;
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.model.PositionReportModel;
+import com.deutscheboerse.risk.dave.utils.DataHelper;
 import com.deutscheboerse.risk.dave.utils.MongoFiller;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -55,7 +56,7 @@ public class MainVerticleIT {
 
         StringBuilder url = new StringBuilder("/api/v1.0/pr/latest");
 
-        for (Map.Entry<String, Object> entry: latestModel.getQueryParams()) {
+        for (Map.Entry<String, Object> entry: DataHelper.getQueryParams(latestModel)) {
             String param = entry.getValue().toString();
             param = param.isEmpty() ? "*" : URLEncoder.encode(param, "UTF-8");
 
@@ -68,10 +69,8 @@ public class MainVerticleIT {
             res.bodyHandler(body -> {
                 try {
                     JsonArray positions = body.toJsonArray();
-
                     context.assertEquals(1, positions.size());
-
-                    context.assertEquals(latestModel.getMongoDocument(), positions.getJsonObject(0));
+                    this.assertDocumentsEquals(context, DataHelper.getMongoDocument(latestModel), positions.getJsonObject(0));
                     asyncRest.complete();
                 }
                 catch (Exception e)
@@ -97,6 +96,10 @@ public class MainVerticleIT {
             .put("http", new JsonObject().put("port", httpPort))
             .put("mongodb", new JsonObject().put("dbName", "DAVe-MainVerticleTest").put("connectionUrl", "mongodb://localhost:" + mongoPort + "/?waitqueuemultiple=20000"))
         );
+    }
+
+    private void assertDocumentsEquals(TestContext context, JsonObject expected, JsonObject document) {
+        context.assertEquals(expected.remove("_id"), document.remove("id"));
     }
 
     @After

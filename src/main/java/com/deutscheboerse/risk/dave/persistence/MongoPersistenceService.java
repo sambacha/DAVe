@@ -1,18 +1,19 @@
 package com.deutscheboerse.risk.dave.persistence;
 
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
-import com.deutscheboerse.risk.dave.model.AbstractModel;
-import io.vertx.core.*;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.mongo.*;
+import io.vertx.ext.mongo.FindOptions;
+import io.vertx.ext.mongo.MongoClient;
 import io.vertx.serviceproxy.ServiceException;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.PERSISTENCE_SERVICE;
 
@@ -37,9 +38,7 @@ public class MongoPersistenceService implements PersistenceService {
     private final Vertx vertx;
     private final MongoClient mongo;
     private final HealthCheck healthCheck;
-
     private boolean closed;
-
     private final ConnectionManager connectionManager = new ConnectionManager();
 
     @Inject
@@ -52,22 +51,20 @@ public class MongoPersistenceService implements PersistenceService {
 
     @Override
     public void initialize(Handler<AsyncResult<Void>> resultHandler) {
-        initDb()
-                .compose(i -> createIndexes())
-                .setHandler(ar -> {
-                    if (ar.succeeded()) {
-                        healthCheck.setComponentReady(PERSISTENCE_SERVICE);
-                    } else {
-                        if (!closed) {
-                            // Try to re-initialize in a few seconds
-                            vertx.setTimer(RECONNECT_DELAY, i -> initialize(res -> {/*empty handler*/}));
-                        }
-                        LOG.error("Initialize failed, trying again...");
-                    }
-                    // Inform the caller that we succeeded even if the connection to mongo database
-                    // failed. We will try to reconnect automatically on background.
-                    resultHandler.handle(Future.succeededFuture());
-                });
+        initDb().setHandler(ar -> {
+            if (ar.succeeded()) {
+                healthCheck.setComponentReady(PERSISTENCE_SERVICE);
+            } else {
+                if (!closed) {
+                    // Try to re-initialize in a few seconds
+                    vertx.setTimer(RECONNECT_DELAY, i -> initialize(res -> {/*empty handler*/}));
+                }
+                LOG.error("Initialize failed, trying again...");
+            }
+            // Inform the caller that we succeeded even if the connection to mongo database
+            // failed. We will try to reconnect automatically on background.
+            resultHandler.handle(Future.succeededFuture());
+        });
     }
 
     @Override
@@ -111,14 +108,12 @@ public class MongoPersistenceService implements PersistenceService {
             default:
                 LOG.error("Unknown request type {}", type);
                 resultHandler.handle(ServiceException.fail(QUERY_ERROR, "Unknown request type"));
-                return;
         }
     }
 
     private void find(String collection, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
         LOG.trace("Received {} query with message {}", collection, query);
         FindOptions findOptions = new FindOptions()
-                .setFields(new JsonObject().put("_id", 0))
                 .setSort(new JsonObject().put("snapshotID", 1));
         mongo.findWithOptions(collection, query, findOptions, res -> {
             if (res.succeeded()) {
@@ -137,87 +132,18 @@ public class MongoPersistenceService implements PersistenceService {
         this.mongo.close();
     }
 
-    private static List<String> getRequiredCollections() {
-        List<String> requiredCollections = new ArrayList<>();
-        AbstractModel.getAllModels().forEach(model -> {
-            requiredCollections.add(model.getHistoryCollection());
-            requiredCollections.add(model.getLatestCollection());
-        });
-        return requiredCollections;
-    }
-
-    private Future<Void> createMissingCollections(List<String> existingCollections) {
-        List<String> requiredCollections = getRequiredCollections();
-        requiredCollections.removeAll(existingCollections);
-
-        List<Future> futs = new ArrayList<>();
-        requiredCollections.forEach(collection -> {
-            LOG.info("Collection {} is missing and will be added", collection);
-            Future<Void> fut = Future.future();
-            mongo.createCollection(collection, fut.completer());
-            futs.add(fut);
-        });
-
-        return CompositeFuture.all(futs).mapEmpty();
-    }
-
     private Future<Void> initDb() {
         Future<Void> initDbFuture = Future.future();
         mongo.getCollections(res -> {
             if (res.succeeded()) {
-                createMissingCollections(res.result()).setHandler(ar -> {
-                    if (ar.succeeded()) {
-                        LOG.info("Mongo has all needed collections for DAVe");
-                        LOG.info("Initialized MongoDB");
-                        initDbFuture.complete();
-                    } else {
-                        LOG.error("Failed to add all collections needed for DAVe to Mongo", ar.cause());
-                        initDbFuture.fail(ar.cause());
-                    }
-                });
+                LOG.info("Initialized MongoDB");
+                initDbFuture.complete();
             } else {
                 LOG.error("Failed to get collection list", res.cause());
                 initDbFuture.fail(res.cause());
             }
         });
         return initDbFuture;
-    }
-
-    private Future<Void> createIndexes() {
-        Future<Void> createIndexesFuture = Future.future();
-
-        List<Future> futs = new ArrayList<>();
-        for (AbstractModel model: AbstractModel.getAllModels()) {
-            futs.add(createIndexesForModel(model));
-        }
-
-        CompositeFuture.all(futs).setHandler(ar -> {
-            if (ar.succeeded()) {
-                LOG.info("Mongo has all needed indexes");
-                createIndexesFuture.complete();
-            } else {
-                LOG.error("Failed to create all needed indexes in Mongo", ar.cause());
-                createIndexesFuture.fail(ar.cause());
-            }
-        });
-        return createIndexesFuture;
-    }
-
-    private Future<CompositeFuture> createIndexesForModel(AbstractModel model) {
-        IndexOptions indexOptions = new IndexOptions().name("unique_idx").unique(true);
-
-        JsonObject historyIndex = new JsonObject().put("snapshotID", 1);
-        model.getKeys().forEach(key -> historyIndex.put(key, 1));
-
-        JsonObject latestIndex = new JsonObject();
-        model.getKeys().forEach(key -> latestIndex.put(key, 1));
-
-        Future<Void> historyIndexFuture = Future.future();
-        Future<Void> latestIndexFuture = Future.future();
-        mongo.createIndexWithOptions(model.getHistoryCollection(), historyIndex, indexOptions, historyIndexFuture);
-        mongo.createIndexWithOptions(model.getLatestCollection(), latestIndex, indexOptions, latestIndexFuture);
-
-        return CompositeFuture.all(historyIndexFuture, latestIndexFuture);
     }
 
     private class ConnectionManager {
@@ -249,4 +175,5 @@ public class MongoPersistenceService implements PersistenceService {
             });
         }
     }
+
 }
