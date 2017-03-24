@@ -9,9 +9,9 @@
   <version>1.0-SNAPSHOT</version>
 
   <properties>
-    <vertx.version>3.3.3</vertx.version>
+    <vertx.version>3.4.1</vertx.version>
     <junit.version>4.12</junit.version>
-    <logback.version>1.1.7</logback.version>
+    <logback.version>1.1.8</logback.version>
     <docker.maven.plugin.fabric8.version>0.15.16</docker.maven.plugin.fabric8.version>
     <build.helper.maven.plugin>1.12</build.helper.maven.plugin>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
