@@ -17,9 +17,6 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
-/**
- * Created by jakub on 03.09.16.
- */
 @RunWith(VertxUnitRunner.class)
 public class HttpVerticleTest {
     private static Vertx vertx;
@@ -31,16 +28,13 @@ public class HttpVerticleTest {
         HttpVerticleTest.port = Integer.getInteger("http.port", 8080);
     }
 
-    private void deployHttpVerticle(TestContext context, JsonObject config)
-    {
+    private void deployHttpVerticle(TestContext context, JsonObject config) {
         final Async asyncStart = context.async();
 
         vertx.deployVerticle(HttpVerticle.class.getName(), new DeploymentOptions().setConfig(config), res -> {
             if (res.succeeded()) {
                 asyncStart.complete();
-            }
-            else
-            {
+            } else {
                 context.fail(res.cause());
             }
         });
@@ -57,7 +51,12 @@ public class HttpVerticleTest {
 
         vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
             context.assertEquals(200, res.statusCode());
-            res.headers().forEach(v -> {System.out.println("HEaders: " + " = " + v);});res.headers().forEach(v -> {System.out.println("HEaders: " + " = " + v);});
+            res.headers().forEach(v -> {
+                System.out.println("Headers: " + " = " + v);
+            });
+            res.headers().forEach(v -> {
+                System.out.println("Headers: " + " = " + v);
+            });
             asyncClient.complete();
         });
     }
@@ -165,8 +164,7 @@ public class HttpVerticleTest {
     }
 
     @After
-    public void cleanup(TestContext context)
-    {
+    public void cleanup(TestContext context) {
         vertx.deploymentIDs().forEach(id -> {
             vertx.undeploy(id, context.asyncAssertSuccess());
         });

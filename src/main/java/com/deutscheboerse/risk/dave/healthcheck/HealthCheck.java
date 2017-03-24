@@ -19,7 +19,7 @@ public class HealthCheck {
 
     public enum Component {
         HTTP,
-        MONGO
+        PERSISTENCE_SERVICE
     }
 
     private LocalMap<String, Boolean> localMap;
