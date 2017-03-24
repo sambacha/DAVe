@@ -19,19 +19,19 @@ import io.vertx.ext.mongo.MongoClient;
 import java.util.*;
 import java.util.Map.Entry;
 
+import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.MONGO;
+
 /**
- * Created by schojak on 19.8.16.
+ * @author Created by schojak on 19.8.16.
  */
 public class MongoDBPersistenceVerticle extends AbstractVerticle {
-    final static private Logger LOG = LoggerFactory.getLogger(MongoDBPersistenceVerticle.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MongoDBPersistenceVerticle.class);
 
     private static final String DEFAULT_DB_NAME = "DAVe";
     private static final String DEFAULT_CONNECTION_STRING = "mongodb://localhost:27017";
 
     private MongoClient mongo;
     private final List<MessageConsumer<?>> eventBusConsumers = new ArrayList<>();
-
-    private HealthCheck healthCheck;
 
     private final AbstractModel tssModel = new TradingSessionStatusModel();
     private final AbstractModel mcModel = new MarginComponentModel();
@@ -44,22 +44,22 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
     public void start(Future<Void> fut) throws Exception {
         LOG.info("Starting {} with configuration: {}", MongoDBPersistenceVerticle.class.getSimpleName(), config().encodePrettily());
 
-        healthCheck = new HealthCheck(this.vertx);
+        HealthCheck healthCheck = new HealthCheck(this.vertx);
 
         Future<Void> chainFuture = Future.future();
         connectDb()
-                .compose(this::initDb)
-                .compose(this::createIndexes)
-                .compose(this::startQueryHandlers)
+                .compose(i -> this.initDb())
+                .compose(i -> this.createIndexes())
+                .compose(i -> this.startQueryHandlers())
                 .compose(chainFuture::complete, chainFuture);
         chainFuture.setHandler(ar -> {
             if (ar.succeeded()) {
                 LOG.info("MongoDB verticle started");
-                healthCheck.setMongoState(true);
+                healthCheck.setComponentReady(MONGO);
                 fut.complete();
             } else {
                 LOG.error("MongoDB verticle failed to deploy", chainFuture.cause());
-                healthCheck.setMongoState(false);
+                healthCheck.setComponentFailed(MONGO);
                 fut.fail(chainFuture.cause());
             }
         });
@@ -76,7 +76,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         return Future.succeededFuture();
     }
 
-    private Future<Void> initDb(Void unused) {
+    private Future<Void> initDb() {
         Future<Void> initDbFuture = Future.future();
         mongo.getCollections(res -> {
             if (res.succeeded()) {
@@ -128,7 +128,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         return initDbFuture;
     }
 
-    private Future<Void> createIndexes(Void unused) {
+    private Future<Void> createIndexes() {
         Future<Void> initDbFuture = Future.future();
         Map<String, JsonObject> indexes = new HashMap<>();
         indexes.put("ers.MarginComponent", new JsonObject().put("clearer", 1).put("member", 1).put("account", 1).put("clss", 1).put("ccy", 1));
@@ -159,7 +159,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
         return initDbFuture;
     }
 
-    private Future<Void> startQueryHandlers(Void unused)
+    private Future<Void> startQueryHandlers()
     {
         // Query endpoints
         this.registerConsumer("query.latestTradingSessionStatus", message -> queryLatest(message, this.tssModel));
@@ -211,7 +211,7 @@ public class MongoDBPersistenceVerticle extends AbstractVerticle {
     @Override
     public void stop() throws Exception {
         LOG.info("MongoDBPersistenceVerticle is being stopped");
-        this.eventBusConsumers.forEach(consumer -> consumer.unregister());
+        this.eventBusConsumers.forEach(MessageConsumer::unregister);
         mongo.close();
     }
 }

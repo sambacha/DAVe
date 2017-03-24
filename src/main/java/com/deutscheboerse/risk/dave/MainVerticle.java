@@ -1,10 +1,10 @@
 package com.deutscheboerse.risk.dave;
 
-import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
@@ -13,23 +13,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by schojak on 19.8.16.
- */
 public class MainVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(MainVerticle.class);
 
-    private String mongoDbPersistenceDeployment;
-    private String httpDeployment;
+    private Map<String, String> verticleDeployments = new HashMap<>();
 
     @Override
     public void start(Future<Void> startFuture) {
-        // Initialize the HealthCheck
-        HealthCheck healthCheck = new HealthCheck(this.vertx);
-
         Future<Void> chainFuture = Future.future();
         deployMongoDBVerticle()
-                .compose(this::deployHttpVerticle)
+                .compose(i -> deployHttpVerticle())
                 .compose(chainFuture::complete, chainFuture);
 
         chainFuture.setHandler(ar -> {
@@ -45,42 +38,34 @@ public class MainVerticle extends AbstractVerticle {
     }
 
     private Future<Void> deployMongoDBVerticle() {
-        Future<Void> mongoDbVerticleFuture = Future.future();
-        DeploymentOptions mongoDbPersistenceOptions = new DeploymentOptions().setConfig(config().getJsonObject("mongodb"));
-        vertx.deployVerticle(MongoDBPersistenceVerticle.class.getName(), mongoDbPersistenceOptions, ar -> {
-            if (ar.succeeded()) {
-                LOG.info("Deployed MongoDBPersistenceVerticle with ID {}", ar.result());
-                mongoDbPersistenceDeployment = ar.result();
-                mongoDbVerticleFuture.complete();
-            } else {
-                mongoDbVerticleFuture.fail(ar.cause());
-            }
-        });
-        return mongoDbVerticleFuture;
+        return this.deployVerticle(MongoDBPersistenceVerticle.class, config().getJsonObject("mongodb", new JsonObject()));
     }
 
-    private Future<Void> deployHttpVerticle(Void unused) {
-        Future<Void> httpVerticleFuture = Future.future();
-        DeploymentOptions webOptions = new DeploymentOptions().setConfig(config().getJsonObject("http"));
-        vertx.deployVerticle(HttpVerticle.class.getName(), webOptions, ar -> {
+    private Future<Void> deployHttpVerticle() {
+        return this.deployVerticle(HttpVerticle.class, config().getJsonObject("http", new JsonObject()));
+    }
+
+    private Future<Void> deployVerticle(Class clazz, JsonObject config) {
+        Future<Void> verticleFuture = Future.future();
+        config.put("guice_binder", config().getString("guice_binder", Binder.class.getName()));
+        DeploymentOptions options = new DeploymentOptions().setConfig(config);
+        vertx.deployVerticle("java-guice:" + clazz.getName(), options, ar -> {
             if (ar.succeeded()) {
-                LOG.info("Deployed HttpVerticle with ID {}", ar.result());
-                httpDeployment = ar.result();
-                httpVerticleFuture.complete();
-            } else  {
-                httpVerticleFuture.fail(ar.cause());
+                LOG.info("Deployed {} with ID {}", clazz.getName(), ar.result());
+                verticleDeployments.put(clazz.getSimpleName(), ar.result());
+                verticleFuture.complete();
+            } else {
+                verticleFuture.fail(ar.cause());
             }
         });
-        return httpVerticleFuture;
+        return verticleFuture;
     }
 
     private void closeAllDeployments() {
         LOG.info("Undeploying verticles");
-        Map<String, String> deployments = new HashMap<>();
-        deployments.put("HttpInterface", httpDeployment);
 
         List<Future> futures = new LinkedList<>();
-        deployments.forEach((verticleName, deploymentID) -> {
+        this.verticleDeployments.forEach((verticleName, deploymentID) -> {
             if (deploymentID != null && vertx.deploymentIDs().contains(deploymentID)) {
                 LOG.info("Undeploying {} with ID: {}", verticleName, deploymentID);
                 Future<Void> future = Future.future();
@@ -91,13 +76,9 @@ public class MainVerticle extends AbstractVerticle {
 
         CompositeFuture.all(futures).setHandler(ar -> {
             if (ar.succeeded()) {
-                LOG.info("Undeployed most verticles ... ready to undeploy database");
+                LOG.info("Undeployed all verticles");
             } else {
                 LOG.error("Failed to undeploy some verticles", ar.cause());
-            }
-            if (mongoDbPersistenceDeployment != null) {
-                LOG.info("Undeploying Database " + mongoDbPersistenceDeployment);
-                vertx.undeploy(mongoDbPersistenceDeployment);
             }
         });
     }
@@ -106,5 +87,6 @@ public class MainVerticle extends AbstractVerticle {
     public void stop() throws Exception {
         LOG.info("Stopping main verticle");
         this.closeAllDeployments();
+        super.stop();
     }
 }

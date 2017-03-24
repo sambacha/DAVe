@@ -1,14 +1,12 @@
 package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
-import com.deutscheboerse.risk.dave.model.PositionReportModel;
-import com.deutscheboerse.risk.dave.utils.DummyData;
 import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.mongo.MongoClient;
-import io.vertx.ext.mongo.UpdateOptions;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -17,7 +15,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.UUID;
+import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.HTTP;
 
 @RunWith(VertxUnitRunner.class)
 public class HealthCheckIT {
@@ -38,67 +36,55 @@ public class HealthCheckIT {
         vertx.deployVerticle(MainVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
     }
 
-    @Test
-    public void testHealth(TestContext context) throws InterruptedException {
-        final Async asyncRest = context.async();
-        vertx.createHttpClient().getNow(httpPort, "localhost", "/healthz", res -> {
-            context.assertEquals(200, res.statusCode());
-            res.bodyHandler(body -> {
+    private Handler<HttpClientResponse> assertEqualsHttpHandler(int expectedCode, String expectedText, TestContext context) {
+        final Async async = context.async();
+        return response -> {
+            context.assertEquals(expectedCode, response.statusCode());
+            response.bodyHandler(body -> {
                 try {
-                    String response = body.toString();
-                    context.assertEquals("ok", response);
-                    asyncRest.complete();
-                }
-                catch (Exception e)
-                {
+                    context.assertEquals(expectedText, body.toString());
+                    async.complete();
+                } catch (Exception e) {
                     context.fail(e);
                 }
             });
-        });
+        };
+    }
+
+    @Test
+    public void testHealth(TestContext context) throws InterruptedException {
+        JsonObject expected = new JsonObject()
+                .put("checks", new JsonArray().add(new JsonObject()
+                .put("id", "healthz")
+                .put("status", "UP")))
+                .put("outcome", "UP");
+        vertx.createHttpClient().getNow(httpPort, "localhost", HttpVerticle.REST_HEALTHZ,
+                assertEqualsHttpHandler(200, expected.encode(), context));
     }
 
     @Test
     public void testReadinessOk(TestContext context) throws InterruptedException {
-        final Async asyncRest = context.async();
-        vertx.createHttpClient().getNow(httpPort, "localhost", "/readiness", res -> {
-            context.assertEquals(200, res.statusCode());
-            res.bodyHandler(body -> {
-                try {
-                    String response = body.toString();
-                    context.assertEquals("ok", response);
-                    asyncRest.complete();
-                }
-                catch (Exception e)
-                {
-                    context.fail(e);
-                }
-            });
-        });
+        JsonObject expected = new JsonObject()
+                .put("checks", new JsonArray().add(new JsonObject()
+                .put("id", "readiness")
+                .put("status", "UP")))
+                .put("outcome", "UP");
+        vertx.createHttpClient().getNow(httpPort, "localhost", HttpVerticle.REST_READINESS,
+            assertEqualsHttpHandler(200, expected.encode(), context));
     }
 
     @Test
     public void testReadinessNok(TestContext context) throws InterruptedException {
-        final Async asyncRest = context.async();
-
         HealthCheck healthCheck = new HealthCheck(vertx);
-        healthCheck.setHttpState(false);
+        healthCheck.setComponentFailed(HTTP);
 
-        vertx.createHttpClient().getNow(httpPort, "localhost", "/readiness", res -> {
-            context.assertEquals(503, res.statusCode());
-            res.bodyHandler(body -> {
-                try {
-                    String response = body.toString();
-                    context.assertEquals("nok", response);
-                    healthCheck.setHttpState(true);
-                    asyncRest.complete();
-                }
-                catch (Exception e)
-                {
-                    healthCheck.setHttpState(true);
-                    context.fail(e);
-                }
-            });
-        });
+        JsonObject expected = new JsonObject()
+                .put("checks", new JsonArray().add(new JsonObject()
+                .put("id", "readiness")
+                .put("status", "DOWN")))
+                .put("outcome", "DOWN");
+        vertx.createHttpClient().getNow(httpPort, "localhost", HttpVerticle.REST_READINESS,
+                assertEqualsHttpHandler(503, expected.encode(), context));
     }
 
     @AfterClass

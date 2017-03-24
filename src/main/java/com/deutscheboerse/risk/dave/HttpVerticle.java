@@ -1,8 +1,8 @@
 package com.deutscheboerse.risk.dave;
 
+import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import com.deutscheboerse.risk.dave.restapi.margin.*;
 import com.deutscheboerse.risk.dave.restapi.user.UserApi;
-import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -18,25 +18,31 @@ import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.mongo.HashSaltStyle;
 import io.vertx.ext.auth.mongo.MongoAuth;
+import io.vertx.ext.healthchecks.HealthCheckHandler;
+import io.vertx.ext.healthchecks.Status;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.HTTP;
+
 /**
- * Created by schojak on 19.8.16.
+ * @author Created by schojak on 19.8.16.
  */
 public class HttpVerticle extends AbstractVerticle
 {
+    private static final Logger LOG = LoggerFactory.getLogger(HttpVerticle.class);
+
+    public static final String REST_HEALTHZ = "/healthz";
+    public static final String REST_READINESS = "/readiness";
 
     private enum Mode
     {
         HTTP, HTTPS
-    };
-    private static final Logger LOG = LoggerFactory.getLogger(HttpVerticle.class);
+    }
 
     private static final Integer MAX_BODY_SIZE = 1024 * 1024; // 1MB
 
@@ -58,6 +64,8 @@ public class HttpVerticle extends AbstractVerticle
     private static final String DEFAULT_AUTH_CONNECTION_STRING = "mongodb://localhost:27017";
     private static final String DEFAULT_AUTH_SALT = "DAVe";
 
+    private static final String ENABLE_KEY = "enable";
+
     private HttpServer server;
     private Mode operationMode;
     private HealthCheck healthCheck;
@@ -69,7 +77,7 @@ public class HttpVerticle extends AbstractVerticle
 
         healthCheck = new HealthCheck(this.vertx);
 
-        if (config().getJsonObject("ssl", new JsonObject()).getBoolean("enable", DEFAULT_SSL)) {
+        if (config().getJsonObject("ssl", new JsonObject()).getBoolean(ENABLE_KEY, DEFAULT_SSL)) {
             this.operationMode = Mode.HTTPS;
         } else {
             this.operationMode = Mode.HTTP;
@@ -81,12 +89,12 @@ public class HttpVerticle extends AbstractVerticle
         {
             if (ar.succeeded())
             {
-                healthCheck.setHttpState(true);
+                healthCheck.setComponentReady(HTTP);
                 startFuture.complete();
             }
             else
             {
-                healthCheck.setHttpState(false);
+                healthCheck.setComponentFailed(HTTP);
                 startFuture.fail(ar.cause());
             }
         });
@@ -141,7 +149,7 @@ public class HttpVerticle extends AbstractVerticle
         {
             return;
         }
-        if (config().getJsonObject("ssl", new JsonObject()).getBoolean("enable", DEFAULT_SSL) && config().getJsonObject("ssl", new JsonObject()).getString("keystore") != null && config().getJsonObject("ssl", new JsonObject()).getString("keystorePassword") != null)
+        if (config().getJsonObject("ssl", new JsonObject()).getBoolean(ENABLE_KEY, DEFAULT_SSL) && config().getJsonObject("ssl", new JsonObject()).getString("keystore") != null && config().getJsonObject("ssl", new JsonObject()).getString("keystorePassword") != null)
         {
             LOG.info("Enabling SSL on webserver");
             httpOptions.setSsl(true).setKeyStoreOptions(new JksOptions().setPassword(config().getJsonObject("ssl").getString("keystorePassword")).setPath(config().getJsonObject("ssl").getString("keystore")));
@@ -181,14 +189,20 @@ public class HttpVerticle extends AbstractVerticle
 
     private Router configureRouter()
     {
+        HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);
+        HealthCheckHandler readinessHandler = HealthCheckHandler.create(vertx);
+
+        healthCheckHandler.register("healthz", this::healthz);
+        readinessHandler.register("readiness", this::readiness);
+
         Router router = Router.router(vertx);
 
         setCorsHandler(router);
         UserApi userApi = setAuthHandler(router);
 
         LOG.info("Adding route REST API");
-        router.get("/healthz").handler(this::healthz);
-        router.get("/readiness").handler(this::readiness);
+        router.get(REST_HEALTHZ).handler(healthCheckHandler);
+        router.get(REST_READINESS).handler(readinessHandler);
         router.route("/api/v1.0/*").handler(BodyHandler.create());
         router.mountSubRouter("/api/v1.0/user", userApi.getRoutes());
         router.mountSubRouter("/api/v1.0/tss", new TradingSessionStatusApi(vertx).getRoutes());
@@ -203,7 +217,7 @@ public class HttpVerticle extends AbstractVerticle
 
     private void setCorsHandler(Router router)
     {
-        if (config().getJsonObject("CORS", new JsonObject()).getBoolean("enable", HttpVerticle.DEFAULT_CORS))
+        if (config().getJsonObject("CORS", new JsonObject()).getBoolean(ENABLE_KEY, HttpVerticle.DEFAULT_CORS))
         {
             LOG.info("Enabling CORS handler");
 
@@ -224,7 +238,7 @@ public class HttpVerticle extends AbstractVerticle
 
     private void setCsrfHandler(Router router)
     {
-        if (config().getJsonObject("CSRF", new JsonObject()).getBoolean("enable", HttpVerticle.DEFAULT_CSRF))
+        if (config().getJsonObject("CSRF", new JsonObject()).getBoolean(ENABLE_KEY, HttpVerticle.DEFAULT_CSRF))
         {
             LOG.info("Enabling CSRF handler");
             router.route().handler(CookieHandler.create());
@@ -236,7 +250,7 @@ public class HttpVerticle extends AbstractVerticle
     {
         UserApi userApi;
 
-        if (config().getJsonObject("auth", new JsonObject()).getBoolean("enable", HttpVerticle.DEFAULT_AUTH_ENABLED))
+        if (config().getJsonObject("auth", new JsonObject()).getBoolean(ENABLE_KEY, HttpVerticle.DEFAULT_AUTH_ENABLED))
         {
             LOG.info("Enabling authentication");
 
@@ -288,19 +302,12 @@ public class HttpVerticle extends AbstractVerticle
         });
     }
 
-    private void healthz(RoutingContext routingContext) {
-        routingContext.response().setStatusCode(200).end("ok");
+    private void healthz(Future<Status> future) {
+        future.complete(Status.OK());
     }
 
-    private void readiness(RoutingContext routingContext) {
-        if (healthCheck.ready())
-        {
-            routingContext.response().setStatusCode(200).end("ok");
-        }
-        else
-        {
-            routingContext.response().setStatusCode(503).end("nok");
-        }
+    private void readiness(Future<Status> future) {
+        future.complete(healthCheck.ready() ? Status.OK() : Status.KO());
     }
 
     @Override

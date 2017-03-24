@@ -13,6 +13,7 @@
     <junit.version>4.12</junit.version>
     <logback.version>1.1.8</logback.version>
     <docker.maven.plugin.fabric8.version>0.15.16</docker.maven.plugin.fabric8.version>
+    <vertx.guice.version>2.3.1</vertx.guice.version>
     <build.helper.maven.plugin>1.12</build.helper.maven.plugin>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -65,6 +66,16 @@
       <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-jwt</artifactId>
       <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-health-check</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.englishtown.vertx</groupId>
+      <artifactId>vertx-guice</artifactId>
+      <version>${vertx.guice.version}</version>
     </dependency>
   </dependencies>
 

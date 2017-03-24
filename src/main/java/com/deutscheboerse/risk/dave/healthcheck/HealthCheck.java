@@ -1,74 +1,68 @@
 package com.deutscheboerse.risk.dave.healthcheck;
 
-import com.deutscheboerse.risk.dave.MainVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
 
 /**
- * Created by schojak on 8.2.17.
+ * Holds a global state of all verticles which are vital for proper
+ * run of DAVE-MarginLoader.
+ * <p>
+ * If all components are up and running the {@link HealthCheck#ready()}
+ * method returns {@code true}.
  */
 public class HealthCheck {
     private static final Logger LOG = LoggerFactory.getLogger(HealthCheck.class);
 
-    private final static String MAP_NAME = "healthCheck";
-    private final static String HTTP_KEY = "httpReady";
-    private final static String MONGO_KEY = "mongoReady";
+    private static final String MAP_NAME = "healthCheck";
 
-    private final Vertx vertx;
-    private LocalMap<String, Boolean> healthCheck;
-
-    public HealthCheck(Vertx vertx)
-    {
-        LOG.trace("Constructing {} object", HealthCheck.class.getCanonicalName());
-
-        this.vertx = vertx;
-        healthCheck = vertx.sharedData().getLocalMap(MAP_NAME);
-        healthCheck.putIfAbsent(HTTP_KEY, false);
-        healthCheck.putIfAbsent(MONGO_KEY, false);
+    public enum Component {
+        HTTP,
+        MONGO
     }
 
+    private LocalMap<String, Boolean> localMap;
+
+    /**
+     * Create a new instance.
+     *
+     * @param vertx All instances of {@code HealthCheck} created with identical
+     *              {@code vertx} parameter share the same local map.
+     */
+    public HealthCheck(Vertx vertx) {
+        LOG.trace("Constructing {} object", HealthCheck.class.getCanonicalName());
+        localMap = vertx.sharedData().getLocalMap(MAP_NAME);
+        for (Component component: Component.values()) {
+            localMap.putIfAbsent(component.name(), false);
+        }
+    }
+
+    /**
+     * Indicates whether all verticles are running properly.
+     *
+     * @return {@code true} if all verticles are up and running.
+     */
     public boolean ready() {
         LOG.trace("Received readiness query");
-
-        if (getMongoState() && getHttpState())
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        // Return true only if all the values are true (the map
+        // does not contain any single false)
+        return !localMap.values().contains(false);
     }
 
-    public HealthCheck setMongoState(Boolean state)
-    {
-        LOG.info("Setting {} state to {}", MONGO_KEY, state);
-
-        healthCheck.put(MONGO_KEY, state);
+    public HealthCheck setComponentReady(Component component) {
+        LOG.info("Setting {} readiness to {}", component.name(), true);
+        localMap.put(component.name(), true);
         return this;
     }
 
-    public boolean getMongoState()
-    {
-        LOG.trace("Received state query for {}", MONGO_KEY);
-
-        return healthCheck.get(MONGO_KEY);
-    }
-
-    public HealthCheck setHttpState(Boolean state)
-    {
-        LOG.info("Setting {} state to {}", HTTP_KEY, state);
-
-        healthCheck.put(HTTP_KEY, state);
+    public HealthCheck setComponentFailed(Component component) {
+        LOG.info("Setting {} readiness to {}", component.name(), false);
+        localMap.put(component.name(), false);
         return this;
     }
 
-    public boolean getHttpState()
-    {
-        LOG.trace("Received state query for {}", HTTP_KEY);
-
-        return healthCheck.get(HTTP_KEY);
+    public boolean isComponentReady(Component component) {
+        return localMap.get(component.name());
     }
 }
