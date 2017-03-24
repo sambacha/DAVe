@@ -62,10 +62,10 @@ public class MongoPersistenceServiceIT {
 
         // Check data
         persistenceProxy.findAccountMargin(RequestType.HISTORY, DataHelper.getQueryParams(firstModel), context.asyncAssertSuccess(res ->
-                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(firstModel), new JsonArray(res).getJsonObject(0))
+                context.assertEquals(DataHelper.getMongoDocument(firstModel), new JsonArray(res).getJsonObject(0))
         ));
         persistenceProxy.findAccountMargin(RequestType.LATEST, DataHelper.getQueryParams(secondModel), context.asyncAssertSuccess(res ->
-                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(secondModel), new JsonArray(res).getJsonObject(0))
+                context.assertEquals(DataHelper.getMongoDocument(secondModel), new JsonArray(res).getJsonObject(0))
         ));
     }
 
@@ -83,10 +83,10 @@ public class MongoPersistenceServiceIT {
 
         // Check data
         persistenceProxy.findLiquiGroupMargin(RequestType.HISTORY, DataHelper.getQueryParams(firstModel), context.asyncAssertSuccess(res ->
-                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(firstModel), new JsonArray(res).getJsonObject(0))
+                context.assertEquals(DataHelper.getMongoDocument(firstModel), new JsonArray(res).getJsonObject(0))
         ));
         persistenceProxy.findLiquiGroupMargin(RequestType.LATEST, DataHelper.getQueryParams(secondModel), context.asyncAssertSuccess(res ->
-                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(secondModel), new JsonArray(res).getJsonObject(0))
+                context.assertEquals(DataHelper.getMongoDocument(secondModel), new JsonArray(res).getJsonObject(0))
         ));
     }
 
@@ -103,10 +103,10 @@ public class MongoPersistenceServiceIT {
 
         // Check data
         persistenceProxy.findLiquiGroupSplitMargin(RequestType.HISTORY, DataHelper.getQueryParams(firstModel), context.asyncAssertSuccess(res ->
-                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(firstModel), new JsonArray(res).getJsonObject(0))
+                context.assertEquals(DataHelper.getMongoDocument(firstModel), new JsonArray(res).getJsonObject(0))
         ));
         persistenceProxy.findLiquiGroupSplitMargin(RequestType.LATEST, DataHelper.getQueryParams(secondModel), context.asyncAssertSuccess(res ->
-                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(secondModel), new JsonArray(res).getJsonObject(0))
+                context.assertEquals(DataHelper.getMongoDocument(secondModel), new JsonArray(res).getJsonObject(0))
         ));
     }
 
@@ -123,10 +123,10 @@ public class MongoPersistenceServiceIT {
 
         // Check data
         persistenceProxy.findPoolMargin(RequestType.HISTORY, DataHelper.getQueryParams(firstModel), context.asyncAssertSuccess(res ->
-                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(firstModel), new JsonArray(res).getJsonObject(0))
+                context.assertEquals(DataHelper.getMongoDocument(firstModel), new JsonArray(res).getJsonObject(0))
         ));
         persistenceProxy.findPoolMargin(RequestType.LATEST, DataHelper.getQueryParams(secondModel), context.asyncAssertSuccess(res ->
-                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(secondModel), new JsonArray(res).getJsonObject(0))
+                context.assertEquals(DataHelper.getMongoDocument(secondModel), new JsonArray(res).getJsonObject(0))
         ));
     }
 
@@ -143,10 +143,10 @@ public class MongoPersistenceServiceIT {
 
         // Check data
         persistenceProxy.findPositionReport(RequestType.HISTORY, DataHelper.getQueryParams(firstModel), context.asyncAssertSuccess(res ->
-            this.assertDocumentsEquals(context, DataHelper.getMongoDocument(firstModel), new JsonArray(res).getJsonObject(0))
+            context.assertEquals(DataHelper.getMongoDocument(firstModel), new JsonArray(res).getJsonObject(0))
         ));
         persistenceProxy.findPositionReport(RequestType.LATEST, DataHelper.getQueryParams(secondModel), context.asyncAssertSuccess(res ->
-            this.assertDocumentsEquals(context, DataHelper.getMongoDocument(secondModel), new JsonArray(res).getJsonObject(0))
+            context.assertEquals(DataHelper.getMongoDocument(secondModel), new JsonArray(res).getJsonObject(0))
         ));
     }
 
@@ -163,16 +163,16 @@ public class MongoPersistenceServiceIT {
 
         // Check data
         persistenceProxy.findRiskLimitUtilization(RequestType.HISTORY, DataHelper.getQueryParams(firstModel), context.asyncAssertSuccess(res ->
-                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(firstModel), new JsonArray(res).getJsonObject(0))
+                context.assertEquals(DataHelper.getMongoDocument(firstModel), new JsonArray(res).getJsonObject(0))
         ));
         persistenceProxy.findRiskLimitUtilization(RequestType.LATEST, DataHelper.getQueryParams(secondModel), context.asyncAssertSuccess(res ->
-                this.assertDocumentsEquals(context, DataHelper.getMongoDocument(secondModel), new JsonArray(res).getJsonObject(0))
+                context.assertEquals(DataHelper.getMongoDocument(secondModel), new JsonArray(res).getJsonObject(0))
         ));
     }
 
     @Test
     public void testConnectionStatusBackOnline(TestContext context) throws InterruptedException {
-        JsonObject proxyConfig = new JsonObject().put("functionsToFail", new JsonArray().add("findWithOptions"));
+        JsonObject proxyConfig = new JsonObject().put("functionsToFail", new JsonArray().add("runCommand:aggregate"));
 
         final PersistenceService persistenceErrorProxy = getPersistenceErrorProxy(proxyConfig);
         persistenceErrorProxy.initialize(context.asyncAssertSuccess());
@@ -190,7 +190,7 @@ public class MongoPersistenceServiceIT {
 
     @Test
     public void testConnectionStatusError(TestContext context) throws InterruptedException {
-        JsonObject proxyConfig = new JsonObject().put("functionsToFail", new JsonArray().add("findWithOptions").add("runCommand"));
+        JsonObject proxyConfig = new JsonObject().put("functionsToFail", new JsonArray().add("runCommand:aggregate").add("runCommand:ping"));
 
         final PersistenceService persistenceErrorProxy = getPersistenceErrorProxy(proxyConfig);
         persistenceErrorProxy.initialize(context.asyncAssertSuccess());
@@ -211,12 +211,6 @@ public class MongoPersistenceServiceIT {
 
         ProxyHelper.registerService(PersistenceService.class, vertx, new MongoPersistenceService(vertx, mongoErrorClient), PersistenceService.SERVICE_ADDRESS+"Error");
         return ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS+"Error");
-    }
-
-    private void assertDocumentsEquals(TestContext context, JsonObject expected, JsonObject document) {
-        expected.remove("_id");
-        document.remove("id");
-        context.assertEquals(expected, document);
     }
 
     @After

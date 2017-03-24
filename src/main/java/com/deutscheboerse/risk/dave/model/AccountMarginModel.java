@@ -23,4 +23,16 @@ public class AccountMarginModel extends AbstractModel {
         keys.put("marginCurrency", String.class);
         return Collections.unmodifiableMap(keys);
     }
+
+    @Override
+    public Map<String, Class<?>> getNonKeysDescriptor() {
+        Map<String, Class<?>> nonKeys = new LinkedHashMap<>();
+        nonKeys.put("clearingCurrency", String.class);
+        nonKeys.put("pool", String.class);
+        nonKeys.put("marginReqInMarginCurr", Double.class);
+        nonKeys.put("marginReqInClrCurr", Double.class);
+        nonKeys.put("unadjustedMarginRequirement", Double.class);
+        nonKeys.put("variationPremiumPayment", Double.class);
+        return Collections.unmodifiableMap(nonKeys);
+    }
 }

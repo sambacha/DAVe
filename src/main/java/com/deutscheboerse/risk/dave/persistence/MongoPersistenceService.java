@@ -1,15 +1,16 @@
 package com.deutscheboerse.risk.dave.persistence;
 
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
+import com.deutscheboerse.risk.dave.model.*;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.mongo.FindOptions;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.serviceproxy.ServiceException;
 
@@ -63,40 +64,41 @@ public class MongoPersistenceService implements PersistenceService {
 
     @Override
     public void findAccountMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
-        this.find(type, ACCOUNT_MARGIN_COLLECTION, query, resultHandler);
+        this.find(type, ACCOUNT_MARGIN_COLLECTION, query, new AccountMarginModel(), resultHandler);
     }
 
     @Override
     public void findLiquiGroupMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
-        this.find(type, LIQUI_GROUP_MARGIN_COLLECTION, query, resultHandler);
+        this.find(type, LIQUI_GROUP_MARGIN_COLLECTION, query, new LiquiGroupMarginModel(), resultHandler);
     }
 
     @Override
     public void findLiquiGroupSplitMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
-        this.find(type, LIQUI_GROUP_SPLIT_MARGIN_COLLECTION, query, resultHandler);
+        this.find(type, LIQUI_GROUP_SPLIT_MARGIN_COLLECTION, query, new LiquiGroupSplitMarginModel(), resultHandler);
     }
 
     @Override
     public void findPoolMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
-        this.find(type, POOL_MARGIN_COLLECTION, query, resultHandler);
+        this.find(type, POOL_MARGIN_COLLECTION, query, new PoolMarginModel(), resultHandler);
     }
 
     @Override
     public void findPositionReport(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
-        this.find(type, POSITION_REPORT_COLLECTION, query, resultHandler);
+        this.find(type, POSITION_REPORT_COLLECTION, query, new PositionReportModel(), resultHandler);
     }
 
     @Override
     public void findRiskLimitUtilization(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
-        this.find(type, RISK_LIMIT_UTILIZATION_COLLECTION, query, resultHandler);
+        this.find(type, RISK_LIMIT_UTILIZATION_COLLECTION, query, new RiskLimitUtilizationModel(), resultHandler);
     }
 
-    private void find(RequestType type, String collection, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+    private void find(RequestType type, String collection, JsonObject query, AbstractModel model, Handler<AsyncResult<String>> resultHandler) {
         switch(type) {
-            // @TODO
             case LATEST:
+                this.findLatest(collection, query, model, resultHandler);
+                break;
             case HISTORY:
-                this.find(collection, query, resultHandler);
+                this.findHistory(collection, query, model, resultHandler);
                 break;
             default:
                 LOG.error("Unknown request type {}", type);
@@ -104,13 +106,11 @@ public class MongoPersistenceService implements PersistenceService {
         }
     }
 
-    private void find(String collection, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
-        LOG.trace("Received {} query with message {}", collection, query);
-        FindOptions findOptions = new FindOptions()
-                .setSort(new JsonObject().put("snapshotID", 1));
-        mongo.findWithOptions(collection, query, findOptions, res -> {
+    private void findLatest(String collection, JsonObject query, AbstractModel model, Handler<AsyncResult<String>> resultHandler) {
+        LOG.trace("Received latest {} query with message {}", collection, query);
+        mongo.runCommand("aggregate", MongoPersistenceService.getLatestCommand(collection, query, model), res -> {
             if (res.succeeded()) {
-                resultHandler.handle(Future.succeededFuture(Json.encodePrettily(res.result())));
+                resultHandler.handle(Future.succeededFuture(Json.encodePrettily(res.result().getJsonArray("result"))));
             } else {
                 LOG.error("{} query failed", collection, res.cause());
                 connectionManager.startReconnection();
@@ -119,7 +119,77 @@ public class MongoPersistenceService implements PersistenceService {
         });
     }
 
-    @Override
+    private void findHistory(String collection, JsonObject query, AbstractModel model, Handler<AsyncResult<String>> resultHandler) {
+        LOG.trace("Received history {} query with message {}", collection, query);
+        mongo.runCommand("aggregate", MongoPersistenceService.getHistoryCommand(collection, query, model), res -> {
+            if (res.succeeded()) {
+                resultHandler.handle(Future.succeededFuture(Json.encodePrettily(res.result().getJsonArray("result"))));
+            } else {
+                LOG.error("{} query failed", collection, res.cause());
+                connectionManager.startReconnection();
+                resultHandler.handle(ServiceException.fail(QUERY_ERROR, res.cause().getMessage()));
+            }
+        });
+    }
+
+    private static JsonObject getLatestCommand(String collection, JsonObject params, AbstractModel model) {
+        JsonObject command = new JsonObject()
+                .put("aggregate", collection)
+                .put("pipeline", MongoPersistenceService.getLatestPipeline(params, model))
+                .put("allowDiskUse", true);
+        return command;
+    }
+
+    private static JsonObject getHistoryCommand(String collection, JsonObject params, AbstractModel model) {
+        JsonObject command = new JsonObject()
+                .put("aggregate", collection)
+                .put("pipeline", MongoPersistenceService.getHistoryPipeline(params, model))
+                .put("allowDiskUse", true);
+        return command;
+    }
+
+    private static JsonArray getLatestPipeline(JsonObject params, AbstractModel model) {
+        JsonArray pipeline = new JsonArray();
+        pipeline.add(new JsonObject().put("$match", params));
+        pipeline.add(new JsonObject().put("$project", getLatestSnapshotProject(model)));
+        pipeline.add(new JsonObject().put("$unwind", "$snapshots"));
+        pipeline.add(new JsonObject().put("$project", getLatestFlattenProject(model)));
+        return pipeline;
+    }
+
+    private static JsonArray getHistoryPipeline(JsonObject params, AbstractModel model) {
+        JsonArray pipeline = new JsonArray();
+        pipeline.add(new JsonObject().put("$match", params));
+        pipeline.add(new JsonObject().put("$unwind", "$snapshots"));
+        pipeline.add(new JsonObject().put("$project", getHistoryProject(model)));
+        return pipeline;
+    }
+
+    private static JsonObject getHistoryProject(AbstractModel model) {
+        JsonObject project = new JsonObject();
+        project.put("_id", 0);
+        model.getKeys().forEach(key -> project.put(key, 1));
+        model.getNonKeys().forEach(nonKey -> project.put(nonKey, "$snapshots." + nonKey));
+        model.getHeader().forEach(header -> project.put(header, "$snapshots." + header));
+        return project;
+    }
+
+    private static JsonObject getLatestSnapshotProject(AbstractModel model) {
+        JsonObject project = new JsonObject();
+        project.put("_id", 0);
+        model.getKeys().forEach(key -> project.put(key, 1));
+        project.put("snapshots", new JsonObject().put("$slice", new JsonArray().add("$snapshots").add(-1)));
+        return project;
+    }
+
+    private static JsonObject getLatestFlattenProject(AbstractModel model) {
+        JsonObject project = new JsonObject();
+        model.getKeys().forEach(key -> project.put(key, 1));
+        model.getNonKeys().forEach(nonKey -> project.put(nonKey, "$snapshots." + nonKey));
+        model.getHeader().forEach(header -> project.put(header, "$snapshots." + header));
+        return project;
+    }
+
     public void close() {
         this.closed = true;
         this.mongo.close();
@@ -157,7 +227,7 @@ public class MongoPersistenceService implements PersistenceService {
         }
 
         private void checkConnectionStatus() {
-            mongo.runCommand("dbstats", new JsonObject().put("dbstats", 1), res -> {
+            mongo.runCommand("ping", new JsonObject().put("ping", 1), res -> {
                 if (res.succeeded()) {
                     LOG.info("Back online");
                     healthCheck.setComponentReady(HealthCheck.Component.PERSISTENCE_SERVICE);
