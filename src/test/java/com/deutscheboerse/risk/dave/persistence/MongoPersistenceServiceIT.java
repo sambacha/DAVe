@@ -15,6 +15,7 @@ import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.serviceproxy.ProxyHelper;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -214,6 +215,11 @@ public class MongoPersistenceServiceIT {
 
     private void assertDocumentsEquals(TestContext context, JsonObject expected, JsonObject document) {
         context.assertEquals(expected.remove("_id"), document.remove("id"));
+    }
+
+    @After
+    public void cleanup() {
+        testAppender.clear();
     }
 
     @AfterClass
