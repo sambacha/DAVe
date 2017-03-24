@@ -1,117 +1,76 @@
 package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.model.PositionReportModel;
-import com.deutscheboerse.risk.dave.persistence.MongoPersistenceService;
-import com.deutscheboerse.risk.dave.persistence.PersistenceService;
-import com.deutscheboerse.risk.dave.utils.DummyData;
+import com.deutscheboerse.risk.dave.utils.DataHelper;
+import com.deutscheboerse.risk.dave.utils.MongoFiller;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
-import io.vertx.ext.mongo.UpdateOptions;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.serviceproxy.ProxyHelper;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.UUID;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.Map;
 
 @RunWith(VertxUnitRunner.class)
 public class MainVerticleIT {
-    private static Vertx vertx;
-    private static int httpPort;
-    private static int mongoPort;
-    private static MongoClient mongoClient;
+    private Vertx vertx;
 
-    @BeforeClass
-    public static void setUp(TestContext context) {
-        vertx = Vertx.vertx();
-
-        httpPort = Integer.getInteger("http.port", 8080);
-        mongoPort = Integer.getInteger("mongodb.port", 27017);
-
-        JsonObject config = new JsonObject();
-        config.put("http", new JsonObject().put("port", httpPort));
-        config.put("mongodb", new JsonObject().put("dbName", "DAVe-MainVerticleTest").put("connectionUrl", "mongodb://localhost:" + mongoPort));
-        vertx.deployVerticle(MainVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
-
-        JsonObject dbConfig = new JsonObject();
-        dbConfig.put("db_name", "DAVe-Test" + UUID.randomUUID().getLeastSignificantBits());
-        dbConfig.put("connection_string", "mongodb://localhost:" + System.getProperty("mongodb.port", "27017"));
-        MainVerticleIT.mongoClient = MongoClient.createShared(MainVerticleIT.vertx, dbConfig);
-        ProxyHelper.registerService(PersistenceService.class, vertx, new MongoPersistenceService(vertx, mongoClient), PersistenceService.SERVICE_ADDRESS);
-    }
-
-    private void sendDummyData(TestContext context) {
-        PositionReportModel model = new PositionReportModel();
-        DummyData.positionReportJson.forEach(doc -> {
-            final Async asyncHistory = context.async();
-            final Async asyncLatest = context.async();
-
-            mongoClient.insert(model.getHistoryCollection(), doc.copy(), res -> {
-                context.assertTrue(res.succeeded());
-                asyncHistory.complete();
-            });
-
-            JsonObject query = new JsonObject();
-            query.put("clearer", doc.getValue("clearer"));
-            query.put("member", doc.getValue("member"));
-            query.put("account", doc.getValue("account"));
-            query.put("clss", doc.getValue("clss"));
-            query.put("symbol", doc.getValue("symbol"));
-            query.put("putCall", doc.getValue("putCall"));
-            query.put("strikePrice", doc.getValue("strikePrice"));
-            query.put("optAttribute", doc.getValue("optAttribute"));
-            query.put("maturityMonthYear", doc.getValue("maturityMonthYear"));
-
-            mongoClient.replaceDocumentsWithOptions(model.getLatestCollection(), query, doc.copy().put("received", doc.getJsonObject("received").getString("$date")), new UpdateOptions().setUpsert(true), res -> {
-                context.assertTrue(res.succeeded());
-                asyncLatest.complete();
-            });
-
-            asyncHistory.awaitSuccess();
-            asyncLatest.awaitSuccess();
-        });
+    @Before
+    public void setUp() {
+        this.vertx = Vertx.vertx();
     }
 
     @Test
-    public void testPositionReport(TestContext context) throws InterruptedException {
-        sendDummyData(context);
+    public void testPositionReport(TestContext context) throws InterruptedException, UnsupportedEncodingException {
+        DeploymentOptions options = getDeploymentOptions();
 
-        Thread.sleep(1000);
+        // Create mongo client
+        JsonObject mongoConfig = options.getConfig().getJsonObject("mongodb");
+        JsonObject mongoClientConfig = new JsonObject()
+            .put("db_name", mongoConfig.getString("dbName"))
+            .put("connection_string", mongoConfig.getString("connectionUrl"));
+
+        MongoClient mongoClient = MongoClient.createShared(this.vertx, mongoClientConfig);
+        MongoFiller mongoFiller = new MongoFiller(context, mongoClient);
+
+        // Feed the data into the store
+        mongoFiller.feedPositionReportCollection(1, 30000);
+        PositionReportModel latestModel = (PositionReportModel)mongoFiller.getLastModel().orElse(new PositionReportModel());
+
+        mongoClient.close();
+
+        // Deploy MainVerticle
+        final Async deployAsync = context.async();
+        vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertSuccess(res -> deployAsync.complete()));
+
+        deployAsync.awaitSuccess(30000);
+
+        StringBuilder url = new StringBuilder("/api/v1.0/pr/latest");
+
+        for (Map.Entry<String, Object> entry: DataHelper.getQueryParams(latestModel)) {
+            String param = entry.getValue().toString();
+            param = param.isEmpty() ? "*" : URLEncoder.encode(param, "UTF-8");
+
+            url.append("/").append(param);
+        }
 
         final Async asyncRest = context.async();
-        vertx.createHttpClient().getNow(httpPort, "localhost", "/api/v1.0/pr/latest/ABCFR/ABCFR/A1/*/OGBL/C/10800/0/201401", res -> {
+        vertx.createHttpClient().getNow(options.getConfig().getJsonObject("http").getInteger("port"), "localhost", url.toString(), res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 try {
                     JsonArray positions = body.toJsonArray();
-
                     context.assertEquals(1, positions.size());
-
-                    JsonObject pos = positions.getJsonObject(0);
-
-                    context.assertEquals("ABCFR", pos.getString("clearer"));
-                    context.assertEquals("ABCFR", pos.getString("member"));
-                    context.assertNull(pos.getString("reqID"));
-                    context.assertEquals("A1", pos.getString("account"));
-                    //context.assertEquals("ITD", pos.getString("sesId"));
-                    context.assertEquals("13198434645156", pos.getString("rptId"));
-                    context.assertEquals("C", pos.getString("putCall"));
-                    context.assertEquals("201401", pos.getString("maturityMonthYear"));
-                    context.assertEquals("10800", pos.getString("strikePrice"));
-                    context.assertEquals("OGBL", pos.getString("symbol"));
-                    context.assertEquals(700.0, pos.getDouble("crossMarginLongQty"));
-                    context.assertEquals(800.0, pos.getDouble("crossMarginShortQty"));
-                    context.assertEquals(0.0, pos.getDouble("optionExcerciseQty"));
-                    context.assertEquals(0.0, pos.getDouble("optionAssignmentQty"));
-                    context.assertNull(pos.getDouble("allocationTradeQty"));
-                    context.assertNull(pos.getDouble("deliveryNoticeQty"));
+                    this.assertDocumentsEquals(context, DataHelper.getMongoDocument(latestModel), positions.getJsonObject(0));
                     asyncRest.complete();
                 }
                 catch (Exception e)
@@ -122,8 +81,29 @@ public class MainVerticleIT {
         });
     }
 
-    @AfterClass
-    public static void tearDown(TestContext context) {
-        MainVerticleIT.vertx.close(context.asyncAssertSuccess());
+    @Test
+    public void testFailedDeployment(TestContext context) {
+        DeploymentOptions options = getDeploymentOptions();
+        options.getConfig().getJsonObject("http", new JsonObject()).put("port", -1);
+        vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertFailure());
+    }
+
+    private DeploymentOptions getDeploymentOptions() {
+        int httpPort = Integer.getInteger("http.port", 8080);
+        int mongoPort = Integer.getInteger("mongodb.port", 27017);
+
+        return new DeploymentOptions().setConfig(new JsonObject()
+            .put("http", new JsonObject().put("port", httpPort))
+            .put("mongodb", new JsonObject().put("dbName", "DAVe-MainVerticleTest").put("connectionUrl", "mongodb://localhost:" + mongoPort + "/?waitqueuemultiple=20000"))
+        );
+    }
+
+    private void assertDocumentsEquals(TestContext context, JsonObject expected, JsonObject document) {
+        context.assertEquals(expected.remove("_id"), document.remove("id"));
+    }
+
+    @After
+    public void cleanup(TestContext context) {
+        this.vertx.close(context.asyncAssertSuccess());
     }
 }

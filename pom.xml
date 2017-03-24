@@ -132,8 +132,6 @@
           <configuration>
             <systemPropertyVariables>
               <mongodb.port>${mongodb.port}</mongodb.port>
-              <ers.tcpport>${ers.tcpport}</ers.tcpport>
-              <ers.sslport>${ers.sslport}</ers.sslport>
               <http.port>${http.port}</http.port>
               <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
               <logback.configurationFile>${project.basedir}/src/test/resources/logback.xml</logback.configurationFile>
@@ -207,27 +205,10 @@
                 <log>
                   <prefix>DB</prefix>
                   <color>yellow</color>
+                  <file>${project.build.directory}/mongo.log</file>
                 </log>
                 <ports>
                   <port>mongodb.port:27017</port>
-                </ports>
-              </run>
-            </image>
-            <image>
-              <alias>ers</alias>
-              <name>ecmi/ers:sim</name>
-              <run>
-                <wait>
-                  <log>Broker \(pid=1\) running</log>
-                  <time>10000</time>
-                </wait>
-                <log>
-                  <prefix>ERS</prefix>
-                  <color>cyan</color>
-                </log>
-                <ports>
-                  <port>ers.sslport:5671</port>
-                  <port>ers.tcpport:5672</port>
                 </ports>
               </run>
             </image>

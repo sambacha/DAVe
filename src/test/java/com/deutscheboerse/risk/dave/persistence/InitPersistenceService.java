@@ -1,7 +1,5 @@
 package com.deutscheboerse.risk.dave.persistence;
 
-import com.deutscheboerse.risk.dave.model.AbstractModel;
-import com.deutscheboerse.risk.dave.model.PositionReportModel;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -28,33 +26,33 @@ public class InitPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void queryMarginComponent(AbstractModel.CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "queryMarginComponent not implemented"));
+    public void findAccountMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "Find is not implemented"));
     }
 
     @Override
-    public void queryMarginShortfallSurplus(AbstractModel.CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "queryMarginShortfallSurplus not implemented"));
+    public void findLiquiGroupMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "Find is not implemented"));
     }
 
     @Override
-    public void queryPositionReport(AbstractModel.CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "queryPositionReport not implemented"));
+    public void findLiquiGroupSplitMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "Find is not implemented"));
     }
 
     @Override
-    public void queryRiskLimit(AbstractModel.CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "queryRiskLimit not implemented"));
+    public void findPoolMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "Find is not implemented"));
     }
 
     @Override
-    public void queryTotalMarginRequirement(AbstractModel.CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "queryTotalMarginRequirement not implemented"));
+    public void findPositionReport(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "Find is not implemented"));
     }
 
     @Override
-    public void queryTradingSessionStatus(AbstractModel.CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "queryTradingSessionStatus not implemented"));
+    public void findRiskLimitUtilization(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "Find is not implemented"));
     }
 
     @Override

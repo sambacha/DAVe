@@ -1,14 +1,12 @@
 package com.deutscheboerse.risk.dave.persistence;
 
-import com.deutscheboerse.risk.dave.model.AbstractModel.CollectionType;
+import com.deutscheboerse.risk.dave.model.*;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-
-import static com.deutscheboerse.risk.dave.model.AbstractModel.CollectionType.LATEST;
 
 public class EchoPersistenceService implements PersistenceService {
 
@@ -18,33 +16,33 @@ public class EchoPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void queryMarginComponent(CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(Future.succeededFuture(echoResponse("MarginComponent", type, params)));
+    public void findAccountMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+        resultHandler.handle(Future.succeededFuture(echoResponse(AccountMarginModel.class.getSimpleName(), type.name(), query)));
     }
 
     @Override
-    public void queryMarginShortfallSurplus(CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(Future.succeededFuture(echoResponse("MarginShortfallSurplus", type, params)));
+    public void findLiquiGroupMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+        resultHandler.handle(Future.succeededFuture(echoResponse(LiquiGroupMarginModel.class.getSimpleName(), type.name(), query)));
     }
 
     @Override
-    public void queryPositionReport(CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(Future.succeededFuture(echoResponse("PositionReport", type, params)));
+    public void findLiquiGroupSplitMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+        resultHandler.handle(Future.succeededFuture(echoResponse(LiquiGroupSplitMarginModel.class.getSimpleName(), type.name(), query)));
     }
 
     @Override
-    public void queryRiskLimit(CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(Future.succeededFuture(echoResponse("RiskLimit", type, params)));
+    public void findPoolMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+        resultHandler.handle(Future.succeededFuture(echoResponse(PoolMarginModel.class.getSimpleName(), type.name(), query)));
     }
 
     @Override
-    public void queryTotalMarginRequirement(CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(Future.succeededFuture(echoResponse("TotalMarginRequirement", type, params)));
+    public void findPositionReport(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+        resultHandler.handle(Future.succeededFuture(echoResponse(PositionReportModel.class.getSimpleName(), type.name(), query)));
     }
 
     @Override
-    public void queryTradingSessionStatus(CollectionType type, JsonObject params, Handler<AsyncResult<String>> resultHandler) {
-        resultHandler.handle(Future.succeededFuture(echoResponse("TradingSessionStatus", type, params)));
+    public void findRiskLimitUtilization(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+        resultHandler.handle(Future.succeededFuture(echoResponse(RiskLimitUtilizationModel.class.getSimpleName(), type.name(), query)));
     }
 
     @Override
@@ -52,8 +50,11 @@ public class EchoPersistenceService implements PersistenceService {
 
     }
 
-    private String echoResponse(String methodName, CollectionType type, JsonObject params) {
+    private String echoResponse(String model, String requestType, JsonObject query) {
         return Json.encodePrettily(new JsonArray().add(
-                new JsonObject().put("method", (type == LATEST ? "latest" : "history") + methodName).mergeIn(params)));
+                new JsonObject()
+                        .put("model", model)
+                        .put("requestType", requestType)
+                        .mergeIn(query)));
     }
 }

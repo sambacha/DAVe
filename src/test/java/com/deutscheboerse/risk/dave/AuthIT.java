@@ -66,16 +66,12 @@ public class AuthIT {
         mockDBQuery();
     }
 
-    private static void initUserDb(TestContext context)
-    {
+    private static void initUserDb(TestContext context) {
         final Async asyncCollection = context.async();
         mongoClient.createCollection(USER_COLLECTION_NAME, res -> {
-            if (res.succeeded())
-            {
+            if (res.succeeded()) {
                 asyncCollection.complete();
-            }
-            else
-            {
+            } else {
                 context.fail("Failed to create " + USER_COLLECTION_NAME + " collection");
             }
         });
@@ -91,12 +87,9 @@ public class AuthIT {
                 .put("createIndexes", USER_COLLECTION_NAME)
                 .put("indexes", indexes);
         mongoClient.runCommand("createIndexes", command, res -> {
-            if (res.succeeded())
-            {
+            if (res.succeeded()) {
                 asyncIndicies.complete();
-            }
-            else
-            {
+            } else {
                 context.fail("Failed to create indicies on " + USER_COLLECTION_NAME + " collection");
             }
         });
@@ -104,8 +97,7 @@ public class AuthIT {
         asyncIndicies.awaitSuccess();
     }
 
-    private static void insertUser(TestContext context, String username, String password)
-    {
+    private static void insertUser(TestContext context, String username, String password) {
         final Async asyncInsert = context.async();
 
         JsonObject authProperties = new JsonObject();
@@ -113,34 +105,27 @@ public class AuthIT {
         authProvider.getHashStrategy().setSaltStyle(HashSaltStyle.EXTERNAL);
         authProvider.getHashStrategy().setExternalSalt(SALT);
         authProvider.insertUser(username, password, Collections.emptyList(), Collections.emptyList(), res -> {
-            if (res.succeeded())
-            {
+            if (res.succeeded()) {
                 asyncInsert.complete();
-            }
-            else
-            {
+            } else {
                 context.fail("Failed to add user " + username + " into the database");
             }
         });
     }
 
-    private final static void mockDBQuery()
-    {
+    private final static void mockDBQuery() {
         vertx.eventBus().consumer("query.latestTradingSessionStatus", msg -> {
             msg.reply("{}");
         });
     }
 
-    private void deployHttpVerticle(TestContext context, JsonObject config)
-    {
+    private void deployHttpVerticle(TestContext context, JsonObject config) {
         final Async asyncStart = context.async();
 
         vertx.deployVerticle(HttpVerticle.class.getName(), new DeploymentOptions().setConfig(config), res -> {
             if (res.succeeded()) {
                 asyncStart.complete();
-            }
-            else
-            {
+            } else {
                 context.fail(res.cause());
             }
         });
@@ -204,7 +189,7 @@ public class AuthIT {
 
         // Not logged in => REST access should return
         final Async asyncUnauthorized = context.async();
-        client.getNow(port, "localhost", "/api/v1.0/tss/latest", res -> {
+        client.getNow(port, "localhost", "/api/v1.0/am/latest/XXXXX", res -> {
             context.assertEquals(401, res.statusCode());
             asyncUnauthorized.complete();
         });
@@ -237,7 +222,7 @@ public class AuthIT {
         client.post(port, "localhost", "/api/v1.0/user/login", res -> {
             context.assertEquals(HttpResponseStatus.BAD_REQUEST.code(), res.statusCode());
             asyncLogin.complete();
-        }).end(Buffer.buffer(new byte[] {1, 3, 5, 7, 9}));
+        }).end(Buffer.buffer(new byte[]{1, 3, 5, 7, 9}));
     }
 
     @Test
@@ -310,7 +295,7 @@ public class AuthIT {
                 }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
 
                 // Logged in => REST access should return 200
-                client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
+                client.get(port, "localhost", "/api/v1.0/am/latest/XXXXX", tssRes -> {
                     context.assertEquals(200, tssRes.statusCode());
                     asyncAuthorized.complete();
                 }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
@@ -329,10 +314,11 @@ public class AuthIT {
         // Log in
         final String expiredToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE0ODIxNTE4NTIsImlhdCI6MTQ4MjE1MTc5MiwidXNlcm5hbWUiOiJzY2hvamFrIn0=.fUgxPZyKBPml0siTJZD7YWF-7_XrD0k9-R9izrM1_xw=";
         final Async asyncExpired = context.async();
-        client.get(port, "localhost", "/api/v1.0/tss/latest", res -> {
+        client.get(port, "localhost", "/api/v1.0/am/latest/XXXXX", res -> {
             context.assertEquals(401, res.statusCode());
             asyncExpired.complete();
-        }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", expiredToken)).end();;
+        }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", expiredToken)).end();
+        ;
     }
 
     @Test
@@ -356,7 +342,7 @@ public class AuthIT {
                     statusRes.bodyHandler(body -> {
                         String refreshToken = body.toJsonObject().getString("token");
                         // REST access with refreshed token should return 200
-                        client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
+                        client.get(port, "localhost", "/api/v1.0/am/latest/XXXXX", tssRes -> {
                             context.assertEquals(200, tssRes.statusCode());
                             asyncAuthorized.complete();
                         }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", refreshToken)).end();
@@ -368,14 +354,11 @@ public class AuthIT {
         }).end(Json.encodePrettily(new JsonObject().put("username", USER).put("password", PASSWORD)));
     }
 
-    private String getCsrfCookie(List<String> cookies)
-    {
+    private String getCsrfCookie(List<String> cookies) {
         String token = null;
 
-        for (String cookie : cookies)
-        {
-            if (cookie.startsWith("XSRF-TOKEN="))
-            {
+        for (String cookie : cookies) {
+            if (cookie.startsWith("XSRF-TOKEN=")) {
                 token = cookie.replaceFirst("XSRF-TOKEN=", "");
             }
         }
@@ -414,7 +397,7 @@ public class AuthIT {
                     }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
 
                     // Logged in => REST access should return 200
-                    client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
+                    client.get(port, "localhost", "/api/v1.0/am/latest", tssRes -> {
                         context.assertEquals(200, tssRes.statusCode());
                         asyncAuthorized.complete();
                     }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
@@ -463,7 +446,7 @@ public class AuthIT {
                 }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
 
                 // Logged in => REST access should return 200
-                client.get(port, "localhost", "/api/v1.0/tss/latest", tssRes -> {
+                client.get(port, "localhost", "/api/v1.0/am/latest/XXXXX", tssRes -> {
                     context.assertEquals(200, tssRes.statusCode());
                     asyncAuthorized.complete();
                 }).putHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", token)).end();
@@ -508,8 +491,7 @@ public class AuthIT {
     }
 
     @After
-    public void cleanup(TestContext context)
-    {
+    public void cleanup(TestContext context) {
         vertx.deploymentIDs().forEach(id -> {
             System.out.println(id);
             vertx.undeploy(id, context.asyncAssertSuccess());
