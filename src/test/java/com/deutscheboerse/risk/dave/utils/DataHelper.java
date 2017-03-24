@@ -59,6 +59,19 @@ public class DataHelper {
                 .put("timestamp", new JsonObject().put("$date", DataHelper.milliToIsoDateTime(model.getLong("timestamp"))));
     }
 
+    static JsonObject getStoreDocument(AbstractModel model) {
+        JsonObject document = new JsonObject();
+        JsonObject setDocument = new JsonObject();
+        JsonObject pushDocument = new JsonObject();
+        model.getKeys().forEach(key -> setDocument.put(key, model.getValue(key)));
+        model.stream()
+                .filter(entry -> !model.getKeys().contains(entry.getKey()))
+                .forEach(entry -> pushDocument.put(entry.getKey(), entry.getValue()));
+        document.put("$set", setDocument);
+        document.put("$push", new JsonObject().put("snapshots", pushDocument));
+        return document;
+    }
+
     private static String milliToIsoDateTime(long milli) {
         Instant instant = Instant.ofEpochMilli(milli);
         return ZonedDateTime.ofInstant(instant, ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);

@@ -196,7 +196,7 @@
           <images>
             <image>
               <alias>db</alias>
-              <name>mongo:3.2</name>
+              <name>mongo:3.4</name>
               <run>
                 <wait>
                   <log>waiting for connections on port</log>

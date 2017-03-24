@@ -20,18 +20,12 @@ import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.PER
 public class MongoPersistenceService implements PersistenceService {
     private static final Logger LOG = LoggerFactory.getLogger(MongoPersistenceService.class);
 
-    public static final String ACCOUNT_MARGIN_HISTORY_COLLECTION = "AccountMargin";
-    public static final String ACCOUNT_MARGIN_LATEST_COLLECTION = "AccountMargin.latest";
-    public static final String LIQUI_GROUP_MARGIN_HISTORY_COLLECTION = "LiquiGroupMargin";
-    public static final String LIQUI_GROUP_MARGIN_LATEST_COLLECTION = "LiquiGroupMargin.latest";
-    public static final String LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION = "LiquiGroupSplitMargin";
-    public static final String LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION = "LiquiGroupSplitMargin.latest";
-    public static final String POOL_MARGIN_HISTORY_COLLECTION = "PoolMargin";
-    public static final String POOL_MARGIN_LATEST_COLLECTION = "PoolMargin.latest";
-    public static final String POSITION_REPORT_HISTORY_COLLECTION = "PositionReport";
-    public static final String POSITION_REPORT_LATEST_COLLECTION = "PositionReport.latest";
-    public static final String RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION = "RiskLimitUtilization";
-    public static final String RISK_LIMIT_UTILIZATION_LATEST_COLLECTION = "RiskLimitUtilization.latest";
+    public static final String ACCOUNT_MARGIN_COLLECTION = "AccountMargin";
+    public static final String LIQUI_GROUP_MARGIN_COLLECTION = "LiquiGroupMargin";
+    public static final String LIQUI_GROUP_SPLIT_MARGIN_COLLECTION = "LiquiGroupSplitMargin";
+    public static final String POOL_MARGIN_COLLECTION = "PoolMargin";
+    public static final String POSITION_REPORT_COLLECTION = "PositionReport";
+    public static final String RISK_LIMIT_UTILIZATION_COLLECTION = "RiskLimitUtilization";
 
     private static final int RECONNECT_DELAY = 2000;
 
@@ -69,41 +63,40 @@ public class MongoPersistenceService implements PersistenceService {
 
     @Override
     public void findAccountMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
-        this.find(type, ACCOUNT_MARGIN_LATEST_COLLECTION, ACCOUNT_MARGIN_HISTORY_COLLECTION, query, resultHandler);
+        this.find(type, ACCOUNT_MARGIN_COLLECTION, query, resultHandler);
     }
 
     @Override
     public void findLiquiGroupMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
-        this.find(type, LIQUI_GROUP_MARGIN_LATEST_COLLECTION, LIQUI_GROUP_MARGIN_HISTORY_COLLECTION, query, resultHandler);
+        this.find(type, LIQUI_GROUP_MARGIN_COLLECTION, query, resultHandler);
     }
 
     @Override
     public void findLiquiGroupSplitMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
-        this.find(type, LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION, LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION, query, resultHandler);
+        this.find(type, LIQUI_GROUP_SPLIT_MARGIN_COLLECTION, query, resultHandler);
     }
 
     @Override
     public void findPoolMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
-        this.find(type, POOL_MARGIN_LATEST_COLLECTION, POOL_MARGIN_HISTORY_COLLECTION, query, resultHandler);
+        this.find(type, POOL_MARGIN_COLLECTION, query, resultHandler);
     }
 
     @Override
     public void findPositionReport(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
-        this.find(type, POSITION_REPORT_LATEST_COLLECTION, POSITION_REPORT_HISTORY_COLLECTION, query, resultHandler);
+        this.find(type, POSITION_REPORT_COLLECTION, query, resultHandler);
     }
 
     @Override
     public void findRiskLimitUtilization(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
-        this.find(type, RISK_LIMIT_UTILIZATION_LATEST_COLLECTION, RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION, query, resultHandler);
+        this.find(type, RISK_LIMIT_UTILIZATION_COLLECTION, query, resultHandler);
     }
 
-    private void find(RequestType type, String latestCollection, String historyCollection, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+    private void find(RequestType type, String collection, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
         switch(type) {
+            // @TODO
             case LATEST:
-                this.find(latestCollection, query, resultHandler);
-                break;
             case HISTORY:
-                this.find(historyCollection, query, resultHandler);
+                this.find(collection, query, resultHandler);
                 break;
             default:
                 LOG.error("Unknown request type {}", type);
