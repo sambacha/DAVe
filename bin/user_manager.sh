@@ -20,7 +20,7 @@ case "$CMD" in
 esac
 
 
-java \
+java ${JAVA_OPTS} \
   -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory \
   ${OPTIONS} \
   -cp ${DAVE_LIB}/dave-1.0-SNAPSHOT-fat.jar com.deutscheboerse.risk.dave.util.UserManagerVerticle \
