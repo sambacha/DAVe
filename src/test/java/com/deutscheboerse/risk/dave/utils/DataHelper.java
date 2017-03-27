@@ -11,10 +11,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -55,14 +51,20 @@ public class DataHelper {
     }
 
     public static JsonObject getMongoDocument(AbstractModel model) {
-        return model.copy()
-                .put("timestamp", new JsonObject().put("$date", DataHelper.milliToIsoDateTime(model.getLong("timestamp"))));
+        return model.copy();
     }
 
-    private static String milliToIsoDateTime(long milli) {
-        Instant instant = Instant.ofEpochMilli(milli);
-        return ZonedDateTime.ofInstant(instant, ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    static JsonObject getStoreDocument(AbstractModel model) {
+        JsonObject document = new JsonObject();
+        JsonObject setDocument = new JsonObject();
+        JsonObject pushDocument = new JsonObject();
+        model.getKeys().forEach(key -> setDocument.put(key, model.getValue(key)));
+        model.stream()
+                .filter(entry -> !model.getKeys().contains(entry.getKey()))
+                .forEach(entry -> pushDocument.put(entry.getKey(), entry.getValue()));
+        document.put("$set", setDocument);
+        document.put("$push", new JsonObject().put("snapshots", pushDocument));
+        return document;
     }
-
 
 }

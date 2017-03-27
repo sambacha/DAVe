@@ -215,7 +215,7 @@ public class MongoErrorClient implements MongoClient {
 
     @Override
     public MongoClient runCommand(String commandName, JsonObject command, Handler<AsyncResult<JsonObject>> resultHandler) {
-        return this.process("runCommand", new JsonObject(), resultHandler);
+        return this.process("runCommand:" + commandName, new JsonObject(), resultHandler);
     }
 
     @Override

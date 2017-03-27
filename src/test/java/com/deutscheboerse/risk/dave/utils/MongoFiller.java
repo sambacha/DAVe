@@ -3,8 +3,6 @@ package com.deutscheboerse.risk.dave.utils;
 import com.deutscheboerse.risk.dave.model.*;
 import com.deutscheboerse.risk.dave.persistence.MongoPersistenceService;
 import io.vertx.core.AsyncResult;
-import io.vertx.core.CompositeFuture;
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
@@ -23,23 +21,15 @@ public class MongoFiller {
     private final MongoClient mongoClient;
 
     private AbstractModel lastModel;
-    private static final Map<Class<? extends AbstractModel>, String> latestCollectionsForModel = new HashMap<>();
-    private static final Map<Class<? extends AbstractModel>, String> historyCollectionsForModel = new HashMap<>();
+    private static final Map<Class<? extends AbstractModel>, String> collectionsForModel = new HashMap<>();
 
     static {
-        latestCollectionsForModel.put(AccountMarginModel.class, MongoPersistenceService.ACCOUNT_MARGIN_LATEST_COLLECTION);
-        latestCollectionsForModel.put(LiquiGroupMarginModel.class, MongoPersistenceService.LIQUI_GROUP_MARGIN_LATEST_COLLECTION);
-        latestCollectionsForModel.put(LiquiGroupSplitMarginModel.class, MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_LATEST_COLLECTION);
-        latestCollectionsForModel.put(PoolMarginModel.class, MongoPersistenceService.POOL_MARGIN_LATEST_COLLECTION);
-        latestCollectionsForModel.put(PositionReportModel.class, MongoPersistenceService.POSITION_REPORT_LATEST_COLLECTION);
-        latestCollectionsForModel.put(RiskLimitUtilizationModel.class, MongoPersistenceService.RISK_LIMIT_UTILIZATION_LATEST_COLLECTION);
-
-        historyCollectionsForModel.put(AccountMarginModel.class, MongoPersistenceService.ACCOUNT_MARGIN_HISTORY_COLLECTION);
-        historyCollectionsForModel.put(LiquiGroupMarginModel.class, MongoPersistenceService.LIQUI_GROUP_MARGIN_HISTORY_COLLECTION);
-        historyCollectionsForModel.put(LiquiGroupSplitMarginModel.class, MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_HISTORY_COLLECTION);
-        historyCollectionsForModel.put(PoolMarginModel.class, MongoPersistenceService.POOL_MARGIN_HISTORY_COLLECTION);
-        historyCollectionsForModel.put(PositionReportModel.class, MongoPersistenceService.POSITION_REPORT_HISTORY_COLLECTION);
-        historyCollectionsForModel.put(RiskLimitUtilizationModel.class, MongoPersistenceService.RISK_LIMIT_UTILIZATION_HISTORY_COLLECTION);
+        collectionsForModel.put(AccountMarginModel.class, MongoPersistenceService.ACCOUNT_MARGIN_COLLECTION);
+        collectionsForModel.put(LiquiGroupMarginModel.class, MongoPersistenceService.LIQUI_GROUP_MARGIN_COLLECTION);
+        collectionsForModel.put(LiquiGroupSplitMarginModel.class, MongoPersistenceService.LIQUI_GROUP_SPLIT_MARGIN_COLLECTION);
+        collectionsForModel.put(PoolMarginModel.class, MongoPersistenceService.POOL_MARGIN_COLLECTION);
+        collectionsForModel.put(PositionReportModel.class, MongoPersistenceService.POSITION_REPORT_COLLECTION);
+        collectionsForModel.put(RiskLimitUtilizationModel.class, MongoPersistenceService.RISK_LIMIT_UTILIZATION_COLLECTION);
     }
 
     public MongoFiller(TestContext context, MongoClient mongoClient) {
@@ -79,43 +69,33 @@ public class MongoFiller {
         int msgCount = DataHelper.getJsonObjectCount(folder, ttsaveNo);
         Async asyncStore = context.async(msgCount);
 
-        DataHelper.readTTSaveFile(folder, ttsaveNo).forEach(json ->
-                this.insertModel(mapper.apply(json), ar -> {
-                    if (ar.succeeded()) {
-                        asyncStore.countDown();
-                    } else {
-                        context.fail(ar.cause());
-                    }
-                })
-        );
+        DataHelper.readTTSaveFile(folder, ttsaveNo).forEach(json -> {
+            AbstractModel model = mapper.apply(json);
+            this.insertModel(model, ar -> {
+                if (ar.succeeded()) {
+                    lastModel = model;
+                    asyncStore.countDown();
+                } else {
+                    context.fail(ar.cause());
+                }
+            });
+        });
 
         asyncStore.awaitSuccess(timeoutMillis);
 
         return msgCount;
     }
 
-    private void insertModel(AbstractModel model, Handler<AsyncResult<String>> handler) {
-        Future<String> insertFuture = Future.future();
-        Future<MongoClientUpdateResult> upsertFuture = Future.future();
-        mongoClient.insert(MongoFiller.getHistoryCollectionForModel(model), DataHelper.getMongoDocument(model), insertFuture);
-        UpdateOptions updateOptions = new UpdateOptions().setUpsert(true);
-        mongoClient.replaceDocumentsWithOptions(MongoFiller.getLatestCollectionForModel(model), DataHelper.getQueryParams(model), DataHelper.getMongoDocument(model), updateOptions, upsertFuture);
-        CompositeFuture.all(insertFuture, upsertFuture).setHandler(res -> {
-            if (res.succeeded()) {
-                lastModel = model;
-                handler.handle(Future.succeededFuture());
-            } else {
-                handler.handle(Future.failedFuture(res.cause()));
-            }
-        });
+    private void insertModel(AbstractModel model, Handler<AsyncResult<MongoClientUpdateResult>> handler) {
+        mongoClient.updateCollectionWithOptions(
+                MongoFiller.getCollectionForModel(model),
+                DataHelper.getQueryParams(model),
+                DataHelper.getStoreDocument(model),
+                new UpdateOptions().setUpsert(true),
+                handler);
     }
 
-    public static String getLatestCollectionForModel(AbstractModel model) {
-        return MongoFiller.latestCollectionsForModel.get(model.getClass());
+    private static String getCollectionForModel(AbstractModel model) {
+        return MongoFiller.collectionsForModel.get(model.getClass());
     }
-
-    public static String getHistoryCollectionForModel(AbstractModel model) {
-        return MongoFiller.historyCollectionsForModel.get(model.getClass());
-    }
-
 }
