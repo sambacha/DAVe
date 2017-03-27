@@ -122,11 +122,10 @@ public class MongoPersistenceService implements PersistenceService {
     }
 
     private static JsonObject getCommand(String collection, JsonObject params, AbstractModel model, BiFunction<JsonObject, AbstractModel, JsonArray> getPipeline) {
-        JsonObject command = new JsonObject()
+        return new JsonObject()
                 .put("aggregate", collection)
                 .put("pipeline", getPipeline.apply(params, model))
                 .put("allowDiskUse", true);
-        return command;
     }
 
     private static JsonArray getLatestPipeline(JsonObject params, AbstractModel model) {
@@ -134,7 +133,7 @@ public class MongoPersistenceService implements PersistenceService {
         pipeline.add(new JsonObject().put("$match", params));
         pipeline.add(new JsonObject().put("$project", getLatestSnapshotProject(model)));
         pipeline.add(new JsonObject().put("$unwind", "$snapshots"));
-        pipeline.add(new JsonObject().put("$project", getLatestFlattenProject(model)));
+        pipeline.add(new JsonObject().put("$project", getFlattenProject(model)));
         return pipeline;
     }
 
@@ -142,35 +141,27 @@ public class MongoPersistenceService implements PersistenceService {
         JsonArray pipeline = new JsonArray();
         pipeline.add(new JsonObject().put("$match", params));
         pipeline.add(new JsonObject().put("$unwind", "$snapshots"));
-        pipeline.add(new JsonObject().put("$project", getHistoryProject(model)));
+        pipeline.add(new JsonObject().put("$project", getFlattenProject(model)));
         return pipeline;
-    }
-
-    private static JsonObject getHistoryProject(AbstractModel model) {
-        JsonObject project = new JsonObject();
-        project.put("_id", 0);
-        model.getKeys().forEach(key -> project.put(key, 1));
-        model.getNonKeys().forEach(nonKey -> project.put(nonKey, "$snapshots." + nonKey));
-        model.getHeader().forEach(header -> project.put(header, "$snapshots." + header));
-        return project;
     }
 
     private static JsonObject getLatestSnapshotProject(AbstractModel model) {
         JsonObject project = new JsonObject();
-        project.put("_id", 0);
         model.getKeys().forEach(key -> project.put(key, 1));
         project.put("snapshots", new JsonObject().put("$slice", new JsonArray().add("$snapshots").add(-1)));
         return project;
     }
 
-    private static JsonObject getLatestFlattenProject(AbstractModel model) {
+    private static JsonObject getFlattenProject(AbstractModel model) {
         JsonObject project = new JsonObject();
+        project.put("_id", 0);
         model.getKeys().forEach(key -> project.put(key, 1));
         model.getNonKeys().forEach(nonKey -> project.put(nonKey, "$snapshots." + nonKey));
         model.getHeader().forEach(header -> project.put(header, "$snapshots." + header));
         return project;
     }
 
+    @Override
     public void close() {
         this.closed = true;
         this.mongo.close();
