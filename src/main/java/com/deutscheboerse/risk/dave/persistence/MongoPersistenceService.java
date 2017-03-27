@@ -16,6 +16,8 @@ import io.vertx.serviceproxy.ServiceException;
 
 import javax.inject.Inject;
 
+import java.util.function.BiFunction;
+
 import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.PERSISTENCE_SERVICE;
 
 public class MongoPersistenceService implements PersistenceService {
@@ -93,22 +95,21 @@ public class MongoPersistenceService implements PersistenceService {
     }
 
     private void find(RequestType type, String collection, JsonObject query, AbstractModel model, Handler<AsyncResult<String>> resultHandler) {
+        LOG.trace("Received {} {} query with message {}", type.name(), collection, query);
+        BiFunction<JsonObject, AbstractModel, JsonArray> getPipeline;
         switch(type) {
             case LATEST:
-                this.findLatest(collection, query, model, resultHandler);
+                getPipeline = MongoPersistenceService::getLatestPipeline;
                 break;
             case HISTORY:
-                this.findHistory(collection, query, model, resultHandler);
+                getPipeline = MongoPersistenceService::getHistoryPipeline;
                 break;
             default:
                 LOG.error("Unknown request type {}", type);
                 resultHandler.handle(ServiceException.fail(QUERY_ERROR, "Unknown request type"));
+                return;
         }
-    }
-
-    private void findLatest(String collection, JsonObject query, AbstractModel model, Handler<AsyncResult<String>> resultHandler) {
-        LOG.trace("Received latest {} query with message {}", collection, query);
-        mongo.runCommand("aggregate", MongoPersistenceService.getLatestCommand(collection, query, model), res -> {
+        mongo.runCommand("aggregate", MongoPersistenceService.getCommand(collection, query, model, getPipeline), res -> {
             if (res.succeeded()) {
                 resultHandler.handle(Future.succeededFuture(Json.encodePrettily(res.result().getJsonArray("result"))));
             } else {
@@ -117,33 +118,13 @@ public class MongoPersistenceService implements PersistenceService {
                 resultHandler.handle(ServiceException.fail(QUERY_ERROR, res.cause().getMessage()));
             }
         });
+
     }
 
-    private void findHistory(String collection, JsonObject query, AbstractModel model, Handler<AsyncResult<String>> resultHandler) {
-        LOG.trace("Received history {} query with message {}", collection, query);
-        mongo.runCommand("aggregate", MongoPersistenceService.getHistoryCommand(collection, query, model), res -> {
-            if (res.succeeded()) {
-                resultHandler.handle(Future.succeededFuture(Json.encodePrettily(res.result().getJsonArray("result"))));
-            } else {
-                LOG.error("{} query failed", collection, res.cause());
-                connectionManager.startReconnection();
-                resultHandler.handle(ServiceException.fail(QUERY_ERROR, res.cause().getMessage()));
-            }
-        });
-    }
-
-    private static JsonObject getLatestCommand(String collection, JsonObject params, AbstractModel model) {
+    private static JsonObject getCommand(String collection, JsonObject params, AbstractModel model, BiFunction<JsonObject, AbstractModel, JsonArray> getPipeline) {
         JsonObject command = new JsonObject()
                 .put("aggregate", collection)
-                .put("pipeline", MongoPersistenceService.getLatestPipeline(params, model))
-                .put("allowDiskUse", true);
-        return command;
-    }
-
-    private static JsonObject getHistoryCommand(String collection, JsonObject params, AbstractModel model) {
-        JsonObject command = new JsonObject()
-                .put("aggregate", collection)
-                .put("pipeline", MongoPersistenceService.getHistoryPipeline(params, model))
+                .put("pipeline", getPipeline.apply(params, model))
                 .put("allowDiskUse", true);
         return command;
     }
