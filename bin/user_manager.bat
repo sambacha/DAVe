@@ -23,7 +23,7 @@ echo Usage %0 CMD OPTIONS (where CMD must be in: [insert, delete, list])
 GOTO end
 
 :process
-java -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory %option_fragment% -cp %DAVE_LIB%\dave-1.0-SNAPSHOT-fat.jar com.deutscheboerse.risk.dave.util.UserManagerVerticle -conf %DAVE_ETC%\dave.json
+java %JAVA_OPTS% -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory %option_fragment% -cp %DAVE_LIB%\dave-1.0-SNAPSHOT-fat.jar com.deutscheboerse.risk.dave.util.UserManagerVerticle -conf %DAVE_ETC%\dave.json
 GOTO end
 
 :end
