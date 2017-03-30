@@ -48,7 +48,8 @@ public class RestApiTest {
         );
 
         final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/am/latest/CLEARER/MEMBER/ACCOUNT/CURRENCY", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/am/latest?clearer=CLEARER&member=MEMBER&" +
+                        "account=ACCOUNT&marginCurrency=CURRENCY", res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonArray bd = body.toJsonArray();
@@ -72,7 +73,8 @@ public class RestApiTest {
         );
 
         final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/am/history/CLEARER/MEMBER/ACCOUNT/CURRENCY", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/am/history?clearer=CLEARER&member=MEMBER&" +
+                "account=ACCOUNT&marginCurrency=CURRENCY", res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonArray bd = body.toJsonArray();
@@ -97,7 +99,8 @@ public class RestApiTest {
         );
 
         final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/lgm/latest/CLEARER/MEMBER/ACCOUNT/CLASS/CURRENCY", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/lgm/latest?clearer=CLEARER&member=MEMBER&" +
+                        "account=ACCOUNT&marginClass=CLASS&marginCurrency=CURRENCY", res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonArray bd = body.toJsonArray();
@@ -122,7 +125,8 @@ public class RestApiTest {
         );
 
         final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/lgm/history/CLEARER/MEMBER/ACCOUNT/CLASS/CURRENCY", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/lgm/history?clearer=CLEARER&member=MEMBER&" +
+                        "account=ACCOUNT&marginClass=CLASS&marginCurrency=CURRENCY", res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonArray bd = body.toJsonArray();
@@ -148,7 +152,8 @@ public class RestApiTest {
         );
 
         final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/lgsm/latest/CLEARER/MEMBER/ACCOUNT/GROUP/SPLIT/CURRENCY", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/lgsm/latest?clearer=CLEARER&member=MEMBER&" +
+                "account=ACCOUNT&liquidationGroup=GROUP&liquidationGroupSplit=SPLIT&marginCurrency=CURRENCY", res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonArray bd = body.toJsonArray();
@@ -174,7 +179,8 @@ public class RestApiTest {
         );
 
         final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/lgsm/history/CLEARER/MEMBER/ACCOUNT/GROUP/SPLIT/CURRENCY", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/lgsm/history?clearer=CLEARER&member=MEMBER&" +
+                "account=ACCOUNT&liquidationGroup=GROUP&liquidationGroupSplit=SPLIT&marginCurrency=CURRENCY", res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonArray bd = body.toJsonArray();
@@ -197,7 +203,8 @@ public class RestApiTest {
         );
 
         final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pm/latest/CLEARER/POOL/CURRENCY", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pm/latest?clearer=CLEARER&pool=POOL&" +
+                "marginCurrency=CURRENCY", res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonArray bd = body.toJsonArray();
@@ -220,7 +227,8 @@ public class RestApiTest {
         );
 
         final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pm/history/CLEARER/POOL/CURRENCY", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pm/history?clearer=CLEARER&pool=POOL&" +
+                "marginCurrency=CURRENCY", res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonArray bd = body.toJsonArray();
@@ -254,8 +262,10 @@ public class RestApiTest {
         );
 
         final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost",
-                "/api/v1.0/pr/latest/CLEARER/MEMBER/ACCOUNT/GROUP/SPLIT/PRODUCT/CALLPUT/2016/10/5/1234.5/VERSION/SYMBOL", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pr/latest?clearer=CLEARER&member=MEMBER&" +
+                "account=ACCOUNT&liquidationGroup=GROUP&liquidationGroupSplit=SPLIT&product=PRODUCT&callPut=CALLPUT&" +
+                "contractYear=2016&contractMonth=10&expiryDay=5&exercisePrice=1234.5&version=VERSION&" +
+                "flexContractSymbol=SYMBOL", res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonArray bd = body.toJsonArray();
@@ -288,8 +298,10 @@ public class RestApiTest {
         );
 
         final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost",
-                "/api/v1.0/pr/history/CLEARER/MEMBER/ACCOUNT/GROUP/SPLIT/PRODUCT/CALLPUT/2016/10/5/1234.5/VERSION/SYMBOL", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pr/history?clearer=CLEARER&member=MEMBER&" +
+                "account=ACCOUNT&liquidationGroup=GROUP&liquidationGroupSplit=SPLIT&product=PRODUCT&callPut=CALLPUT&" +
+                "contractYear=2016&contractMonth=10&expiryDay=5&exercisePrice=1234.5&version=VERSION&" +
+                "flexContractSymbol=SYMBOL", res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonArray bd = body.toJsonArray();
@@ -313,7 +325,8 @@ public class RestApiTest {
         );
 
         final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/rlu/latest/CLEARER/MEMBER/MAINTAINER/TYPE", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/rlu/latest?clearer=CLEARER&member=MEMBER&" +
+                        "maintainer=MAINTAINER&limitType=TYPE", res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonArray bd = body.toJsonArray();
@@ -337,7 +350,8 @@ public class RestApiTest {
         );
 
         final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/rlu/history/CLEARER/MEMBER/MAINTAINER/TYPE", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/rlu/history?clearer=CLEARER&member=MEMBER&" +
+                "maintainer=MAINTAINER&limitType=TYPE", res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonArray bd = body.toJsonArray();
@@ -360,7 +374,8 @@ public class RestApiTest {
         );
 
         final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pr/latest/CLEARER/MEMBER/ACCOUNT", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pr/latest?clearer=CLEARER&member=MEMBER&" +
+                "account=ACCOUNT", res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonArray bd = body.toJsonArray();
@@ -382,7 +397,8 @@ public class RestApiTest {
         );
 
         final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pr/latest/CLEARER/*/*/*/*/*/*/2016", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pr/latest?clearer=CLEARER&" +
+                "contractYear=2016", res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonArray bd = body.toJsonArray();

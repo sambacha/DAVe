@@ -54,13 +54,13 @@ public class MainVerticleIT {
 
         deployAsync.awaitSuccess(30000);
 
-        StringBuilder url = new StringBuilder("/api/v1.0/pr/latest");
+        StringBuilder url = new StringBuilder("/api/v1.0/pr/latest?");
 
         for (Map.Entry<String, Object> entry: DataHelper.getQueryParams(latestModel)) {
-            String param = entry.getValue().toString();
-            param = param.isEmpty() ? "*" : URLEncoder.encode(param, "UTF-8");
-
-            url.append("/").append(param);
+            String paramValue = entry.getValue().toString();
+            if (!paramValue.isEmpty()) {
+                url.append(entry.getKey()).append("=").append(URLEncoder.encode(paramValue, "UTF-8")).append("&");
+            }
         }
 
         final Async asyncRest = context.async();

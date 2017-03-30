@@ -54,26 +54,15 @@ public abstract class AbstractApi {
     public Router getRoutes() {
         Router router = Router.router(vertx);
 
-        StringBuilder latestUrl = new StringBuilder(this.getLatestUri());
-        StringBuilder historyUrl = new StringBuilder(this.getHistoryUri());
-
-        router.get(latestUrl.toString()).handler(this::latestCall);
-        router.get(historyUrl.toString()).handler(this::historyCall);
-
-        for (String key: model.getKeys()) {
-            latestUrl.append("/:").append(key);
-            historyUrl.append("/:").append(key);
-            router.get(latestUrl.toString()).handler(this::latestCall);
-            router.get(historyUrl.toString()).handler(this::historyCall);
-        }
+        router.get(this.getLatestUri()).handler(this::latestCall);
+        router.get(this.getHistoryUri()).handler(this::historyCall);
 
         return router;
     }
 
     JsonObject createParamsFromContext(RoutingContext routingContext) {
         final JsonObject result = new JsonObject();
-        routingContext.request().params().entries().stream()
-                .filter(entry -> !"*".equals(entry.getValue()))
+        routingContext.request().params().entries()
                 .forEach(entry -> {
                     try {
                         String parameterValue = URLDecoder.decode(entry.getValue(), "UTF-8");
