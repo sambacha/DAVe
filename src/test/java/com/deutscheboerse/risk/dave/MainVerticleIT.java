@@ -3,6 +3,7 @@ package com.deutscheboerse.risk.dave;
 import com.deutscheboerse.risk.dave.model.PositionReportModel;
 import com.deutscheboerse.risk.dave.utils.DataHelper;
 import com.deutscheboerse.risk.dave.utils.MongoFiller;
+import com.deutscheboerse.risk.dave.utils.URIBuilder;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
@@ -17,8 +18,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.Map;
 
 @RunWith(VertxUnitRunner.class)
 public class MainVerticleIT {
@@ -54,17 +53,12 @@ public class MainVerticleIT {
 
         deployAsync.awaitSuccess(30000);
 
-        StringBuilder url = new StringBuilder("/api/v1.0/pr/latest?");
-
-        for (Map.Entry<String, Object> entry: DataHelper.getQueryParams(latestModel)) {
-            String paramValue = entry.getValue().toString();
-            if (!paramValue.isEmpty()) {
-                url.append(entry.getKey()).append("=").append(URLEncoder.encode(paramValue, "UTF-8")).append("&");
-            }
-        }
+        String uri = new URIBuilder("/api/v1.0/pr/latest")
+                .addParams(DataHelper.getQueryParams(latestModel))
+                .build();
 
         final Async asyncRest = context.async();
-        vertx.createHttpClient().getNow(options.getConfig().getJsonObject("http").getInteger("port"), "localhost", url.toString(), res -> {
+        vertx.createHttpClient().getNow(options.getConfig().getJsonObject("http").getInteger("port"), "localhost", uri, res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 try {

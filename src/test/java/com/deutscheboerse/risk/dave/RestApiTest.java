@@ -1,7 +1,12 @@
 package com.deutscheboerse.risk.dave;
 
+import com.deutscheboerse.risk.dave.model.*;
 import com.deutscheboerse.risk.dave.persistence.EchoPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import com.deutscheboerse.risk.dave.persistence.RequestType;
+import com.deutscheboerse.risk.dave.utils.DataHelper;
+import com.deutscheboerse.risk.dave.utils.URIBuilder;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
@@ -38,344 +43,78 @@ public class RestApiTest {
 
     @Test
     public void testAccountMarginLatest(TestContext context) {
-        JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("model", "AccountMarginModel")
-                .put("requestType", "LATEST")
-                .put("clearer", "CLEARER")
-                .put("member", "MEMBER")
-                .put("account", "ACCOUNT")
-                .put("marginCurrency", "CURRENCY")
-        );
-
-        final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/am/latest?clearer=CLEARER&member=MEMBER&" +
-                        "account=ACCOUNT&marginCurrency=CURRENCY", res -> {
-            context.assertEquals(200, res.statusCode());
-            res.bodyHandler(body -> {
-                JsonArray bd = body.toJsonArray();
-                context.assertEquals(expectedResult, bd);
-                async.complete();
-            });
-        });
-
-        async.awaitSuccess(30000);
+        this.testCompleteUrl(context, "/api/v1.0/am/latest", RequestType.LATEST, AccountMarginModel.class);
     }
 
     @Test
     public void testAccountMarginHistory(TestContext context) {
-        JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("model", "AccountMarginModel")
-                .put("requestType", "HISTORY")
-                .put("clearer", "CLEARER")
-                .put("member", "MEMBER")
-                .put("account", "ACCOUNT")
-                .put("marginCurrency", "CURRENCY")
-        );
-
-        final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/am/history?clearer=CLEARER&member=MEMBER&" +
-                "account=ACCOUNT&marginCurrency=CURRENCY", res -> {
-            context.assertEquals(200, res.statusCode());
-            res.bodyHandler(body -> {
-                JsonArray bd = body.toJsonArray();
-                context.assertEquals(expectedResult, bd);
-                async.complete();
-            });
-        });
-
-        async.awaitSuccess(30000);
+        this.testCompleteUrl(context, "/api/v1.0/am/history", RequestType.HISTORY, AccountMarginModel.class);
     }
 
     @Test
     public void testLiquiGroupMarginLatest(TestContext context) {
-        JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("model", "LiquiGroupMarginModel")
-                .put("requestType", "LATEST")
-                .put("clearer", "CLEARER")
-                .put("member", "MEMBER")
-                .put("account", "ACCOUNT")
-                .put("marginClass", "CLASS")
-                .put("marginCurrency", "CURRENCY")
-        );
-
-        final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/lgm/latest?clearer=CLEARER&member=MEMBER&" +
-                        "account=ACCOUNT&marginClass=CLASS&marginCurrency=CURRENCY", res -> {
-            context.assertEquals(200, res.statusCode());
-            res.bodyHandler(body -> {
-                JsonArray bd = body.toJsonArray();
-                context.assertEquals(expectedResult, bd);
-                async.complete();
-            });
-        });
-
-        async.awaitSuccess(30000);
+        this.testCompleteUrl(context, "/api/v1.0/lgm/latest", RequestType.LATEST, LiquiGroupMarginModel.class);
     }
 
     @Test
     public void testLiquiGroupMarginHistory(TestContext context) {
-        JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("model", "LiquiGroupMarginModel")
-                .put("requestType", "HISTORY")
-                .put("clearer", "CLEARER")
-                .put("member", "MEMBER")
-                .put("account", "ACCOUNT")
-                .put("marginClass", "CLASS")
-                .put("marginCurrency", "CURRENCY")
-        );
-
-        final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/lgm/history?clearer=CLEARER&member=MEMBER&" +
-                        "account=ACCOUNT&marginClass=CLASS&marginCurrency=CURRENCY", res -> {
-            context.assertEquals(200, res.statusCode());
-            res.bodyHandler(body -> {
-                JsonArray bd = body.toJsonArray();
-                context.assertEquals(expectedResult, bd);
-                async.complete();
-            });
-        });
-
-        async.awaitSuccess(30000);
+        this.testCompleteUrl(context, "/api/v1.0/lgm/history", RequestType.HISTORY, LiquiGroupMarginModel.class);
     }
 
     @Test
     public void testLiquiGroupSplitMarginLatest(TestContext context) {
-        JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("model", "LiquiGroupSplitMarginModel")
-                .put("requestType", "LATEST")
-                .put("clearer", "CLEARER")
-                .put("member", "MEMBER")
-                .put("account", "ACCOUNT")
-                .put("liquidationGroup", "GROUP")
-                .put("liquidationGroupSplit", "SPLIT")
-                .put("marginCurrency", "CURRENCY")
-        );
-
-        final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/lgsm/latest?clearer=CLEARER&member=MEMBER&" +
-                "account=ACCOUNT&liquidationGroup=GROUP&liquidationGroupSplit=SPLIT&marginCurrency=CURRENCY", res -> {
-            context.assertEquals(200, res.statusCode());
-            res.bodyHandler(body -> {
-                JsonArray bd = body.toJsonArray();
-                context.assertEquals(expectedResult, bd);
-                async.complete();
-            });
-        });
-
-        async.awaitSuccess(30000);
+        this.testCompleteUrl(context, "/api/v1.0/lgsm/latest", RequestType.LATEST, LiquiGroupSplitMarginModel.class);
     }
 
     @Test
     public void testLiquiGroupSplitMarginHistory(TestContext context) {
-        JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("model", "LiquiGroupSplitMarginModel")
-                .put("requestType", "HISTORY")
-                .put("clearer", "CLEARER")
-                .put("member", "MEMBER")
-                .put("account", "ACCOUNT")
-                .put("liquidationGroup", "GROUP")
-                .put("liquidationGroupSplit", "SPLIT")
-                .put("marginCurrency", "CURRENCY")
-        );
-
-        final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/lgsm/history?clearer=CLEARER&member=MEMBER&" +
-                "account=ACCOUNT&liquidationGroup=GROUP&liquidationGroupSplit=SPLIT&marginCurrency=CURRENCY", res -> {
-            context.assertEquals(200, res.statusCode());
-            res.bodyHandler(body -> {
-                JsonArray bd = body.toJsonArray();
-                context.assertEquals(expectedResult, bd);
-                async.complete();
-            });
-        });
-
-        async.awaitSuccess(30000);
+        this.testCompleteUrl(context, "/api/v1.0/lgsm/history", RequestType.HISTORY, LiquiGroupSplitMarginModel.class);
     }
 
     @Test
     public void testPoolMarginLatest(TestContext context) {
-        JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("model", "PoolMarginModel")
-                .put("requestType", "LATEST")
-                .put("clearer", "CLEARER")
-                .put("pool", "POOL")
-                .put("marginCurrency", "CURRENCY")
-        );
-
-        final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pm/latest?clearer=CLEARER&pool=POOL&" +
-                "marginCurrency=CURRENCY", res -> {
-            context.assertEquals(200, res.statusCode());
-            res.bodyHandler(body -> {
-                JsonArray bd = body.toJsonArray();
-                context.assertEquals(expectedResult, bd);
-                async.complete();
-            });
-        });
-
-        async.awaitSuccess(30000);
+        this.testCompleteUrl(context, "/api/v1.0/pm/latest", RequestType.LATEST, PoolMarginModel.class);
     }
 
     @Test
     public void testPoolMarginHistory(TestContext context) {
-        JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("model", "PoolMarginModel")
-                .put("requestType", "HISTORY")
-                .put("clearer", "CLEARER")
-                .put("pool", "POOL")
-                .put("marginCurrency", "CURRENCY")
-        );
-
-        final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pm/history?clearer=CLEARER&pool=POOL&" +
-                "marginCurrency=CURRENCY", res -> {
-            context.assertEquals(200, res.statusCode());
-            res.bodyHandler(body -> {
-                JsonArray bd = body.toJsonArray();
-                context.assertEquals(expectedResult, bd);
-                async.complete();
-            });
-        });
-
-        async.awaitSuccess(30000);
+        this.testCompleteUrl(context, "/api/v1.0/pm/history", RequestType.HISTORY, PoolMarginModel.class);
     }
 
     @Test
     public void testPositionReportLatest(TestContext context) {
-
-        JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("model", "PositionReportModel")
-                .put("requestType", "LATEST")
-                .put("clearer", "CLEARER")
-                .put("member", "MEMBER")
-                .put("account", "ACCOUNT")
-                .put("liquidationGroup", "GROUP")
-                .put("liquidationGroupSplit", "SPLIT")
-                .put("product", "PRODUCT")
-                .put("callPut", "CALLPUT")
-                .put("contractYear", 2016)
-                .put("contractMonth", 10)
-                .put("expiryDay", 5)
-                .put("exercisePrice", 1234.5)
-                .put("version", "VERSION")
-                .put("flexContractSymbol", "SYMBOL")
-        );
-
-        final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pr/latest?clearer=CLEARER&member=MEMBER&" +
-                "account=ACCOUNT&liquidationGroup=GROUP&liquidationGroupSplit=SPLIT&product=PRODUCT&callPut=CALLPUT&" +
-                "contractYear=2016&contractMonth=10&expiryDay=5&exercisePrice=1234.5&version=VERSION&" +
-                "flexContractSymbol=SYMBOL", res -> {
-            context.assertEquals(200, res.statusCode());
-            res.bodyHandler(body -> {
-                JsonArray bd = body.toJsonArray();
-                context.assertEquals(expectedResult, bd);
-                async.complete();
-            });
-        });
-
-        async.awaitSuccess(30000);
+        this.testCompleteUrl(context, "/api/v1.0/pr/latest", RequestType.LATEST, PositionReportModel.class);
     }
 
     @Test
     public void testPositionReportHistory(TestContext context) {
-        JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("model", "PositionReportModel")
-                .put("requestType", "HISTORY")
-                .put("clearer", "CLEARER")
-                .put("member", "MEMBER")
-                .put("account", "ACCOUNT")
-                .put("liquidationGroup", "GROUP")
-                .put("liquidationGroupSplit", "SPLIT")
-                .put("product", "PRODUCT")
-                .put("callPut", "CALLPUT")
-                .put("contractYear", 2016)
-                .put("contractMonth", 10)
-                .put("expiryDay", 5)
-                .put("exercisePrice", 1234.5)
-                .put("version", "VERSION")
-                .put("flexContractSymbol", "SYMBOL")
-        );
-
-        final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pr/history?clearer=CLEARER&member=MEMBER&" +
-                "account=ACCOUNT&liquidationGroup=GROUP&liquidationGroupSplit=SPLIT&product=PRODUCT&callPut=CALLPUT&" +
-                "contractYear=2016&contractMonth=10&expiryDay=5&exercisePrice=1234.5&version=VERSION&" +
-                "flexContractSymbol=SYMBOL", res -> {
-            context.assertEquals(200, res.statusCode());
-            res.bodyHandler(body -> {
-                JsonArray bd = body.toJsonArray();
-                context.assertEquals(expectedResult, bd);
-                async.complete();
-            });
-        });
-
-        async.awaitSuccess(30000);
+        this.testCompleteUrl(context, "/api/v1.0/pr/history", RequestType.HISTORY, PositionReportModel.class);
     }
 
     @Test
     public void testRiskLimitUtilizationLatest(TestContext context) {
-        JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("model", "RiskLimitUtilizationModel")
-                .put("requestType", "LATEST")
-                .put("clearer", "CLEARER")
-                .put("member", "MEMBER")
-                .put("maintainer", "MAINTAINER")
-                .put("limitType", "TYPE")
-        );
-
-        final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/rlu/latest?clearer=CLEARER&member=MEMBER&" +
-                        "maintainer=MAINTAINER&limitType=TYPE", res -> {
-            context.assertEquals(200, res.statusCode());
-            res.bodyHandler(body -> {
-                JsonArray bd = body.toJsonArray();
-                context.assertEquals(expectedResult, bd);
-                async.complete();
-            });
-        });
-
-        async.awaitSuccess(30000);
+        this.testCompleteUrl(context, "/api/v1.0/rlu/latest", RequestType.LATEST, RiskLimitUtilizationModel.class);
     }
 
     @Test
     public void testRiskLimitUtilizationHistory(TestContext context) {
-        JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("model", "RiskLimitUtilizationModel")
-                .put("requestType", "HISTORY")
-                .put("clearer", "CLEARER")
-                .put("member", "MEMBER")
-                .put("maintainer", "MAINTAINER")
-                .put("limitType", "TYPE")
-        );
-
-        final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/rlu/history?clearer=CLEARER&member=MEMBER&" +
-                "maintainer=MAINTAINER&limitType=TYPE", res -> {
-            context.assertEquals(200, res.statusCode());
-            res.bodyHandler(body -> {
-                JsonArray bd = body.toJsonArray();
-                context.assertEquals(expectedResult, bd);
-                async.complete();
-            });
-        });
-
-        async.awaitSuccess(30000);
+        this.testCompleteUrl(context, "/api/v1.0/rlu/history", RequestType.HISTORY, RiskLimitUtilizationModel.class);
     }
 
     @Test
     public void testIncompleteUrl(TestContext context) {
+        JsonObject queryParams = new JsonObject()
+                .put("clearer", "CLEARER")
+                .put("member", "MEMBER")
+                .put("account", "ACCOUNT");
+
         JsonArray expectedResult = new JsonArray().add(new JsonObject()
                 .put("model", "PositionReportModel")
                 .put("requestType", "LATEST")
-                .put("clearer", "CLEARER")
-                .put("member", "MEMBER")
-                .put("account", "ACCOUNT")
-        );
+                .mergeIn(queryParams));
 
         final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pr/latest?clearer=CLEARER&member=MEMBER&" +
-                "account=ACCOUNT", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", new URIBuilder("/api/v1.0/pr/latest").addParams(queryParams).build(), res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonArray bd = body.toJsonArray();
@@ -388,17 +127,32 @@ public class RestApiTest {
     }
 
     @Test
-    public void testStars(TestContext context) {
+    public void testBadRequest(TestContext context) {
+        JsonObject queryParams = new JsonObject()
+            .put("clearer", "CLEARER")
+            .put("member", "MEMBER")
+            .put("contractYear", 2016.2);
+
+        final Async async = context.async();
+        vertx.createHttpClient().getNow(port, "localhost", new URIBuilder("/api/v1.0/pr/latest").addParams(queryParams).build(), res -> {
+            context.assertEquals(HttpResponseStatus.BAD_REQUEST.code(), res.statusCode());
+            async.complete();
+        });
+
+        async.awaitSuccess(30000);
+    }
+
+    private void testCompleteUrl(TestContext context, String uri, RequestType requestType, Class<? extends AbstractModel> modelClazz) {
+        JsonObject queryParams = DataHelper.getQueryParams(DataHelper.getLastModelFromFile(modelClazz, 1));
+
         JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("model", "PositionReportModel")
-                .put("requestType", "LATEST")
-                .put("clearer", "CLEARER")
-                .put("contractYear", 2016)
+                .put("model", modelClazz.getSimpleName())
+                .put("requestType", requestType)
+                .mergeIn(queryParams)
         );
 
         final Async async = context.async();
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pr/latest?clearer=CLEARER&" +
-                "contractYear=2016", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", new URIBuilder(uri).addParams(queryParams).build(), res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 JsonArray bd = body.toJsonArray();
@@ -415,5 +169,4 @@ public class RestApiTest {
         persistenceProxy.close();
         vertx.close(context.asyncAssertSuccess());
     }
-
 }
