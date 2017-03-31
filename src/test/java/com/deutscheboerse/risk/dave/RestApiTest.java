@@ -127,11 +127,27 @@ public class RestApiTest {
     }
 
     @Test
-    public void testBadRequest(TestContext context) {
+    public void testBadDataType(TestContext context) {
         JsonObject queryParams = new JsonObject()
             .put("clearer", "CLEARER")
             .put("member", "MEMBER")
-            .put("contractYear", 2016.2);
+            .put("contractYear", 1234.5d);
+
+        final Async async = context.async();
+        vertx.createHttpClient().getNow(port, "localhost", new URIBuilder("/api/v1.0/pr/latest").addParams(queryParams).build(), res -> {
+            context.assertEquals(HttpResponseStatus.BAD_REQUEST.code(), res.statusCode());
+            async.complete();
+        });
+
+        async.awaitSuccess(30000);
+    }
+
+    @Test
+    public void testUnknownParameter(TestContext context) {
+        JsonObject queryParams = new JsonObject()
+                .put("clearer", "CLEARER")
+                .put("member", "MEMBER")
+                .put("foo", 2016.2);
 
         final Async async = context.async();
         vertx.createHttpClient().getNow(port, "localhost", new URIBuilder("/api/v1.0/pr/latest").addParams(queryParams).build(), res -> {

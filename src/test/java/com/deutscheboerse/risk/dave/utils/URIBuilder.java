@@ -9,8 +9,8 @@ import java.net.URLEncoder;
 import static java.util.stream.Collectors.joining;
 
 public class URIBuilder {
-    final String basePath;
-    final JsonObject params = new JsonObject();
+    private final String basePath;
+    private final JsonObject params = new JsonObject();
 
     public URIBuilder(String basePath) {
         this.basePath = basePath;
