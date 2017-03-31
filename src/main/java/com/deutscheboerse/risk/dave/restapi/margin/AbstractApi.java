@@ -44,18 +44,17 @@ public abstract class AbstractApi {
 
     private void latestCall(RoutingContext routingContext) {
         LOG.trace("Received {} request", this.getLatestUri());
-        try {
-            this.proxyFind(routingContext, RequestType.LATEST);
-        } catch (IllegalArgumentException e) {
-            LOG.error("Bad request: {}", e.getMessage(), e);
-            routingContext.response().setStatusCode(HttpResponseStatus.BAD_REQUEST.code()).end();
-        }
+        this.doCall(routingContext, RequestType.LATEST);
     }
 
     private void historyCall(RoutingContext routingContext) {
         LOG.trace("Received {} request", this.getHistoryUri());
+        this.doCall(routingContext, RequestType.HISTORY);
+    }
+
+    private void doCall(RoutingContext routingContext, RequestType requestType) {
         try {
-            this.proxyFind(routingContext, RequestType.HISTORY);
+            this.proxyFind(routingContext, requestType);
         } catch (IllegalArgumentException e) {
             LOG.error("Bad request: {}", e.getMessage(), e);
             routingContext.response().setStatusCode(HttpResponseStatus.BAD_REQUEST.code()).end();
