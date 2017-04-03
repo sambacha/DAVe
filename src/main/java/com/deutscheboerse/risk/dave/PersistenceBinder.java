@@ -9,7 +9,7 @@ import io.vertx.core.json.JsonObject;
 
 import javax.inject.Singleton;
 
-public class Binder extends AbstractModule {
+public class PersistenceBinder extends AbstractModule {
 
     private static final String DEFAULT_DB_NAME = "DAVe";
     private static final String DEFAULT_CONNECTION_URL = "mongodb://localhost:27017/?waitqueuemultiple=20000";

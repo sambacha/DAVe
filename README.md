@@ -16,7 +16,7 @@ The shippable artifact will be built in `target/dave-VERSION` directory.
 
 ## Configure
 
-Configuration is stored in `dave.json` file in JSON format. Configuration is split into several sections:
+Configuration is stored in `dave.json` file in Hocon format. Configuration is split into several sections:
 
 ### MongoDB
 

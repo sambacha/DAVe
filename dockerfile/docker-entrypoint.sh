@@ -202,17 +202,17 @@ EOS
   #####
   ## Write the config file
   #####
-  configFile="$(pwd)/etc/dave.json"
+  configFile="$(pwd)/etc/dave.conf"
   cat > $configFile <<-EOS
 {
 EOS
   IFSBAK="$IFS"
   IFS=", "
   cat >> $configFile <<-EOS
-  "http": {
+  http {
     ${CONFIG_HTTP[*]}
   },
-  "mongodb": {
+  mongodb {
     ${CONFIG_DB[*]}
   }
 EOS
