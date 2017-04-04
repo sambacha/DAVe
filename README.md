@@ -61,15 +61,8 @@ The `auth` subsection configures authentication to the UI and REST interface. Th
 | Option | Explanation | Example |
 |--------|-------------|---------|
 | `enable` | Disables or enables authetication | `true` |
-| `dbName` | Name of the database which will be used | `DAVe` |
-| `connectionUrl` | Connection URL to connect to the database | `mongodb://localhost:27017` |
-| `jwtKeystorePath` | Path to the keystore (JCEKS type) required by JWT authentication provider | |
-| `jwtKeystorePassword`| Password to the JWT keystore (JCEKS type) used by authentication provider | |
-| `jwtTokenExpiration`| Expiration time (in minutes) when the JWT token expires | `60` |
-| `salt` | Salt string used in hashed passwords | `sdf8hdgss3_a` |
-| `checkUserAgainstCertificate` | Validate username against the CN from the TLS client certificate subject. Unless the CN is equal to the username, authentication will be refused. _*)_ | `false` |
-
-_*) This feature doesn't work properly with self-signed certificates, where the holder of the certificate can easily issue and sign another certificate which would contain different CN and login._
+| `jwtPublicKey` | Public key for verification of received JWT tokens | |
+| `permissionsClaimKey` | ath to roles inside JWT token | `realm_access/roles` |
 
 #### CORS
 
