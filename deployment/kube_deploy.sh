@@ -8,4 +8,4 @@ chmod +x kubectl
 #./kubectl config set-credentials ${KUBE_USERNAME} --token ${KUBE_PASSWORD}
 ./kubectl config set-context default-context --cluster=dave --user=dave
 ./kubectl config use-context default-context
-./kubectl set image deployment/dave-api dave-api=scholzj/dave:${CIRCLE_SHA1} --namespace=${CIRCLE_BRANCH}
+./kubectl set image deployment/dave-api dave-api=dbgdave/dave-api:${CIRCLE_SHA1} --namespace=${CIRCLE_BRANCH}
