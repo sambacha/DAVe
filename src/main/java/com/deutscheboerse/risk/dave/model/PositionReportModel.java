@@ -32,28 +32,4 @@ public class PositionReportModel extends AbstractModel {
         keys.put("flexContractSymbol", String.class);
         return Collections.unmodifiableMap(keys);
     }
-
-    @Override
-    public Map<String, Class<?>> getNonKeysDescriptor() {
-        HashMap<String, Class<?>> keys = new LinkedHashMap<>();
-        keys.put("netQuantityLs", Double.class);
-        keys.put("netQuantityEa", Double.class);
-        keys.put("clearingCurrency", String.class);
-        keys.put("mVar", Double.class);
-        keys.put("compVar", Double.class);
-        keys.put("compCorrelationBreak", Double.class);
-        keys.put("compCompressionError", Double.class);
-        keys.put("compLiquidityAddOn", Double.class);
-        keys.put("compLongOptionCredit", Double.class);
-        keys.put("productCurrency", String.class);
-        keys.put("variationPremiumPayment", Double.class);
-        keys.put("premiumMargin", Double.class);
-        keys.put("normalizedDelta", Double.class);
-        keys.put("normalizedGamma", Double.class);
-        keys.put("normalizedVega", Double.class);
-        keys.put("normalizedRho", Double.class);
-        keys.put("normalizedTheta", Double.class);
-        keys.put("underlying", String.class);
-        return Collections.unmodifiableMap(keys);
-    }
 }

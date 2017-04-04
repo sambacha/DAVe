@@ -23,14 +23,4 @@ public class RiskLimitUtilizationModel extends AbstractModel {
         keys.put("limitType", String.class);
         return Collections.unmodifiableMap(keys);
     }
-
-    @Override
-    public Map<String, Class<?>> getNonKeysDescriptor() {
-        Map<String, Class<?>> keys = new LinkedHashMap<>();
-        keys.put("utilization", Double.class);
-        keys.put("warningLevel", Double.class);
-        keys.put("throttleLevel", Double.class);
-        keys.put("rejectLevel", Double.class);
-        return Collections.unmodifiableMap(keys);
-    }
 }
