@@ -3,6 +3,7 @@ package com.deutscheboerse.risk.dave;
 import com.deutscheboerse.risk.dave.model.PositionReportModel;
 import com.deutscheboerse.risk.dave.persistence.EchoPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import com.deutscheboerse.risk.dave.persistence.StorageManagerMock;
 import com.deutscheboerse.risk.dave.utils.DataHelper;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
 import com.deutscheboerse.risk.dave.util.URIBuilder;
@@ -32,9 +33,17 @@ public class MainVerticleTest {
     }
 
     @Test
-    public void testPositionReport(TestContext context) throws InterruptedException, UnsupportedEncodingException {
-        // Deploy MainVerticle
+    public void testFullChain(TestContext context) throws InterruptedException, UnsupportedEncodingException {
+        // Start storage mock
+        StorageManagerMock storageMock = new StorageManagerMock(vertx, TestConfig.getStorageConfig());
+        final Async serverStarted = context.async();
+        storageMock.listen(context.asyncAssertSuccess(ar -> serverStarted.complete()));
+
+        serverStarted.awaitSuccess(30000);
+
+        // Deploy MainVerticle with default persistence binder (PersistenceBinder)
         DeploymentOptions options = getDeploymentOptions();
+        options.getConfig().remove("guice_binder");
         final Async deployAsync = context.async();
         vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertSuccess(res -> deployAsync.complete()));
 
@@ -52,21 +61,22 @@ public class MainVerticleTest {
                 .mergeIn(queryParams);
 
         final Async asyncRest = context.async();
-        vertx.createHttpClient().getNow(options.getConfig().getJsonObject("http").getInteger("port"), "localhost", uri, res -> {
+        vertx.createHttpClient().getNow(TestConfig.HTTP_PORT, "localhost", uri, res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 try {
                     JsonArray positions = body.toJsonArray();
                     context.assertEquals(1, positions.size());
-                    this.assertDocumentsEquals(context, expectedResult, positions.getJsonObject(0));
+                    context.assertEquals(expectedResult, positions.getJsonObject(0));
                     asyncRest.complete();
-                }
-                catch (Exception e)
-                {
+                } catch (Exception e) {
                     context.fail(e);
                 }
             });
         });
+        asyncRest.awaitSuccess(30000);
+
+        storageMock.close(context.asyncAssertSuccess());
     }
 
     @Test
@@ -95,10 +105,6 @@ public class MainVerticleTest {
         JsonObject config = TestConfig.getGlobalConfig();
         config.put("guice_binder", EchoBinder.class.getName());
         return new DeploymentOptions().setConfig(config);
-    }
-
-    private void assertDocumentsEquals(TestContext context, JsonObject expected, JsonObject document) {
-        context.assertEquals(expected.remove("_id"), document.remove("id"));
     }
 
     @After
