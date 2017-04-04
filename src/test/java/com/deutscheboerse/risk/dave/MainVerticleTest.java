@@ -1,14 +1,17 @@
 package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.model.PositionReportModel;
+import com.deutscheboerse.risk.dave.persistence.EchoPersistenceService;
+import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.utils.DataHelper;
-import com.deutscheboerse.risk.dave.utils.MongoFiller;
-import com.deutscheboerse.risk.dave.utils.URIBuilder;
+import com.deutscheboerse.risk.dave.utils.TestConfig;
+import com.deutscheboerse.risk.dave.util.URIBuilder;
+import com.google.inject.AbstractModule;
+import com.google.inject.Singleton;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -20,7 +23,7 @@ import org.junit.runner.RunWith;
 import java.io.UnsupportedEncodingException;
 
 @RunWith(VertxUnitRunner.class)
-public class MainVerticleIT {
+public class MainVerticleTest {
     private Vertx vertx;
 
     @Before
@@ -30,32 +33,23 @@ public class MainVerticleIT {
 
     @Test
     public void testPositionReport(TestContext context) throws InterruptedException, UnsupportedEncodingException {
-        DeploymentOptions options = getDeploymentOptions();
-
-        // Create mongo client
-        JsonObject mongoConfig = options.getConfig().getJsonObject("mongodb");
-        JsonObject mongoClientConfig = new JsonObject()
-            .put("db_name", mongoConfig.getString("dbName"))
-            .put("connection_string", mongoConfig.getString("connectionUrl"));
-
-        MongoClient mongoClient = MongoClient.createShared(this.vertx, mongoClientConfig);
-        MongoFiller mongoFiller = new MongoFiller(context, mongoClient);
-
-        // Feed the data into the store
-        mongoFiller.feedPositionReportCollection(1, 30000);
-        PositionReportModel latestModel = (PositionReportModel)mongoFiller.getLastModel().orElse(new PositionReportModel());
-
-        mongoClient.close();
-
         // Deploy MainVerticle
+        DeploymentOptions options = getDeploymentOptions();
         final Async deployAsync = context.async();
         vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertSuccess(res -> deployAsync.complete()));
 
         deployAsync.awaitSuccess(30000);
 
+        PositionReportModel latestModel = DataHelper.getLastModelFromFile(PositionReportModel.class, 1);
         String uri = new URIBuilder("/api/v1.0/pr/latest")
                 .addParams(DataHelper.getQueryParams(latestModel))
                 .build();
+
+        JsonObject queryParams = DataHelper.getQueryParams(latestModel);
+        JsonObject expectedResult = new JsonObject()
+                .put("model", "PositionReportModel")
+                .put("requestType", "LATEST")
+                .mergeIn(queryParams);
 
         final Async asyncRest = context.async();
         vertx.createHttpClient().getNow(options.getConfig().getJsonObject("http").getInteger("port"), "localhost", uri, res -> {
@@ -64,7 +58,7 @@ public class MainVerticleIT {
                 try {
                     JsonArray positions = body.toJsonArray();
                     context.assertEquals(1, positions.size());
-                    this.assertDocumentsEquals(context, DataHelper.getMongoDocument(latestModel), positions.getJsonObject(0));
+                    this.assertDocumentsEquals(context, expectedResult, positions.getJsonObject(0));
                     asyncRest.complete();
                 }
                 catch (Exception e)
@@ -98,13 +92,9 @@ public class MainVerticleIT {
     }
 
     private DeploymentOptions getDeploymentOptions() {
-        int httpPort = Integer.getInteger("http.port", 8080);
-        int mongoPort = Integer.getInteger("mongodb.port", 27017);
-
-        return new DeploymentOptions().setConfig(new JsonObject()
-            .put("http", new JsonObject().put("port", httpPort))
-            .put("mongodb", new JsonObject().put("dbName", "DAVe-MainVerticleTest").put("connectionUrl", "mongodb://localhost:" + mongoPort + "/?waitqueuemultiple=20000"))
-        );
+        JsonObject config = TestConfig.getGlobalConfig();
+        config.put("guice_binder", EchoBinder.class.getName());
+        return new DeploymentOptions().setConfig(config);
     }
 
     private void assertDocumentsEquals(TestContext context, JsonObject expected, JsonObject document) {
@@ -114,5 +104,12 @@ public class MainVerticleIT {
     @After
     public void cleanup(TestContext context) {
         this.vertx.close(context.asyncAssertSuccess());
+    }
+
+    public static class EchoBinder extends AbstractModule {
+        @Override
+        protected void configure() {
+            bind(PersistenceService.class).to(EchoPersistenceService.class).in(Singleton.class);
+        }
     }
 }

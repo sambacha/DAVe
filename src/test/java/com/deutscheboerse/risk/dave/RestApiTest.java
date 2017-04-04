@@ -5,7 +5,8 @@ import com.deutscheboerse.risk.dave.persistence.EchoPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.persistence.RequestType;
 import com.deutscheboerse.risk.dave.utils.DataHelper;
-import com.deutscheboerse.risk.dave.utils.URIBuilder;
+import com.deutscheboerse.risk.dave.utils.TestConfig;
+import com.deutscheboerse.risk.dave.util.URIBuilder;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -31,12 +32,12 @@ public class RestApiTest {
     @BeforeClass
     public static void setUp(TestContext context) throws IOException {
         RestApiTest.vertx = Vertx.vertx();
-        RestApiTest.port = Integer.getInteger("http.port", 8080);
+        RestApiTest.port = TestConfig.HTTP_PORT;
 
         JsonObject config = new JsonObject().put("port", port);
         vertx.deployVerticle(HttpVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
 
-        ProxyHelper.registerService(PersistenceService.class, vertx, new EchoPersistenceService(), PersistenceService.SERVICE_ADDRESS);
+        ProxyHelper.registerService(PersistenceService.class, vertx, new EchoPersistenceService(vertx), PersistenceService.SERVICE_ADDRESS);
         persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
         persistenceProxy.initialize(context.asyncAssertSuccess());
     }

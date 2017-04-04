@@ -1,4 +1,4 @@
-package com.deutscheboerse.risk.dave.utils;
+package com.deutscheboerse.risk.dave.util;
 
 
 import io.vertx.core.json.JsonObject;

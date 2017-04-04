@@ -1,7 +1,8 @@
 package com.deutscheboerse.risk.dave;
 
-import com.deutscheboerse.risk.dave.persistence.MongoPersistenceService;
+import com.deutscheboerse.risk.dave.persistence.EchoPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import com.deutscheboerse.risk.dave.utils.TestConfig;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -48,7 +49,7 @@ public class AuthIT {
     @BeforeClass
     public static void setUp(TestContext context) {
         AuthIT.vertx = Vertx.vertx();
-        AuthIT.port = Integer.getInteger("http.port", 8080);
+        AuthIT.port = TestConfig.HTTP_PORT;
         AuthIT.mongoPort = Integer.getInteger("mongodb.port", 27017);
         AuthIT.dbName = "DAVe-Test" + UUID.randomUUID().getLeastSignificantBits();
 
@@ -57,7 +58,7 @@ public class AuthIT {
         dbConfig.put("connection_string", "mongodb://localhost:" + mongoPort);
 
         AuthIT.mongoClient = MongoClient.createShared(AuthIT.vertx, dbConfig);
-        ProxyHelper.registerService(PersistenceService.class, vertx, new MongoPersistenceService(vertx, mongoClient), PersistenceService.SERVICE_ADDRESS);
+        ProxyHelper.registerService(PersistenceService.class, vertx, new EchoPersistenceService(vertx), PersistenceService.SERVICE_ADDRESS);
         AuthIT.persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
         AuthIT.persistenceProxy.initialize(context.asyncAssertSuccess());
         initUserDb(context);
@@ -493,7 +494,6 @@ public class AuthIT {
     @After
     public void cleanup(TestContext context) {
         vertx.deploymentIDs().forEach(id -> {
-            System.out.println(id);
             vertx.undeploy(id, context.asyncAssertSuccess());
         });
     }

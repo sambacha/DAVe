@@ -26,32 +26,32 @@ public class InitPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void findAccountMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+    public void queryAccountMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
         resultHandler.handle(ServiceException.fail(QUERY_ERROR, "Find is not implemented"));
     }
 
     @Override
-    public void findLiquiGroupMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+    public void queryLiquiGroupMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
         resultHandler.handle(ServiceException.fail(QUERY_ERROR, "Find is not implemented"));
     }
 
     @Override
-    public void findLiquiGroupSplitMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+    public void queryLiquiGroupSplitMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
         resultHandler.handle(ServiceException.fail(QUERY_ERROR, "Find is not implemented"));
     }
 
     @Override
-    public void findPoolMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+    public void queryPoolMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
         resultHandler.handle(ServiceException.fail(QUERY_ERROR, "Find is not implemented"));
     }
 
     @Override
-    public void findPositionReport(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+    public void queryPositionReport(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
         resultHandler.handle(ServiceException.fail(QUERY_ERROR, "Find is not implemented"));
     }
 
     @Override
-    public void findRiskLimitUtilization(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
+    public void queryRiskLimitUtilization(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
         resultHandler.handle(ServiceException.fail(QUERY_ERROR, "Find is not implemented"));
     }
 

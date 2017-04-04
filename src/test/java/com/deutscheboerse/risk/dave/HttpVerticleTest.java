@@ -1,5 +1,6 @@
 package com.deutscheboerse.risk.dave;
 
+import com.deutscheboerse.risk.dave.utils.TestConfig;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientOptions;
@@ -23,9 +24,9 @@ public class HttpVerticleTest {
     private static int port;
 
     @BeforeClass
-    public static void setUp(TestContext context) throws IOException {
+    public static void setUp() throws IOException {
         HttpVerticleTest.vertx = Vertx.vertx();
-        HttpVerticleTest.port = Integer.getInteger("http.port", 8080);
+        HttpVerticleTest.port = TestConfig.HTTP_PORT;
     }
 
     private void deployHttpVerticle(TestContext context, JsonObject config) {

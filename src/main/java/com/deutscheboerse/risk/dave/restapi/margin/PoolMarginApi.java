@@ -17,7 +17,7 @@ public class PoolMarginApi extends AbstractApi {
 
     @Override
     protected void proxyFind(RoutingContext routingContext, RequestType requestType) {
-        persistenceProxy.findPoolMargin(requestType, this.createParamsFromContext(routingContext), responseHandler(routingContext));
+        persistenceProxy.queryPoolMargin(requestType, this.createParamsFromContext(routingContext), responseHandler(routingContext));
     }
 
 }

@@ -126,6 +126,7 @@
           <configuration>
             <systemPropertyVariables>
               <http.port>${http.port}</http.port>
+              <storage.port>${storage.port}</storage.port>
               <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
             </systemPropertyVariables>
           </configuration>
@@ -138,6 +139,7 @@
             <systemPropertyVariables>
               <mongodb.port>${mongodb.port}</mongodb.port>
               <http.port>${http.port}</http.port>
+              <storage.port>${storage.port}</storage.port>
               <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
               <logback.configurationFile>${project.basedir}/src/test/resources/logback.xml</logback.configurationFile>
             </systemPropertyVariables>
@@ -250,6 +252,7 @@
             <configuration>
               <portNames>
                 <portName>http.port</portName>
+                <portName>storage.port</portName>
               </portNames>
             </configuration>
           </execution>
