@@ -34,7 +34,7 @@ The `http` section configures the web based UI and the REST API.
 | Option | Explanation | Example |
 |--------|-------------|---------|
 | `port` | Port of the HTTP(S) server | `8080` |
-| `compression` | Enbale gzip compression of the HTTP responses | `true` |
+| `compression` | Enable gzip compression of the HTTP responses | `true` |
 | `ssl` | Subsection configuring SSL/TLS on the webserver |  |
 | `CORS` | Subsection configuring Cross-origin resource sharing (see below) |  |
 | `CSRF` | Subsection configuring Cross-site request forgery protection (see below) |  |
@@ -60,16 +60,9 @@ The `auth` subsection configures authentication to the UI and REST interface. Th
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `enable` | Disables or enables authetication | `true` |
-| `dbName` | Name of the database which will be used | `DAVe` |
-| `connectionUrl` | Connection URL to connect to the database | `mongodb://localhost:27017` |
-| `jwtKeystorePath` | Path to the keystore (JCEKS type) required by JWT authentication provider | |
-| `jwtKeystorePassword`| Password to the JWT keystore (JCEKS type) used by authentication provider | |
-| `jwtTokenExpiration`| Expiration time (in minutes) when the JWT token expires | `60` |
-| `salt` | Salt string used in hashed passwords | `sdf8hdgss3_a` |
-| `checkUserAgainstCertificate` | Validate username against the CN from the TLS client certificate subject. Unless the CN is equal to the username, authentication will be refused. _*)_ | `false` |
-
-_*) This feature doesn't work properly with self-signed certificates, where the holder of the certificate can easily issue and sign another certificate which would contain different CN and login._
+| `enable` | Disables or enables authentication | `true` |
+| `jwtPublicKey` | Public key for verification of received JWT tokens | |
+| `permissionsClaimKey` | Path to roles inside JWT token | `realm_access/roles` |
 
 #### CORS
 

@@ -48,9 +48,5 @@ Allows to configure logging parameters. Supported log levels are `OFF`, `ERROR`,
 | `DAVE_HTTP_SSL_TRUSTED_CA` | List of trusted CA for SSL client authentication | |
 | `DAVE_HTTP_SSL_CLIENT_AUTH` | MAke SSL Client Authentication required | `1` |
 | `DAVE_HTTP_AUTH` | Enable authentication | `1` |
-| `DAVE_HTTP_AUTH_SALT` | Set the salt for password hashing | `sdf8hdgss3_a` |
-| `DAVE_HTTP_AUTH_LINK_SSL` | Validate the username against the CN of the SSL client certificate | `1` |
-| `DAVE_HTTP_JWT_BASE64_KEYSTORE` | Base64 encoded JCEKS keystore required by JWT authentication provider | |
-| `DAVE_HTTP_JWT_KEYSTORE_PASSWORD` | Password to the JWT keystore | `123456` |
-| `DAVE_HTTP_JWT_TOKEN_EXPIRATION` | Expiration time (in minutes) when the JWT token expires | `60` minutes |
-
+| `DAVE_HTTP_AUTH_PUBLIC_KEY` | Public key for verification of received JWT tokens | |
+| `DAVE_HTTP_AUTH_PERMISSIONS_CLAIM_KEY` | Path to roles inside JWT token | `realm_access/roles` |

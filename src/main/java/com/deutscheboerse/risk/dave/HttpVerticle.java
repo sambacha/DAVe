@@ -2,7 +2,6 @@ package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import com.deutscheboerse.risk.dave.restapi.margin.*;
-import com.deutscheboerse.risk.dave.restapi.user.UserApi;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -55,11 +54,11 @@ public class HttpVerticle extends AbstractVerticle {
     private static final Boolean DEFAULT_COMPRESSION = false;
 
     private static final Boolean DEFAULT_AUTH_ENABLED = false;
-    private static final String DEFAULT_AUTH_DB_NAME = "DAVe";
-    private static final String DEFAULT_AUTH_CONNECTION_STRING = "mongodb://localhost:27017";
-    private static final String DEFAULT_AUTH_SALT = "DAVe";
+    private static final String DEFAULT_AUTH_PERMISSIONS_CLAIM_KEY = "realm_access/roles";
 
-    private static final String ENABLE_KEY = "enable";
+    private static final String AUTH_ENABLE_KEY = "enable";
+    private static final String AUTH_PERMISSIONS_CLAIM_KEY = "permissionsClaimKey";
+    private static final String AUTH_PUBLIC_KEY = "jwtPublicKey";
 
     private HttpServer server;
     private Mode operationMode;
@@ -71,7 +70,7 @@ public class HttpVerticle extends AbstractVerticle {
 
         healthCheck = new HealthCheck(this.vertx);
 
-        if (config().getJsonObject("ssl", new JsonObject()).getBoolean(ENABLE_KEY, DEFAULT_SSL)) {
+        if (config().getJsonObject("ssl", new JsonObject()).getBoolean(AUTH_ENABLE_KEY, DEFAULT_SSL)) {
             this.operationMode = Mode.HTTPS;
         } else {
             this.operationMode = Mode.HTTP;
@@ -89,25 +88,6 @@ public class HttpVerticle extends AbstractVerticle {
                 startFuture.fail(ar.cause());
             }
         });
-    }
-
-    private AuthProvider createMongoAuthenticationProvider() {
-        JsonObject dbConfig = new JsonObject();
-        LOG.info("Auth config: {}", config().getJsonObject("auth").encodePrettily());
-        dbConfig.put("db_name", config()
-                .getJsonObject("auth")
-                .getString("dbName", HttpVerticle.DEFAULT_AUTH_DB_NAME));
-        dbConfig.put("useObjectId", true);
-        dbConfig.put("connection_string", config()
-                .getJsonObject("auth")
-                .getString("connectionUrl", HttpVerticle.DEFAULT_AUTH_CONNECTION_STRING));
-        MongoClient client = MongoClient.createShared(vertx, dbConfig);
-
-        JsonObject authProperties = new JsonObject();
-        MongoAuth authProvider = MongoAuth.create(client, authProperties);
-        authProvider.getHashStrategy().setSaltStyle(HashSaltStyle.EXTERNAL);
-        authProvider.getHashStrategy().setExternalSalt(config().getJsonObject("auth").getString("salt", HttpVerticle.DEFAULT_AUTH_SALT));
-        return authProvider;
     }
 
     private Future<HttpServer> startHttpServer() {
@@ -135,7 +115,7 @@ public class HttpVerticle extends AbstractVerticle {
         if (!this.operationMode.equals(HttpVerticle.Mode.HTTPS)) {
             return;
         }
-        if (config().getJsonObject("ssl", new JsonObject()).getBoolean(ENABLE_KEY, DEFAULT_SSL) && config().getJsonObject("ssl", new JsonObject()).getString("keystore") != null && config().getJsonObject("ssl", new JsonObject()).getString("keystorePassword") != null) {
+        if (config().getJsonObject("ssl", new JsonObject()).getBoolean(AUTH_ENABLE_KEY, DEFAULT_SSL) && config().getJsonObject("ssl", new JsonObject()).getString("keystore") != null && config().getJsonObject("ssl", new JsonObject()).getString("keystorePassword") != null) {
             LOG.info("Enabling SSL on webserver");
             httpOptions.setSsl(true).setKeyStoreOptions(new JksOptions().setPassword(config().getJsonObject("ssl").getString("keystorePassword")).setPath(config().getJsonObject("ssl").getString("keystore")));
 
@@ -175,13 +155,12 @@ public class HttpVerticle extends AbstractVerticle {
         Router router = Router.router(vertx);
 
         setCorsHandler(router);
-        UserApi userApi = setAuthHandler(router);
+        setAuthHandler(router);
 
         LOG.info("Adding route REST API");
         router.get(REST_HEALTHZ).handler(healthCheckHandler);
         router.get(REST_READINESS).handler(readinessHandler);
         router.route("/api/v1.0/*").handler(BodyHandler.create());
-        router.mountSubRouter("/api/v1.0/user", userApi.getRoutes());
         router.mountSubRouter("/api/v1.0", new AccountMarginApi(vertx).getRoutes());
         router.mountSubRouter("/api/v1.0", new LiquiGroupMarginApi(vertx).getRoutes());
         router.mountSubRouter("/api/v1.0", new LiquiGroupSplitMarginApi(vertx).getRoutes());
@@ -193,7 +172,7 @@ public class HttpVerticle extends AbstractVerticle {
     }
 
     private void setCorsHandler(Router router) {
-        if (config().getJsonObject("CORS", new JsonObject()).getBoolean(ENABLE_KEY, HttpVerticle.DEFAULT_CORS)) {
+        if (config().getJsonObject("CORS", new JsonObject()).getBoolean(AUTH_ENABLE_KEY, HttpVerticle.DEFAULT_CORS)) {
             LOG.info("Enabling CORS handler");
 
             //Wildcard(*) not allowed if allowCredentials is true
@@ -212,38 +191,28 @@ public class HttpVerticle extends AbstractVerticle {
     }
 
     private void setCsrfHandler(Router router) {
-        if (config().getJsonObject("CSRF", new JsonObject()).getBoolean(ENABLE_KEY, HttpVerticle.DEFAULT_CSRF)) {
+        if (config().getJsonObject("CSRF", new JsonObject()).getBoolean(AUTH_ENABLE_KEY, HttpVerticle.DEFAULT_CSRF)) {
             LOG.info("Enabling CSRF handler");
             router.route().handler(CookieHandler.create());
             router.route().handler(CSRFHandler.create(config().getJsonObject("CSRF", new JsonObject()).getString("secret", HttpVerticle.DEFAULT_CSRF_SECRET)));
         }
     }
 
-    private UserApi setAuthHandler(Router router) {
-        UserApi userApi;
-
-        if (config().getJsonObject("auth", new JsonObject()).getBoolean(ENABLE_KEY, HttpVerticle.DEFAULT_AUTH_ENABLED)) {
+    private void setAuthHandler(Router router) {
+        if (config().getJsonObject("auth", new JsonObject()).getBoolean(AUTH_ENABLE_KEY, HttpVerticle.DEFAULT_AUTH_ENABLED)) {
             LOG.info("Enabling authentication");
 
             // Create a JWT Auth Provider
-            JsonObject jwtConfig = new JsonObject().put("keyStore", new JsonObject()
-                    .put("type", "jceks")
-                    .put("path", config().getJsonObject("auth").getString("jwtKeystorePath"))
-                    .put("password", config().getJsonObject("auth").getString("jwtKeystorePassword")));
+            JsonObject jwtConfig = new JsonObject()
+                    .put("public-key", config().getJsonObject("auth", new JsonObject()).getString(AUTH_PUBLIC_KEY, null))
+                    .put("permissionsClaimKey", config().getJsonObject("auth", new JsonObject()).getString(AUTH_PERMISSIONS_CLAIM_KEY, HttpVerticle.DEFAULT_AUTH_PERMISSIONS_CLAIM_KEY));
             JWTAuth jwtAuthenticationProvider = JWTAuth.create(vertx, jwtConfig);
-            router.route("/api/v1.0/*").handler(JWTAuthHandler.create(jwtAuthenticationProvider, "/api/v1.0/user/login"));
+            router.route("/api/v1.0/*").handler(JWTAuthHandler.create(jwtAuthenticationProvider));
 
             router.route().handler(BodyHandler.create().setBodyLimit(MAX_BODY_SIZE));
             setCsrfHandler(router);
             addSecurityHeaders(router);
-
-            AuthProvider mongoAuthenticationProvider = this.createMongoAuthenticationProvider();
-            userApi = new UserApi(vertx, jwtAuthenticationProvider, mongoAuthenticationProvider, config().getJsonObject("auth", new JsonObject()));
-        } else {
-            userApi = new UserApi(vertx, config().getJsonObject("auth", new JsonObject()));
         }
-
-        return userApi;
     }
 
     private void addSecurityHeaders(Router router) {
