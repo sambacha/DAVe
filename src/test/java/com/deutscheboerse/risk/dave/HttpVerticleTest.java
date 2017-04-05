@@ -1,5 +1,7 @@
 package com.deutscheboerse.risk.dave;
 
+import com.deutscheboerse.risk.dave.persistence.EchoPersistenceService;
+import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -10,6 +12,7 @@ import io.vertx.core.net.JksOptions;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.serviceproxy.ProxyHelper;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -22,6 +25,7 @@ import java.io.IOException;
 public class HttpVerticleTest {
     private static Vertx vertx;
     private static int port;
+    private static PersistenceService persistenceProxy;
 
     @BeforeClass
     public static void setUp() throws IOException {
@@ -34,6 +38,10 @@ public class HttpVerticleTest {
 
         vertx.deployVerticle(HttpVerticle.class.getName(), new DeploymentOptions().setConfig(config), res -> {
             if (res.succeeded()) {
+                ProxyHelper.registerService(PersistenceService.class, vertx, new EchoPersistenceService(vertx), PersistenceService.SERVICE_ADDRESS);
+                persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
+                persistenceProxy.initialize(context.asyncAssertSuccess());
+
                 asyncStart.complete();
             } else {
                 context.fail(res.cause());
@@ -50,14 +58,8 @@ public class HttpVerticleTest {
 
         final Async asyncClient = context.async();
 
-        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pr/latest", res -> {
             context.assertEquals(200, res.statusCode());
-            res.headers().forEach(v -> {
-                System.out.println("Headers: " + " = " + v);
-            });
-            res.headers().forEach(v -> {
-                System.out.println("Headers: " + " = " + v);
-            });
             asyncClient.complete();
         });
     }
@@ -71,7 +73,7 @@ public class HttpVerticleTest {
 
         String myOrigin = "https://localhost:8888";
 
-        vertx.createHttpClient().get(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
+        vertx.createHttpClient().get(port, "localhost", "/api/v1.0/pr/latest", res -> {
             context.assertEquals(200, res.statusCode());
             context.assertEquals(myOrigin, res.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
             asyncClient.complete();
@@ -87,14 +89,14 @@ public class HttpVerticleTest {
 
         HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true).setTrustStoreOptions(new JksOptions().setPath(getClass().getResource("client.truststore").getPath()).setPassword("123456"));
 
-        vertx.createHttpClient(sslOpts).get(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
+        vertx.createHttpClient(sslOpts).get(port, "localhost", "/api/v1.0/pr/latest", res -> {
             context.assertEquals(200, res.statusCode());
             asyncSslClient.complete();
         }).end();
 
         final Async asyncClient = context.async();
 
-        vertx.createHttpClient().get(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
+        vertx.createHttpClient().get(port, "localhost", "/api/v1.0/pr/latest", res -> {
             context.fail("Connected to HTTPS connection with HTTP!");
         }).exceptionHandler(res -> {
             asyncClient.complete();
@@ -110,7 +112,7 @@ public class HttpVerticleTest {
 
         HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true).setTrustStoreOptions(new JksOptions().setPath(getClass().getResource("client.truststore").getPath()).setPassword("123456"));
 
-        vertx.createHttpClient(sslOpts).get(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
+        vertx.createHttpClient(sslOpts).get(port, "localhost", "/api/v1.0/pr/latest", res -> {
             context.assertEquals(200, res.statusCode());
             asyncSslClient.complete();
         }).end();
@@ -118,14 +120,14 @@ public class HttpVerticleTest {
         final Async asyncSslClientAuth = context.async();
         HttpClientOptions sslClientAuthOpts = new HttpClientOptions().setSsl(true).setTrustStoreOptions(new JksOptions().setPath(getClass().getResource("client.truststore").getPath()).setPassword("123456")).setKeyStoreOptions(new JksOptions().setPath(getClass().getResource("client.keystore").getPath()).setPassword("123456"));
 
-        vertx.createHttpClient(sslClientAuthOpts).get(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
+        vertx.createHttpClient(sslClientAuthOpts).get(port, "localhost", "/api/v1.0/pr/latest", res -> {
             context.assertEquals(200, res.statusCode());
             asyncSslClientAuth.complete();
         }).end();
 
         final Async asyncClient = context.async();
 
-        vertx.createHttpClient().get(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
+        vertx.createHttpClient().get(port, "localhost", "/api/v1.0/pr/latest", res -> {
             context.fail("Connected to HTTPS connection with HTTP!");
         }).exceptionHandler(res -> {
             asyncClient.complete();
@@ -141,7 +143,7 @@ public class HttpVerticleTest {
 
         HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true).setTrustStoreOptions(new JksOptions().setPath(getClass().getResource("client.truststore").getPath()).setPassword("123456"));
 
-        vertx.createHttpClient(sslOpts).get(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
+        vertx.createHttpClient(sslOpts).get(port, "localhost", "/api/v1.0/pr/latest", res -> {
             context.fail("Connected without client authentication!");
         }).exceptionHandler(res -> {
             asyncSslClient.complete();
@@ -150,14 +152,14 @@ public class HttpVerticleTest {
         final Async asyncSslClientAuth = context.async();
         HttpClientOptions sslClientAuthOpts = new HttpClientOptions().setSsl(true).setTrustStoreOptions(new JksOptions().setPath(getClass().getResource("client.truststore").getPath()).setPassword("123456")).setKeyStoreOptions(new JksOptions().setPath(getClass().getResource("client.keystore").getPath()).setPassword("123456"));
 
-        vertx.createHttpClient(sslClientAuthOpts).get(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
+        vertx.createHttpClient(sslClientAuthOpts).get(port, "localhost", "/api/v1.0/pr/latest", res -> {
             context.assertEquals(200, res.statusCode());
             asyncSslClientAuth.complete();
         }).end();
 
         final Async asyncClient = context.async();
 
-        vertx.createHttpClient().get(port, "localhost", "/api/v1.0/user/loginStatus", res -> {
+        vertx.createHttpClient().get(port, "localhost", "/api/v1.0/pr/latest", res -> {
             context.fail("Connected to HTTPS connection with HTTP!");
         }).exceptionHandler(res -> {
             asyncClient.complete();
