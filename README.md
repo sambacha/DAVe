@@ -62,7 +62,7 @@ The `auth` subsection configures authentication to the UI and REST interface. Th
 |--------|-------------|---------|
 | `enable` | Disables or enables authetication | `true` |
 | `jwtPublicKey` | Public key for verification of received JWT tokens | |
-| `permissionsClaimKey` | ath to roles inside JWT token | `realm_access/roles` |
+| `permissionsClaimKey` | Path to roles inside JWT token | `realm_access/roles` |
 
 #### CORS
 

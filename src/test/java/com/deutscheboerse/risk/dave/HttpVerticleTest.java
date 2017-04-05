@@ -57,7 +57,7 @@ public class HttpVerticleTest {
 
         final Async asyncClient = context.async();
 
-        vertx.createHttpClient().getNow(port, "localhost", "//api/v1.0/pr/latest", res -> {
+        vertx.createHttpClient().getNow(port, "localhost", "/api/v1.0/pr/latest", res -> {
             context.assertEquals(200, res.statusCode());
             asyncClient.complete();
         });
