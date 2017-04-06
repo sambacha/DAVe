@@ -2,6 +2,7 @@ package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.persistence.EchoPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import com.deutscheboerse.risk.dave.utils.TestConfig;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientOptions;
@@ -27,9 +28,9 @@ public class HttpVerticleTest {
     private static PersistenceService persistenceProxy;
 
     @BeforeClass
-    public static void setUp(TestContext context) throws IOException {
+    public static void setUp() throws IOException {
         HttpVerticleTest.vertx = Vertx.vertx();
-        HttpVerticleTest.port = Integer.getInteger("http.port", 8080);
+        HttpVerticleTest.port = TestConfig.HTTP_PORT;
     }
 
     private void deployHttpVerticle(TestContext context, JsonObject config) {
@@ -37,7 +38,7 @@ public class HttpVerticleTest {
 
         vertx.deployVerticle(HttpVerticle.class.getName(), new DeploymentOptions().setConfig(config), res -> {
             if (res.succeeded()) {
-                ProxyHelper.registerService(PersistenceService.class, vertx, new EchoPersistenceService(), PersistenceService.SERVICE_ADDRESS);
+                ProxyHelper.registerService(PersistenceService.class, vertx, new EchoPersistenceService(vertx), PersistenceService.SERVICE_ADDRESS);
                 persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
                 persistenceProxy.initialize(context.asyncAssertSuccess());
 

@@ -17,7 +17,7 @@ public class RiskLimitUtilizationApi extends AbstractApi {
 
     @Override
     protected void proxyFind(RoutingContext routingContext, RequestType requestType) {
-        persistenceProxy.findRiskLimitUtilization(requestType, this.createParamsFromContext(routingContext), responseHandler(routingContext));
+        persistenceProxy.queryRiskLimitUtilization(requestType, this.createParamsFromContext(routingContext), responseHandler(routingContext));
     }
 
 }

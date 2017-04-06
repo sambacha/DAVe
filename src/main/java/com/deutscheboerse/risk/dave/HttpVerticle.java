@@ -13,13 +13,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.net.JksOptions;
-import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.jwt.JWTAuth;
-import io.vertx.ext.auth.mongo.HashSaltStyle;
-import io.vertx.ext.auth.mongo.MongoAuth;
 import io.vertx.ext.healthchecks.HealthCheckHandler;
 import io.vertx.ext.healthchecks.Status;
-import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.*;
 
@@ -31,8 +27,11 @@ import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.HTT
 public class HttpVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(HttpVerticle.class);
 
-    public static final String REST_HEALTHZ = "/healthz";
-    public static final String REST_READINESS = "/readiness";
+    private static final String API_VERSION = "v1.0";
+    private static final String API_PREFIX = String.format("/api/%s", API_VERSION);
+
+    static final String REST_HEALTHZ = "/healthz";
+    static final String REST_READINESS = "/readiness";
 
     private enum Mode {
         HTTP, HTTPS
@@ -160,13 +159,13 @@ public class HttpVerticle extends AbstractVerticle {
         LOG.info("Adding route REST API");
         router.get(REST_HEALTHZ).handler(healthCheckHandler);
         router.get(REST_READINESS).handler(readinessHandler);
-        router.route("/api/v1.0/*").handler(BodyHandler.create());
-        router.mountSubRouter("/api/v1.0", new AccountMarginApi(vertx).getRoutes());
-        router.mountSubRouter("/api/v1.0", new LiquiGroupMarginApi(vertx).getRoutes());
-        router.mountSubRouter("/api/v1.0", new LiquiGroupSplitMarginApi(vertx).getRoutes());
-        router.mountSubRouter("/api/v1.0", new PoolMarginApi(vertx).getRoutes());
-        router.mountSubRouter("/api/v1.0", new PositionReportApi(vertx).getRoutes());
-        router.mountSubRouter("/api/v1.0", new RiskLimitUtilizationApi(vertx).getRoutes());
+        router.route(API_PREFIX+"/*").handler(BodyHandler.create());
+        router.mountSubRouter(API_PREFIX, new AccountMarginApi(vertx).getRoutes());
+        router.mountSubRouter(API_PREFIX, new LiquiGroupMarginApi(vertx).getRoutes());
+        router.mountSubRouter(API_PREFIX, new LiquiGroupSplitMarginApi(vertx).getRoutes());
+        router.mountSubRouter(API_PREFIX, new PoolMarginApi(vertx).getRoutes());
+        router.mountSubRouter(API_PREFIX, new PositionReportApi(vertx).getRoutes());
+        router.mountSubRouter(API_PREFIX, new RiskLimitUtilizationApi(vertx).getRoutes());
 
         return router;
     }
@@ -207,7 +206,7 @@ public class HttpVerticle extends AbstractVerticle {
                     .put("public-key", config().getJsonObject("auth", new JsonObject()).getString(AUTH_PUBLIC_KEY, null))
                     .put("permissionsClaimKey", config().getJsonObject("auth", new JsonObject()).getString(AUTH_PERMISSIONS_CLAIM_KEY, HttpVerticle.DEFAULT_AUTH_PERMISSIONS_CLAIM_KEY));
             JWTAuth jwtAuthenticationProvider = JWTAuth.create(vertx, jwtConfig);
-            router.route("/api/v1.0/*").handler(JWTAuthHandler.create(jwtAuthenticationProvider));
+            router.route(API_PREFIX+"/*").handler(JWTAuthHandler.create(jwtAuthenticationProvider));
 
             router.route().handler(BodyHandler.create().setBodyLimit(MAX_BODY_SIZE));
             setCsrfHandler(router);

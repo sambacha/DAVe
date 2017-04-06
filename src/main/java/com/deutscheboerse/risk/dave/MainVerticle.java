@@ -78,7 +78,7 @@ public class MainVerticle extends AbstractVerticle {
     }
 
     private Future<Void> deployPersistenceVerticle() {
-        return this.deployVerticle(PersistenceVerticle.class, this.configuration.getJsonObject("mongodb", new JsonObject())
+        return this.deployVerticle(PersistenceVerticle.class, this.configuration.getJsonObject("storeManager", new JsonObject())
                 .put(GUICE_BINDER_KEY, this.configuration.getString(GUICE_BINDER_KEY, PersistenceBinder.class.getName())));
     }
 

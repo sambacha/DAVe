@@ -17,7 +17,7 @@ public class LiquiGroupMarginApi extends AbstractApi {
 
     @Override
     protected void proxyFind(RoutingContext routingContext, RequestType requestType) {
-        persistenceProxy.findLiquiGroupMargin(requestType, this.createParamsFromContext(routingContext), responseHandler(routingContext));
+        persistenceProxy.queryLiquiGroupMargin(requestType, this.createParamsFromContext(routingContext), responseHandler(routingContext));
     }
 
 }

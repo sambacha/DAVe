@@ -17,6 +17,6 @@ public class AccountMarginApi extends AbstractApi {
 
     @Override
     protected void proxyFind(RoutingContext routingContext, RequestType requestType) {
-        persistenceProxy.findAccountMargin(requestType, this.createParamsFromContext(routingContext), responseHandler(routingContext));
+        persistenceProxy.queryAccountMargin(requestType, this.createParamsFromContext(routingContext), responseHandler(routingContext));
     }
 }

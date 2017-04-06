@@ -17,7 +17,7 @@ public class PositionReportApi extends AbstractApi {
 
     @Override
     protected void proxyFind(RoutingContext routingContext, RequestType requestType) {
-        persistenceProxy.findPositionReport(requestType, this.createParamsFromContext(routingContext), responseHandler(routingContext));
+        persistenceProxy.queryPositionReport(requestType, this.createParamsFromContext(routingContext), responseHandler(routingContext));
     }
 
 }

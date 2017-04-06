@@ -16,16 +16,30 @@ The shippable artifact will be built in `target/dave-VERSION` directory.
 
 ## Configure
 
-Configuration is stored in `dave.json` file in Hocon format. Configuration is split into several sections:
+Configuration is stored in `dave.conf` file in Hocon format. Configuration is split into several sections:
 
-### MongoDB
+### StoreManager
 
-The `mongodb` section contains the configuration of the MongoDB database where will the ERS data be persisted.
+The `storeManager` section contains the configuration of the Store Manager service where the data are persisted.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `dbName` | Name of the database which will be used | `DAVe` |
-| `connectionUrl` | Connection URL to connect to the database | `mongodb://localhost:27017` |
+| `hostname` | Name of the host which will be used | `localhost` |
+| `port` | Port of the Store Manager server | `8081` |
+
+### RestApi
+
+The `restApi` section contains the configuration of the Store Manager's REST API points.
+
+| Option | Explanation | Example |
+|--------|-------------|---------|
+| `accountMargin` | REST API address for querying account margin data | `/api/v1.0/query/am` |
+| `liquiGroupMargin` | REST API address for querying liqui group margin data | `/api/v1.0/query/lgm` |
+| `liquiGroupSplitMargin` | REST API address for querying liqui group split margin data | `/api/v1.0/query/lgsm` |
+| `poolMargin` | REST API address for querying pool margin data | `/api/v1.0/query/pm` |
+| `positionReport` | REST API address for querying position report data | `/api/v1.0/query/pr` |
+| `riskLimitUtilization` | REST API address for querying risk limit utilization data | `/api/v1.0/query/rlu` |
+| `healthz` | REST API address for find out whether the Store Manager is running | `/healthz` |
 
 ### HTTP
 
@@ -56,7 +70,7 @@ The `ssl` section configures the SSL/TLS support in the webserver.
 
 #### Auth
 
-The `auth` subsection configures authentication to the UI and REST interface. The Mongo databases configured from authentication can be different database from the one configured for storing ERS data.
+The `auth` subsection configures authentication to the UI and REST interface.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|

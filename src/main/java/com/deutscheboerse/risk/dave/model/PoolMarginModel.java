@@ -24,20 +24,4 @@ public class PoolMarginModel extends AbstractModel {
         keys.put("marginCurrency", String.class);
         return Collections.unmodifiableMap(keys);
     }
-
-    @Override
-    public Map<String, Class<?>> getNonKeysDescriptor() {
-        Map<String, Class<?>> keys = new LinkedHashMap<>();
-        keys.put("clrRptCurrency", String.class);
-        keys.put("requiredMargin", Double.class);
-        keys.put("cashCollateralAmount", Double.class);
-        keys.put("adjustedSecurities", Double.class);
-        keys.put("adjustedGuarantee", Double.class);
-        keys.put("overUnderInMarginCurr", Double.class);
-        keys.put("overUnderInClrRptCurr", Double.class);
-        keys.put("variPremInMarginCurr", Double.class);
-        keys.put("adjustedExchangeRate", Double.class);
-        keys.put("poolOwner", String.class);
-        return Collections.unmodifiableMap(keys);
-    }
 }

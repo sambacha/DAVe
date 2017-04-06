@@ -15,12 +15,12 @@ public interface PersistenceService {
 
     void initialize(Handler<AsyncResult<Void>> resultHandler);
 
-    void findAccountMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler);
-    void findLiquiGroupMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler);
-    void findLiquiGroupSplitMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler);
-    void findPoolMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler);
-    void findPositionReport(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler);
-    void findRiskLimitUtilization(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler);
+    void queryAccountMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler);
+    void queryLiquiGroupMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler);
+    void queryLiquiGroupSplitMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler);
+    void queryPoolMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler);
+    void queryPositionReport(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler);
+    void queryRiskLimitUtilization(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler);
 
     @ProxyClose
     void close();
