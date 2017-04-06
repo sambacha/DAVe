@@ -61,16 +61,6 @@
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-mongo-client</artifactId>
-      <version>${vertx.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-auth-mongo</artifactId>
-      <version>${vertx.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-jwt</artifactId>
       <version>${vertx.version}</version>
     </dependency>
@@ -143,7 +133,6 @@
           <version>2.19</version>
           <configuration>
             <systemPropertyVariables>
-              <mongodb.port>${mongodb.port}</mongodb.port>
               <http.port>${http.port}</http.port>
               <storage.port>${storage.port}</storage.port>
               <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
@@ -196,51 +185,6 @@
               <artifactSet/>
               <outputFile>${project.build.directory}/${project.artifactId}-${project.version}-fat.jar</outputFile>
             </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>io.fabric8</groupId>
-        <artifactId>docker-maven-plugin</artifactId>
-        <version>${docker.maven.plugin.fabric8.version}</version>
-        <configuration>
-          <logDate>default</logDate>
-          <autoPull>true</autoPull>
-          <images>
-            <image>
-              <alias>db</alias>
-              <name>mongo:3.4</name>
-              <run>
-                <wait>
-                  <log>waiting for connections on port</log>
-                  <time>10000</time>
-                </wait>
-                <log>
-                  <prefix>DB</prefix>
-                  <color>yellow</color>
-                  <file>${project.build.directory}/mongo.log</file>
-                </log>
-                <ports>
-                  <port>mongodb.port:27017</port>
-                </ports>
-              </run>
-            </image>
-          </images>
-        </configuration>
-        <executions>
-          <execution>
-            <id>start</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>start</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>stop</id>
-            <phase>post-integration-test</phase>
-            <goals>
-              <goal>stop</goal>
-            </goals>
           </execution>
         </executions>
       </plugin>

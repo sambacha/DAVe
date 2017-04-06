@@ -70,7 +70,7 @@ The `ssl` section configures the SSL/TLS support in the webserver.
 
 #### Auth
 
-The `auth` subsection configures authentication to the UI and REST interface. The Mongo databases configured from authentication can be different database from the one configured for storing ERS data.
+The `auth` subsection configures authentication to the UI and REST interface.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
