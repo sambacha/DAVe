@@ -1,5 +1,8 @@
 package com.deutscheboerse.risk.dave;
 
+import io.vertx.config.ConfigRetriever;
+import io.vertx.config.ConfigRetrieverOptions;
+import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
@@ -15,13 +18,16 @@ import java.util.Map;
 
 public class MainVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(MainVerticle.class);
+    private static final String GUICE_BINDER_KEY = "guice_binder";
 
+    private JsonObject configuration;
     private Map<String, String> verticleDeployments = new HashMap<>();
 
     @Override
     public void start(Future<Void> startFuture) {
         Future<Void> chainFuture = Future.future();
-        deployPersistenceVerticle()
+        this.retrieveConfig()
+                .compose(i -> deployPersistenceVerticle())
                 .compose(i -> deployHttpVerticle())
                 .compose(chainFuture::complete, chainFuture);
 
@@ -37,19 +43,54 @@ public class MainVerticle extends AbstractVerticle {
         });
     }
 
+    private void addHoconConfigStoreOptions(ConfigRetrieverOptions options) {
+        String configurationFile = System.getProperty("dave.configurationFile");
+        if (configurationFile != null) {
+            options.addStore(new ConfigStoreOptions()
+                    .setType("file")
+                    .setFormat("hocon")
+                    .setConfig(new JsonObject()
+                            .put("path", configurationFile)));
+        }
+    }
+
+    private void addDeploymentConfigStoreOptions(ConfigRetrieverOptions options) {
+        options.addStore(new ConfigStoreOptions().setType("json").setConfig(vertx.getOrCreateContext().config()));
+    }
+
+    private Future<Void> retrieveConfig() {
+        Future<Void> future = Future.future();
+        ConfigRetrieverOptions options = new ConfigRetrieverOptions();
+        this.addHoconConfigStoreOptions(options);
+        this.addDeploymentConfigStoreOptions(options);
+        ConfigRetriever retriever = ConfigRetriever.create(vertx, options);
+        retriever.getConfig(ar -> {
+            if (ar.succeeded()) {
+                this.configuration = ar.result();
+                LOG.debug("Retrieved configuration: {}", this.configuration.encodePrettily());
+                future.complete();
+            } else {
+                LOG.error("Unable to retrieve configuration", ar.cause());
+                future.fail(ar.cause());
+            }
+        });
+        return future;
+    }
+
     private Future<Void> deployPersistenceVerticle() {
-        return this.deployVerticle(PersistenceVerticle.class, config().getJsonObject("mongodb", new JsonObject()));
+        return this.deployVerticle(PersistenceVerticle.class, this.configuration.getJsonObject("mongodb", new JsonObject())
+                .put(GUICE_BINDER_KEY, this.configuration.getString(GUICE_BINDER_KEY, PersistenceBinder.class.getName())));
     }
 
     private Future<Void> deployHttpVerticle() {
-        return this.deployVerticle(HttpVerticle.class, config().getJsonObject("http", new JsonObject()));
+        return this.deployVerticle(HttpVerticle.class, this.configuration.getJsonObject("http", new JsonObject()));
     }
 
     private Future<Void> deployVerticle(Class clazz, JsonObject config) {
         Future<Void> verticleFuture = Future.future();
-        config.put("guice_binder", config().getString("guice_binder", Binder.class.getName()));
         DeploymentOptions options = new DeploymentOptions().setConfig(config);
-        vertx.deployVerticle("java-guice:" + clazz.getName(), options, ar -> {
+        String prefix = config.containsKey(GUICE_BINDER_KEY) ? "java-guice:" : "java:";
+        vertx.deployVerticle(prefix + clazz.getName(), options, ar -> {
             if (ar.succeeded()) {
                 LOG.info("Deployed {} with ID {}", clazz.getName(), ar.result());
                 verticleDeployments.put(clazz.getSimpleName(), ar.result());

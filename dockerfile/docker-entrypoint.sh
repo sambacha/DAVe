@@ -162,39 +162,15 @@ EOS
 
     # AUTH
     if [ "$DAVE_HTTP_AUTH" ]; then
-      if [ -z "$DAVE_HTTP_AUTH_SALT" ]; then
-        DAVE_HTTP_AUTH_SALT="DAVe"
+      if [ -z "$DAVE_HTTP_AUTH_PERMISSIONS_CLAIM_KEY" ]; then
+        DAVE_HTTP_AUTH_PERMISSIONS_CLAIM_KEY="realm_access/roles"
       fi
 
-      if [ -z "$DAVE_HTTP_AUTH_LINK_SSL" ]; then
-        DAVE_HTTP_AUTH_LINK_SSL="false"
+      if [ -z "$DAVE_HTTP_AUTH_PUBLIC_KEY" ]; then
+        DAVE_HTTP_AUTH_PUBLIC_KEY=""
       fi
 
-      if [[ "$DAVE_HTTP_JWT_BASE64_KEYSTORE" && "$DAVE_HTTP_JWT_KEYSTORE_PASSWORD" ]]; then
-        jwtKeystorePath="$(pwd)/etc/jwt.keystore"
-        jwtKeystorePassword="${DAVE_HTTP_JWT_KEYSTORE_PASSWORD}"
-        echo "${DAVE_HTTP_JWT_BASE64_KEYSTORE}" | base64 -d > ${jwtKeystorePath}
-      else
-        jwtKeystorePath="$(pwd)/etc/jwt.keystore"
-        jwtKeystorePassword="123456"
-        keytool -genseckey -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg HMacSHA256 -keysize 2048 -alias HS256 -keypass ${jwtKeystorePassword}
-        keytool -genseckey -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg HMacSHA384 -keysize 2048 -alias HS384 -keypass ${jwtKeystorePassword}
-        keytool -genseckey -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg HMacSHA512 -keysize 2048 -alias HS512 -keypass ${jwtKeystorePassword}
-
-        keytool -genkey -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg RSA -keysize 2048 -alias RS256 -keypass ${jwtKeystorePassword} -sigalg SHA256withRSA -dname "CN=,OU=,O=,L=,ST=,C=" -validity 360
-        keytool -genkey -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg RSA -keysize 2048 -alias RS384 -keypass ${jwtKeystorePassword} -sigalg SHA384withRSA -dname "CN=,OU=,O=,L=,ST=,C=" -validity 360
-        keytool -genkey -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg RSA -keysize 2048 -alias RS512 -keypass ${jwtKeystorePassword} -sigalg SHA512withRSA -dname "CN=,OU=,O=,L=,ST=,C=" -validity 360
-
-        keytool -genkeypair -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg EC -keysize 256 -alias ES256 -keypass ${jwtKeystorePassword} -sigalg SHA256withECDSA -dname "CN=,OU=,O=,L=,ST=,C=" -validity 360
-        keytool -genkeypair -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg EC -keysize 256 -alias ES384 -keypass ${jwtKeystorePassword} -sigalg SHA384withECDSA -dname "CN=,OU=,O=,L=,ST=,C=" -validity 360
-        keytool -genkeypair -keystore ${jwtKeystorePath} -storetype jceks -storepass ${jwtKeystorePassword} -keyalg EC -keysize 256 -alias ES512 -keypass ${jwtKeystorePassword} -sigalg SHA512withECDSA -dname "CN=,OU=,O=,L=,ST=,C=" -validity 360
-      fi
-
-      if [ -z "$DAVE_HTTP_JWT_TOKEN_EXPIRATION" ] ; then
-        DAVE_HTTP_JWT_TOKEN_EXPIRATION=60
-      fi
-      jwtTokenExpiration="${DAVE_HTTP_JWT_TOKEN_EXPIRATION}"
-      http_auth="\"auth\": { \"enable\": true, \"salt\": \"${DAVE_HTTP_AUTH_SALT}\", \"dbName\": \"${DAVE_DB_NAME}\", \"connectionUrl\": \"${db_url}\", \"checkUserAgainstCertificate\": ${DAVE_HTTP_AUTH_LINK_SSL}, \"jwtKeystorePath\": \"${jwtKeystorePath}\", \"jwtKeystorePassword\": \"${jwtKeystorePassword}\", \"jwtTokenExpiration\": ${DAVE_HTTP_JWT_TOKEN_EXPIRATION} }"
+      http_auth="\"auth\": { \"enable\": true, \"jwtPublicKey\": \"${DAVE_HTTP_AUTH_PUBLIC_KEY}\", \"permissionsClaimKey\": \"${DAVE_HTTP_AUTH_PERMISSIONS_CLAIM_KEY}\" }"
       CONFIG_HTTP+=("$http_auth")
     fi
   fi
@@ -202,17 +178,17 @@ EOS
   #####
   ## Write the config file
   #####
-  configFile="$(pwd)/etc/dave.json"
+  configFile="$(pwd)/etc/dave.conf"
   cat > $configFile <<-EOS
 {
 EOS
   IFSBAK="$IFS"
   IFS=", "
   cat >> $configFile <<-EOS
-  "http": {
+  http {
     ${CONFIG_HTTP[*]}
   },
-  "mongodb": {
+  mongodb {
     ${CONFIG_DB[*]}
   }
 EOS
