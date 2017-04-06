@@ -48,7 +48,7 @@ The `http` section configures the web based UI and the REST API.
 | Option | Explanation | Example |
 |--------|-------------|---------|
 | `port` | Port of the HTTP(S) server | `8080` |
-| `compression` | Enbale gzip compression of the HTTP responses | `true` |
+| `compression` | Enable gzip compression of the HTTP responses | `true` |
 | `ssl` | Subsection configuring SSL/TLS on the webserver |  |
 | `CORS` | Subsection configuring Cross-origin resource sharing (see below) |  |
 | `CSRF` | Subsection configuring Cross-site request forgery protection (see below) |  |
