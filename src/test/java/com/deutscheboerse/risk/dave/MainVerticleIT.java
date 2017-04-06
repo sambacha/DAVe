@@ -82,6 +82,21 @@ public class MainVerticleIT {
         vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertFailure());
     }
 
+    @Test
+    public void testFailedDeploymentWrongConfig(TestContext context) {
+        Async mainVerticleAsync = context.async();
+        DeploymentOptions options = getDeploymentOptions();
+        System.setProperty("dave.configurationFile", "nonexisting");
+        this.vertx.deployVerticle(MainVerticle.class.getName(), options, ar -> {
+            System.clearProperty("dave.configurationFile");
+            if (ar.succeeded()) {
+                context.fail(ar.cause());
+            } else {
+                mainVerticleAsync.complete();
+            }
+        });
+    }
+
     private DeploymentOptions getDeploymentOptions() {
         int httpPort = Integer.getInteger("http.port", 8080);
         int mongoPort = Integer.getInteger("mongodb.port", 27017);

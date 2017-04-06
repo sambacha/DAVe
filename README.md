@@ -16,7 +16,7 @@ The shippable artifact will be built in `target/dave-VERSION` directory.
 
 ## Configure
 
-Configuration is stored in `dave.json` file in JSON format. Configuration is split into several sections:
+Configuration is stored in `dave.json` file in Hocon format. Configuration is split into several sections:
 
 ### MongoDB
 
@@ -34,7 +34,7 @@ The `http` section configures the web based UI and the REST API.
 | Option | Explanation | Example |
 |--------|-------------|---------|
 | `port` | Port of the HTTP(S) server | `8080` |
-| `compression` | Enbale gzip compression of the HTTP responses | `true` |
+| `compression` | Enable gzip compression of the HTTP responses | `true` |
 | `ssl` | Subsection configuring SSL/TLS on the webserver |  |
 | `CORS` | Subsection configuring Cross-origin resource sharing (see below) |  |
 | `CSRF` | Subsection configuring Cross-site request forgery protection (see below) |  |
@@ -60,7 +60,7 @@ The `auth` subsection configures authentication to the UI and REST interface. Th
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `enable` | Disables or enables authetication | `true` |
+| `enable` | Disables or enables authentication | `true` |
 | `jwtPublicKey` | Public key for verification of received JWT tokens | |
 | `permissionsClaimKey` | Path to roles inside JWT token | `realm_access/roles` |
 
