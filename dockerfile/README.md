@@ -26,7 +26,7 @@ Allows to configure logging parameters. Supported log levels are `OFF`, `ERROR`,
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `DAVE_STOREMANAGER_HOSTNAME` | Hostname where DAVe-StoreManger is running | `localhost` |
+| `DAVE_STOREMANAGER_HOSTNAME` | Hostname where DAVe-StoreManager is running | `localhost` |
 | `DAVE_STOREMANAGER_PORT` | Port of the DAVe-StoreManager server | 8081 |
 | `DAVE_STOREMANAGER_SSL` | Enable HTTPS protocol | `1` |
 | `DAVE_STOREMANAGER_SSL_CERT` | Public SSL Certificate of DAVe-StorageManager which DAVe-Api trusts | `-----BEGIN CERTIFICATE-----\nMIIBqARKgAwIBAgI1` |
