@@ -3,11 +3,15 @@ package com.deutscheboerse.risk.dave.persistence;
 import com.deutscheboerse.risk.dave.model.*;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.*;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.net.PemKeyCertOptions;
 import io.vertx.ext.healthchecks.HealthCheckHandler;
 import io.vertx.ext.healthchecks.Status;
 import io.vertx.ext.web.Router;
@@ -39,9 +43,9 @@ public class StorageManagerMock {
     }
 
     public StorageManagerMock listen(Handler<AsyncResult<Void>> resultHandler) {
+        LOG.info("Starting web mock server with configuration {}", config.encodePrettily());
 
         int port = config.getInteger("port", DEFAULT_PORT);
-        LOG.info("Starting web server on port {}", port);
 
         Future<HttpServer> listenFuture = Future.future();
         server.listen(port, listenFuture);
@@ -58,7 +62,25 @@ public class StorageManagerMock {
     private HttpServer createHttpServer() {
         Router router = configureRouter();
 
-        return vertx.createHttpServer().requestHandler(router::accept);
+        HttpServerOptions options = getHttpServerOptions();
+
+        return vertx.createHttpServer(options).requestHandler(router::accept);
+    }
+
+    private HttpServerOptions getHttpServerOptions() {
+        HttpServerOptions options = new HttpServerOptions();
+
+        JsonObject sslConfig = this.config.getJsonObject("ssl", new JsonObject());
+        boolean sslEnable = sslConfig.getBoolean("enable");
+
+        if (sslEnable) {
+            options.setSsl(true);
+            PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions()
+                    .setKeyValue(Buffer.buffer(sslConfig.getString("sslKey")))
+                    .setCertValue(Buffer.buffer(sslConfig.getString("sslCert")));
+            options.setPemKeyCertOptions(pemKeyCertOptions);
+        }
+        return options;
     }
 
     private Router configureRouter() {

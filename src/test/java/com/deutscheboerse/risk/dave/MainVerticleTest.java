@@ -11,6 +11,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
@@ -61,7 +62,9 @@ public class MainVerticleTest {
                 .mergeIn(queryParams);
 
         final Async asyncRest = context.async();
-        vertx.createHttpClient().getNow(TestConfig.HTTP_PORT, "localhost", uri, res -> {
+        HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
+                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+        vertx.createHttpClient(sslOpts).getNow(TestConfig.API_PORT, "localhost", uri, res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 try {

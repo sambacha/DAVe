@@ -5,14 +5,18 @@ import com.deutscheboerse.risk.dave.restapi.margin.*;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.ClientAuth;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.net.JksOptions;
+import io.vertx.core.net.PemKeyCertOptions;
+import io.vertx.core.net.PemTrustOptions;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.healthchecks.HealthCheckHandler;
 import io.vertx.ext.healthchecks.Status;
@@ -33,16 +37,14 @@ public class HttpVerticle extends AbstractVerticle {
     static final String REST_HEALTHZ = "/healthz";
     static final String REST_READINESS = "/readiness";
 
-    private enum Mode {
-        HTTP, HTTPS
-    }
-
     private static final Integer MAX_BODY_SIZE = 1024 * 1024; // 1MB
 
     private static final Integer DEFAULT_PORT = 8080;
 
-    private static final Boolean DEFAULT_SSL = false;
+    private static final Boolean DEFAULT_SSL = true;
     private static final Boolean DEFAULT_SSL_REQUIRE_CLIENT_AUTH = false;
+    private static final String DEFAULT_SSL_KEY = "";
+    private static final String DEFAULT_SSL_CERT = "";
 
     private static final Boolean DEFAULT_CORS = false;
     private static final String DEFAULT_CORS_ORIGIN = "*";
@@ -60,7 +62,6 @@ public class HttpVerticle extends AbstractVerticle {
     private static final String AUTH_PUBLIC_KEY = "jwtPublicKey";
 
     private HttpServer server;
-    private Mode operationMode;
     private HealthCheck healthCheck;
 
     @Override
@@ -69,11 +70,6 @@ public class HttpVerticle extends AbstractVerticle {
 
         healthCheck = new HealthCheck(this.vertx);
 
-        if (config().getJsonObject("ssl", new JsonObject()).getBoolean(AUTH_ENABLE_KEY, DEFAULT_SSL)) {
-            this.operationMode = Mode.HTTPS;
-        } else {
-            this.operationMode = Mode.HTTP;
-        }
         List<Future> futures = new ArrayList<>();
         futures.add(startHttpServer());
 
@@ -110,29 +106,28 @@ public class HttpVerticle extends AbstractVerticle {
         return httpOptions;
     }
 
-    private void setSsl(HttpServerOptions httpOptions) {
-        if (!this.operationMode.equals(HttpVerticle.Mode.HTTPS)) {
+    private void setSsl(HttpServerOptions httpServerOptions) {
+        JsonObject sslConfig = config().getJsonObject("ssl", new JsonObject());
+        boolean sslEnable = sslConfig.getBoolean(AUTH_ENABLE_KEY, DEFAULT_SSL);
+        if (!sslEnable) {
             return;
         }
-        if (config().getJsonObject("ssl", new JsonObject()).getBoolean(AUTH_ENABLE_KEY, DEFAULT_SSL) && config().getJsonObject("ssl", new JsonObject()).getString("keystore") != null && config().getJsonObject("ssl", new JsonObject()).getString("keystorePassword") != null) {
-            LOG.info("Enabling SSL on webserver");
-            httpOptions.setSsl(true).setKeyStoreOptions(new JksOptions().setPassword(config().getJsonObject("ssl").getString("keystorePassword")).setPath(config().getJsonObject("ssl").getString("keystore")));
+        httpServerOptions.setSsl(true);
+        PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions()
+                .setKeyValue(Buffer.buffer(sslConfig.getString("sslKey", DEFAULT_SSL_KEY)))
+                .setCertValue(Buffer.buffer(sslConfig.getString("sslCert", DEFAULT_SSL_CERT)));
+        httpServerOptions.setPemKeyCertOptions(pemKeyCertOptions);
 
-            setSslClientAuthentication(httpOptions);
-        }
-    }
-
-    private void setSslClientAuthentication(HttpServerOptions httpOptions) {
-        if (config().getJsonObject("ssl", new JsonObject()).getString("truststore") != null && config().getJsonObject("ssl", new JsonObject()).getString("truststorePassword") != null) {
-            LOG.info("Enabling SSL Client Authentication on webserver");
-            httpOptions.setTrustStoreOptions(new JksOptions().setPassword(config().getJsonObject("ssl").getString("truststorePassword")).setPath(config().getJsonObject("ssl").getString("truststore")));
-
-            if (config().getJsonObject("ssl").getBoolean("requireTLSClientAuth", DEFAULT_SSL_REQUIRE_CLIENT_AUTH)) {
-                LOG.info("Setting SSL Client Authentication as required");
-                httpOptions.setClientAuth(ClientAuth.REQUIRED);
-            } else {
-                httpOptions.setClientAuth(ClientAuth.REQUEST);
-            }
+        PemTrustOptions pemTrustOptions = new PemTrustOptions();
+        sslConfig.getJsonArray("sslTrustCerts", new JsonArray())
+                .stream()
+                .map(Object::toString)
+                .forEach(trustKey -> pemTrustOptions.addCertValue(Buffer.buffer(trustKey)));
+        if (!pemTrustOptions.getCertValues().isEmpty()) {
+            httpServerOptions.setPemTrustOptions(pemTrustOptions);
+            ClientAuth clientAuth = sslConfig.getBoolean("sslRequireClientAuth", DEFAULT_SSL_REQUIRE_CLIENT_AUTH) ?
+                    ClientAuth.REQUIRED : ClientAuth.REQUEST;
+            httpServerOptions.setClientAuth(clientAuth);
         }
     }
 
@@ -141,7 +136,6 @@ public class HttpVerticle extends AbstractVerticle {
             LOG.info("Enabling compression on webserver");
             httpOptions.setCompressionSupported(true);
         }
-
     }
 
     private Router configureRouter() {

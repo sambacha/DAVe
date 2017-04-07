@@ -6,10 +6,13 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.net.PemTrustOptions;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -30,6 +33,10 @@ public class RestPersistenceService implements PersistenceService {
     private static final String DEFAULT_RISK_LIMIT_UTILIZATION_URI = "/api/v1.0/query/rlu";
     private static final String DEFAULT_HEALTHZ_URI = "/healthz";
 
+    private static final boolean DEFAULT_SSL = true;
+    private static final Boolean DEFAULT_VERIFY_HOST = true;
+    private static final String DEFAULT_SSL_CERT = "";
+
     private final Vertx vertx;
     private final JsonObject config;
     private final JsonObject restApi;
@@ -42,7 +49,7 @@ public class RestPersistenceService implements PersistenceService {
         this.vertx = vertx;
         this.config = config;
         this.restApi = this.config.getJsonObject("restApi", new JsonObject());
-        this.httpClient = this.vertx.createHttpClient();
+        this.httpClient = this.vertx.createHttpClient(getHttpClientOptions());
         this.healthCheck = new HealthCheck(vertx);
     }
 
@@ -95,6 +102,14 @@ public class RestPersistenceService implements PersistenceService {
     @Override
     public void close() {
         this.httpClient.close();
+    }
+
+    private HttpClientOptions getHttpClientOptions() {
+        JsonObject sslConfig = config.getJsonObject("ssl", new JsonObject());
+        return new HttpClientOptions().setSsl(sslConfig.getBoolean("enable", DEFAULT_SSL))
+                .setVerifyHost(sslConfig.getBoolean("verifyHost", DEFAULT_VERIFY_HOST))
+                .setPemTrustOptions(new PemTrustOptions()
+                        .addCertValue(Buffer.buffer(sslConfig.getString("sslCert", DEFAULT_SSL_CERT))));
     }
 
     private void query(String basePath, RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
