@@ -24,12 +24,20 @@ The `storeManager` section contains the configuration of the Store Manager servi
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `hostname` | Name of the host which will be used | `localhost` |
-| `port` | Port of the Store Manager server | `8081` |
+| `hostname` | Hostname where DAVe-StoreManger is running | `localhost` |
+| `port` | Port of the DAVe-StoreManager server | `8081` |
 
-### RestApi
+#### ssl
+The `ssl` section configures the SSL/TLS support between DAVe-Api and DAVe-StoreManager
 
-The `restApi` section contains the configuration of the Store Manager's REST API points.
+| Option | Explanation | Example |
+|--------|-------------|---------|
+| `enable` | Enable HTTPS protocol | `true` |
+| `sslCert` | Public SSL Certificate of DAVe-StorageManager which DAVe-Api trusts | `-----BEGIN CERTIFICATE-----\nMIIBqARKgAwIBAgI1` |
+
+#### RestApi
+
+The `restApi` section contains the configuration of DAVe-StoreManager REST API points.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
@@ -55,18 +63,17 @@ The `http` section configures the web based UI and the REST API.
 | `auth` | Subsection configuring authentication (see below) |  |
 
 
-### SSL
+#### SSL
 
 The `ssl` section configures the SSL/TLS support in the webserver.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
 | `enable` | Enable HTTPS protocol | `true` |
-| `keystore` | JKS file with the private key |  |
-| `keystorePassword` | Password to the JKS file containing the private key |  |
-| `truststore` | JKS file with trusted client CAs |  |
-| `truststorePassword` | Password to the JKS file containing the trusted certificates |  |
-| `requireTLSClientAuth` | Sets TLS client authentication as required | `false` |
+| `sslKey` | Private key of DAVe-Api | `-----BEGIN PRIVATE KEY-----\nMIICeAIBADANB` |
+| `sslCert` | Public certificate of DAVe-Api server which clients trust | `-----BEGIN CERTIFICATE-----\nMIIBqTCC` |
+| `sslRequireClientAuth` | Sets TLS client authentication as required | `false` |
+| `sslTrustCerts` | If TLS client authentication is required then this field contains list of trusted client certificates | `[ "-----BEGIN CERTIFICATE-----\nMIIBqTCCARKgAwIBAgIIT7GLwd" ]` |
 
 #### Auth
 
@@ -75,7 +82,7 @@ The `auth` subsection configures authentication to the UI and REST interface.
 | Option | Explanation | Example |
 |--------|-------------|---------|
 | `enable` | Disables or enables authentication | `true` |
-| `jwtPublicKey` | Public key for verification of received JWT tokens | |
+| `jwtPublicKey` | Public key for verification of received JWT tokens | `MIIBIjANBgkqhkiG9w0BAQE` |
 | `permissionsClaimKey` | Path to roles inside JWT token | `realm_access/roles` |
 
 #### CORS

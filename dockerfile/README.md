@@ -22,31 +22,29 @@ Allows to configure logging parameters. Supported log levels are `OFF`, `ERROR`,
 | `DAVE_LOG_LEVEL` | Logging level which should be used | `INFO` |
 
 
-### Database
+### StoreManager
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `DAVE_DB_NAME` | Name of the database which will be used | |
-| `DAVE_DB_URL` | Connection URL for Mongo database. Can be used for more complex database configuration. When set, options `DAVE_DB_HOSTNAME`, `DAVE_DB_PORT`, `DAVE_DB_USERNAME` and `DAVE_DB_PASSWORD` will be ignored. | `mongodb://user:pass@mongo1:27017,mongo2:27017/?replicaSet=test` |
-| `DAVE_DB_HOSTNAME` | Hostname of the Mongo server | `mongo.mydomain.tld` |
-| `DAVE_DB_PORT` | Port where the Mongo database is listening | `27017` |
-| `DAVE_DB_USERNAME` | Username to connect into Mongo | |
-| `DAVE_DB_PASSWORD` | Password to connect into Mongo | |
+| `DAVE_STOREMANAGER_HOSTNAME` | Hostname where DAVe-StoreManger is running | `localhost` |
+| `DAVE_STOREMANAGER_PORT` | Port of the DAVe-StoreManager server | 8081 |
+| `DAVE_STOREMANAGER_SSL` | Enable HTTPS protocol | `1` |
+| `DAVE_STOREMANAGER_SSL_CERT` | Public SSL Certificate of DAVe-StorageManager which DAVe-Api trusts | `-----BEGIN CERTIFICATE-----\nMIIBqARKgAwIBAgI1` |
 
 ### HTTP Server
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `DAVE_HTTP_ENABLE` | Enable the HTTP server | `1` |
 | `DAVE_HTTP_COMPRESSION` | Enable compression of HTTP responses | `1` |
 | `DAVE_HTTP_CORS` | Enable Cross-origin resource sharing | `1` |
 | `DAVE_HTTP_CORS_ORIGIN` | Set the Cross-origin resource sharing origin host | `myhost.mydomain.tld` |
 | `DAVE_HTTP_CSRF` | Enable the Cross-site request forgery handler | `1` |
 | `DAVE_HTTP_CSRF_SECRET` | Configures the domain secret used to generate CSFR tokens | `61d77a85-276b-476a-8810-f8408b5cfa19` |
-| `DAVE_HTTP_SSL_SERVER_PUBLIC_KEY` | Public key of the HTTP server in CRT format | |
-| `DAVE_HTTP_SSL_SERVER_PRIVATE_KEY` | Private key of the HTTP server in PEM format | |
-| `DAVE_HTTP_SSL_TRUSTED_CA` | List of trusted CA for SSL client authentication | |
-| `DAVE_HTTP_SSL_CLIENT_AUTH` | MAke SSL Client Authentication required | `1` |
+| `DAVE_HTTP_SSL` | Enable HTTPS protocol | `1`|
+| `DAVE_HTTP_SSL_KEY` | Private key of the HTTP server in PEM format | `-----BEGIN PRIVATE KEY-----\nMIICeAIBADANB` |
+| `DAVE_HTTP_SSL_CERT` | Public certificate of the HTTP server | `-----BEGIN CERTIFICATE-----\nMIIBqTCC` |
+| `DAVE_HTTP_SSL_TRUST_CERTS` | List of trusted CA for SSL client authentication | `-----BEGIN CERTIFICATE-----\nMIIBqTCCARKgAwIBAgIIT7GLwd` |
+| `DAVE_HTTP_SSL_CLIENT_AUTH` | Make SSL Client Authentication required | `1` |
 | `DAVE_HTTP_AUTH` | Enable authentication | `1` |
 | `DAVE_HTTP_AUTH_PUBLIC_KEY` | Public key for verification of received JWT tokens | |
 | `DAVE_HTTP_AUTH_PERMISSIONS_CLAIM_KEY` | Path to roles inside JWT token | `realm_access/roles` |
