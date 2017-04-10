@@ -15,5 +15,5 @@ DAVE_ETC=${DAVE_ROOT}/etc
 java ${JAVA_OPTS} ${DEBUG} \
      -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory \
      -Dlogback.configurationFile=${DAVE_ETC}/logback.xml \
-     -Ddave.configurationFile=${STOREMANAGER_ETC}/dave.conf \
+     -Ddave.configurationFile=${DAVE_ETC}/dave.conf \
      -jar ${DAVE_LIB}/dave-1.0-SNAPSHOT-fat.jar

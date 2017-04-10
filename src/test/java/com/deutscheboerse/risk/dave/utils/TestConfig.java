@@ -10,6 +10,7 @@ public class TestConfig {
 
     private static final int STORAGE_PORT = Integer.getInteger("storage.port", 8444);
     public static final int API_PORT = Integer.getInteger("http.port", 8443);
+    public static final int HEALTHCHECK_PORT = Integer.getInteger("healthcheck.port", 8080);
     public static final SelfSignedCertificate HTTP_STORAGE_CERTIFICATE = SelfSignedCertificate.create();
     public static final SelfSignedCertificate HTTP_API_CERTIFICATE = SelfSignedCertificate.create();
     public static final SelfSignedCertificate HTTP_CLIENT_CERTIFICATE = SelfSignedCertificate.create();
@@ -21,6 +22,7 @@ public class TestConfig {
     public static JsonObject getGlobalConfig() {
         return new JsonObject()
                 .put("http", TestConfig.getHttpConfig())
+                .put("healthCheck", TestConfig.getHealthCheckConfig())
                 .put("storeManager", TestConfig.getStorageConfig());
     }
 
@@ -51,6 +53,11 @@ public class TestConfig {
                         .put("jwtPublicKey", "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA33TqqLR3eeUmDtHS89qF3p4MP7Wfqt2Zjj3lZjLjjCGDvwr9cJNlNDiuKboODgUiT4ZdPWbOiMAfDcDzlOxA04DDnEFGAf+kDQiNSe2ZtqC7bnIc8+KSG/qOGQIVaay4Ucr6ovDkykO5Hxn7OU7sJp9TP9H0JH8zMQA6YzijYH9LsupTerrY3U6zyihVEDXXOv08vBHk50BMFJbE9iwFwnxCsU5+UZUZYw87Uu0n4LPFS9BT8tUIvAfnRXIEWCha3KbFWmdZQZlyrFw0buUEf0YN3/Q0auBkdbDR/ES2PbgKTJdkjc/rEeM0TxvOUf7HuUNOhrtAVEN1D5uuxE1WSwIDAQAB")
                         .put("permissionsClaimKey", "realm_access/roles"))
                 .put("compression", true);
+    }
+
+    private static JsonObject getHealthCheckConfig() {
+        return new JsonObject()
+                .put("port", HEALTHCHECK_PORT);
     }
 
     public static JsonObject getStorageConfig() {

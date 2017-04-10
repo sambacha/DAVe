@@ -29,6 +29,7 @@ public class MainVerticle extends AbstractVerticle {
         this.retrieveConfig()
                 .compose(i -> deployPersistenceVerticle())
                 .compose(i -> deployHttpVerticle())
+                .compose(i -> deployHealthCheckVerticle())
                 .compose(chainFuture::complete, chainFuture);
 
         chainFuture.setHandler(ar -> {
@@ -84,6 +85,10 @@ public class MainVerticle extends AbstractVerticle {
 
     private Future<Void> deployHttpVerticle() {
         return this.deployVerticle(HttpVerticle.class, this.configuration.getJsonObject("http", new JsonObject()));
+    }
+
+    private Future<Void> deployHealthCheckVerticle() {
+        return this.deployVerticle(HealthCheckVerticle.class, this.configuration.getJsonObject("healthCheck", new JsonObject()));
     }
 
     private Future<Void> deployVerticle(Class clazz, JsonObject config) {

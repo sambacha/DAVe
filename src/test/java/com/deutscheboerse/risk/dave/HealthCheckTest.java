@@ -8,7 +8,6 @@ import com.google.inject.AbstractModule;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -125,10 +124,7 @@ public class HealthCheckTest {
                         .put("status", "UP")))
                 .put("outcome", "UP");
 
-        HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
-
-        vertx.createHttpClient(sslOpts).getNow(TestConfig.API_PORT, "localhost", HttpVerticle.REST_HEALTHZ,
+        vertx.createHttpClient().getNow(TestConfig.HEALTHCHECK_PORT, "localhost", HttpVerticle.REST_HEALTHZ,
                 assertEqualsHttpHandler(200, expected.encode(), context));
     }
 
@@ -140,10 +136,7 @@ public class HealthCheckTest {
                         .put("status", "UP")))
                 .put("outcome", "UP");
 
-        HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
-
-        vertx.createHttpClient(sslOpts).getNow(TestConfig.API_PORT, "localhost", HttpVerticle.REST_READINESS,
+        vertx.createHttpClient().getNow(TestConfig.HEALTHCHECK_PORT, "localhost", HttpVerticle.REST_READINESS,
                 assertEqualsHttpHandler(200, expected.encode(), context));
     }
 
@@ -158,10 +151,7 @@ public class HealthCheckTest {
                         .put("status", "DOWN")))
                 .put("outcome", "DOWN");
 
-        HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
-
-        vertx.createHttpClient(sslOpts).getNow(TestConfig.API_PORT, "localhost", HttpVerticle.REST_READINESS,
+        vertx.createHttpClient().getNow(TestConfig.HEALTHCHECK_PORT, "localhost", HttpVerticle.REST_READINESS,
                 assertEqualsHttpHandler(503, expected.encode(), context));
     }
 
