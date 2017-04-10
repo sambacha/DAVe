@@ -5,6 +5,7 @@ cp -r -v ./target/dave-1.0-SNAPSHOT/dave-1.0-SNAPSHOT ./docker/dave-1.0-SNAPSHOT
 
 sed -i 's/sslKey.*/sslKey\ =\ \"\"/' ./docker/dave-1.0-SNAPSHOT/etc/dave.conf
 sed -i 's/sslCert.*/sslKey\ =\ \"\"/' ./docker/dave-1.0-SNAPSHOT/etc/dave.conf
+sed -i 's/sslTrustCerts.*/sslTrustCerts\ =\ []/' ./docker/dave-1.0-SNAPSHOT/etc/dave.conf
 sed -i 's/jwtPublicKey.*/jwtPublicKey\ =\ \"\"/' ./docker/dave-1.0-SNAPSHOT/etc/dave.conf
 
 docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
