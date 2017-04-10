@@ -22,6 +22,7 @@ import io.vertx.ext.web.handler.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.HTTP;
 
@@ -55,11 +56,13 @@ public class HttpVerticle extends AbstractVerticle {
     private static final String AUTH_PERMISSIONS_CLAIM_KEY = "permissionsClaimKey";
     private static final String AUTH_PUBLIC_KEY = "jwtPublicKey";
 
+    private static final String HIDDEN_CERTIFICATE = "******************";
+
     private HttpServer server;
 
     @Override
     public void start(Future<Void> startFuture) throws Exception {
-        LOG.info("Starting {} with configuration: {}", HttpVerticle.class.getSimpleName(), config().encodePrettily());
+        LOG.info("Starting {} with configuration: {}", HttpVerticle.class.getSimpleName(), hideCertificates(config()).encodePrettily());
 
         HealthCheck healthCheck = new HealthCheck(this.vertx);
 
@@ -76,6 +79,17 @@ public class HttpVerticle extends AbstractVerticle {
                 startFuture.fail(ar.cause());
             }
         });
+    }
+
+    private JsonObject hideCertificates(JsonObject config) {
+        return config.copy()
+                .getJsonObject("ssl", new JsonObject())
+                .put("sslKey", HIDDEN_CERTIFICATE)
+                .put("sslCert", HIDDEN_CERTIFICATE)
+                .put("sslTrustCerts", new JsonArray(
+                        config.getJsonObject("ssl", new JsonObject()).getJsonArray("sslTrustCerts").stream()
+                                .map(i -> HIDDEN_CERTIFICATE).collect(Collectors.toList()))
+                );
     }
 
     private Future<HttpServer> startHttpServer() {

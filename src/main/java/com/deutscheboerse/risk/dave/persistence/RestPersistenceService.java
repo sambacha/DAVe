@@ -62,7 +62,7 @@ public class RestPersistenceService implements PersistenceService {
             } else {
                 // Try to re-initialize in a few seconds
                 vertx.setTimer(RECONNECT_DELAY, i -> initialize(res -> {/*empty handler*/}));
-                LOG.error("Initialize failed, trying again...");
+                LOG.error("Cannot connect to StoreManager, trying again...");
             }
             // Inform the caller that we succeeded even if the connection to the http server
             // failed. We will try to reconnect automatically on background.

@@ -232,7 +232,7 @@ public class RestPersistenceServiceTest {
         storageManager.setHealth(false);
         testAppender.start();
         persistenceProxy.initialize(context.asyncAssertSuccess());
-        testAppender.waitForMessageContains(Level.ERROR, "Initialize failed, trying again...");
+        testAppender.waitForMessageContains(Level.ERROR, "Cannot connect to StoreManager, trying again...");
         testAppender.stop();
         storageManager.setHealth(true);
     }
