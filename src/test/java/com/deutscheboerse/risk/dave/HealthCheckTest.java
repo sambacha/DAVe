@@ -124,7 +124,7 @@ public class HealthCheckTest {
                         .put("status", "UP")))
                 .put("outcome", "UP");
 
-        vertx.createHttpClient().getNow(TestConfig.HEALTHCHECK_PORT, "localhost", HttpVerticle.REST_HEALTHZ,
+        vertx.createHttpClient().getNow(TestConfig.HEALTHCHECK_PORT, "localhost", HealthCheckVerticle.REST_HEALTHZ,
                 assertEqualsHttpHandler(200, expected.encode(), context));
     }
 
@@ -136,7 +136,7 @@ public class HealthCheckTest {
                         .put("status", "UP")))
                 .put("outcome", "UP");
 
-        vertx.createHttpClient().getNow(TestConfig.HEALTHCHECK_PORT, "localhost", HttpVerticle.REST_READINESS,
+        vertx.createHttpClient().getNow(TestConfig.HEALTHCHECK_PORT, "localhost", HealthCheckVerticle.REST_READINESS,
                 assertEqualsHttpHandler(200, expected.encode(), context));
     }
 
@@ -151,7 +151,7 @@ public class HealthCheckTest {
                         .put("status", "DOWN")))
                 .put("outcome", "DOWN");
 
-        vertx.createHttpClient().getNow(TestConfig.HEALTHCHECK_PORT, "localhost", HttpVerticle.REST_READINESS,
+        vertx.createHttpClient().getNow(TestConfig.HEALTHCHECK_PORT, "localhost", HealthCheckVerticle.REST_READINESS,
                 assertEqualsHttpHandler(503, expected.encode(), context));
     }
 

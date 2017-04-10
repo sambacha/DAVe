@@ -17,8 +17,6 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.net.PemKeyCertOptions;
 import io.vertx.core.net.PemTrustOptions;
 import io.vertx.ext.auth.jwt.JWTAuth;
-import io.vertx.ext.healthchecks.HealthCheckHandler;
-import io.vertx.ext.healthchecks.Status;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.*;
 
@@ -32,9 +30,6 @@ public class HttpVerticle extends AbstractVerticle {
 
     private static final String API_VERSION = "v1.0";
     private static final String API_PREFIX = String.format("/api/%s", API_VERSION);
-
-    static final String REST_HEALTHZ = "/healthz";
-    static final String REST_READINESS = "/readiness";
 
     private static final Integer MAX_BODY_SIZE = 1024 * 1024; // 1MB
 
@@ -61,13 +56,12 @@ public class HttpVerticle extends AbstractVerticle {
     private static final String AUTH_PUBLIC_KEY = "jwtPublicKey";
 
     private HttpServer server;
-    private HealthCheck healthCheck;
 
     @Override
     public void start(Future<Void> startFuture) throws Exception {
         LOG.info("Starting {} with configuration: {}", HttpVerticle.class.getSimpleName(), config().encodePrettily());
 
-        healthCheck = new HealthCheck(this.vertx);
+        HealthCheck healthCheck = new HealthCheck(this.vertx);
 
         List<Future> futures = new ArrayList<>();
         futures.add(startHttpServer());
@@ -138,20 +132,12 @@ public class HttpVerticle extends AbstractVerticle {
     }
 
     private Router configureRouter() {
-        HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);
-        HealthCheckHandler readinessHandler = HealthCheckHandler.create(vertx);
-
-        healthCheckHandler.register("healthz", this::healthz);
-        readinessHandler.register("readiness", this::readiness);
-
         Router router = Router.router(vertx);
 
         setCorsHandler(router);
         setAuthHandler(router);
 
         LOG.info("Adding route REST API");
-        router.get(REST_HEALTHZ).handler(healthCheckHandler);
-        router.get(REST_READINESS).handler(readinessHandler);
         router.route(API_PREFIX+"/*").handler(BodyHandler.create());
         router.mountSubRouter(API_PREFIX, new AccountMarginApi(vertx).getRoutes());
         router.mountSubRouter(API_PREFIX, new LiquiGroupMarginApi(vertx).getRoutes());
@@ -229,14 +215,6 @@ public class HttpVerticle extends AbstractVerticle {
 
             ctx.next();
         });
-    }
-
-    private void healthz(Future<Status> future) {
-        future.complete(Status.OK());
-    }
-
-    private void readiness(Future<Status> future) {
-        future.complete(healthCheck.ready() ? Status.OK() : Status.KO());
     }
 
     @Override
