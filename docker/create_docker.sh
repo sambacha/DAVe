@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 
-# Copy the DAVe binaries
-cp -r -v ./target/dave-1.0-SNAPSHOT/dave-1.0-SNAPSHOT ./docker/dave-1.0-SNAPSHOT
+DAVE_VERSION="1.0-SNAPSHOT"
+DAVE_APPLICATION_NAME="dave"
+DAVE_CONFIG_FILE="${DAVE_APPLICATION_NAME}-${DAVE_VERSION}/etc/dave.conf"
 
-sed -i 's/sslKey.*/sslKey\ =\ \"\"/' ./docker/dave-1.0-SNAPSHOT/etc/dave.conf
-sed -i 's/sslCert.*/sslKey\ =\ \"\"/' ./docker/dave-1.0-SNAPSHOT/etc/dave.conf
-sed -i 's/sslTrustCerts.*/sslTrustCerts\ =\ []/' ./docker/dave-1.0-SNAPSHOT/etc/dave.conf
-sed -i 's/jwtPublicKey.*/jwtPublicKey\ =\ \"\"/' ./docker/dave-1.0-SNAPSHOT/etc/dave.conf
+# Copy the DAVe binaries
+cp -r -v ./target/"${DAVE_APPLICATION_NAME}-${DAVE_VERSION}"/"${DAVE_APPLICATION_NAME}-${DAVE_VERSION}" ./docker/"${DAVE_APPLICATION_NAME}-${DAVE_VERSION}"
+
+sed -i 's/\(\s\+sslKey\s\+=\).*/\1\ \"\"/' ./docker/"${DAVE_CONFIG_FILE}"
+sed -i 's/\(\s\+sslCert\s\+=\).*/\1\ \"\"/' ./docker/"${DAVE_CONFIG_FILE}"
+sed -i 's/\(\s\+sslTrustCerts\s\+=\).*/\1\ \[\]/' ./docker/"${DAVE_CONFIG_FILE}"
+sed -i 's/\(\s\+jwtPublicKey\s\+=\).*/\1\ \[\]/' ./docker/"${DAVE_CONFIG_FILE}"
 
 docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
 docker build -t dbgdave/dave-api:${CIRCLE_SHA1} ./docker/
