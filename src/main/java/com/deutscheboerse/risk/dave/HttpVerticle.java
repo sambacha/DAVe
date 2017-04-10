@@ -14,7 +14,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.core.net.JksOptions;
 import io.vertx.core.net.PemKeyCertOptions;
 import io.vertx.core.net.PemTrustOptions;
 import io.vertx.ext.auth.jwt.JWTAuth;
@@ -39,7 +38,7 @@ public class HttpVerticle extends AbstractVerticle {
 
     private static final Integer MAX_BODY_SIZE = 1024 * 1024; // 1MB
 
-    private static final Integer DEFAULT_PORT = 8080;
+    private static final Integer DEFAULT_PORT = 8443;
 
     private static final Boolean DEFAULT_SSL = true;
     private static final Boolean DEFAULT_SSL_REQUIRE_CLIENT_AUTH = false;

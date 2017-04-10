@@ -8,9 +8,9 @@ import io.vertx.core.net.SelfSignedCertificate;
 
 public class TestConfig {
 
-    private static final int STORAGE_PORT = Integer.getInteger("storage.port", 8084);
-    public static final int API_PORT = Integer.getInteger("http.port", 8083);
-    private static final SelfSignedCertificate HTTP_STORAGE_CERTIFICATE = SelfSignedCertificate.create();
+    private static final int STORAGE_PORT = Integer.getInteger("storage.port", 8444);
+    public static final int API_PORT = Integer.getInteger("http.port", 8443);
+    public static final SelfSignedCertificate HTTP_STORAGE_CERTIFICATE = SelfSignedCertificate.create();
     public static final SelfSignedCertificate HTTP_API_CERTIFICATE = SelfSignedCertificate.create();
     public static final SelfSignedCertificate HTTP_CLIENT_CERTIFICATE = SelfSignedCertificate.create();
 
@@ -54,15 +54,20 @@ public class TestConfig {
     }
 
     public static JsonObject getStorageConfig() {
-        Buffer pemKeyBuffer = Vertx.vertx().fileSystem().readFileBlocking(HTTP_STORAGE_CERTIFICATE.keyCertOptions().getKeyPath());
-        Buffer pemCertBuffer = Vertx.vertx().fileSystem().readFileBlocking(HTTP_STORAGE_CERTIFICATE.keyCertOptions().getCertPath());
+        JsonArray sslTrustCerts = new JsonArray();
+        HTTP_STORAGE_CERTIFICATE.trustOptions().getCertPaths().forEach(certPath -> {
+            Buffer certBuffer = Vertx.vertx().fileSystem().readFileBlocking(certPath);
+            sslTrustCerts.add(certBuffer.toString());
+        });
+        Buffer pemKeyBuffer = Vertx.vertx().fileSystem().readFileBlocking(HTTP_API_CERTIFICATE.keyCertOptions().getKeyPath());
+        Buffer pemCertBuffer = Vertx.vertx().fileSystem().readFileBlocking(HTTP_API_CERTIFICATE.keyCertOptions().getCertPath());
         return new JsonObject()
                 .put("port", STORAGE_PORT)
-                .put("ssl", new JsonObject()
-                        .put("enable", true)
-                        .put("sslKey", pemKeyBuffer.toString())
-                        .put("sslCert", pemCertBuffer.toString())
-                        .put("verifyHost", false))
+                .put("sslKey", pemKeyBuffer.toString())
+                .put("sslCert", pemCertBuffer.toString())
+                .put("sslRequireClientAuth", true)
+                .put("sslTrustCerts", sslTrustCerts)
+                .put("verifyHost", false)
                 .put("restApi", new JsonObject()
                         .put("accountMargin", "/api/v1.0/query/am")
                         .put("liquiGroupMargin", "/api/v1.0/query/lgm")

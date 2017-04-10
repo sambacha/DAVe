@@ -1,5 +1,4 @@
-FROM		openjdk:8-jre
-MAINTAINER 	JAkub Scholz "www@scholzj.com"
+FROM openjdk:8-jre
 
 RUN addgroup --system dave && adduser --system --home /home/dave --group dave
 COPY ./dave-1.0-SNAPSHOT /home/dave
@@ -18,5 +17,6 @@ ENTRYPOINT ["/docker-entrypoint.sh"]
 USER dave
 
 # Expose port and run
+EXPOSE 8443
 EXPOSE 8080
-CMD ["./bin/start_dave.sh"]
+CMD ["./bin/start.sh"]

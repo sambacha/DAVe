@@ -1,10 +1,11 @@
 package com.deutscheboerse.risk.dave.persistence;
 
 import com.deutscheboerse.risk.dave.model.*;
+import com.deutscheboerse.risk.dave.utils.TestConfig;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.ClientAuth;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonArray;
@@ -22,7 +23,8 @@ import java.util.Map;
 public class StorageManagerMock {
     private static final Logger LOG = LoggerFactory.getLogger(StorageManagerMock.class);
 
-    private static final Integer DEFAULT_PORT = 8080;
+    private static final Integer DEFAULT_PORT = 8444;
+    private static final boolean DEFAULT_SSL_REQUIRE_CLIENT_AUTH = true;
 
     private static final AccountMarginModel ACCOUNT_MARGIN_MODEL = new AccountMarginModel();
     private static final LiquiGroupMarginModel LIQUI_GROUP_MARGIN_MODEL = new LiquiGroupMarginModel();
@@ -70,16 +72,12 @@ public class StorageManagerMock {
     private HttpServerOptions getHttpServerOptions() {
         HttpServerOptions options = new HttpServerOptions();
 
-        JsonObject sslConfig = this.config.getJsonObject("ssl", new JsonObject());
-        boolean sslEnable = sslConfig.getBoolean("enable");
+        options.setSsl(true);
+        options.setPemKeyCertOptions(TestConfig.HTTP_STORAGE_CERTIFICATE.keyCertOptions());
+        options.setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+        final boolean requireClientAuth = this.config.getBoolean("sslRequireClientAuth", DEFAULT_SSL_REQUIRE_CLIENT_AUTH);
+        options.setClientAuth(requireClientAuth ? ClientAuth.REQUIRED : ClientAuth.REQUEST);
 
-        if (sslEnable) {
-            options.setSsl(true);
-            PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions()
-                    .setKeyValue(Buffer.buffer(sslConfig.getString("sslKey")))
-                    .setCertValue(Buffer.buffer(sslConfig.getString("sslCert")));
-            options.setPemKeyCertOptions(pemKeyCertOptions);
-        }
         return options;
     }
 

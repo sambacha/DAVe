@@ -9,9 +9,11 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.net.PemKeyCertOptions;
 import io.vertx.core.net.PemTrustOptions;
 
 import javax.inject.Inject;
@@ -21,7 +23,7 @@ public class RestPersistenceService implements PersistenceService {
     private static final Logger LOG = LoggerFactory.getLogger(RestPersistenceService.class);
 
     private static final String DEFAULT_HOSTNAME = "localhost";
-    private static final int DEFAULT_PORT = 80;
+    private static final int DEFAULT_PORT = 8444;
 
     private static final int RECONNECT_DELAY = 2000;
 
@@ -33,9 +35,8 @@ public class RestPersistenceService implements PersistenceService {
     private static final String DEFAULT_RISK_LIMIT_UTILIZATION_URI = "/api/v1.0/query/rlu";
     private static final String DEFAULT_HEALTHZ_URI = "/healthz";
 
-    private static final boolean DEFAULT_SSL = true;
     private static final Boolean DEFAULT_VERIFY_HOST = true;
-    private static final String DEFAULT_SSL_CERT = "";
+    private static final Boolean DEFAULT_SSL_REQUIRE_CLIENT_AUTH = true;
 
     private final Vertx vertx;
     private final JsonObject config;
@@ -105,11 +106,22 @@ public class RestPersistenceService implements PersistenceService {
     }
 
     private HttpClientOptions getHttpClientOptions() {
-        JsonObject sslConfig = config.getJsonObject("ssl", new JsonObject());
-        return new HttpClientOptions().setSsl(sslConfig.getBoolean("enable", DEFAULT_SSL))
-                .setVerifyHost(sslConfig.getBoolean("verifyHost", DEFAULT_VERIFY_HOST))
-                .setPemTrustOptions(new PemTrustOptions()
-                        .addCertValue(Buffer.buffer(sslConfig.getString("sslCert", DEFAULT_SSL_CERT))));
+        HttpClientOptions httpClientOptions = new HttpClientOptions();
+        httpClientOptions.setSsl(true);
+        httpClientOptions.setVerifyHost(this.config.getBoolean("verifyHost", DEFAULT_VERIFY_HOST));
+        PemTrustOptions pemTrustOptions = new PemTrustOptions();
+        this.config.getJsonArray("sslTrustCerts", new JsonArray())
+                .stream()
+                .map(Object::toString)
+                .forEach(trustKey -> pemTrustOptions.addCertValue(Buffer.buffer(trustKey)));
+        httpClientOptions.setPemTrustOptions(pemTrustOptions);
+        if (this.config.getBoolean("sslRequireClientAuth", DEFAULT_SSL_REQUIRE_CLIENT_AUTH)) {
+            PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions()
+                    .setKeyValue(Buffer.buffer(this.config.getString("sslKey")))
+                    .setCertValue(Buffer.buffer(this.config.getString("sslCert")));
+            httpClientOptions.setPemKeyCertOptions(pemKeyCertOptions);
+        }
+        return httpClientOptions;
     }
 
     private void query(String basePath, RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
