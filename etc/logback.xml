@@ -4,33 +4,12 @@
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <layout class="ch.qos.logback.classic.PatternLayout">
       <Pattern>
-        %d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+        %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36}:%line - %msg%n
       </Pattern>
     </layout>
   </appender>
 
-  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${DAVE_LOG}/dave.log</file>
-    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-      <Pattern>
-        %d{yyyy-MM-dd HH:mm:ss} - %msg%n
-      </Pattern>
-    </encoder>
-
-    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <!-- rollover daily -->
-      <fileNamePattern>${DAVE_LOG}/archived/dave.%d{yyyy-MM-dd}.%i.log
-      </fileNamePattern>
-      <timeBasedFileNamingAndTriggeringPolicy
-        class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-        <maxFileSize>100MB</maxFileSize>
-      </timeBasedFileNamingAndTriggeringPolicy>
-    </rollingPolicy>
-
-  </appender>
-
-  <root level="info">
-    <appender-ref ref="FILE" />
+  <root level="${DAVE_LOG_LEVEL}">
     <appender-ref ref="STDOUT" />
   </root>
 

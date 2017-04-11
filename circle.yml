@@ -16,14 +16,14 @@ deployment:
   staging:
     branch: master
     commands:
-      - ./dockerfile/create_docker.sh
+      - ./docker/create_docker.sh
       - ./deployment/kube_deploy.sh
   demo:
     branch: demo
     commands:
-      - ./dockerfile/create_docker.sh
+      - ./docker/create_docker.sh
       - ./deployment/kube_deploy.sh demo:
   dave20:
     branch: dave2.0
     commands:
-      - ./dockerfile/create_docker.sh
+      - ./docker/create_docker.sh

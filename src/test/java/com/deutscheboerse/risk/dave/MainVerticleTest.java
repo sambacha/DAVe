@@ -3,7 +3,7 @@ package com.deutscheboerse.risk.dave;
 import com.deutscheboerse.risk.dave.model.PositionReportModel;
 import com.deutscheboerse.risk.dave.persistence.EchoPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
-import com.deutscheboerse.risk.dave.persistence.StorageManagerMock;
+import com.deutscheboerse.risk.dave.persistence.StoreManagerMock;
 import com.deutscheboerse.risk.dave.utils.DataHelper;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
 import com.deutscheboerse.risk.dave.util.URIBuilder;
@@ -11,6 +11,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
@@ -35,7 +36,7 @@ public class MainVerticleTest {
     @Test
     public void testFullChain(TestContext context) throws InterruptedException, UnsupportedEncodingException {
         // Start storage mock
-        StorageManagerMock storageMock = new StorageManagerMock(vertx, TestConfig.getStorageConfig());
+        StoreManagerMock storageMock = new StoreManagerMock(vertx, TestConfig.getStoreManagerConfig());
         final Async serverStarted = context.async();
         storageMock.listen(context.asyncAssertSuccess(ar -> serverStarted.complete()));
 
@@ -61,7 +62,9 @@ public class MainVerticleTest {
                 .mergeIn(queryParams);
 
         final Async asyncRest = context.async();
-        vertx.createHttpClient().getNow(TestConfig.HTTP_PORT, "localhost", uri, res -> {
+        HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
+                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+        vertx.createHttpClient(sslOpts).getNow(TestConfig.API_PORT, "localhost", uri, res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
                 try {
