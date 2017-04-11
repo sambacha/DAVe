@@ -35,7 +35,8 @@ Allows to configure logging parameters. Supported log levels are `off`, `error`,
 | Option | Explanation | Example |
 |--------|-------------|---------|
 | `DAVE_STOREMANAGER_HOSTNAME` | Hostname where DAVe-StoreManager is running | `localhost` |
-| `DAVE_STOREMANAGER_PORT` | Port of the DAVe-StoreManager server | 8081 |
+| `DAVE_STOREMANAGER_PORT` | Port of the DAVe-StoreManager server | 8443 |
+| `DAVE_STOREMANAGER_HEALTHCHECK_PORT` | DAVe-StoreManager's healthcheck port | 8080 |
 | `DAVE_STOREMANAGER_SSL_CLIENT_PRIVATE_KEY` | Private key of the StoreManager client in PEM format | |
 | `DAVE_STOREMANAGER_SSL_CLIENT_PUBLIC_KEY` | Public certificate of the StoreManager client | |
 | `DAVE_STOREMANAGER_SSL_CLIENT_AUTH` | Whether SSL client Authentication is required | `1` |

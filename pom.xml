@@ -124,6 +124,7 @@
               <http.port>${http.port}</http.port>
               <healthcheck.port>${healthcheck.port}</healthcheck.port>
               <storage.port>${storage.port}</storage.port>
+              <storageHealthCheck.port>${storageHealthCheck.port}</storageHealthCheck.port>
               <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
             </systemPropertyVariables>
           </configuration>
@@ -137,6 +138,7 @@
               <http.port>${http.port}</http.port>
               <healthcheck.port>${healthcheck.port}</healthcheck.port>
               <storage.port>${storage.port}</storage.port>
+              <storageHealthCheck.port>${storageHealthCheck.port}</storageHealthCheck.port>
               <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
               <logback.configurationFile>${project.basedir}/src/test/resources/logback.xml</logback.configurationFile>
             </systemPropertyVariables>
@@ -206,6 +208,7 @@
                 <portName>http.port</portName>
                 <portName>healthcheck.port</portName>
                 <portName>storage.port</portName>
+                <portName>storageHealthCheck.port</portName>
               </portNames>
             </configuration>
           </execution>

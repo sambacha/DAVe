@@ -25,15 +25,15 @@ public class RestPersistenceServiceTest {
     private static final TestAppender testAppender = TestAppender.getAppender(RestPersistenceService.class);
     private static final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
     private static Vertx vertx;
-    private static StorageManagerMock storageManager;
+    private static StoreManagerMock storageManager;
     private static PersistenceService persistenceProxy;
 
     @BeforeClass
     public static void setUp(TestContext context) {
         RestPersistenceServiceTest.vertx = Vertx.vertx();
 
-        JsonObject config = TestConfig.getStorageConfig();
-        storageManager = new StorageManagerMock(vertx, config);
+        JsonObject config = TestConfig.getStoreManagerConfig();
+        storageManager = new StoreManagerMock(vertx, config);
         storageManager.listen(context.asyncAssertSuccess());
 
         ProxyHelper.registerService(PersistenceService.class, vertx, new RestPersistenceService(vertx, config), PersistenceService.SERVICE_ADDRESS);

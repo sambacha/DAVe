@@ -4,7 +4,6 @@ import com.deutscheboerse.risk.dave.model.*;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.*;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.ClientAuth;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
@@ -12,7 +11,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.core.net.PemKeyCertOptions;
 import io.vertx.ext.healthchecks.HealthCheckHandler;
 import io.vertx.ext.healthchecks.Status;
 import io.vertx.ext.web.Router;
@@ -20,10 +18,9 @@ import io.vertx.ext.web.RoutingContext;
 
 import java.util.Map;
 
-public class StorageManagerMock {
-    private static final Logger LOG = LoggerFactory.getLogger(StorageManagerMock.class);
+public class StoreManagerMock {
+    private static final Logger LOG = LoggerFactory.getLogger(StoreManagerMock.class);
 
-    private static final Integer DEFAULT_PORT = 8444;
     private static final boolean DEFAULT_SSL_REQUIRE_CLIENT_AUTH = true;
 
     private static final AccountMarginModel ACCOUNT_MARGIN_MODEL = new AccountMarginModel();
@@ -36,27 +33,31 @@ public class StorageManagerMock {
     private final Vertx vertx;
     private final JsonObject config;
     private final HttpServer server;
+    private final HttpServer healthCheckServer;
     private boolean health = true;
 
-    public StorageManagerMock(Vertx vertx, JsonObject config) {
+    public StoreManagerMock(Vertx vertx, JsonObject config) {
         this.vertx = vertx;
         this.config = config;
         this.server = this.createHttpServer();
+        this.healthCheckServer = this.createHealthCheckServer();
     }
 
-    public StorageManagerMock listen(Handler<AsyncResult<Void>> resultHandler) {
-        LOG.info("Starting web mock server with configuration {}", config.encodePrettily());
-
-        int port = config.getInteger("port", DEFAULT_PORT);
+    public StoreManagerMock listen(Handler<AsyncResult<Void>> resultHandler) {
+        int storeManagerPort = TestConfig.STORE_MANAGER_PORT;
+        int healthCheckPort = TestConfig.STORE_MANAGER_HEALTHCHECK_PORT;
+        LOG.info("Starting web server on port {} with health check port {}", storeManagerPort, healthCheckPort);
 
         Future<HttpServer> listenFuture = Future.future();
-        server.listen(port, listenFuture);
+        Future<HttpServer> healthCheckListenFuture = Future.future();
+        server.listen(storeManagerPort, listenFuture);
+        healthCheckServer.listen(healthCheckPort, healthCheckListenFuture);
 
-        listenFuture.map((Void)null).setHandler(resultHandler);
+        CompositeFuture.all(listenFuture, healthCheckListenFuture).map((Void) null).setHandler(resultHandler);
         return this;
     }
 
-    StorageManagerMock setHealth(boolean health) {
+    StoreManagerMock setHealth(boolean health) {
         this.health = health;
         return this;
     }
@@ -64,12 +65,24 @@ public class StorageManagerMock {
     private HttpServer createHttpServer() {
         Router router = configureRouter();
 
-        HttpServerOptions options = getHttpServerOptions();
+        HttpServerOptions options = createHttpServerOptions();
 
         return vertx.createHttpServer(options).requestHandler(router::accept);
     }
 
-    private HttpServerOptions getHttpServerOptions() {
+    private HttpServer createHealthCheckServer() {
+        HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);
+
+        healthCheckHandler.register("healthz", this::healthz);
+        healthCheckHandler.register("healthz", this::healthz);
+        Router router = Router.router(vertx);
+        router.get("/healthz").handler(healthCheckHandler);
+
+
+        return vertx.createHttpServer().requestHandler(router::accept);
+    }
+
+    private HttpServerOptions createHttpServerOptions() {
         HttpServerOptions options = new HttpServerOptions();
 
         options.setSsl(true);
@@ -89,7 +102,6 @@ public class StorageManagerMock {
         Router router = Router.router(vertx);
 
         LOG.info("Adding route REST API");
-        router.get("/healthz").handler(healthCheckHandler);
         registerRestPoint(router, "accountMargin", this::queryAccountMargin);
         registerRestPoint(router, "liquiGroupMargin", this::queryLiquiGroupMargin);
         registerRestPoint(router, "liquiGroupSplitMargin", this::queryLiquiGroupSplitMargin);
@@ -143,7 +155,11 @@ public class StorageManagerMock {
 
     public void close(Handler<AsyncResult<Void>> completionHandler) {
         LOG.info("Shutting down webserver");
-        server.close(completionHandler);
+        Future<Void> serverClose = Future.future();
+        Future<Void> healthCheckClose = Future.future();
+        server.close(serverClose);
+        healthCheckServer.close(healthCheckClose);
+        CompositeFuture.all(serverClose, healthCheckClose).map((Void)null).setHandler(completionHandler);
     }
 
     private void createResponse(RoutingContext context, AbstractModel model) {

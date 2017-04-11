@@ -2,6 +2,7 @@ package com.deutscheboerse.risk.dave.persistence;
 
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import com.deutscheboerse.risk.dave.util.URIBuilder;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -23,7 +24,8 @@ public class RestPersistenceService implements PersistenceService {
     private static final Logger LOG = LoggerFactory.getLogger(RestPersistenceService.class);
 
     private static final String DEFAULT_HOSTNAME = "localhost";
-    private static final int DEFAULT_PORT = 8444;
+    private static final int DEFAULT_PORT = 8443;
+    private static final int DEFAULT_HEALTHCHECK_PORT = 8080;
 
     private static final int RECONNECT_DELAY = 2000;
 
@@ -43,15 +45,16 @@ public class RestPersistenceService implements PersistenceService {
     private final JsonObject restApi;
     private final HttpClient httpClient;
     private final HealthCheck healthCheck;
-    private final ConnectionManager connectionManager = new ConnectionManager();
+    private final ConnectionManager connectionManager;
 
     @Inject
     public RestPersistenceService(Vertx vertx, @Named("storeManager.conf") JsonObject config) {
         this.vertx = vertx;
         this.config = config;
         this.restApi = this.config.getJsonObject("restApi", new JsonObject());
-        this.httpClient = this.vertx.createHttpClient(getHttpClientOptions());
+        this.httpClient = this.createHttpClient();
         this.healthCheck = new HealthCheck(vertx);
+        this.connectionManager = new ConnectionManager();
     }
 
     @Override
@@ -103,9 +106,15 @@ public class RestPersistenceService implements PersistenceService {
     @Override
     public void close() {
         this.httpClient.close();
+        this.connectionManager.httpClient.close();
     }
 
-    private HttpClientOptions getHttpClientOptions() {
+    private HttpClient createHttpClient() {
+        HttpClientOptions httpClientOptions = this.createHttpClientOptions();
+        return this.vertx.createHttpClient(httpClientOptions);
+    }
+
+    private HttpClientOptions createHttpClientOptions() {
         HttpClientOptions httpClientOptions = new HttpClientOptions();
         httpClientOptions.setSsl(true);
         httpClientOptions.setVerifyHost(this.config.getBoolean("verifyHost", DEFAULT_VERIFY_HOST));
@@ -133,7 +142,7 @@ public class RestPersistenceService implements PersistenceService {
                 config.getString("hostname", DEFAULT_HOSTNAME),
                 requestURI,
                 response -> {
-                    if (response.statusCode() == 200) {
+                    if (response.statusCode() == HttpResponseStatus.OK.code()) {
                         response.bodyHandler(body -> resultHandler.handle(Future.succeededFuture(body.toString())));
                     } else {
                         LOG.error("{} failed: {}", requestURI, response.statusMessage());
@@ -149,6 +158,8 @@ public class RestPersistenceService implements PersistenceService {
 
     private class ConnectionManager {
 
+        private HttpClient httpClient = vertx.createHttpClient();
+
         void startReconnection() {
             if (healthCheck.isComponentReady(HealthCheck.Component.PERSISTENCE_SERVICE)) {
                 // Inform other components that we have failed
@@ -160,11 +171,11 @@ public class RestPersistenceService implements PersistenceService {
 
         void ping(Handler<AsyncResult<Void>> resultHandler) {
             httpClient.get(
-                    config.getInteger("port", DEFAULT_PORT),
+                    config.getInteger("healthCheckPort", DEFAULT_HEALTHCHECK_PORT),
                     config.getString("hostname", DEFAULT_HOSTNAME),
                     restApi.getString("healthz", DEFAULT_HEALTHZ_URI),
                     response -> {
-                        if (response.statusCode() == 200) {
+                        if (response.statusCode() == HttpResponseStatus.OK.code()) {
                             resultHandler.handle(Future.succeededFuture());
                         } else {
                             resultHandler.handle(Future.failedFuture(response.statusMessage()));
