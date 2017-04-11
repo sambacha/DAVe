@@ -2,7 +2,9 @@ package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.persistence.InitPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import com.deutscheboerse.risk.dave.utils.TestConfig;
 import com.google.inject.AbstractModule;
+import com.google.inject.name.Names;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -22,7 +24,7 @@ public class PersistenceVerticleTest {
     public void checkPersistenceServiceInitialized(TestContext context) {
         this.vertx = Vertx.vertx();
         PersistenceVerticleTest.persistenceService = new InitPersistenceService(true);
-        JsonObject config = new JsonObject().put("guice_binder", TestBinder.class.getName());
+        JsonObject config = TestConfig.getStoreManagerConfig().put("guice_binder", TestBinder.class.getName());
         DeploymentOptions options = new DeploymentOptions().setConfig(config);
         Async async = context.async();
         this.vertx.deployVerticle("java-guice:" + PersistenceVerticle.class.getName(), options, ar -> {
@@ -40,7 +42,7 @@ public class PersistenceVerticleTest {
     public void checkPersistenceServiceNotInitialized(TestContext context) {
         this.vertx = Vertx.vertx();
         PersistenceVerticleTest.persistenceService = new InitPersistenceService(false);
-        JsonObject config = new JsonObject().put("guice_binder", TestBinder.class.getName());
+        JsonObject config = TestConfig.getStoreManagerConfig().put("guice_binder", TestBinder.class.getName());
         DeploymentOptions options = new DeploymentOptions().setConfig(config);
         Async async = context.async();
         this.vertx.deployVerticle("java-guice:" + PersistenceVerticle.class.getName(), options, ar -> {
@@ -63,6 +65,9 @@ public class PersistenceVerticleTest {
 
         @Override
         protected void configure() {
+            JsonObject config = Vertx.currentContext().config();
+
+            bind(JsonObject.class).annotatedWith(Names.named("storeManager.conf")).toInstance(config);
             bind(PersistenceService.class).toInstance(persistenceService);
         }
     }

@@ -6,7 +6,7 @@
 
 To run DAVe in Docker, you have to pass the environment variables to the `docker run` command.
 
-`docker run -ti -P -e DAVE_HTTP_PORT=8443 -e DAVE_HTTP_COMPRESSION=1 -e DAVE_HTTP_AUTH=1 -e DAVE_HTTP_SSL_SERVER_PUBLIC_KEY="$serverCrt" -e DAVE_HTTP_
+`docker run -ti -P -e DAVE_HTTP_COMPRESSION=1 -e DAVE_HTTP_AUTH=1 -e DAVE_HTTP_SSL_SERVER_PUBLIC_KEY="$serverCrt" -e DAVE_HTTP_
 SSL_SERVER_PRIVATE_KEY="$serverKey" -e DAVE_STOREMANAGER_HOSTNAME=172.17.0.1 -e DAVE_STOREMANAGER_PORT=27017 
 -e DAVE_STOREMANAGER_SSL_CLIENT_PUBLIC_KEY="$clientCrt" -e DAVE_STOREMANAGER_SSL_CLIENT_PRIVATE_KEY="$clientKey" dbgdave/dave-api:latest`
 
@@ -47,7 +47,6 @@ Allows to configure logging parameters. Supported log levels are `off`, `error`,
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `DAVE_HTTP_PORT` | Port where DAVe-Api is listening to SSL connections | 8443 |
 | `DAVE_HTTP_COMPRESSION` | Enable compression of HTTP responses | `1` |
 | `DAVE_HTTP_CORS` | Enable Cross-origin resource sharing | `1` |
 | `DAVE_HTTP_CORS_ORIGIN` | Set the Cross-origin resource sharing origin host | `myhost.mydomain.tld` |
