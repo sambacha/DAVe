@@ -4,8 +4,6 @@
 
 **DAVe** is **D**ata **A**nalytics and **V**isualisation S**e**rvice. It provides REST interface to access latest risk and margining data from Eurex Clearing Prisma.
 
-![DAVe - Dashboard](https://github.com/Deutsche-Boerse-Risk/DAVe/blob/master/doc/screenshots/dave-screenshots.gif "DAVe - Dashboard")
-
 ## Build
 
 ```
@@ -102,5 +100,8 @@ The `CSRF` subsection configures Cross-site request forgery (CSRF) protection. W
 
 ## Run
 
-Use script `start.sh|bat` to start the application depending on your operating system (Linux,MacOS | Windows).
+Use script `start.sh` to start the application.
+
+### Docker image to run standalone API
+[DAVe-API Docker image](docker)
 
