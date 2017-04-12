@@ -26,8 +26,8 @@ import java.util.stream.Collectors;
 
 import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.API;
 
-public class HttpVerticle extends AbstractVerticle {
-    private static final Logger LOG = LoggerFactory.getLogger(HttpVerticle.class);
+public class ApiVerticle extends AbstractVerticle {
+    private static final Logger LOG = LoggerFactory.getLogger(ApiVerticle.class);
 
     private static final String API_VERSION = "v1.0";
     private static final String API_PREFIX = String.format("/api/%s", API_VERSION);
@@ -62,7 +62,7 @@ public class HttpVerticle extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> startFuture) throws Exception {
-        LOG.info("Starting {} with configuration: {}", HttpVerticle.class.getSimpleName(), hideCertificates(config()).encodePrettily());
+        LOG.info("Starting {} with configuration: {}", ApiVerticle.class.getSimpleName(), hideCertificates(config()).encodePrettily());
 
         HealthCheck healthCheck = new HealthCheck(this.vertx);
 
@@ -97,7 +97,7 @@ public class HttpVerticle extends AbstractVerticle {
         Router router = configureRouter();
         HttpServerOptions httpOptions = configureWebServer();
 
-        int port = config().getInteger("port", HttpVerticle.DEFAULT_PORT);
+        int port = config().getInteger("port", ApiVerticle.DEFAULT_PORT);
         LOG.info("Starting web server on port {}", port);
         server = vertx.createHttpServer(httpOptions)
                 .requestHandler(router::accept)
@@ -164,11 +164,11 @@ public class HttpVerticle extends AbstractVerticle {
     }
 
     private void setCorsHandler(Router router) {
-        if (config().getJsonObject("CORS", new JsonObject()).getBoolean(AUTH_ENABLE_KEY, HttpVerticle.DEFAULT_CORS)) {
+        if (config().getJsonObject("CORS", new JsonObject()).getBoolean(AUTH_ENABLE_KEY, ApiVerticle.DEFAULT_CORS)) {
             LOG.info("Enabling CORS handler");
 
             //Wildcard(*) not allowed if allowCredentials is true
-            CorsHandler corsHandler = CorsHandler.create(config().getJsonObject("CORS", new JsonObject()).getString("origin", HttpVerticle.DEFAULT_CORS_ORIGIN));
+            CorsHandler corsHandler = CorsHandler.create(config().getJsonObject("CORS", new JsonObject()).getString("origin", ApiVerticle.DEFAULT_CORS_ORIGIN));
             corsHandler.allowCredentials(true);
             corsHandler.allowedMethod(HttpMethod.OPTIONS);
             corsHandler.allowedMethod(HttpMethod.GET);
@@ -183,21 +183,21 @@ public class HttpVerticle extends AbstractVerticle {
     }
 
     private void setCsrfHandler(Router router) {
-        if (config().getJsonObject("CSRF", new JsonObject()).getBoolean(AUTH_ENABLE_KEY, HttpVerticle.DEFAULT_CSRF)) {
+        if (config().getJsonObject("CSRF", new JsonObject()).getBoolean(AUTH_ENABLE_KEY, ApiVerticle.DEFAULT_CSRF)) {
             LOG.info("Enabling CSRF handler");
             router.route().handler(CookieHandler.create());
-            router.route().handler(CSRFHandler.create(config().getJsonObject("CSRF", new JsonObject()).getString("secret", HttpVerticle.DEFAULT_CSRF_SECRET)));
+            router.route().handler(CSRFHandler.create(config().getJsonObject("CSRF", new JsonObject()).getString("secret", ApiVerticle.DEFAULT_CSRF_SECRET)));
         }
     }
 
     private void setAuthHandler(Router router) {
-        if (config().getJsonObject("auth", new JsonObject()).getBoolean(AUTH_ENABLE_KEY, HttpVerticle.DEFAULT_AUTH_ENABLED)) {
+        if (config().getJsonObject("auth", new JsonObject()).getBoolean(AUTH_ENABLE_KEY, ApiVerticle.DEFAULT_AUTH_ENABLED)) {
             LOG.info("Enabling authentication");
 
             // Create a JWT Auth Provider
             JsonObject jwtConfig = new JsonObject()
                     .put("public-key", config().getJsonObject("auth", new JsonObject()).getString(AUTH_PUBLIC_KEY, null))
-                    .put("permissionsClaimKey", config().getJsonObject("auth", new JsonObject()).getString(AUTH_PERMISSIONS_CLAIM_KEY, HttpVerticle.DEFAULT_AUTH_PERMISSIONS_CLAIM_KEY));
+                    .put("permissionsClaimKey", config().getJsonObject("auth", new JsonObject()).getString(AUTH_PERMISSIONS_CLAIM_KEY, ApiVerticle.DEFAULT_AUTH_PERMISSIONS_CLAIM_KEY));
             JWTAuth jwtAuthenticationProvider = JWTAuth.create(vertx, jwtConfig);
             router.route(API_PREFIX+"/*").handler(JWTAuthHandler.create(jwtAuthenticationProvider));
 

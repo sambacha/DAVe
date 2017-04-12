@@ -84,7 +84,7 @@ public class MainVerticle extends AbstractVerticle {
     }
 
     private Future<Void> deployApiVerticle() {
-        return this.deployVerticle(HttpVerticle.class, this.configuration.getJsonObject("api", new JsonObject()));
+        return this.deployVerticle(ApiVerticle.class, this.configuration.getJsonObject("api", new JsonObject()));
     }
 
     private Future<Void> deployHealthCheckVerticle() {

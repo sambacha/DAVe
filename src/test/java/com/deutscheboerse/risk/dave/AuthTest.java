@@ -35,10 +35,10 @@ public class AuthTest {
         AuthTest.vertx = Vertx.vertx();
     }
 
-    private void deployHttpVerticle(TestContext context, JsonObject config) {
+    private void deployApiVerticle(TestContext context, JsonObject config) {
         final Async asyncStart = context.async();
 
-        vertx.deployVerticle(HttpVerticle.class.getName(), new DeploymentOptions().setConfig(config), res -> {
+        vertx.deployVerticle(ApiVerticle.class.getName(), new DeploymentOptions().setConfig(config), res -> {
             if (res.succeeded()) {
                 ProxyHelper.registerService(PersistenceService.class, vertx, new EchoPersistenceService(vertx), PersistenceService.SERVICE_ADDRESS);
                 persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
@@ -57,7 +57,7 @@ public class AuthTest {
     public void testValidJWT(TestContext context) {
         JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("auth").put("enable", true);
-        deployHttpVerticle(context, config);
+        deployApiVerticle(context, config);
 
         final Async asyncClient = context.async();
         WebClientOptions sslOpts = new WebClientOptions()
@@ -84,7 +84,7 @@ public class AuthTest {
     public void testInvalidPublicKey(TestContext context) {
         JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("auth").put("enable", true).put("jwtPublicKey", INVALID_PUBLIC_KEY);
-        deployHttpVerticle(context, config);
+        deployApiVerticle(context, config);
 
         final Async asyncClient = context.async();
         WebClientOptions sslOpts = new WebClientOptions()
@@ -111,7 +111,7 @@ public class AuthTest {
     public void testExpiredJWT(TestContext context) {
         JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("auth").put("enable", true);
-        deployHttpVerticle(context, config);
+        deployApiVerticle(context, config);
 
         final Async asyncClient = context.async();
         WebClientOptions sslOpts = new WebClientOptions()
@@ -138,7 +138,7 @@ public class AuthTest {
     public void testNoJWT(TestContext context) {
         JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("auth").put("enable", true);
-        deployHttpVerticle(context, config);
+        deployApiVerticle(context, config);
 
         final Async asyncClient = context.async();
         WebClientOptions sslOpts = new WebClientOptions()

@@ -22,21 +22,21 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 
 @RunWith(VertxUnitRunner.class)
-public class HttpVerticleTest {
+public class ApiVerticleTest {
     private static Vertx vertx;
     private static int port;
     private static PersistenceService persistenceProxy;
 
     @BeforeClass
     public static void setUp() throws IOException {
-        HttpVerticleTest.vertx = Vertx.vertx();
-        HttpVerticleTest.port = TestConfig.API_PORT;
+        ApiVerticleTest.vertx = Vertx.vertx();
+        ApiVerticleTest.port = TestConfig.API_PORT;
     }
 
-    private void deployHttpVerticle(TestContext context, JsonObject config) {
+    private void deployApiVerticle(TestContext context, JsonObject config) {
         final Async asyncStart = context.async();
 
-        vertx.deployVerticle(HttpVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess(res -> {
+        vertx.deployVerticle(ApiVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess(res -> {
             ProxyHelper.registerService(PersistenceService.class, vertx, new EchoPersistenceService(vertx), PersistenceService.SERVICE_ADDRESS);
             persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
             persistenceProxy.initialize(context.asyncAssertSuccess());
@@ -51,7 +51,7 @@ public class HttpVerticleTest {
     public void testPlainHttp(TestContext context) {
         JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("ssl").put("enable", false);
-        deployHttpVerticle(context, config);
+        deployApiVerticle(context, config);
 
         final Async asyncClient = context.async();
 
@@ -65,7 +65,7 @@ public class HttpVerticleTest {
     public void testCORS(TestContext context) {
         JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("CORS").put("enable", true).put("origin", "https://localhost:8888");
-        deployHttpVerticle(context, config);
+        deployApiVerticle(context, config);
 
         final Async asyncClient = context.async();
 
@@ -84,7 +84,7 @@ public class HttpVerticleTest {
     @Test
     public void testSslServerAuthentication(TestContext context) {
         JsonObject config = TestConfig.getApiConfig();
-        deployHttpVerticle(context, config);
+        deployApiVerticle(context, config);
 
         final Async asyncSslClient = context.async();
 
@@ -108,7 +108,7 @@ public class HttpVerticleTest {
     @Test
     public void testSslClientAuthentication(TestContext context) {
         JsonObject config = TestConfig.getApiConfig();
-        deployHttpVerticle(context, config);
+        deployApiVerticle(context, config);
 
         final Async asyncSslClient = context.async();
 
@@ -145,7 +145,7 @@ public class HttpVerticleTest {
     public void testSslRequiredClientAuthentication(TestContext context) {
         JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("ssl").put("sslRequireClientAuth", true);
-        deployHttpVerticle(context, config);
+        deployApiVerticle(context, config);
 
         final Async asyncSslClient = context.async();
 
