@@ -19,13 +19,13 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.HTTP;
+import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.API;
 import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.PERSISTENCE_SERVICE;
 
 @RunWith(VertxUnitRunner.class)
 public class HealthCheckTest {
     private final static String MAP_NAME = "healthCheck";
-    private final static String HTTP_KEY = "HTTP";
+    private final static String API_KEY = "API";
     private final static String PERSISTENCE_KEY = "PERSISTENCE_SERVICE";
 
     private static Vertx vertx;
@@ -84,13 +84,13 @@ public class HealthCheckTest {
     }
 
     @Test
-    public void testUnitHttpReadiness(TestContext context) {
+    public void testUnitApiReadiness(TestContext context) {
         Vertx vertx = Vertx.vertx();
 
-        HealthCheck healthCheck = new HealthCheck(vertx).setComponentReady(HTTP);
+        HealthCheck healthCheck = new HealthCheck(vertx).setComponentReady(API);
 
-        context.assertTrue(healthCheck.isComponentReady(HTTP), "Http readiness should return true");
-        context.assertTrue((Boolean) vertx.sharedData().getLocalMap(MAP_NAME).get(HTTP_KEY), "Http readiness should equal true in shared data");
+        context.assertTrue(healthCheck.isComponentReady(API), "Api readiness should return true");
+        context.assertTrue((Boolean) vertx.sharedData().getLocalMap(MAP_NAME).get(API_KEY), "Api readiness should equal true in shared data");
 
         vertx.close();
     }
@@ -104,7 +104,7 @@ public class HealthCheckTest {
         vertx.close();
 
         vertx = Vertx.vertx();
-        context.assertFalse(new HealthCheck(vertx).setComponentReady(HTTP).ready(), "Only HTTP is ready, not the whole application");
+        context.assertFalse(new HealthCheck(vertx).setComponentReady(API).ready(), "Only API is ready, not the whole application");
         vertx.close();
 
         vertx = Vertx.vertx();
@@ -112,7 +112,7 @@ public class HealthCheckTest {
         vertx.close();
 
         vertx = Vertx.vertx();
-        context.assertTrue(new HealthCheck(vertx).setComponentReady(PERSISTENCE_SERVICE).setComponentReady(HTTP).ready(), "Everything is ready, the whole app should ne ready");
+        context.assertTrue(new HealthCheck(vertx).setComponentReady(PERSISTENCE_SERVICE).setComponentReady(API).ready(), "Everything is ready, the whole app should ne ready");
         vertx.close();
     }
 
@@ -143,7 +143,7 @@ public class HealthCheckTest {
     @Test
     public void testApplicationReadinessNok(TestContext context) throws InterruptedException {
         HealthCheck healthCheck = new HealthCheck(vertx);
-        healthCheck.setComponentFailed(HTTP);
+        healthCheck.setComponentFailed(API);
 
         JsonObject expected = new JsonObject()
                 .put("checks", new JsonArray().add(new JsonObject()

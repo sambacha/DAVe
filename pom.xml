@@ -121,10 +121,9 @@
           <version>2.19</version>
           <configuration>
             <systemPropertyVariables>
-              <http.port>${http.port}</http.port>
+              <api.port>${api.port}</api.port>
               <healthcheck.port>${healthcheck.port}</healthcheck.port>
               <storage.port>${storage.port}</storage.port>
-              <storageHealthCheck.port>${storageHealthCheck.port}</storageHealthCheck.port>
               <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
             </systemPropertyVariables>
           </configuration>
@@ -135,10 +134,9 @@
           <version>2.19</version>
           <configuration>
             <systemPropertyVariables>
-              <http.port>${http.port}</http.port>
+              <api.port>${api.port}</api.port>
               <healthcheck.port>${healthcheck.port}</healthcheck.port>
               <storage.port>${storage.port}</storage.port>
-              <storageHealthCheck.port>${storageHealthCheck.port}</storageHealthCheck.port>
               <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
               <logback.configurationFile>${project.basedir}/src/test/resources/logback.xml</logback.configurationFile>
             </systemPropertyVariables>
@@ -205,10 +203,9 @@
             <phase>process-sources</phase>
             <configuration>
               <portNames>
-                <portName>http.port</portName>
+                <portName>api.port</portName>
                 <portName>healthcheck.port</portName>
                 <portName>storage.port</portName>
-                <portName>storageHealthCheck.port</portName>
               </portNames>
             </configuration>
           </execution>

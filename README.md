@@ -24,16 +24,13 @@ The `storeManager` section contains the configuration of the Store Manager servi
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `hostname` | Hostname where DAVe-StoreManger is running | `localhost` |
-| `port` | Port of the DAVe-StoreManager server | `8081` |
-
-#### ssl
-The `ssl` section configures the SSL/TLS support between DAVe-Api and DAVe-StoreManager
-
-| Option | Explanation | Example |
-|--------|-------------|---------|
-| `enable` | Enable HTTPS protocol | `true` |
-| `sslCert` | Public SSL Certificate of DAVe-StorageManager which DAVe-Api trusts | `-----BEGIN CERTIFICATE-----\nMIIBqARKgAwIBAgI1` |
+| `hostname` | Hostname of the DAVe-StoreManager | `localhost` |
+| `port` | Port where the DAVe-StoreManager is listening to HTTPS connections | `8443` |
+| `verifyHost` | Flag for verification of the DAVe-StoreManager hostname | false |
+| `sslKey` | Private key of the DAVe-API | |
+| `sslCert` | Public key of the DAVe-API | |
+| `sslTrustCerts` | List of trusted certification authorities | |
+| `restApi` | Subsection defining REST API for storing every model (see next table) |  |
 
 #### RestApi
 
@@ -49,9 +46,9 @@ The `restApi` section contains the configuration of DAVe-StoreManager REST API p
 | `riskLimitUtilization` | REST API address for querying risk limit utilization data | `/api/v1.0/query/rlu` |
 | `healthz` | REST API address for find out whether the Store Manager is running | `/healthz` |
 
-### HTTP
+### API
 
-The `http` section configures the web based UI and the REST API.
+The `api` section configures the web based UI and the REST API.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
@@ -70,10 +67,10 @@ The `ssl` section configures the SSL/TLS support in the webserver.
 | Option | Explanation | Example |
 |--------|-------------|---------|
 | `enable` | Enable HTTPS protocol | `true` |
-| `sslKey` | Private key of DAVe-Api | `-----BEGIN PRIVATE KEY-----\nMIICeAIBADANB` |
-| `sslCert` | Public certificate of DAVe-Api server which clients trust | `-----BEGIN CERTIFICATE-----\nMIIBqTCC` |
+| `sslKey` | Private key of DAVe-API | |
+| `sslCert` | Public certificate of DAVe-API server which clients trust | |
 | `sslRequireClientAuth` | Sets TLS client authentication as required | `false` |
-| `sslTrustCerts` | If TLS client authentication is required then this field contains list of trusted client certificates | `[ "-----BEGIN CERTIFICATE-----\nMIIBqTCCARKgAwIBAgIIT7GLwd" ]` |
+| `sslTrustCerts` | If TLS client authentication is required then this field contains list of trusted client certificates | `[]` |
 
 #### Auth
 
@@ -82,7 +79,7 @@ The `auth` subsection configures authentication to the UI and REST interface.
 | Option | Explanation | Example |
 |--------|-------------|---------|
 | `enable` | Disables or enables authentication | `true` |
-| `jwtPublicKey` | Public key for verification of received JWT tokens | `MIIBIjANBgkqhkiG9w0BAQE` |
+| `jwtPublicKey` | Public key for verification of received JWT tokens | |
 | `permissionsClaimKey` | Path to roles inside JWT token | `realm_access/roles` |
 
 #### CORS
@@ -105,20 +102,5 @@ The `CSRF` subsection configures Cross-site request forgery (CSRF) protection. W
 
 ## Run
 
-Use script `start_dave.sh|bat` to start the application depending on your operating system (Linux,MacOS | Windows).
+Use script `start.sh|bat` to start the application depending on your operating system (Linux,MacOS | Windows).
 
-## Managing user database
-
-Use script `user_manager.sh`. Script accepts one of the following commands:
-  - `insert`
-  - `delete`
-  - `list`
-
-### Insert new user record
-      user_manager.sh insert USER PASSWORD
-
-### Delete existing user record
-      user_manager.sh delete USER
-
-### List all user records
-      user_manager.sh list

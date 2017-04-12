@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.HTTP;
+import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.API;
 
 public class HttpVerticle extends AbstractVerticle {
     private static final Logger LOG = LoggerFactory.getLogger(HttpVerticle.class);
@@ -72,10 +72,10 @@ public class HttpVerticle extends AbstractVerticle {
         CompositeFuture.all(futures).setHandler(ar ->
         {
             if (ar.succeeded()) {
-                healthCheck.setComponentReady(HTTP);
+                healthCheck.setComponentReady(API);
                 startFuture.complete();
             } else {
-                healthCheck.setComponentFailed(HTTP);
+                healthCheck.setComponentFailed(API);
                 startFuture.fail(ar.cause());
             }
         });

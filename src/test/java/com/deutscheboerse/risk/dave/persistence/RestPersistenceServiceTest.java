@@ -228,16 +228,6 @@ public class RestPersistenceServiceTest {
     }
 
     @Test
-    public void testInitialConnectionFailed(TestContext context) throws InterruptedException {
-        storageManager.setHealth(false);
-        testAppender.start();
-        persistenceProxy.initialize(context.asyncAssertSuccess());
-        testAppender.waitForMessageContains(Level.ERROR, "Cannot connect to StoreManager, trying again...");
-        testAppender.stop();
-        storageManager.setHealth(true);
-    }
-
-    @Test
     public void testQueryFailure(TestContext context) throws InterruptedException {
         storageManager.setHealth(false);
         testAppender.start();
@@ -251,21 +241,6 @@ public class RestPersistenceServiceTest {
     }
 
     @Test
-    public void testBackOnline(TestContext context) throws InterruptedException {
-        storageManager.setHealth(false);
-        testAppender.start();
-        Async queryAsync = context.async();
-        persistenceProxy.queryAccountMargin(RequestType.HISTORY, new AccountMarginModel(new JsonObject()),
-                context.asyncAssertFailure(ar -> queryAsync.complete()));
-        queryAsync.awaitSuccess();
-        testAppender.waitForMessageContains(Level.ERROR, "/api/v1.0/query/am/history failed:");
-        testAppender.waitForMessageContains(Level.ERROR, "Still disconnected");
-        storageManager.setHealth(true);
-        testAppender.waitForMessageContains(Level.INFO, "Back online");
-        testAppender.stop();
-    }
-
-    @Test
     public void testExceptionHandler(TestContext context) throws InterruptedException {
         Async closeAsync = context.async();
         storageManager.close(context.asyncAssertSuccess(i -> closeAsync.complete()));
@@ -276,9 +251,7 @@ public class RestPersistenceServiceTest {
                 context.asyncAssertFailure(ar -> queryAsync.complete()));
         queryAsync.awaitSuccess();
         testAppender.waitForMessageContains(Level.ERROR, "/api/v1.0/query/am/history failed:");
-        testAppender.waitForMessageContains(Level.ERROR, "Still disconnected");
         storageManager.listen(context.asyncAssertSuccess());
-        testAppender.waitForMessageContains(Level.INFO, "Back online");
         testAppender.stop();
     }
 

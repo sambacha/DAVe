@@ -28,7 +28,7 @@ public class MainVerticle extends AbstractVerticle {
         Future<Void> chainFuture = Future.future();
         this.retrieveConfig()
                 .compose(i -> deployPersistenceVerticle())
-                .compose(i -> deployHttpVerticle())
+                .compose(i -> deployApiVerticle())
                 .compose(i -> deployHealthCheckVerticle())
                 .compose(chainFuture::complete, chainFuture);
 
@@ -83,8 +83,8 @@ public class MainVerticle extends AbstractVerticle {
                 .put(GUICE_BINDER_KEY, this.configuration.getString(GUICE_BINDER_KEY, PersistenceBinder.class.getName())));
     }
 
-    private Future<Void> deployHttpVerticle() {
-        return this.deployVerticle(HttpVerticle.class, this.configuration.getJsonObject("http", new JsonObject()));
+    private Future<Void> deployApiVerticle() {
+        return this.deployVerticle(HttpVerticle.class, this.configuration.getJsonObject("api", new JsonObject()));
     }
 
     private Future<Void> deployHealthCheckVerticle() {

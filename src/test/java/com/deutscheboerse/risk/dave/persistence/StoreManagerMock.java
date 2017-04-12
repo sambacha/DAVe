@@ -11,8 +11,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.healthchecks.HealthCheckHandler;
-import io.vertx.ext.healthchecks.Status;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
@@ -33,27 +31,22 @@ public class StoreManagerMock {
     private final Vertx vertx;
     private final JsonObject config;
     private final HttpServer server;
-    private final HttpServer healthCheckServer;
     private boolean health = true;
 
     public StoreManagerMock(Vertx vertx, JsonObject config) {
         this.vertx = vertx;
         this.config = config;
         this.server = this.createHttpServer();
-        this.healthCheckServer = this.createHealthCheckServer();
     }
 
     public StoreManagerMock listen(Handler<AsyncResult<Void>> resultHandler) {
         int storeManagerPort = TestConfig.STORE_MANAGER_PORT;
-        int healthCheckPort = TestConfig.STORE_MANAGER_HEALTHCHECK_PORT;
-        LOG.info("Starting web server on port {} with health check port {}", storeManagerPort, healthCheckPort);
+        LOG.info("Starting web server on port {}", storeManagerPort);
 
         Future<HttpServer> listenFuture = Future.future();
-        Future<HttpServer> healthCheckListenFuture = Future.future();
         server.listen(storeManagerPort, listenFuture);
-        healthCheckServer.listen(healthCheckPort, healthCheckListenFuture);
+        listenFuture.map((Void)null).setHandler(resultHandler);
 
-        CompositeFuture.all(listenFuture, healthCheckListenFuture).map((Void) null).setHandler(resultHandler);
         return this;
     }
 
@@ -70,18 +63,6 @@ public class StoreManagerMock {
         return vertx.createHttpServer(options).requestHandler(router::accept);
     }
 
-    private HttpServer createHealthCheckServer() {
-        HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);
-
-        healthCheckHandler.register("healthz", this::healthz);
-        healthCheckHandler.register("healthz", this::healthz);
-        Router router = Router.router(vertx);
-        router.get("/healthz").handler(healthCheckHandler);
-
-
-        return vertx.createHttpServer().requestHandler(router::accept);
-    }
-
     private HttpServerOptions createHttpServerOptions() {
         HttpServerOptions options = new HttpServerOptions();
 
@@ -95,10 +76,6 @@ public class StoreManagerMock {
     }
 
     private Router configureRouter() {
-        HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(vertx);
-
-        healthCheckHandler.register("healthz", this::healthz);
-
         Router router = Router.router(vertx);
 
         LOG.info("Adding route REST API");
@@ -117,10 +94,6 @@ public class StoreManagerMock {
 
         router.get(baseURI+"/history").handler(handler);
         router.get(baseURI+"/latest").handler(handler);
-    }
-
-    private void healthz(Future<Status> future) {
-        future.complete(this.health ? Status.OK() : Status.KO());
     }
 
     private void queryAccountMargin(RoutingContext routingContext) {
@@ -155,11 +128,7 @@ public class StoreManagerMock {
 
     public void close(Handler<AsyncResult<Void>> completionHandler) {
         LOG.info("Shutting down webserver");
-        Future<Void> serverClose = Future.future();
-        Future<Void> healthCheckClose = Future.future();
-        server.close(serverClose);
-        healthCheckServer.close(healthCheckClose);
-        CompositeFuture.all(serverClose, healthCheckClose).map((Void)null).setHandler(completionHandler);
+        server.close(completionHandler);
     }
 
     private void createResponse(RoutingContext context, AbstractModel model) {

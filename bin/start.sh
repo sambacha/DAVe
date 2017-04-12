@@ -7,7 +7,7 @@ if [ -z "${DAVE_ROOT}" ]; then
     export DAVE_ROOT=`cd "${WHEREAMI}/../" && pwd`
 fi
 
-export DAVE_LOG_LEVEL="${DAVE_LOG_LEVEL:-info}"
+export LOG_LEVEL="${LOG_LEVEL:-info}"
 
 DAVE_LIB=${DAVE_ROOT}/lib
 DAVE_ETC=${DAVE_ROOT}/etc

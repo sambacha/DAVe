@@ -25,9 +25,6 @@ public class RestPersistenceService implements PersistenceService {
 
     private static final String DEFAULT_HOSTNAME = "localhost";
     private static final int DEFAULT_PORT = 8443;
-    private static final int DEFAULT_HEALTHCHECK_PORT = 8080;
-
-    private static final int RECONNECT_DELAY = 2000;
 
     private static final String DEFAULT_ACCOUNT_MARGIN_URI = "/api/v1.0/query/am";
     private static final String DEFAULT_LIQUI_GROUP_MARGIN_URI = "/api/v1.0/query/lgm";
@@ -35,42 +32,26 @@ public class RestPersistenceService implements PersistenceService {
     private static final String DEFAULT_POSITION_REPORT_URI = "/api/v1.0/query/pr";
     private static final String DEFAULT_POOL_MARGIN_URI = "/api/v1.0/query/pm";
     private static final String DEFAULT_RISK_LIMIT_UTILIZATION_URI = "/api/v1.0/query/rlu";
-    private static final String DEFAULT_HEALTHZ_URI = "/healthz";
 
     private static final Boolean DEFAULT_VERIFY_HOST = true;
-    private static final Boolean DEFAULT_SSL_REQUIRE_CLIENT_AUTH = true;
 
     private final Vertx vertx;
     private final JsonObject config;
-    private final JsonObject restApi;
     private final HttpClient httpClient;
     private final HealthCheck healthCheck;
-    private final ConnectionManager connectionManager;
 
     @Inject
     public RestPersistenceService(Vertx vertx, @Named("storeManager.conf") JsonObject config) {
         this.vertx = vertx;
         this.config = config;
-        this.restApi = this.config.getJsonObject("restApi", new JsonObject());
         this.httpClient = this.createHttpClient();
         this.healthCheck = new HealthCheck(vertx);
-        this.connectionManager = new ConnectionManager();
     }
 
     @Override
     public void initialize(Handler<AsyncResult<Void>> resultHandler) {
-        this.connectionManager.ping(ar -> {
-            if (ar.succeeded()) {
-                healthCheck.setComponentReady(HealthCheck.Component.PERSISTENCE_SERVICE);
-            } else {
-                // Try to re-initialize in a few seconds
-                vertx.setTimer(RECONNECT_DELAY, i -> initialize(res -> {/*empty handler*/}));
-                LOG.error("Cannot connect to StoreManager, trying again...");
-            }
-            // Inform the caller that we succeeded even if the connection to the http server
-            // failed. We will try to reconnect automatically on background.
-            resultHandler.handle(Future.succeededFuture());
-        });
+        healthCheck.setComponentReady(HealthCheck.Component.PERSISTENCE_SERVICE);
+        resultHandler.handle(Future.succeededFuture());
     }
 
     @Override
@@ -106,7 +87,6 @@ public class RestPersistenceService implements PersistenceService {
     @Override
     public void close() {
         this.httpClient.close();
-        this.connectionManager.httpClient.close();
     }
 
     private HttpClient createHttpClient() {
@@ -124,10 +104,12 @@ public class RestPersistenceService implements PersistenceService {
                 .map(Object::toString)
                 .forEach(trustKey -> pemTrustOptions.addCertValue(Buffer.buffer(trustKey)));
         httpClientOptions.setPemTrustOptions(pemTrustOptions);
-        if (this.config.getBoolean("sslRequireClientAuth", DEFAULT_SSL_REQUIRE_CLIENT_AUTH)) {
+        final String sslKey = this.config.getString("sslKey");
+        final String sslCert = this.config.getString("sslCert");
+        if (sslKey != null && sslCert != null) {
             PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions()
-                    .setKeyValue(Buffer.buffer(this.config.getString("sslKey")))
-                    .setCertValue(Buffer.buffer(this.config.getString("sslCert")));
+                    .setKeyValue(Buffer.buffer(sslKey))
+                    .setCertValue(Buffer.buffer(sslCert));
             httpClientOptions.setPemKeyCertOptions(pemKeyCertOptions);
         }
         return httpClientOptions;
@@ -146,59 +128,11 @@ public class RestPersistenceService implements PersistenceService {
                         response.bodyHandler(body -> resultHandler.handle(Future.succeededFuture(body.toString())));
                     } else {
                         LOG.error("{} failed: {}", requestURI, response.statusMessage());
-                        connectionManager.startReconnection();
                         resultHandler.handle(Future.failedFuture(response.statusMessage()));
                     }
                 }).exceptionHandler(e -> {
                     LOG.error("{} failed: {}", requestURI, e.getMessage());
-                    connectionManager.startReconnection();
                     resultHandler.handle(Future.failedFuture(e.getMessage()));
                 }).end();
-    }
-
-    private class ConnectionManager {
-
-        private HttpClient httpClient = vertx.createHttpClient();
-
-        void startReconnection() {
-            if (healthCheck.isComponentReady(HealthCheck.Component.PERSISTENCE_SERVICE)) {
-                // Inform other components that we have failed
-                healthCheck.setComponentFailed(HealthCheck.Component.PERSISTENCE_SERVICE);
-                // Re-check the connection
-                scheduleConnectionStatus();
-            }
-        }
-
-        void ping(Handler<AsyncResult<Void>> resultHandler) {
-            httpClient.get(
-                    config.getInteger("healthCheckPort", DEFAULT_HEALTHCHECK_PORT),
-                    config.getString("hostname", DEFAULT_HOSTNAME),
-                    restApi.getString("healthz", DEFAULT_HEALTHZ_URI),
-                    response -> {
-                        if (response.statusCode() == HttpResponseStatus.OK.code()) {
-                            resultHandler.handle(Future.succeededFuture());
-                        } else {
-                            resultHandler.handle(Future.failedFuture(response.statusMessage()));
-                        }
-                    }).exceptionHandler(e ->
-                        resultHandler.handle(Future.failedFuture(e.getMessage()))
-                    ).end();
-        }
-
-        private void scheduleConnectionStatus() {
-            vertx.setTimer(RECONNECT_DELAY, id -> checkConnectionStatus());
-        }
-
-        private void checkConnectionStatus() {
-            this.ping(res -> {
-                if (res.succeeded()) {
-                    LOG.info("Back online");
-                    healthCheck.setComponentReady(HealthCheck.Component.PERSISTENCE_SERVICE);
-                } else {
-                    LOG.error("Still disconnected");
-                    scheduleConnectionStatus();
-                }
-            });
-        }
     }
 }

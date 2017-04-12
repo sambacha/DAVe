@@ -9,8 +9,7 @@ import io.vertx.core.net.SelfSignedCertificate;
 public class TestConfig {
 
     public static final int STORE_MANAGER_PORT = Integer.getInteger("storage.port", 8443);
-    public static final int STORE_MANAGER_HEALTHCHECK_PORT = Integer.getInteger("storageHealthCheck.port", 8080);
-    public static final int API_PORT = Integer.getInteger("http.port", 8443);
+    public static final int API_PORT = Integer.getInteger("api.port", 8443);
     public static final int HEALTHCHECK_PORT = Integer.getInteger("healthcheck.port", 8080);
     public static final SelfSignedCertificate HTTP_STORAGE_CERTIFICATE = SelfSignedCertificate.create();
     public static final SelfSignedCertificate HTTP_API_CERTIFICATE = SelfSignedCertificate.create();
@@ -22,12 +21,12 @@ public class TestConfig {
 
     public static JsonObject getGlobalConfig() {
         return new JsonObject()
-                .put("http", TestConfig.getHttpConfig())
+                .put("api", TestConfig.getApiConfig())
                 .put("healthCheck", TestConfig.getHealthCheckConfig())
                 .put("storeManager", TestConfig.getStoreManagerConfig());
     }
 
-    public static JsonObject getHttpConfig() {
+    public static JsonObject getApiConfig() {
         JsonArray sslTrustCerts = new JsonArray();
         HTTP_CLIENT_CERTIFICATE.trustOptions().getCertPaths().forEach(certPath -> {
             Buffer certBuffer = Vertx.vertx().fileSystem().readFileBlocking(certPath);
@@ -71,10 +70,8 @@ public class TestConfig {
         Buffer pemCertBuffer = Vertx.vertx().fileSystem().readFileBlocking(HTTP_API_CERTIFICATE.keyCertOptions().getCertPath());
         return new JsonObject()
                 .put("port", STORE_MANAGER_PORT)
-                .put("healthCheckPort", STORE_MANAGER_HEALTHCHECK_PORT)
                 .put("sslKey", pemKeyBuffer.toString())
                 .put("sslCert", pemCertBuffer.toString())
-                .put("sslRequireClientAuth", true)
                 .put("sslTrustCerts", sslTrustCerts)
                 .put("verifyHost", false)
                 .put("restApi", new JsonObject()

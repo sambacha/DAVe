@@ -35,7 +35,7 @@ public class RestApiTest {
         RestApiTest.vertx = Vertx.vertx();
         RestApiTest.port = TestConfig.API_PORT;
 
-        JsonObject config = TestConfig.getHttpConfig();
+        JsonObject config = TestConfig.getApiConfig();
         vertx.deployVerticle(HttpVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
 
         ProxyHelper.registerService(PersistenceService.class, vertx, new EchoPersistenceService(vertx), PersistenceService.SERVICE_ADDRESS);

@@ -55,7 +55,7 @@ public class AuthTest {
 
     @Test
     public void testValidJWT(TestContext context) {
-        JsonObject config = TestConfig.getHttpConfig();
+        JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("auth").put("enable", true);
         deployHttpVerticle(context, config);
 
@@ -82,7 +82,7 @@ public class AuthTest {
 
     @Test
     public void testInvalidPublicKey(TestContext context) {
-        JsonObject config = TestConfig.getHttpConfig();
+        JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("auth").put("enable", true).put("jwtPublicKey", INVALID_PUBLIC_KEY);
         deployHttpVerticle(context, config);
 
@@ -109,7 +109,7 @@ public class AuthTest {
 
     @Test
     public void testExpiredJWT(TestContext context) {
-        JsonObject config = TestConfig.getHttpConfig();
+        JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("auth").put("enable", true);
         deployHttpVerticle(context, config);
 
@@ -136,7 +136,7 @@ public class AuthTest {
 
     @Test
     public void testNoJWT(TestContext context) {
-        JsonObject config = TestConfig.getHttpConfig();
+        JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("auth").put("enable", true);
         deployHttpVerticle(context, config);
 

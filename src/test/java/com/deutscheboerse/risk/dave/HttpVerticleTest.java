@@ -49,7 +49,7 @@ public class HttpVerticleTest {
 
     @Test
     public void testPlainHttp(TestContext context) {
-        JsonObject config = TestConfig.getHttpConfig();
+        JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("ssl").put("enable", false);
         deployHttpVerticle(context, config);
 
@@ -63,7 +63,7 @@ public class HttpVerticleTest {
 
     @Test
     public void testCORS(TestContext context) {
-        JsonObject config = TestConfig.getHttpConfig();
+        JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("CORS").put("enable", true).put("origin", "https://localhost:8888");
         deployHttpVerticle(context, config);
 
@@ -83,7 +83,7 @@ public class HttpVerticleTest {
 
     @Test
     public void testSslServerAuthentication(TestContext context) {
-        JsonObject config = TestConfig.getHttpConfig();
+        JsonObject config = TestConfig.getApiConfig();
         deployHttpVerticle(context, config);
 
         final Async asyncSslClient = context.async();
@@ -107,7 +107,7 @@ public class HttpVerticleTest {
 
     @Test
     public void testSslClientAuthentication(TestContext context) {
-        JsonObject config = TestConfig.getHttpConfig();
+        JsonObject config = TestConfig.getApiConfig();
         deployHttpVerticle(context, config);
 
         final Async asyncSslClient = context.async();
@@ -143,7 +143,7 @@ public class HttpVerticleTest {
 
     @Test
     public void testSslRequiredClientAuthentication(TestContext context) {
-        JsonObject config = TestConfig.getHttpConfig();
+        JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("ssl").put("sslRequireClientAuth", true);
         deployHttpVerticle(context, config);
 

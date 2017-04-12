@@ -85,7 +85,7 @@ public class MainVerticleTest {
     @Test
     public void testFailedDeployment(TestContext context) {
         DeploymentOptions options = getDeploymentOptions();
-        options.getConfig().getJsonObject("http", new JsonObject()).put("port", -1);
+        options.getConfig().getJsonObject("api", new JsonObject()).put("port", -1);
         vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertFailure());
     }
 
