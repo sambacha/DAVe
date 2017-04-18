@@ -53,8 +53,8 @@ The `api` section configures the web based UI and the REST API.
 | `port` | Port of the HTTP(S) server | `8443` |
 | `compression` | Enable gzip compression of the HTTP responses | `true` |
 | `ssl` | Subsection configuring SSL/TLS on the webserver |  |
-| `CORS` | Subsection configuring Cross-origin resource sharing (see below) |  |
-| `CSRF` | Subsection configuring Cross-site request forgery protection (see below) |  |
+| `cors` | Subsection configuring Cross-origin resource sharing (see below) |  |
+| `csrf` | Subsection configuring Cross-site request forgery protection (see below) |  |
 | `auth` | Subsection configuring authentication (see below) |  |
 
 
@@ -82,7 +82,7 @@ The `auth` subsection configures authentication to the UI and REST interface.
 
 #### CORS
 
-The `CORS` subsection configures Cross-origin resource sharing (CORS), which allows the REST API to be used from web applications running under different domain.
+The `cors` subsection configures Cross-origin resource sharing (CORS), which allows the REST API to be used from web applications running under different domain.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
@@ -91,7 +91,7 @@ The `CORS` subsection configures Cross-origin resource sharing (CORS), which all
 
 #### CSRF
 
-The `CSRF` subsection configures Cross-site request forgery (CSRF) protection. When enabled, the handler will set a XSRF-TOKEN cookie and the client has to send back its value in the X-XSRF-TOKEN header. This handler weill be activated only when authentication is enabled.
+The `csrf` subsection configures Cross-site request forgery (CSRF) protection. When enabled, the handler will set a XSRF-TOKEN cookie and the client has to send back its value in the X-XSRF-TOKEN header. This handler weill be activated only when authentication is enabled.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|

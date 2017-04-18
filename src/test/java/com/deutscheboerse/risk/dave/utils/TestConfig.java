@@ -42,10 +42,10 @@ public class TestConfig {
                         .put("sslCert", pemCertBuffer.toString())
                         .put("sslRequireClientAuth", false)
                         .put("sslTrustCerts", sslTrustCerts))
-                .put("CORS", new JsonObject()
+                .put("cors", new JsonObject()
                         .put("enable", false)
                         .put("origin", "*"))
-                .put("CSRF", new JsonObject()
+                .put("csrf", new JsonObject()
                         .put("enable", false)
                         .put("secret", "DAVe-CSRF-Secret"))
                 .put("auth", new JsonObject()
@@ -80,7 +80,6 @@ public class TestConfig {
                         .put("liquiGroupSplitMargin", "/api/v1.0/query/lgsm")
                         .put("poolMargin", "/api/v1.0/query/pm")
                         .put("positionReport", "/api/v1.0/query/pr")
-                        .put("riskLimitUtilization", "/api/v1.0/query/rlu")
-                        .put("healthz", "/healthz"));
+                        .put("riskLimitUtilization", "/api/v1.0/query/rlu"));
     }
 }
