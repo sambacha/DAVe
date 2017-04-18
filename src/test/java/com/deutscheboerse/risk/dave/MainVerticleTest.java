@@ -1,6 +1,5 @@
 package com.deutscheboerse.risk.dave;
 
-import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.deutscheboerse.risk.dave.log.TestAppender;
 import com.deutscheboerse.risk.dave.model.PositionReportModel;
@@ -88,25 +87,6 @@ public class MainVerticleTest {
         asyncRest.awaitSuccess(30000);
 
         storageMock.close(context.asyncAssertSuccess());
-    }
-
-    @Test
-    public void testImplicitTypeConversion(TestContext context) throws InterruptedException {
-        DeploymentOptions options = getDeploymentOptions();
-
-        options.getConfig()
-                .getJsonObject("storeManager", new JsonObject())
-                    .put("port", String.valueOf(TestConfig.STORE_MANAGER_PORT))
-                    .put("verifyHost", "false");
-
-        Level rootLevel = rootLogger.getLevel();
-        rootLogger.setLevel(Level.DEBUG);
-        testAppender.start();
-        vertx.deployVerticle(MainVerticle.class.getName(), options, context.asyncAssertSuccess());
-        testAppender.waitForMessageContains(Level.DEBUG, "\"port\" : " + String.valueOf(TestConfig.STORE_MANAGER_PORT));
-        testAppender.waitForMessageContains(Level.DEBUG, "\"verifyHost\" : false");
-        testAppender.stop();
-        rootLogger.setLevel(rootLevel);
     }
 
     @Test
