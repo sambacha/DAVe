@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @RunWith(VertxUnitRunner.class)
 public class AuthTest {
@@ -144,7 +145,9 @@ public class AuthTest {
                 .putHeader("Authorization", "Bearer " + JWT_TOKEN)
                 .send(httpAsyncHandler(context, res -> {
                     context.assertEquals(200, res.statusCode());
-                    final String csrfToken = getCsrfCookie(res.cookies());
+
+                    final String csrfToken = getCsrfCookie(res.cookies())
+                            .orElseThrow(() -> new RuntimeException("XSRF-TOKEN cookie not found"));
 
                     client.post(TestConfig.API_PORT, "localhost", "/api/v1.0/pr/delete")
                             .putHeader("Authorization", "Bearer " + JWT_TOKEN)
@@ -168,16 +171,11 @@ public class AuthTest {
         };
     }
 
-    private String getCsrfCookie(List<String> cookies) {
-        String token = null;
-
-        for (String cookie : cookies) {
-            if (cookie.startsWith("XSRF-TOKEN=")) {
-                token = cookie.replaceFirst("XSRF-TOKEN=", "");
-            }
-        }
-
-        return token;
+    private Optional<String> getCsrfCookie(List<String> cookies) {
+        return cookies.stream()
+                .filter(cookie -> cookie.startsWith("XSRF-TOKEN="))
+                .map(cookie -> cookie.replaceFirst("XSRF-TOKEN=", ""))
+                .findFirst();
     }
 
     @After
