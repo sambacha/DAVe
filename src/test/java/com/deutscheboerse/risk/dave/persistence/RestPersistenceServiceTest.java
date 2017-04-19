@@ -29,7 +29,7 @@ public class RestPersistenceServiceTest {
     private static PersistenceService persistenceProxy;
 
     @BeforeClass
-    public static void setUp(TestContext context) {
+    public static void setUp(TestContext context) throws IOException {
         RestPersistenceServiceTest.vertx = Vertx.vertx();
 
         JsonObject config = TestConfig.getStoreManagerConfig();

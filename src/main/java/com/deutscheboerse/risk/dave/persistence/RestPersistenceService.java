@@ -1,7 +1,9 @@
 package com.deutscheboerse.risk.dave.persistence;
 
+import com.deutscheboerse.risk.dave.config.StoreManagerConfig;
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import com.deutscheboerse.risk.dave.util.URIBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -10,7 +12,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -19,31 +20,21 @@ import io.vertx.core.net.PemTrustOptions;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import java.io.IOException;
+import java.util.Arrays;
 
 public class RestPersistenceService implements PersistenceService {
     private static final Logger LOG = LoggerFactory.getLogger(RestPersistenceService.class);
 
-    private static final String DEFAULT_HOSTNAME = "localhost";
-    private static final int DEFAULT_PORT = 8443;
-
-    private static final String DEFAULT_ACCOUNT_MARGIN_URI = "/api/v1.0/query/am";
-    private static final String DEFAULT_LIQUI_GROUP_MARGIN_URI = "/api/v1.0/query/lgm";
-    private static final String DEFAULT_LIQUI_SPLIT_MARGIN_URI = "/api/v1.0/query/lgsm";
-    private static final String DEFAULT_POSITION_REPORT_URI = "/api/v1.0/query/pr";
-    private static final String DEFAULT_POOL_MARGIN_URI = "/api/v1.0/query/pm";
-    private static final String DEFAULT_RISK_LIMIT_UTILIZATION_URI = "/api/v1.0/query/rlu";
-
-    private static final Boolean DEFAULT_VERIFY_HOST = true;
-
     private final Vertx vertx;
-    private final JsonObject config;
+    private final StoreManagerConfig config;
     private final HttpClient httpClient;
     private final HealthCheck healthCheck;
 
     @Inject
-    public RestPersistenceService(Vertx vertx, @Named("storeManager.conf") JsonObject config) {
+    public RestPersistenceService(Vertx vertx, @Named("storeManager.conf") JsonObject config) throws IOException {
         this.vertx = vertx;
-        this.config = config;
+        this.config = (new ObjectMapper()).readValue(config.toString(), StoreManagerConfig.class);
         this.httpClient = this.createHttpClient();
         this.healthCheck = new HealthCheck(vertx);
     }
@@ -56,32 +47,32 @@ public class RestPersistenceService implements PersistenceService {
 
     @Override
     public void queryAccountMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
-        this.query(DEFAULT_ACCOUNT_MARGIN_URI, type, query, resultHandler);
+        this.query(this.config.getRestApi().getAccountMargin(), type, query, resultHandler);
     }
 
     @Override
     public void queryLiquiGroupMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
-        this.query(DEFAULT_LIQUI_GROUP_MARGIN_URI, type, query, resultHandler);
+        this.query(this.config.getRestApi().getLiquiGroupMargin(), type, query, resultHandler);
     }
 
     @Override
     public void queryLiquiGroupSplitMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
-        this.query(DEFAULT_LIQUI_SPLIT_MARGIN_URI, type, query, resultHandler);
+        this.query(this.config.getRestApi().getLiquiGroupSplitMargin(), type, query, resultHandler);
     }
 
     @Override
     public void queryPoolMargin(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
-        this.query(DEFAULT_POOL_MARGIN_URI, type, query, resultHandler);
+        this.query(this.config.getRestApi().getPoolMargin(), type, query, resultHandler);
     }
 
     @Override
     public void queryPositionReport(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
-        this.query(DEFAULT_POSITION_REPORT_URI, type, query, resultHandler);
+        this.query(this.config.getRestApi().getPositionReport(), type, query, resultHandler);
     }
 
     @Override
     public void queryRiskLimitUtilization(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler) {
-        this.query(DEFAULT_RISK_LIMIT_UTILIZATION_URI, type, query, resultHandler);
+        this.query(this.config.getRestApi().getRiskLimitUtilization(), type, query, resultHandler);
     }
 
     @Override
@@ -97,15 +88,14 @@ public class RestPersistenceService implements PersistenceService {
     private HttpClientOptions createHttpClientOptions() {
         HttpClientOptions httpClientOptions = new HttpClientOptions();
         httpClientOptions.setSsl(true);
-        httpClientOptions.setVerifyHost(this.config.getBoolean("verifyHost", DEFAULT_VERIFY_HOST));
+        httpClientOptions.setVerifyHost(this.config.isVerifyHost());
         PemTrustOptions pemTrustOptions = new PemTrustOptions();
-        this.config.getJsonArray("sslTrustCerts", new JsonArray())
-                .stream()
+        Arrays.stream(this.config.getSslTrustCerts())
                 .map(Object::toString)
                 .forEach(trustKey -> pemTrustOptions.addCertValue(Buffer.buffer(trustKey)));
         httpClientOptions.setPemTrustOptions(pemTrustOptions);
-        final String sslKey = this.config.getString("sslKey");
-        final String sslCert = this.config.getString("sslCert");
+        final String sslKey = this.config.getSslKey();
+        final String sslCert = this.config.getSslCert();
         if (sslKey != null && sslCert != null) {
             PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions()
                     .setKeyValue(Buffer.buffer(sslKey))
@@ -120,8 +110,8 @@ public class RestPersistenceService implements PersistenceService {
             .addParams(query)
             .build();
         this.httpClient.get(
-                config.getInteger("port", DEFAULT_PORT),
-                config.getString("hostname", DEFAULT_HOSTNAME),
+                config.getPort(),
+                config.getHostname(),
                 requestURI,
                 response -> {
                     if (response.statusCode() == HttpResponseStatus.OK.code()) {

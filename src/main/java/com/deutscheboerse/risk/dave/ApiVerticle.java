@@ -1,7 +1,9 @@
 package com.deutscheboerse.risk.dave;
 
+import com.deutscheboerse.risk.dave.config.ApiConfig;
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import com.deutscheboerse.risk.dave.restapi.margin.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -21,6 +23,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,35 +37,17 @@ public class ApiVerticle extends AbstractVerticle {
 
     private static final Integer MAX_BODY_SIZE = 1024 * 1024; // 1MB
 
-    private static final Integer DEFAULT_PORT = 8443;
-
-    private static final Boolean DEFAULT_SSL = true;
-    private static final Boolean DEFAULT_SSL_REQUIRE_CLIENT_AUTH = false;
-    private static final String DEFAULT_SSL_KEY = "";
-    private static final String DEFAULT_SSL_CERT = "";
-
-    private static final Boolean DEFAULT_CORS = false;
-    private static final String DEFAULT_CORS_ORIGIN = "*";
-
-    private static final Boolean DEFAULT_CSRF = false;
-    private static final String DEFAULT_CSRF_SECRET = "DAVe-CSRF-Secret";
-
-    private static final Boolean DEFAULT_COMPRESSION = false;
-
-    private static final Boolean DEFAULT_AUTH_ENABLED = false;
-    private static final String DEFAULT_AUTH_PERMISSIONS_CLAIM_KEY = "realm_access/roles";
-
-    private static final String AUTH_ENABLE_KEY = "enable";
-    private static final String AUTH_PERMISSIONS_CLAIM_KEY = "permissionsClaimKey";
-    private static final String AUTH_PUBLIC_KEY = "jwtPublicKey";
-
     private static final String HIDDEN_CERTIFICATE = "******************";
 
     private HttpServer server;
 
+    private ApiConfig config;
+
     @Override
     public void start(Future<Void> startFuture) throws Exception {
         LOG.info("Starting {} with configuration: {}", ApiVerticle.class.getSimpleName(), hideCertificates(config()).encodePrettily());
+
+        config = (new ObjectMapper()).readValue(config().toString(), ApiConfig.class);
 
         HealthCheck healthCheck = new HealthCheck(this.vertx);
 
@@ -82,14 +67,19 @@ public class ApiVerticle extends AbstractVerticle {
     }
 
     private JsonObject hideCertificates(JsonObject config) {
-        return config.copy()
-                .getJsonObject("ssl", new JsonObject())
+        JsonObject secretConfig = config.copy();
+        secretConfig.getJsonObject("ssl", new JsonObject())
                 .put("sslKey", HIDDEN_CERTIFICATE)
                 .put("sslCert", HIDDEN_CERTIFICATE)
                 .put("sslTrustCerts", new JsonArray(
                         config.getJsonObject("ssl", new JsonObject()).getJsonArray("sslTrustCerts").stream()
                                 .map(i -> HIDDEN_CERTIFICATE).collect(Collectors.toList()))
                 );
+        secretConfig.getJsonObject("csrf", new JsonObject())
+                .put("secret", HIDDEN_CERTIFICATE);
+        secretConfig.getJsonObject("auth", new JsonObject())
+                .put("jwtPublicKey", HIDDEN_CERTIFICATE);
+        return secretConfig;
     }
 
     private Future<HttpServer> startHttpServer() {
@@ -97,7 +87,7 @@ public class ApiVerticle extends AbstractVerticle {
         Router router = configureRouter();
         HttpServerOptions httpOptions = configureWebServer();
 
-        int port = config().getInteger("port", ApiVerticle.DEFAULT_PORT);
+        int port = config.getPort();
         LOG.info("Starting web server on port {}", port);
         server = vertx.createHttpServer(httpOptions)
                 .requestHandler(router::accept)
@@ -114,32 +104,30 @@ public class ApiVerticle extends AbstractVerticle {
     }
 
     private void setSsl(HttpServerOptions httpServerOptions) {
-        JsonObject sslConfig = config().getJsonObject("ssl", new JsonObject());
-        boolean sslEnable = sslConfig.getBoolean(AUTH_ENABLE_KEY, DEFAULT_SSL);
-        if (!sslEnable) {
+        ApiConfig.SslConfig sslConfig = config.getSsl();
+        if (!sslConfig.isEnable()) {
             return;
         }
         httpServerOptions.setSsl(true);
         PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions()
-                .setKeyValue(Buffer.buffer(sslConfig.getString("sslKey", DEFAULT_SSL_KEY)))
-                .setCertValue(Buffer.buffer(sslConfig.getString("sslCert", DEFAULT_SSL_CERT)));
+                .setKeyValue(Buffer.buffer(sslConfig.getSslKey()))
+                .setCertValue(Buffer.buffer(sslConfig.getSslCert()));
         httpServerOptions.setPemKeyCertOptions(pemKeyCertOptions);
 
         PemTrustOptions pemTrustOptions = new PemTrustOptions();
-        sslConfig.getJsonArray("sslTrustCerts", new JsonArray())
-                .stream()
+        Arrays.stream(sslConfig.getSslTrustCerts())
                 .map(Object::toString)
                 .forEach(trustKey -> pemTrustOptions.addCertValue(Buffer.buffer(trustKey)));
         if (!pemTrustOptions.getCertValues().isEmpty()) {
             httpServerOptions.setPemTrustOptions(pemTrustOptions);
-            ClientAuth clientAuth = sslConfig.getBoolean("sslRequireClientAuth", DEFAULT_SSL_REQUIRE_CLIENT_AUTH) ?
+            ClientAuth clientAuth = sslConfig.isSslRequireClientAuth() ?
                     ClientAuth.REQUIRED : ClientAuth.REQUEST;
             httpServerOptions.setClientAuth(clientAuth);
         }
     }
 
     private void setCompression(HttpServerOptions httpOptions) {
-        if (config().getBoolean("compression", DEFAULT_COMPRESSION)) {
+        if (config.isCompression()) {
             LOG.info("Enabling compression on webserver");
             httpOptions.setCompressionSupported(true);
         }
@@ -164,11 +152,11 @@ public class ApiVerticle extends AbstractVerticle {
     }
 
     private void setCorsHandler(Router router) {
-        if (config().getJsonObject("CORS", new JsonObject()).getBoolean(AUTH_ENABLE_KEY, ApiVerticle.DEFAULT_CORS)) {
+        if (config.getCors().isEnable()) {
             LOG.info("Enabling CORS handler");
 
             //Wildcard(*) not allowed if allowCredentials is true
-            CorsHandler corsHandler = CorsHandler.create(config().getJsonObject("CORS", new JsonObject()).getString("origin", ApiVerticle.DEFAULT_CORS_ORIGIN));
+            CorsHandler corsHandler = CorsHandler.create(config.getCors().getOrigin());
             corsHandler.allowCredentials(true);
             corsHandler.allowedMethod(HttpMethod.OPTIONS);
             corsHandler.allowedMethod(HttpMethod.GET);
@@ -183,21 +171,21 @@ public class ApiVerticle extends AbstractVerticle {
     }
 
     private void setCsrfHandler(Router router) {
-        if (config().getJsonObject("CSRF", new JsonObject()).getBoolean(AUTH_ENABLE_KEY, ApiVerticle.DEFAULT_CSRF)) {
+        if (config.getCsrf().isEnable()) {
             LOG.info("Enabling CSRF handler");
             router.route().handler(CookieHandler.create());
-            router.route().handler(CSRFHandler.create(config().getJsonObject("CSRF", new JsonObject()).getString("secret", ApiVerticle.DEFAULT_CSRF_SECRET)));
+            router.route().handler(CSRFHandler.create(config.getCsrf().getSecret()));
         }
     }
 
     private void setAuthHandler(Router router) {
-        if (config().getJsonObject("auth", new JsonObject()).getBoolean(AUTH_ENABLE_KEY, ApiVerticle.DEFAULT_AUTH_ENABLED)) {
+        if (config.getAuth().isEnable()) {
             LOG.info("Enabling authentication");
 
             // Create a JWT Auth Provider
             JsonObject jwtConfig = new JsonObject()
-                    .put("public-key", config().getJsonObject("auth", new JsonObject()).getString(AUTH_PUBLIC_KEY, null))
-                    .put("permissionsClaimKey", config().getJsonObject("auth", new JsonObject()).getString(AUTH_PERMISSIONS_CLAIM_KEY, ApiVerticle.DEFAULT_AUTH_PERMISSIONS_CLAIM_KEY));
+                    .put("public-key", config.getAuth().getJwtPublicKey())
+                    .put("permissionsClaimKey", config.getAuth().getPermissionsClaimKey());
             JWTAuth jwtAuthenticationProvider = JWTAuth.create(vertx, jwtConfig);
             router.route(API_PREFIX+"/*").handler(JWTAuthHandler.create(jwtAuthenticationProvider));
 

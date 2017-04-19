@@ -64,7 +64,7 @@ public class ApiVerticleTest {
     @Test
     public void testCORS(TestContext context) {
         JsonObject config = TestConfig.getApiConfig();
-        config.getJsonObject("CORS").put("enable", true).put("origin", "https://localhost:8888");
+        config.getJsonObject("cors").put("enable", true).put("origin", "https://localhost:8888");
         deployApiVerticle(context, config);
 
         final Async asyncClient = context.async();
