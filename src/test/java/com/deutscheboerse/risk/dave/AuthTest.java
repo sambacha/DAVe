@@ -3,8 +3,11 @@ package com.deutscheboerse.risk.dave;
 import com.deutscheboerse.risk.dave.persistence.EchoPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -20,6 +23,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.util.List;
 
 @RunWith(VertxUnitRunner.class)
 public class AuthTest {
@@ -59,7 +63,6 @@ public class AuthTest {
         config.getJsonObject("auth").put("enable", true);
         deployApiVerticle(context, config);
 
-        final Async asyncClient = context.async();
         WebClientOptions sslOpts = new WebClientOptions()
                 .setSsl(true)
                 .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
@@ -67,17 +70,9 @@ public class AuthTest {
         WebClient.create(vertx, sslOpts)
                 .get(TestConfig.API_PORT, "localhost", "/api/v1.0/pr/latest")
                 .putHeader("Authorization", "Bearer " + JWT_TOKEN)
-                .send(ar -> {
-                    if (ar.succeeded()) {
-                        HttpResponse res = ar.result();
-                        context.assertEquals(200, res.statusCode());
-                        asyncClient.complete();
-                    }
-                    else
-                    {
-                        context.fail(ar.cause());
-                    }
-                });
+                .send(httpAsyncHandler(context, res ->
+                        context.assertEquals(200, res.statusCode())
+                ));
     }
 
     @Test
@@ -86,7 +81,6 @@ public class AuthTest {
         config.getJsonObject("auth").put("enable", true).put("jwtPublicKey", INVALID_PUBLIC_KEY);
         deployApiVerticle(context, config);
 
-        final Async asyncClient = context.async();
         WebClientOptions sslOpts = new WebClientOptions()
                 .setSsl(true)
                 .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
@@ -94,17 +88,9 @@ public class AuthTest {
         WebClient.create(vertx, sslOpts)
                 .get(TestConfig.API_PORT, "localhost", "/api/v1.0/pr/latest")
                 .putHeader("Authorization", "Bearer " + JWT_TOKEN)
-                .send(ar -> {
-                    if (ar.succeeded()) {
-                        HttpResponse res = ar.result();
-                        context.assertEquals(401, res.statusCode());
-                        asyncClient.complete();
-                    }
-                    else
-                    {
-                        context.fail(ar.cause());
-                    }
-                });
+                .send(httpAsyncHandler(context, res ->
+                        context.assertEquals(401, res.statusCode())
+                ));
     }
 
     @Test
@@ -113,7 +99,6 @@ public class AuthTest {
         config.getJsonObject("auth").put("enable", true);
         deployApiVerticle(context, config);
 
-        final Async asyncClient = context.async();
         WebClientOptions sslOpts = new WebClientOptions()
                 .setSsl(true)
                 .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
@@ -121,17 +106,9 @@ public class AuthTest {
         WebClient.create(vertx, sslOpts)
                 .get(TestConfig.API_PORT, "localhost", "/api/v1.0/pr/latest")
                 .putHeader("Authorization", "Bearer " + EXPIRED_JWT_TOKEN)
-                .send(ar -> {
-                    if (ar.succeeded()) {
-                        HttpResponse res = ar.result();
-                        context.assertEquals(401, res.statusCode());
-                        asyncClient.complete();
-                    }
-                    else
-                    {
-                        context.fail(ar.cause());
-                    }
-                });
+                .send(httpAsyncHandler(context, res ->
+                        context.assertEquals(401, res.statusCode())
+                ));
     }
 
     @Test
@@ -140,31 +117,74 @@ public class AuthTest {
         config.getJsonObject("auth").put("enable", true);
         deployApiVerticle(context, config);
 
-        final Async asyncClient = context.async();
         WebClientOptions sslOpts = new WebClientOptions()
                 .setSsl(true)
                 .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
 
         WebClient.create(vertx, sslOpts)
                 .get(TestConfig.API_PORT, "localhost", "/api/v1.0/pr/latest")
-                .send(ar -> {
-                    if (ar.succeeded()) {
-                        HttpResponse res = ar.result();
-                        context.assertEquals(401, res.statusCode());
-                        asyncClient.complete();
-                    }
-                    else
-                    {
-                        context.fail(ar.cause());
-                    }
-                });
+                .send(httpAsyncHandler(context, res ->
+                        context.assertEquals(401, res.statusCode())
+                ));
+    }
+
+    @Test
+    public void testCSRF(TestContext context) throws InterruptedException {
+        JsonObject config = TestConfig.getApiConfig();
+        config.getJsonObject("auth").put("enable", true);
+        config.getJsonObject("csrf").put("enable", true);
+        deployApiVerticle(context, config);
+
+        WebClientOptions sslOpts = new WebClientOptions()
+                .setSsl(true)
+                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+
+        WebClient client = WebClient.create(vertx, sslOpts);
+        client.get(TestConfig.API_PORT, "localhost", "/api/v1.0/pr/latest")
+                .putHeader("Authorization", "Bearer " + JWT_TOKEN)
+                .send(httpAsyncHandler(context, res -> {
+                    context.assertEquals(200, res.statusCode());
+                    final String csrfToken = getCsrfCookie(res.cookies());
+
+                    client.post(TestConfig.API_PORT, "localhost", "/api/v1.0/pr/delete")
+                            .putHeader("Authorization", "Bearer " + JWT_TOKEN)
+                            .putHeader("X-XSRF-TOKEN", csrfToken)
+                            .send(httpAsyncHandler(context, csrfRes -> {
+                                // We expect "Not found (404)" error code instead of "Forbidden (403)"
+                                context.assertEquals(404, csrfRes.statusCode());
+                            }));
+                }));
+    }
+
+    private Handler<AsyncResult<HttpResponse<Buffer>>> httpAsyncHandler(TestContext context, Handler<HttpResponse<Buffer>> handler) {
+        final Async async = context.async();
+        return ar -> {
+            if (ar.succeeded()) {
+                handler.handle(ar.result());
+                async.complete();
+            } else {
+                context.fail(ar.cause());
+            }
+        };
+    }
+
+    private String getCsrfCookie(List<String> cookies) {
+        String token = null;
+
+        for (String cookie : cookies) {
+            if (cookie.startsWith("XSRF-TOKEN=")) {
+                token = cookie.replaceFirst("XSRF-TOKEN=", "");
+            }
+        }
+
+        return token;
     }
 
     @After
     public void cleanup(TestContext context) {
-        vertx.deploymentIDs().forEach(id -> {
-            vertx.undeploy(id, context.asyncAssertSuccess());
-        });
+        vertx.deploymentIDs().forEach(id ->
+            vertx.undeploy(id, context.asyncAssertSuccess())
+        );
     }
 
     @AfterClass
