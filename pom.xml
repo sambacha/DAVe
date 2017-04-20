@@ -9,10 +9,12 @@
   <version>1.0-SNAPSHOT</version>
 
   <properties>
-    <vertx.version>3.3.3</vertx.version>
+    <vertx.version>3.4.1</vertx.version>
     <junit.version>4.12</junit.version>
-    <logback.version>1.1.7</logback.version>
+    <logback.version>1.1.8</logback.version>
     <docker.maven.plugin.fabric8.version>0.15.16</docker.maven.plugin.fabric8.version>
+    <jacoco.maven.plugin.version>0.7.7.201606060606</jacoco.maven.plugin.version>
+    <vertx.guice.version>2.3.1</vertx.guice.version>
     <build.helper.maven.plugin>1.12</build.helper.maven.plugin>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -42,6 +44,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-web-client</artifactId>
+      <version>${vertx.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-core</artifactId>
       <version>${logback.version}</version>
@@ -53,17 +61,32 @@
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-mongo-client</artifactId>
-      <version>${vertx.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-auth-mongo</artifactId>
-      <version>${vertx.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-jwt</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-health-check</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.englishtown.vertx</groupId>
+      <artifactId>vertx-guice</artifactId>
+      <version>${vertx.guice.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-service-proxy</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-codegen</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-config-hocon</artifactId>
       <version>${vertx.version}</version>
     </dependency>
   </dependencies>
@@ -77,6 +100,9 @@
           <configuration>
             <source>1.8</source>
             <target>1.8</target>
+            <annotationProcessors>
+              <annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>
+            </annotationProcessors>
           </configuration>
         </plugin>
         <plugin>
@@ -95,7 +121,9 @@
           <version>2.19</version>
           <configuration>
             <systemPropertyVariables>
-              <http.port>${http.port}</http.port>
+              <api.port>${api.port}</api.port>
+              <healthcheck.port>${healthcheck.port}</healthcheck.port>
+              <storage.port>${storage.port}</storage.port>
               <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
             </systemPropertyVariables>
           </configuration>
@@ -106,10 +134,9 @@
           <version>2.19</version>
           <configuration>
             <systemPropertyVariables>
-              <mongodb.port>${mongodb.port}</mongodb.port>
-              <ers.tcpport>${ers.tcpport}</ers.tcpport>
-              <ers.sslport>${ers.sslport}</ers.sslport>
-              <http.port>${http.port}</http.port>
+              <api.port>${api.port}</api.port>
+              <healthcheck.port>${healthcheck.port}</healthcheck.port>
+              <storage.port>${storage.port}</storage.port>
               <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
               <logback.configurationFile>${project.basedir}/src/test/resources/logback.xml</logback.configurationFile>
             </systemPropertyVariables>
@@ -164,68 +191,6 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>io.fabric8</groupId>
-        <artifactId>docker-maven-plugin</artifactId>
-        <version>${docker.maven.plugin.fabric8.version}</version>
-        <configuration>
-          <logDate>default</logDate>
-          <autoPull>true</autoPull>
-          <images>
-            <image>
-              <alias>db</alias>
-              <name>mongo:3.2</name>
-              <run>
-                <wait>
-                  <log>waiting for connections on port</log>
-                  <time>10000</time>
-                </wait>
-                <log>
-                  <prefix>DB</prefix>
-                  <color>yellow</color>
-                </log>
-                <ports>
-                  <port>mongodb.port:27017</port>
-                </ports>
-              </run>
-            </image>
-            <image>
-              <alias>ers</alias>
-              <name>ecmi/ers:sim</name>
-              <run>
-                <wait>
-                  <log>Broker \(pid=1\) running</log>
-                  <time>10000</time>
-                </wait>
-                <log>
-                  <prefix>ERS</prefix>
-                  <color>cyan</color>
-                </log>
-                <ports>
-                  <port>ers.sslport:5671</port>
-                  <port>ers.tcpport:5672</port>
-                </ports>
-              </run>
-            </image>
-          </images>
-        </configuration>
-        <executions>
-          <execution>
-            <id>start</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>start</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>stop</id>
-            <phase>post-integration-test</phase>
-            <goals>
-              <goal>stop</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
         <version>${build.helper.maven.plugin}</version>
@@ -238,7 +203,9 @@
             <phase>process-sources</phase>
             <configuration>
               <portNames>
-                <portName>http.port</portName>
+                <portName>api.port</portName>
+                <portName>healthcheck.port</portName>
+                <portName>storage.port</portName>
               </portNames>
             </configuration>
           </execution>
@@ -280,10 +247,13 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco.maven.plugin.version}</version>
         <configuration>
-          <!--<excludes>
-            <exclude>com/deutscheboerse/risk/dave/ers/jaxb/*.class</exclude>
-          </excludes>-->
+          <excludes>
+            <exclude>CIL/**/*</exclude>
+            <exclude>**/*PersistenceServiceVertxEBProxy.*</exclude>
+            <exclude>**/*PersistenceServiceVertxProxyHandler.*</exclude>
+          </excludes>
         </configuration>
         <executions>
           <execution>

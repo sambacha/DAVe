@@ -1,64 +1,125 @@
 package com.deutscheboerse.risk.dave.restapi.margin;
 
+import com.deutscheboerse.risk.dave.model.AbstractModel;
+import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import com.deutscheboerse.risk.dave.persistence.RequestType;
+import com.google.common.base.Preconditions;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import java.util.List;
+import io.vertx.serviceproxy.ProxyHelper;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 
 public abstract class AbstractApi {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractApi.class);
 
-    private final EventBus eb;
     protected final Vertx vertx;
-    private final String latestEbAddress;
-    private final String historyEbAddress;
-    private final String requestName;
+    private final AbstractModel model;
+    protected final PersistenceService persistenceProxy;
 
-    public AbstractApi(Vertx vertx, String latestAddress, String historyAddress, String requestName) {
-        this.eb = vertx.eventBus();
+    AbstractApi(Vertx vertx, AbstractModel model) {
         this.vertx = vertx;
-        this.latestEbAddress = latestAddress;
-        this.historyEbAddress = historyAddress;
-        this.requestName = requestName;
+        this.model = model;
+        this.persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
     }
 
-    protected abstract List<String> getParameters();
+    protected abstract String getRequestName();
+    protected abstract void proxyFind(RoutingContext routingContext, RequestType requestType);
 
-    protected JsonObject createParamsFromContext(RoutingContext routingContext) {
-        final JsonObject result = new JsonObject();
-        for (String parameterName : getParameters()) {
-            if (routingContext.request().getParam(parameterName) != null && !"*".equals(routingContext.request().getParam(parameterName))) {
-                result.put(parameterName, routingContext.request().getParam(parameterName));
-            }
+    private String getLatestUri() {
+        return String.format("/%s/%s", this.getRequestName(), "latest");
+    }
+
+    private String getHistoryUri() {
+        return String.format("/%s/%s", this.getRequestName(), "history");
+    }
+
+    private void latestCall(RoutingContext routingContext) {
+        LOG.trace("Received {} request", this.getLatestUri());
+        this.doCall(routingContext, RequestType.LATEST);
+    }
+
+    private void historyCall(RoutingContext routingContext) {
+        LOG.trace("Received {} request", this.getHistoryUri());
+        this.doCall(routingContext, RequestType.HISTORY);
+    }
+
+    private void doCall(RoutingContext routingContext, RequestType requestType) {
+        try {
+            this.proxyFind(routingContext, requestType);
+        } catch (IllegalArgumentException e) {
+            LOG.error("Bad request: {}", e.getMessage(), e);
+            routingContext.response().setStatusCode(HttpResponseStatus.BAD_REQUEST.code()).end();
         }
+    }
+
+    public Router getRoutes() {
+        Router router = Router.router(vertx);
+
+        router.get(this.getLatestUri()).handler(this::latestCall);
+        router.get(this.getHistoryUri()).handler(this::historyCall);
+
+        return router;
+    }
+
+    JsonObject createParamsFromContext(RoutingContext routingContext) {
+        final JsonObject result = new JsonObject();
+        routingContext.request().params().entries()
+                .forEach(entry -> {
+                    final String parameterName = entry.getKey();
+                    final String parameterValue = entry.getValue();
+                    try {
+                        String decodedValue = URLDecoder.decode(parameterValue, "UTF-8");
+                        Class<?> parameterType = getParameterType(parameterName);
+                        result.put(parameterName, convertValue(decodedValue, parameterType));
+                    } catch (UnsupportedEncodingException e) {
+                        throw new AssertionError(e);
+                    } catch (NumberFormatException e) {
+                        throw new IllegalArgumentException(String.format("Cannot convert '%s' (%s) to %s",
+                                parameterName, parameterValue, getParameterType(parameterName).getSimpleName()));
+                    }
+                });
         return result;
     }
 
-    protected void sendRequestToEventBus(RoutingContext routingContext, String ebAddress, String requestName) {
-        LOG.trace("Received {} request", requestName);
+    private Class<?> getParameterType(String parameterName) {
+        Preconditions.checkArgument(model.getKeysDescriptor().containsKey(parameterName),
+                "Unknown parameter '%s'", parameterName);
 
-        eb.send(ebAddress, this.createParamsFromContext(routingContext), ar -> {
+        return model.getKeysDescriptor().get(parameterName);
+    }
+
+    private <T> T convertValue(String value, Class<T> clazz) {
+        if (clazz.equals(String.class)) {
+            return clazz.cast(value);
+        } else if (clazz.equals(Integer.class)) {
+            return clazz.cast(Integer.parseInt(value));
+        } else if (clazz.equals(Double.class)) {
+            return clazz.cast(Double.parseDouble(value));
+        } else {
+            throw new AssertionError("Unsupported type " + clazz);
+        }
+    }
+
+    Handler<AsyncResult<String>> responseHandler(RoutingContext routingContext) {
+        return ar -> {
             if (ar.succeeded()) {
-                LOG.trace("Received response {} request", requestName);
+                LOG.trace("Received response {} request", this.getRequestName());
                 routingContext.response()
                         .putHeader("content-type", "application/json; charset=utf-8")
-                        .end((String)ar.result().body());
+                        .end(ar.result());
             } else {
                 LOG.error("Failed to query the DB service", ar.cause());
                 routingContext.response().setStatusCode(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).end();
             }
-        });
-    }
-
-    public void latestCall(RoutingContext routingContext) {
-        sendRequestToEventBus(routingContext, latestEbAddress, requestName + "/latest");
-    }
-
-    public void historyCall(RoutingContext routingContext) {
-        sendRequestToEventBus(routingContext, historyEbAddress, requestName + "/history");
+        };
     }
 }
