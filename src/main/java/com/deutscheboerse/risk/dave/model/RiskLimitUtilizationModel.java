@@ -23,4 +23,9 @@ public class RiskLimitUtilizationModel extends AbstractModel {
         keys.put("limitType", String.class);
         return Collections.unmodifiableMap(keys);
     }
+
+    @Override
+    public Map<String, Class<?>> getUniqueFieldsDescriptor() {
+        return Collections.emptyMap();
+    }
 }

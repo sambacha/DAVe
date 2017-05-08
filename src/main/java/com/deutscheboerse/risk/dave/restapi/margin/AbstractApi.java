@@ -17,6 +17,8 @@ import io.vertx.serviceproxy.ProxyHelper;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class AbstractApi {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractApi.class);
@@ -91,10 +93,12 @@ public abstract class AbstractApi {
     }
 
     private Class<?> getParameterType(String parameterName) {
-        Preconditions.checkArgument(model.getKeysDescriptor().containsKey(parameterName),
-                "Unknown parameter '%s'", parameterName);
+        Map<String, Class> parameterDescriptor = new HashMap<>(model.getKeysDescriptor());
+        parameterDescriptor.putAll(model.getUniqueFieldsDescriptor());
 
-        return model.getKeysDescriptor().get(parameterName);
+        Preconditions.checkArgument(parameterDescriptor.containsKey(parameterName),
+                "Unknown parameter '%s'", parameterName);
+        return parameterDescriptor.get(parameterName);
     }
 
     private <T> T convertValue(String value, Class<T> clazz) {

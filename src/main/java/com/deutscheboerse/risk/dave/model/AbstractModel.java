@@ -15,8 +15,12 @@ public abstract class AbstractModel extends JsonObject {
     }
 
     public abstract Map<String, Class<?>> getKeysDescriptor();
+    public abstract Map<String, Class<?>> getUniqueFieldsDescriptor();
 
     public Collection<String> getKeys() {
         return getKeysDescriptor().keySet();
+    }
+    public Collection<String> getUniqueFields() {
+        return getUniqueFieldsDescriptor().keySet();
     }
 }

@@ -32,4 +32,13 @@ public class PositionReportModel extends AbstractModel {
         keys.put("flexContractSymbol", String.class);
         return Collections.unmodifiableMap(keys);
     }
+
+    @Override
+    public Map<String, Class<?>> getUniqueFieldsDescriptor() {
+        Map<String, Class<?>> uniqueFields = new LinkedHashMap<>();
+        uniqueFields.put("clearingCurrency", String.class);
+        uniqueFields.put("productCurrency", String.class);
+        uniqueFields.put("underlying", String.class);
+        return Collections.unmodifiableMap(uniqueFields);
+    }
 }

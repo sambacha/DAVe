@@ -25,4 +25,9 @@ public class LiquiGroupSplitMarginModel extends AbstractModel {
         keys.put("marginCurrency", String.class);
         return Collections.unmodifiableMap(keys);
     }
+
+    @Override
+    public Map<String, Class<?>> getUniqueFieldsDescriptor() {
+        return Collections.emptyMap();
+    }
 }
