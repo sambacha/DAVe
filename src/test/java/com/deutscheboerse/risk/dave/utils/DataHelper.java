@@ -66,6 +66,7 @@ public class DataHelper {
     public static JsonObject getQueryParams(AbstractModel model) {
         JsonObject queryParams = new JsonObject();
         model.getKeys().forEach(key -> queryParams.put(key, model.getValue(key)));
+        model.getUniqueFields().forEach(uniqueField -> queryParams.put(uniqueField, model.getValue(uniqueField)));
         return queryParams;
     }
 }

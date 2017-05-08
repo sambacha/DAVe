@@ -14,6 +14,7 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class StoreManagerMock {
@@ -145,12 +146,13 @@ public class StoreManagerMock {
     }
 
     private JsonObject paramsToJson(MultiMap params, AbstractModel model) {
-        Map<String, Class<?>> keyDescriptor = model.getKeysDescriptor();
+        Map<String, Class<?>> parameterDescriptor = new HashMap<>(model.getKeysDescriptor());
+        parameterDescriptor.putAll(model.getUniqueFieldsDescriptor());
 
         JsonObject json = new JsonObject();
         params.forEach(entry -> {
             final String param = entry.getKey();
-            Class<?> convertTo = keyDescriptor.containsKey(param) ? keyDescriptor.get(param) : String.class;
+            Class<?> convertTo = parameterDescriptor.containsKey(param) ? parameterDescriptor.get(param) : String.class;
             json.put(param, convertValue(entry.getValue(), convertTo));
         });
         return json;

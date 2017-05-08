@@ -24,4 +24,12 @@ public class PoolMarginModel extends AbstractModel {
         keys.put("marginCurrency", String.class);
         return Collections.unmodifiableMap(keys);
     }
+
+    @Override
+    public Map<String, Class<?>> getUniqueFieldsDescriptor() {
+        Map<String, Class<?>> uniqueFields = new LinkedHashMap<>();
+        uniqueFields.put("clrRptCurrency", String.class);
+        uniqueFields.put("poolOwner", String.class);
+        return Collections.unmodifiableMap(uniqueFields);
+    }
 }
