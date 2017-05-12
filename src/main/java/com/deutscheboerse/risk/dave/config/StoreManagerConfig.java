@@ -1,14 +1,39 @@
 package com.deutscheboerse.risk.dave.config;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableList;
+
+import java.util.List;
+
+@JsonIgnoreProperties({"guice_binder"})
 public class StoreManagerConfig {
-    private String hostname = "localhost";
-    private int port = 8443;
-    private String sslKey = null;
-    private String sslCert = null;
-    private String [] sslTrustCerts = new String[] {};
-    private boolean verifyHost = true;
-    private RestApiConfig restApi = new RestApiConfig();
-    private String guice_binder = null;
+    private static final String DEFAULT_HOSTNAME = "localhost";
+    private static final int DEFAULT_PORT= 8443;
+    private static final boolean DEFAULT_VERIFY_HOST= true;
+    private static final String[] DEFAULT_SSL_TRUST_CERTS = new String[]{};
+    private final String hostname;
+    private final int port;
+    private final boolean verifyHost;
+    private final String sslKey;
+    private final String sslCert;
+    private final String[] sslTrustCerts;
+
+    @JsonCreator
+    public StoreManagerConfig(@JsonProperty("hostname") String hostname,
+                              @JsonProperty("port") Integer port,
+                              @JsonProperty("verifyHost") Boolean verifyHost,
+                              @JsonProperty("sslKey") String sslKey,
+                              @JsonProperty("sslCert") String sslCert,
+                              @JsonProperty("sslTrustCerts") String[] sslTrustCerts) {
+        this.hostname = hostname == null ? DEFAULT_HOSTNAME : hostname;
+        this.port = port == null ? DEFAULT_PORT : port;
+        this.verifyHost = verifyHost == null ? DEFAULT_VERIFY_HOST : verifyHost;
+        this.sslKey = sslKey;
+        this.sslCert = sslCert;
+        this.sslTrustCerts = sslTrustCerts == null ? DEFAULT_SSL_TRUST_CERTS : sslTrustCerts;
+    }
 
     public String getHostname() {
         return hostname;
@@ -16,6 +41,10 @@ public class StoreManagerConfig {
 
     public int getPort() {
         return port;
+    }
+
+    public boolean isVerifyHost() {
+        return verifyHost;
     }
 
     public String getSslKey() {
@@ -26,52 +55,7 @@ public class StoreManagerConfig {
         return sslCert;
     }
 
-    public String[] getSslTrustCerts() {
-        return sslTrustCerts;
-    }
-
-    public boolean isVerifyHost() {
-        return verifyHost;
-    }
-
-    public RestApiConfig getRestApi() {
-        return restApi;
-    }
-
-    public String getGuice_binder() {
-        return guice_binder;
-    }
-
-    public static class RestApiConfig {
-        private String accountMargin = "/api/v1.0/query/am";
-        private String liquiGroupMargin = "/api/v1.0/query/lgm";
-        private String liquiGroupSplitMargin = "/api/v1.0/query/lgsm";
-        private String poolMargin = "/api/v1.0/query/pm";
-        private String positionReport = "/api/v1.0/query/pr";
-        private String riskLimitUtilization = "/api/v1.0/query/rlu";
-
-        public String getAccountMargin() {
-            return accountMargin;
-        }
-
-        public String getLiquiGroupMargin() {
-            return liquiGroupMargin;
-        }
-
-        public String getLiquiGroupSplitMargin() {
-            return liquiGroupSplitMargin;
-        }
-
-        public String getPoolMargin() {
-            return poolMargin;
-        }
-
-        public String getPositionReport() {
-            return positionReport;
-        }
-
-        public String getRiskLimitUtilization() {
-            return riskLimitUtilization;
-        }
+    public List<String> getSslTrustCerts() {
+        return ImmutableList.copyOf(sslTrustCerts);
     }
 }

@@ -11,9 +11,9 @@ public class TestConfig {
     public static final int STORE_MANAGER_PORT = Integer.getInteger("storage.port", 8444);
     public static final int API_PORT = Integer.getInteger("api.port", 8443);
     public static final int HEALTHCHECK_PORT = Integer.getInteger("healthcheck.port", 8080);
-    public static final SelfSignedCertificate HTTP_STORAGE_CERTIFICATE = SelfSignedCertificate.create();
-    public static final SelfSignedCertificate HTTP_API_CERTIFICATE = SelfSignedCertificate.create();
-    public static final SelfSignedCertificate HTTP_CLIENT_CERTIFICATE = SelfSignedCertificate.create();
+    public static final SelfSignedCertificate HTTP_STORAGE_CERTIFICATE = SelfSignedCertificate.create("localhost");
+    public static final SelfSignedCertificate HTTP_API_CERTIFICATE = SelfSignedCertificate.create("localhost");
+    public static final SelfSignedCertificate HTTP_CLIENT_CERTIFICATE = SelfSignedCertificate.create("localhost");
 
     private TestConfig() {
         // Empty
@@ -73,13 +73,6 @@ public class TestConfig {
                 .put("sslKey", pemKeyBuffer.toString())
                 .put("sslCert", pemCertBuffer.toString())
                 .put("sslTrustCerts", sslTrustCerts)
-                .put("verifyHost", false)
-                .put("restApi", new JsonObject()
-                        .put("accountMargin", "/api/v1.0/query/am")
-                        .put("liquiGroupMargin", "/api/v1.0/query/lgm")
-                        .put("liquiGroupSplitMargin", "/api/v1.0/query/lgsm")
-                        .put("poolMargin", "/api/v1.0/query/pm")
-                        .put("positionReport", "/api/v1.0/query/pr")
-                        .put("riskLimitUtilization", "/api/v1.0/query/rlu"));
+                .put("verifyHost", false);
     }
 }

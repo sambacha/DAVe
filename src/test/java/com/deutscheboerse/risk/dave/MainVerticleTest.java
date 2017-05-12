@@ -2,7 +2,7 @@ package com.deutscheboerse.risk.dave;
 
 import ch.qos.logback.classic.Logger;
 import com.deutscheboerse.risk.dave.log.TestAppender;
-import com.deutscheboerse.risk.dave.model.PositionReportModel;
+import com.deutscheboerse.risk.dave.model.AccountMarginModel;
 import com.deutscheboerse.risk.dave.persistence.EchoPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.persistence.StoreManagerMock;
@@ -43,7 +43,7 @@ public class MainVerticleTest {
     @Test
     public void testFullChain(TestContext context) throws InterruptedException, UnsupportedEncodingException {
         // Start storage mock
-        StoreManagerMock storageMock = new StoreManagerMock(vertx, TestConfig.getStoreManagerConfig());
+        StoreManagerMock storageMock = new StoreManagerMock(vertx);
         final Async serverStarted = context.async();
         storageMock.listen(context.asyncAssertSuccess(ar -> serverStarted.complete()));
 
@@ -57,16 +57,26 @@ public class MainVerticleTest {
 
         deployAsync.awaitSuccess(30000);
 
-        PositionReportModel latestModel = DataHelper.getLastModelFromFile(PositionReportModel.class, 1);
-        String uri = new URIBuilder("/api/v1.0/pr/latest")
+        AccountMarginModel latestModel = DataHelper.getLastModelFromFile(AccountMarginModel.class, 1);
+        String uri = new URIBuilder("/api/v1.0/am/latest")
                 .addParams(DataHelper.getQueryParams(latestModel))
                 .build();
 
         JsonObject queryParams = DataHelper.getQueryParams(latestModel);
         JsonObject expectedResult = new JsonObject()
-                .put("model", "PositionReportModel")
-                .put("requestType", "LATEST")
-                .mergeIn(queryParams);
+                .put("snapshotID", StoreManagerMock.LATEST_SNAPSHOT_ID)
+                .put("businessDate", StoreManagerMock.BUSINESS_DATE)
+                .put("timestamp", 0)
+                .put("clearer", queryParams.getString("clearer"))
+                .put("member", queryParams.getString("member"))
+                .put("account", queryParams.getString("account"))
+                .put("marginCurrency", queryParams.getString("marginCurrency"))
+                .put("clearingCurrency", queryParams.getString("clearingCurrency"))
+                .put("pool", queryParams.getString("pool"))
+                .put("marginReqInMarginCurr", 0.0)
+                .put("marginReqInClrCurr", 0.0)
+                .put("unadjustedMarginRequirement", 0.0)
+                .put("variationPremiumPayment", 0.0);
 
         final Async asyncRest = context.async();
         HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)

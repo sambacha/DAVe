@@ -1,176 +1,193 @@
 package com.deutscheboerse.risk.dave.persistence;
 
-import com.deutscheboerse.risk.dave.model.*;
+import com.deutscheboerse.risk.dave.*;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.vertx.core.*;
-import io.vertx.core.http.ClientAuth;
-import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
+import com.google.protobuf.MessageLite;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
+import io.vertx.grpc.GrpcWriteStream;
+import io.vertx.grpc.VertxServer;
+import io.vertx.grpc.VertxServerBuilder;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.function.Function;
 
 public class StoreManagerMock {
     private static final Logger LOG = LoggerFactory.getLogger(StoreManagerMock.class);
 
-    private static final boolean DEFAULT_SSL_REQUIRE_CLIENT_AUTH = true;
-
-    private static final AccountMarginModel ACCOUNT_MARGIN_MODEL = new AccountMarginModel();
-    private static final LiquiGroupMarginModel LIQUI_GROUP_MARGIN_MODEL = new LiquiGroupMarginModel();
-    private static final LiquiGroupSplitMarginModel LIQUI_GROUP_SPLIT_MARGIN_MODEL = new LiquiGroupSplitMarginModel();
-    private static final PoolMarginModel POOL_MARGIN_MODEL = new PoolMarginModel();
-    private static final PositionReportModel POSITION_REPORT_MODEL = new PositionReportModel();
-    private static final RiskLimitUtilizationModel RISK_LIMIT_UTILIZATION_MODEL = new RiskLimitUtilizationModel();
+    public static final int HISTORY_SNAPSHOT_ID = 1;
+    public static final int LATEST_SNAPSHOT_ID = 2;
+    public static final int BUSINESS_DATE = 20131218;
 
     private final Vertx vertx;
-    private final JsonObject config;
-    private final HttpServer server;
+    private final VertxServer server;
     private boolean health = true;
 
-    public StoreManagerMock(Vertx vertx, JsonObject config) {
+    public StoreManagerMock(Vertx vertx) {
         this.vertx = vertx;
-        this.config = config;
-        this.server = this.createHttpServer();
+        this.server = this.createGrpcServer();
     }
 
     public StoreManagerMock listen(Handler<AsyncResult<Void>> resultHandler) {
-        int storeManagerPort = TestConfig.STORE_MANAGER_PORT;
-        LOG.info("Starting web server on port {}", storeManagerPort);
+        LOG.info("Starting web server on port {}", TestConfig.STORE_MANAGER_PORT);
 
-        Future<HttpServer> listenFuture = Future.future();
-        server.listen(storeManagerPort, listenFuture);
-        listenFuture.map((Void)null).setHandler(resultHandler);
-
+        this.server.start(resultHandler);
         return this;
     }
 
-    StoreManagerMock setHealth(boolean health) {
+    public StoreManagerMock setHealth(boolean health) {
         this.health = health;
         return this;
     }
 
-    private HttpServer createHttpServer() {
-        Router router = configureRouter();
-
-        HttpServerOptions options = createHttpServerOptions();
-
-        return vertx.createHttpServer(options).requestHandler(router::accept);
+    private VertxServer createGrpcServer() {
+        return VertxServerBuilder
+                .forPort(vertx, TestConfig.STORE_MANAGER_PORT)
+                .addService(this.createService())
+                .useSsl(options -> options
+                        .setSsl(true)
+                        .setUseAlpn(true)
+                        .setPemKeyCertOptions(TestConfig.HTTP_STORAGE_CERTIFICATE.keyCertOptions())
+                        .setPemTrustOptions(TestConfig.HTTP_STORAGE_CERTIFICATE.trustOptions())
+                )
+                .build();
     }
 
-    private HttpServerOptions createHttpServerOptions() {
-        HttpServerOptions options = new HttpServerOptions();
+    private PersistenceServiceGrpc.PersistenceServiceVertxImplBase createService() {
+        return new PersistenceServiceGrpc.PersistenceServiceVertxImplBase() {
+            @Override
+            public void queryAccountMargin(AccountMarginQuery request, GrpcWriteStream<AccountMargin> response) {
+                this.query(request, response, StoreManagerMock.this::buildAccountMargin);
+            }
 
-        options.setSsl(true);
-        options.setPemKeyCertOptions(TestConfig.HTTP_STORAGE_CERTIFICATE.keyCertOptions());
-        options.setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
-        final boolean requireClientAuth = this.config.getBoolean("sslRequireClientAuth", DEFAULT_SSL_REQUIRE_CLIENT_AUTH);
-        options.setClientAuth(requireClientAuth ? ClientAuth.REQUIRED : ClientAuth.REQUEST);
+            @Override
+            public void queryLiquiGroupMargin(LiquiGroupMarginQuery request, GrpcWriteStream<LiquiGroupMargin> response) {
+                this.query(request, response, StoreManagerMock.this::buildLiquiGroupMargin);
+            }
 
-        return options;
-    }
+            @Override
+            public void queryLiquiGroupSplitMargin(LiquiGroupSplitMarginQuery request, GrpcWriteStream<LiquiGroupSplitMargin> response) {
+                this.query(request, response, StoreManagerMock.this::buildLiquiGroupSplitMargin);
+            }
 
-    private Router configureRouter() {
-        Router router = Router.router(vertx);
+            @Override
+            public void queryPoolMargin(PoolMarginQuery request, GrpcWriteStream<PoolMargin> response) {
+                this.query(request, response, StoreManagerMock.this::buildPoolMargin);
+            }
 
-        LOG.info("Adding route REST API");
-        registerRestPoint(router, "accountMargin", this::queryAccountMargin);
-        registerRestPoint(router, "liquiGroupMargin", this::queryLiquiGroupMargin);
-        registerRestPoint(router, "liquiGroupSplitMargin", this::queryLiquiGroupSplitMargin);
-        registerRestPoint(router, "poolMargin", this::queryPoolMargin);
-        registerRestPoint(router, "positionReport", this::queryPositionReport);
-        registerRestPoint(router, "riskLimitUtilization", this::queryRiskLimitUtilization);
+            @Override
+            public void queryPositionReport(PositionReportQuery request, GrpcWriteStream<PositionReport> response) {
+                this.query(request, response, StoreManagerMock.this::buildPositionReport);
+            }
 
-        return router;
-    }
+            @Override
+            public void queryRiskLimitUtilization(RiskLimitUtilizationQuery request, GrpcWriteStream<RiskLimitUtilization> response) {
+                this.query(request, response, StoreManagerMock.this::buildRiskLimitUtilization);
+            }
 
-    private void registerRestPoint(Router router, String restApi, Handler<RoutingContext> handler) {
-        final String baseURI = config.getJsonObject("restApi", new JsonObject()).getString(restApi);
-
-        router.get(baseURI+"/history").handler(handler);
-        router.get(baseURI+"/latest").handler(handler);
-    }
-
-    private void queryAccountMargin(RoutingContext routingContext) {
-        LOG.trace("Received queryAccountMargin request");
-        this.createResponse(routingContext, ACCOUNT_MARGIN_MODEL);
-    }
-
-    private void queryLiquiGroupMargin(RoutingContext routingContext) {
-        LOG.trace("Received queryLiquiGroupMargin request");
-        this.createResponse(routingContext, LIQUI_GROUP_MARGIN_MODEL);
-    }
-
-    private void queryLiquiGroupSplitMargin(RoutingContext routingContext) {
-        LOG.trace("Received queryLiquiGroupSplitMargin request");
-        this.createResponse(routingContext, LIQUI_GROUP_SPLIT_MARGIN_MODEL);
-    }
-
-    private void queryPoolMargin(RoutingContext routingContext) {
-        LOG.trace("Received queryPoolMargin request");
-        this.createResponse(routingContext, POOL_MARGIN_MODEL);
-    }
-
-    private void queryPositionReport(RoutingContext routingContext) {
-        LOG.trace("Received queryPositionReport request");
-        this.createResponse(routingContext, POSITION_REPORT_MODEL);
-    }
-
-    private void queryRiskLimitUtilization(RoutingContext routingContext) {
-        LOG.trace("Received queryRiskLimitUtilization request");
-        this.createResponse(routingContext, RISK_LIMIT_UTILIZATION_MODEL);
+            private <T extends MessageLite, R extends MessageLite>
+            void query(T request, GrpcWriteStream<R> response, Function<T, R> responseBuilder) {
+                if (health) {
+                    response.write(responseBuilder.apply(request));
+                    response.end();
+                } else {
+                    response.fail(new StatusRuntimeException(Status.INVALID_ARGUMENT));
+                }
+            }
+        };
     }
 
     public void close(Handler<AsyncResult<Void>> completionHandler) {
         LOG.info("Shutting down webserver");
-        server.close(completionHandler);
+        server.shutdown(completionHandler);
     }
 
-    private void createResponse(RoutingContext context, AbstractModel model) {
-        RequestType requestType = context.request().uri().contains("/history")
-                ? RequestType.HISTORY
-                : RequestType.LATEST;
-
-        String response = new JsonArray().add(new JsonObject()
-                .put("model", model.getClass().getSimpleName())
-                .put("requestType", requestType)
-                .mergeIn(paramsToJson(context.request().params(), model))).encodePrettily();
-
-        context.response().setStatusCode(getStatusCode()).end(response);
+    private AccountMargin buildAccountMargin(AccountMarginQuery request) {
+        return AccountMargin.newBuilder()
+                .setSnapshotId(request.getLatest() ? LATEST_SNAPSHOT_ID : HISTORY_SNAPSHOT_ID)
+                .setBusinessDate(BUSINESS_DATE)
+                .setClearer(request.getClearer())
+                .setMember(request.getMember())
+                .setAccount(request.getAccount())
+                .setMarginCurrency(request.getMarginCurrency())
+                .setClearingCurrency(request.getClearingCurrency())
+                .setPool(request.getPool())
+                .build();
     }
 
-    private JsonObject paramsToJson(MultiMap params, AbstractModel model) {
-        Map<String, Class<?>> parameterDescriptor = new HashMap<>(model.getKeysDescriptor());
-        parameterDescriptor.putAll(model.getUniqueFieldsDescriptor());
-
-        JsonObject json = new JsonObject();
-        params.forEach(entry -> {
-            final String param = entry.getKey();
-            Class<?> convertTo = parameterDescriptor.containsKey(param) ? parameterDescriptor.get(param) : String.class;
-            json.put(param, convertValue(entry.getValue(), convertTo));
-        });
-        return json;
+    private LiquiGroupMargin buildLiquiGroupMargin(LiquiGroupMarginQuery request) {
+        return LiquiGroupMargin.newBuilder()
+                .setSnapshotId(request.getLatest() ? LATEST_SNAPSHOT_ID : HISTORY_SNAPSHOT_ID)
+                .setBusinessDate(BUSINESS_DATE)
+                .setClearer(request.getClearer())
+                .setMember(request.getMember())
+                .setAccount(request.getAccount())
+                .setMarginClass(request.getMarginClass())
+                .setMarginCurrency(request.getMarginCurrency())
+                .setMarginGroup(request.getMarginGroup())
+                .build();
     }
 
-    private <T> T convertValue(String value, Class<T> clazz) {
-        if (clazz.equals(String.class)) {
-            return clazz.cast(value);
-        } else if (clazz.equals(Integer.class)) {
-            return clazz.cast(Integer.parseInt(value));
-        } else if (clazz.equals(Double.class)) {
-            return clazz.cast(Double.parseDouble(value));
-        } else {
-            throw new AssertionError("Unsupported type " + clazz);
-        }
+    private LiquiGroupSplitMargin buildLiquiGroupSplitMargin(LiquiGroupSplitMarginQuery request) {
+        return LiquiGroupSplitMargin.newBuilder()
+                .setSnapshotId(request.getLatest() ? LATEST_SNAPSHOT_ID : HISTORY_SNAPSHOT_ID)
+                .setBusinessDate(BUSINESS_DATE)
+                .setClearer(request.getClearer())
+                .setMember(request.getMember())
+                .setAccount(request.getAccount())
+                .setLiquidationGroup(request.getLiquidationGroup())
+                .setLiquidationGroupSplit(request.getLiquidationGroupSplit())
+                .setMarginCurrency(request.getMarginCurrency())
+                .build();
     }
 
-    private int getStatusCode() {
-        return health ? HttpResponseStatus.OK.code(): HttpResponseStatus.SERVICE_UNAVAILABLE.code();
+    private PoolMargin buildPoolMargin(PoolMarginQuery request) {
+        return PoolMargin.newBuilder()
+                .setSnapshotId(request.getLatest() ? LATEST_SNAPSHOT_ID : HISTORY_SNAPSHOT_ID)
+                .setBusinessDate(BUSINESS_DATE)
+                .setClearer(request.getClearer())
+                .setPool(request.getPool())
+                .setMarginCurrency(request.getMarginCurrency())
+                .setClrRptCurrency(request.getClrRptCurrency())
+                .setPoolOwner(request.getPoolOwner())
+                .build();
+    }
+
+    private PositionReport buildPositionReport(PositionReportQuery request) {
+        return PositionReport.newBuilder()
+                .setSnapshotId(request.getLatest() ? LATEST_SNAPSHOT_ID : HISTORY_SNAPSHOT_ID)
+                .setBusinessDate(BUSINESS_DATE)
+                .setClearer(request.getClearer())
+                .setMember(request.getMember())
+                .setAccount(request.getAccount())
+                .setLiquidationGroup(request.getLiquidationGroup())
+                .setLiquidationGroupSplit(request.getLiquidationGroupSplit())
+                .setProduct(request.getProduct())
+                .setCallPut(request.getCallPut())
+                .setContractYear(request.getContractYear())
+                .setContractMonth(request.getContractMonth())
+                .setExpiryDay(request.getExpiryDay())
+                .setExercisePrice(request.getExercisePrice())
+                .setVersion(request.getVersion())
+                .setFlexContractSymbol(request.getFlexContractSymbol())
+                .setClearingCurrency(request.getClearingCurrency())
+                .setProductCurrency(request.getProductCurrency())
+                .setUnderlying(request.getUnderlying())
+                .build();
+    }
+
+    private RiskLimitUtilization buildRiskLimitUtilization(RiskLimitUtilizationQuery request) {
+        return RiskLimitUtilization.newBuilder()
+                .setSnapshotId(request.getLatest() ? LATEST_SNAPSHOT_ID : HISTORY_SNAPSHOT_ID)
+                .setBusinessDate(BUSINESS_DATE)
+                .setClearer(request.getClearer())
+                .setMember(request.getMember())
+                .setMaintainer(request.getMaintainer())
+                .setLimitType(request.getLimitType())
+                .build();
     }
 }
