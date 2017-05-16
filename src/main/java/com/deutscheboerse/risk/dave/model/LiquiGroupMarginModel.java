@@ -1,34 +1,66 @@
 package com.deutscheboerse.risk.dave.model;
 
+import com.deutscheboerse.risk.dave.LiquiGroupMargin;
+import com.google.protobuf.InvalidProtocolBufferException;
+import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
-import java.util.*;
+@DataObject
+public class LiquiGroupMarginModel implements Model<LiquiGroupMargin> {
 
-public class LiquiGroupMarginModel extends AbstractModel {
+    private final LiquiGroupMargin grpc;
 
-    public LiquiGroupMarginModel() {
-        // Empty constructor
+    public LiquiGroupMarginModel(LiquiGroupMargin grpc) {
+        this.grpc = grpc;
     }
 
     public LiquiGroupMarginModel(JsonObject json) {
-        super(json);
+        verifyJson(json);
+        try {
+            this.grpc =  LiquiGroupMargin.parseFrom(json.getBinary("grpc"));
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public Map<String, Class<?>> getKeysDescriptor() {
-        Map<String, Class<?>> keys = new LinkedHashMap<>();
-        keys.put("clearer", String.class);
-        keys.put("member", String.class);
-        keys.put("account", String.class);
-        keys.put("marginClass", String.class);
-        keys.put("marginCurrency", String.class);
-        return Collections.unmodifiableMap(keys);
+    public LiquiGroupMargin toGrpc() {
+        return this.grpc;
     }
 
     @Override
-    public Map<String, Class<?>> getUniqueFieldsDescriptor() {
-        Map<String, Class<?>> uniqueFields = new LinkedHashMap<>();
-        uniqueFields.put("marginGroup", String.class);
-        return Collections.unmodifiableMap(uniqueFields);
+    public JsonObject toApplicationJson() {
+        return new JsonObject()
+                .put("snapshotID", grpc.getSnapshotId())
+                .put("businessDate", grpc.getBusinessDate())
+                .put("timestamp", grpc.getTimestamp())
+                .put("clearer", grpc.getClearer())
+                .put("member", grpc.getMember())
+                .put("account", grpc.getAccount())
+                .put("marginClass", grpc.getMarginClass())
+                .put("marginCurrency", grpc.getMarginCurrency())
+                .put("marginGroup", grpc.getMarginGroup())
+                .put("premiumMargin", grpc.getPremiumMargin())
+                .put("currentLiquidatingMargin", grpc.getCurrentLiquidatingMargin())
+                .put("futuresSpreadMargin", grpc.getFuturesSpreadMargin())
+                .put("additionalMargin", grpc.getAdditionalMargin())
+                .put("unadjustedMarginRequirement", grpc.getUnadjustedMarginRequirement())
+                .put("variationPremiumPayment", grpc.getVariationPremiumPayment());
+    }
+
+    private static KeyDescriptor keyDescriptor;
+
+    public static KeyDescriptor getKeyDescriptor() {
+        if (keyDescriptor == null) {
+            keyDescriptor = KeyDescriptor.newBuilder()
+                    .addField("clearer", String.class)
+                    .addField("member", String.class)
+                    .addField("account", String.class)
+                    .addField("marginClass", String.class)
+                    .addField("marginCurrency", String.class)
+                    .addField("marginGroup", String.class)
+                    .build();
+        }
+        return keyDescriptor;
     }
 }

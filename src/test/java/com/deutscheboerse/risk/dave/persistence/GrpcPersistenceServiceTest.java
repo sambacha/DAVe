@@ -3,7 +3,7 @@ package com.deutscheboerse.risk.dave.persistence;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.deutscheboerse.risk.dave.log.TestAppender;
-import com.deutscheboerse.risk.dave.model.*;
+import com.deutscheboerse.risk.dave.model.Model;
 import com.deutscheboerse.risk.dave.utils.DataHelper;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
 import io.vertx.core.AsyncResult;
@@ -21,7 +21,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.function.Function;
+import java.util.List;
 
 @RunWith(VertxUnitRunner.class)
 public class GrpcPersistenceServiceTest {
@@ -48,38 +48,32 @@ public class GrpcPersistenceServiceTest {
 
     @Test
     public void testAccountMarginQuery(TestContext context) throws IOException {
-        this.testQuery(context, "accountMargin", AccountMarginModel::new,
-                persistenceProxy::queryRiskLimitUtilization);
+        this.testQuery(context, "accountMargin", persistenceProxy::queryAccountMargin);
     }
 
     @Test
     public void testLiquiGroupMarginQuery(TestContext context) throws IOException {
-        this.testQuery(context, "liquiGroupMargin", LiquiGroupMarginModel::new,
-                persistenceProxy::queryLiquiGroupMargin);
+        this.testQuery(context, "liquiGroupMargin", persistenceProxy::queryLiquiGroupMargin);
     }
 
     @Test
     public void testLiquiGroupSplitMarginQuery(TestContext context) throws IOException {
-        this.testQuery(context, "liquiGroupSplitMargin", LiquiGroupSplitMarginModel::new,
-                persistenceProxy::queryLiquiGroupSplitMargin);
+        this.testQuery(context, "liquiGroupSplitMargin", persistenceProxy::queryLiquiGroupSplitMargin);
     }
 
     @Test
     public void testPoolMarginQuery(TestContext context) throws IOException {
-        this.testQuery(context, "poolMargin", PoolMarginModel::new,
-                persistenceProxy::queryPoolMargin);
+        this.testQuery(context, "poolMargin", persistenceProxy::queryPoolMargin);
     }
 
     @Test
     public void testPositionReportQuery(TestContext context) throws IOException {
-        this.testQuery(context, "positionReport", PositionReportModel::new,
-                persistenceProxy::queryPositionReport);
+        this.testQuery(context, "positionReport", persistenceProxy::queryPositionReport);
     }
 
     @Test
     public void testRiskLimitUtilizationQuery(TestContext context) throws IOException {
-        this.testQuery(context, "riskLimitUtilization", RiskLimitUtilizationModel::new,
-                persistenceProxy::queryRiskLimitUtilization);
+        this.testQuery(context, "riskLimitUtilization", persistenceProxy::queryRiskLimitUtilization);
     }
 
     @Test
@@ -87,7 +81,7 @@ public class GrpcPersistenceServiceTest {
         storageManager.setHealth(false);
         testAppender.start();
         Async queryAsync = context.async();
-        persistenceProxy.queryAccountMargin(RequestType.HISTORY, new AccountMarginModel(new JsonObject()),
+        persistenceProxy.queryAccountMargin(RequestType.HISTORY, new JsonObject(),
                 context.asyncAssertFailure(ar -> queryAsync.complete()));
         queryAsync.awaitSuccess();
         testAppender.waitForMessageContains(Level.ERROR, "INVALID_ARGUMENT");
@@ -102,7 +96,7 @@ public class GrpcPersistenceServiceTest {
         closeAsync.awaitSuccess();
         testAppender.start();
         Async queryAsync = context.async();
-        persistenceProxy.queryAccountMargin(RequestType.HISTORY, new AccountMarginModel(new JsonObject()),
+        persistenceProxy.queryAccountMargin(RequestType.HISTORY, new JsonObject(),
                 context.asyncAssertFailure(ar -> queryAsync.complete()));
         queryAsync.awaitSuccess();
         testAppender.waitForMessageContains(Level.ERROR, "UNAVAILABLE");
@@ -110,21 +104,19 @@ public class GrpcPersistenceServiceTest {
         testAppender.stop();
     }
 
-    private interface QueryFunction {
-        void query(RequestType type, JsonObject query, Handler<AsyncResult<String>> resultHandler);
+    private interface QueryFunction<T extends Model> {
+        void query(RequestType type, JsonObject query, Handler<AsyncResult<List<T>>> resultHandler);
     }
 
-    private <T extends AbstractModel>
+    private <T extends Model>
     void testQuery(TestContext context,
                    String dataFolder,
-                   Function<JsonObject, T> modelFactory,
-                   QueryFunction queryFunction) throws IOException {
+                   QueryFunction<T> queryFunction) throws IOException {
 
         int firstMsgCount = DataHelper.getJsonObjectCount(dataFolder, 1);
         Async asyncQuery1 = context.async(firstMsgCount);
         DataHelper.readTTSaveFile(dataFolder, 1, (json) -> {
-            T model = modelFactory.apply(json);
-            queryFunction.query(RequestType.HISTORY, model, ar -> {
+            queryFunction.query(RequestType.HISTORY, json, ar -> {
                 if (ar.succeeded()) {
                     asyncQuery1.countDown();
                 } else {
@@ -137,8 +129,7 @@ public class GrpcPersistenceServiceTest {
         int secondMsgCount = DataHelper.getJsonObjectCount(dataFolder, 2);
         Async asyncQuery2 = context.async(secondMsgCount);
         DataHelper.readTTSaveFile(dataFolder, 2, (json) -> {
-            T model = modelFactory.apply(json);
-            queryFunction.query(RequestType.LATEST, model, ar -> {
+            queryFunction.query(RequestType.LATEST, json, ar -> {
                 if (ar.succeeded()) {
                     asyncQuery2.countDown();
                 } else {

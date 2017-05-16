@@ -3,6 +3,7 @@ package com.deutscheboerse.risk.dave.persistence;
 import com.deutscheboerse.risk.dave.*;
 import com.deutscheboerse.risk.dave.config.StoreManagerConfig;
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
+import com.deutscheboerse.risk.dave.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.MessageLite;
 import io.grpc.ManagedChannel;
@@ -11,7 +12,6 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -24,6 +24,8 @@ import io.vertx.grpc.VertxChannelBuilder;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -90,7 +92,7 @@ public class GrpcPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void queryAccountMargin(RequestType type, JsonObject json, Handler<AsyncResult<String>> resultHandler) {
+    public void queryAccountMargin(RequestType type, JsonObject json, Handler<AsyncResult<List<AccountMarginModel>>> resultHandler) {
         AccountMarginQuery request = AccountMarginQuery.newBuilder()
                 .setLatest(type == RequestType.LATEST)
                 .setClearer(json.getString("clearer", "*"))
@@ -101,11 +103,11 @@ public class GrpcPersistenceService implements PersistenceService {
                 .setPool(json.getString("pool", "*"))
                 .build();
 
-        this.query(request, getOrCreateGrpcService()::queryAccountMargin, this::accountMarginToJson, resultHandler);
+        this.query(request, getOrCreateGrpcService()::queryAccountMargin, AccountMarginModel::new, resultHandler);
     }
 
     @Override
-    public void queryLiquiGroupMargin(RequestType type, JsonObject json, Handler<AsyncResult<String>> resultHandler) {
+    public void queryLiquiGroupMargin(RequestType type, JsonObject json, Handler<AsyncResult<List<LiquiGroupMarginModel>>> resultHandler) {
         LiquiGroupMarginQuery request = LiquiGroupMarginQuery.newBuilder()
                 .setLatest(type == RequestType.LATEST)
                 .setClearer(json.getString("clearer", "*"))
@@ -116,11 +118,11 @@ public class GrpcPersistenceService implements PersistenceService {
                 .setMarginGroup(json.getString("marginGroup", "*"))
                 .build();
 
-        this.query(request, getOrCreateGrpcService()::queryLiquiGroupMargin, this::liquiGroupMarginToJson, resultHandler);
+        this.query(request, getOrCreateGrpcService()::queryLiquiGroupMargin, LiquiGroupMarginModel::new, resultHandler);
     }
 
     @Override
-    public void queryLiquiGroupSplitMargin(RequestType type, JsonObject json, Handler<AsyncResult<String>> resultHandler) {
+    public void queryLiquiGroupSplitMargin(RequestType type, JsonObject json, Handler<AsyncResult<List<LiquiGroupSplitMarginModel>>> resultHandler) {
         LiquiGroupSplitMarginQuery request = LiquiGroupSplitMarginQuery.newBuilder()
                 .setLatest(type == RequestType.LATEST)
                 .setClearer(json.getString("clearer", "*"))
@@ -131,11 +133,11 @@ public class GrpcPersistenceService implements PersistenceService {
                 .setMarginCurrency(json.getString("marginCurrency", "*"))
                 .build();
 
-        this.query(request, getOrCreateGrpcService()::queryLiquiGroupSplitMargin, this::liquiGroupSplitMarginToJson, resultHandler);
+        this.query(request, getOrCreateGrpcService()::queryLiquiGroupSplitMargin, LiquiGroupSplitMarginModel::new, resultHandler);
     }
 
     @Override
-    public void queryPoolMargin(RequestType type, JsonObject json, Handler<AsyncResult<String>> resultHandler) {
+    public void queryPoolMargin(RequestType type, JsonObject json, Handler<AsyncResult<List<PoolMarginModel>>> resultHandler) {
         PoolMarginQuery request = PoolMarginQuery.newBuilder()
                 .setLatest(type == RequestType.LATEST)
                 .setClearer(json.getString("clearer", "*"))
@@ -145,11 +147,11 @@ public class GrpcPersistenceService implements PersistenceService {
                 .setPoolOwner(json.getString("poolOwner", "*"))
                 .build();
 
-        this.query(request, getOrCreateGrpcService()::queryPoolMargin, this::poolMarginToJson, resultHandler);
+        this.query(request, getOrCreateGrpcService()::queryPoolMargin, PoolMarginModel::new, resultHandler);
     }
 
     @Override
-    public void queryPositionReport(RequestType type, JsonObject json, Handler<AsyncResult<String>> resultHandler) {
+    public void queryPositionReport(RequestType type, JsonObject json, Handler<AsyncResult<List<PositionReportModel>>> resultHandler) {
         PositionReportQuery request = PositionReportQuery.newBuilder()
                 .setLatest(type == RequestType.LATEST)
                 .setClearer(json.getString("clearer", "*"))
@@ -170,11 +172,11 @@ public class GrpcPersistenceService implements PersistenceService {
                 .setUnderlying(json.getString("underlying", "*"))
                 .build();
 
-        this.query(request, getOrCreateGrpcService()::queryPositionReport, this::positionReportToJson, resultHandler);
+        this.query(request, getOrCreateGrpcService()::queryPositionReport, PositionReportModel::new, resultHandler);
     }
 
     @Override
-    public void queryRiskLimitUtilization(RequestType type, JsonObject json, Handler<AsyncResult<String>> resultHandler) {
+    public void queryRiskLimitUtilization(RequestType type, JsonObject json, Handler<AsyncResult<List<RiskLimitUtilizationModel>>> resultHandler) {
         RiskLimitUtilizationQuery request = RiskLimitUtilizationQuery.newBuilder()
                 .setLatest(type == RequestType.LATEST)
                 .setClearer(json.getString("clearer", "*"))
@@ -183,7 +185,7 @@ public class GrpcPersistenceService implements PersistenceService {
                 .setLimitType(json.getString("limitType", "*"))
                 .build();
 
-        this.query(request, getOrCreateGrpcService()::queryRiskLimitUtilization, this::riskLimitUtilizationToJson, resultHandler);
+        this.query(request, getOrCreateGrpcService()::queryRiskLimitUtilization, RiskLimitUtilizationModel::new, resultHandler);
     }
 
     @Override
@@ -191,18 +193,18 @@ public class GrpcPersistenceService implements PersistenceService {
         // Empty
     }
 
-    private <GrpcType extends MessageLite, QueryType extends MessageLite>
+    private <GrpcType extends MessageLite, QueryType extends MessageLite, ModelType extends Model>
     void query(QueryType request,
                BiConsumer<QueryType, Handler<GrpcReadStream<GrpcType>>> queryFunction,
-               Function<GrpcType, JsonObject> convertToJson,
-               Handler<AsyncResult<String>> resultHandler) {
+               Function<GrpcType, ModelType> modelFactory,
+               Handler<AsyncResult<List<ModelType>>> resultHandler) {
 
-        JsonArray result = new JsonArray();
+        List<ModelType> result = new ArrayList<>();
         queryFunction.accept(request, stream ->
                 stream.handler(grpc -> {
-                    result.add(convertToJson.apply(grpc));
+                    result.add(modelFactory.apply(grpc));
                 }).endHandler(v -> {
-                    resultHandler.handle(Future.succeededFuture(result.toString()));
+                    resultHandler.handle(Future.succeededFuture(result));
                 }).exceptionHandler(ex -> {
                     LOG.error(ex);
                     this.channel.shutdown();
@@ -210,132 +212,5 @@ public class GrpcPersistenceService implements PersistenceService {
                     resultHandler.handle(Future.failedFuture(ex));
                 })
         );
-    }
-
-    private JsonObject accountMarginToJson(AccountMargin grpc) {
-        return new JsonObject()
-            .put("snapshotID", grpc.getSnapshotId())
-            .put("businessDate", grpc.getBusinessDate())
-            .put("timestamp", grpc.getTimestamp())
-            .put("clearer", grpc.getClearer())
-            .put("member", grpc.getMember())
-            .put("account", grpc.getAccount())
-            .put("marginCurrency", grpc.getMarginCurrency())
-            .put("clearingCurrency", grpc.getClearingCurrency())
-            .put("pool", grpc.getPool())
-            .put("marginReqInMarginCurr", grpc.getMarginReqInMarginCurr())
-            .put("marginReqInClrCurr", grpc.getMarginReqInClrCurr())
-            .put("unadjustedMarginRequirement", grpc.getUnadjustedMarginRequirement())
-            .put("variationPremiumPayment", grpc.getVariationPremiumPayment());
-    }
-
-    private JsonObject liquiGroupMarginToJson(LiquiGroupMargin grpc) {
-        return new JsonObject()
-            .put("snapshotID", grpc.getSnapshotId())
-            .put("businessDate", grpc.getBusinessDate())
-            .put("timestamp", grpc.getTimestamp())
-            .put("clearer", grpc.getClearer())
-            .put("member", grpc.getMember())
-            .put("account", grpc.getAccount())
-            .put("marginClass", grpc.getMarginClass())
-            .put("marginCurrency", grpc.getMarginCurrency())
-            .put("marginGroup", grpc.getMarginGroup())
-            .put("premiumMargin", grpc.getPremiumMargin())
-            .put("currentLiquidatingMargin", grpc.getCurrentLiquidatingMargin())
-            .put("futuresSpreadMargin", grpc.getFuturesSpreadMargin())
-            .put("additionalMargin", grpc.getAdditionalMargin())
-            .put("unadjustedMarginRequirement", grpc.getUnadjustedMarginRequirement())
-            .put("variationPremiumPayment", grpc.getVariationPremiumPayment());
-    }
-
-    private JsonObject liquiGroupSplitMarginToJson(LiquiGroupSplitMargin grpc) {
-        return new JsonObject()
-            .put("snapshotID", grpc.getSnapshotId())
-            .put("businessDate", grpc.getBusinessDate())
-            .put("timestamp", grpc.getTimestamp())
-            .put("clearer", grpc.getClearer())
-            .put("member", grpc.getMember())
-            .put("account", grpc.getAccount())
-            .put("liquidationGroup", grpc.getLiquidationGroup())
-            .put("liquidationGroupSplit", grpc.getLiquidationGroupSplit())
-            .put("marginCurrency", grpc.getMarginCurrency())
-            .put("premiumMargin", grpc.getPremiumMargin())
-            .put("marketRisk", grpc.getMarketRisk())
-            .put("liquRisk", grpc.getLiquRisk())
-            .put("longOptionCredit", grpc.getLongOptionCredit())
-            .put("variationPremiumPayment", grpc.getVariationPremiumPayment());
-    }
-
-    private JsonObject poolMarginToJson(PoolMargin grpc) {
-        return new JsonObject()
-            .put("snapshotID", grpc.getSnapshotId())
-            .put("businessDate", grpc.getBusinessDate())
-            .put("timestamp", grpc.getTimestamp())
-            .put("clearer", grpc.getClearer())
-            .put("pool", grpc.getPool())
-            .put("marginCurrency", grpc.getMarginCurrency())
-            .put("clrRptCurrency", grpc.getClrRptCurrency())
-            .put("requiredMargin", grpc.getRequiredMargin())
-            .put("cashCollateralAmount", grpc.getCashCollateralAmount())
-            .put("adjustedSecurities", grpc.getAdjustedSecurities())
-            .put("adjustedGuarantee", grpc.getAdjustedGuarantee())
-            .put("overUnderInMarginCurr", grpc.getOverUnderInMarginCurr())
-            .put("overUnderInClrRptCurr", grpc.getOverUnderInClrRptCurr())
-            .put("variPremInMarginCurr", grpc.getVariPremInMarginCurr())
-            .put("adjustedExchangeRate", grpc.getAdjustedExchangeRate())
-            .put("poolOwner", grpc.getPoolOwner());
-    }
-
-    private JsonObject positionReportToJson(PositionReport grpc) {
-        return new JsonObject()
-            .put("snapshotID", grpc.getSnapshotId())
-            .put("businessDate", grpc.getBusinessDate())
-            .put("timestamp", grpc.getTimestamp())
-            .put("clearer", grpc.getClearer())
-            .put("member", grpc.getMember())
-            .put("account", grpc.getAccount())
-            .put("liquidationGroup", grpc.getLiquidationGroup())
-            .put("liquidationGroupSplit", grpc.getLiquidationGroupSplit())
-            .put("product", grpc.getProduct())
-            .put("callPut", grpc.getCallPut())
-            .put("contractYear", grpc.getContractYear())
-            .put("contractMonth", grpc.getContractMonth())
-            .put("expiryDay", grpc.getExpiryDay())
-            .put("exercisePrice", grpc.getExercisePrice())
-            .put("version", grpc.getVersion())
-            .put("flexContractSymbol", grpc.getFlexContractSymbol())
-            .put("netQuantityLs", grpc.getNetQuantityLs())
-            .put("netQuantityEa", grpc.getNetQuantityEa())
-            .put("clearingCurrency", grpc.getClearingCurrency())
-            .put("mVar", grpc.getMVar())
-            .put("compVar", grpc.getCompVar())
-            .put("compCorrelationBreak", grpc.getCompCorrelationBreak())
-            .put("compCompressionError", grpc.getCompCompressionError())
-            .put("compLiquidityAddOn", grpc.getCompLiquidityAddOn())
-            .put("compLongOptionCredit", grpc.getCompLongOptionCredit())
-            .put("productCurrency", grpc.getProductCurrency())
-            .put("variationPremiumPayment", grpc.getVariationPremiumPayment())
-            .put("premiumMargin", grpc.getPremiumMargin())
-            .put("normalizedDelta", grpc.getNormalizedDelta())
-            .put("normalizedGamma", grpc.getNormalizedGamma())
-            .put("normalizedVega", grpc.getNormalizedVega())
-            .put("normalizedRho", grpc.getNormalizedRho())
-            .put("normalizedTheta", grpc.getNormalizedTheta())
-            .put("underlying", grpc.getUnderlying());
-    }
-
-    private JsonObject riskLimitUtilizationToJson(RiskLimitUtilization grpc) {
-        return new JsonObject()
-            .put("snapshotID", grpc.getSnapshotId())
-            .put("businessDate", grpc.getBusinessDate())
-            .put("timestamp", grpc.getTimestamp())
-            .put("clearer", grpc.getClearer())
-            .put("member", grpc.getMember())
-            .put("maintainer", grpc.getMaintainer())
-            .put("limitType", grpc.getLimitType())
-            .put("utilization", grpc.getUtilization())
-            .put("warningLevel", grpc.getWarningLevel())
-            .put("throttleLevel", grpc.getThrottleLevel())
-            .put("rejectLevel", grpc.getRejectLevel());
     }
 }

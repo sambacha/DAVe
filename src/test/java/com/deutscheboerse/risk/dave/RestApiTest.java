@@ -1,12 +1,15 @@
 package com.deutscheboerse.risk.dave;
 
-import com.deutscheboerse.risk.dave.model.*;
+import com.deutscheboerse.risk.dave.model.AccountMarginModel;
+import com.deutscheboerse.risk.dave.model.Model;
+import com.deutscheboerse.risk.dave.model.KeyDescriptor;
 import com.deutscheboerse.risk.dave.persistence.EchoPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.persistence.RequestType;
-import com.deutscheboerse.risk.dave.utils.DataHelper;
-import com.deutscheboerse.risk.dave.utils.TestConfig;
 import com.deutscheboerse.risk.dave.util.URIBuilder;
+import com.deutscheboerse.risk.dave.utils.DataHelper;
+import com.deutscheboerse.risk.dave.utils.ModelBuilder;
+import com.deutscheboerse.risk.dave.utils.TestConfig;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -23,6 +26,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.util.Set;
+import java.util.function.Function;
 
 @RunWith(VertxUnitRunner.class)
 public class RestApiTest {
@@ -45,62 +50,74 @@ public class RestApiTest {
 
     @Test
     public void testAccountMarginLatest(TestContext context) {
-        this.testCompleteUrl(context, "/api/v1.0/am/latest", RequestType.LATEST, AccountMarginModel.class);
+        this.testCompleteUrl(context, "/api/v1.0/am/latest", RequestType.LATEST, DataHelper.ACCOUNT_MARGIN_FOLDER,
+                ModelBuilder::buildAccountMarginFromJson);
     }
 
     @Test
     public void testAccountMarginHistory(TestContext context) {
-        this.testCompleteUrl(context, "/api/v1.0/am/history", RequestType.HISTORY, AccountMarginModel.class);
+        this.testCompleteUrl(context, "/api/v1.0/am/history", RequestType.HISTORY, DataHelper.ACCOUNT_MARGIN_FOLDER,
+                ModelBuilder::buildAccountMarginFromJson);
     }
 
     @Test
     public void testLiquiGroupMarginLatest(TestContext context) {
-        this.testCompleteUrl(context, "/api/v1.0/lgm/latest", RequestType.LATEST, LiquiGroupMarginModel.class);
+        this.testCompleteUrl(context, "/api/v1.0/lgm/latest", RequestType.LATEST, DataHelper.LIQUI_GROUP_MARGIN_FOLDER,
+                ModelBuilder::buildLiquiGroupMarginFromJson);
     }
 
     @Test
     public void testLiquiGroupMarginHistory(TestContext context) {
-        this.testCompleteUrl(context, "/api/v1.0/lgm/history", RequestType.HISTORY, LiquiGroupMarginModel.class);
+        this.testCompleteUrl(context, "/api/v1.0/lgm/history", RequestType.HISTORY, DataHelper.LIQUI_GROUP_MARGIN_FOLDER,
+                ModelBuilder::buildLiquiGroupMarginFromJson);
     }
 
     @Test
     public void testLiquiGroupSplitMarginLatest(TestContext context) {
-        this.testCompleteUrl(context, "/api/v1.0/lgsm/latest", RequestType.LATEST, LiquiGroupSplitMarginModel.class);
+        this.testCompleteUrl(context, "/api/v1.0/lgsm/latest", RequestType.LATEST, DataHelper.LIQUI_GROUP_SPLIT_MARGIN_FOLDER,
+                ModelBuilder::buildLiquiGroupSplitMarginFromJson);
     }
 
     @Test
     public void testLiquiGroupSplitMarginHistory(TestContext context) {
-        this.testCompleteUrl(context, "/api/v1.0/lgsm/history", RequestType.HISTORY, LiquiGroupSplitMarginModel.class);
+        this.testCompleteUrl(context, "/api/v1.0/lgsm/history", RequestType.HISTORY, DataHelper.LIQUI_GROUP_SPLIT_MARGIN_FOLDER,
+                ModelBuilder::buildLiquiGroupSplitMarginFromJson);
     }
 
     @Test
     public void testPoolMarginLatest(TestContext context) {
-        this.testCompleteUrl(context, "/api/v1.0/pm/latest", RequestType.LATEST, PoolMarginModel.class);
+        this.testCompleteUrl(context, "/api/v1.0/pm/latest", RequestType.LATEST, DataHelper.POOL_MARGIN_FOLDER,
+                ModelBuilder::buildPoolMarginFromJson);
     }
 
     @Test
     public void testPoolMarginHistory(TestContext context) {
-        this.testCompleteUrl(context, "/api/v1.0/pm/history", RequestType.HISTORY, PoolMarginModel.class);
+        this.testCompleteUrl(context, "/api/v1.0/pm/history", RequestType.HISTORY, DataHelper.POOL_MARGIN_FOLDER,
+                ModelBuilder::buildPoolMarginFromJson);
     }
 
     @Test
     public void testPositionReportLatest(TestContext context) {
-        this.testCompleteUrl(context, "/api/v1.0/pr/latest", RequestType.LATEST, PositionReportModel.class);
+        this.testCompleteUrl(context, "/api/v1.0/pr/latest", RequestType.LATEST, DataHelper.POSITION_REPORT_FOLDER,
+                ModelBuilder::buildPositionReportFromJson);
     }
 
     @Test
     public void testPositionReportHistory(TestContext context) {
-        this.testCompleteUrl(context, "/api/v1.0/pr/history", RequestType.HISTORY, PositionReportModel.class);
+        this.testCompleteUrl(context, "/api/v1.0/pr/history", RequestType.HISTORY, DataHelper.POSITION_REPORT_FOLDER,
+                ModelBuilder::buildPositionReportFromJson);
     }
 
     @Test
     public void testRiskLimitUtilizationLatest(TestContext context) {
-        this.testCompleteUrl(context, "/api/v1.0/rlu/latest", RequestType.LATEST, RiskLimitUtilizationModel.class);
+        this.testCompleteUrl(context, "/api/v1.0/rlu/latest", RequestType.LATEST, DataHelper.RISK_LIMIT_UTILIZATION_FOLDER,
+                ModelBuilder::buildRiskLimitUtilizationFromJson);
     }
 
     @Test
     public void testRiskLimitUtilizationHistory(TestContext context) {
-        this.testCompleteUrl(context, "/api/v1.0/rlu/history", RequestType.HISTORY, RiskLimitUtilizationModel.class);
+        this.testCompleteUrl(context, "/api/v1.0/rlu/history", RequestType.HISTORY, DataHelper.RISK_LIMIT_UTILIZATION_FOLDER,
+                ModelBuilder::buildRiskLimitUtilizationFromJson);
     }
 
     @Test
@@ -110,10 +127,11 @@ public class RestApiTest {
                 .put("member", "MEMBER")
                 .put("account", "ACCOUNT");
 
-        JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("model", "PositionReportModel")
-                .put("requestType", "LATEST")
-                .mergeIn(queryParams));
+        JsonArray expectedResult = new JsonArray().add(ModelBuilder.buildPositionReportFromJson(
+                new JsonObject().mergeIn(queryParams)
+                        .put("snapshotID", ModelBuilder.LATEST_SNAPSHOT_ID)
+                        .put("businessDate", ModelBuilder.BUSINESS_DATE)
+        ).toApplicationJson());
 
         final Async async = context.async();
         HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
@@ -166,14 +184,21 @@ public class RestApiTest {
         async.awaitSuccess(30000);
     }
 
-    private void testCompleteUrl(TestContext context, String uri, RequestType requestType, Class<? extends AbstractModel> modelClazz) {
-        JsonObject queryParams = DataHelper.getQueryParams(DataHelper.getLastModelFromFile(modelClazz, 1));
+    private <T extends Model>
+    void testCompleteUrl(TestContext context, String uri, RequestType requestType, String dataFolder,
+                         Function<JsonObject, T> modelFactory) {
+        JsonObject queryParams = DataHelper.getLastJsonFromFile(dataFolder, 1).orElseThrow(RuntimeException::new);
+        KeyDescriptor keyDescriptor = AccountMarginModel.getKeyDescriptor();
 
-        JsonArray expectedResult = new JsonArray().add(new JsonObject()
-                .put("model", modelClazz.getSimpleName())
-                .put("requestType", requestType)
-                .mergeIn(queryParams)
-        );
+        queryParams = retainJsonFields(queryParams, keyDescriptor.getUniqueFields().keySet());
+
+        JsonArray expectedResult = new JsonArray().add(modelFactory.apply(
+                new JsonObject().mergeIn(queryParams)
+                        .put("snapshotID", requestType == RequestType.LATEST
+                                ? ModelBuilder.LATEST_SNAPSHOT_ID
+                                : ModelBuilder.HISTORY_SNAPSHOT_ID)
+                        .put("businessDate", ModelBuilder.BUSINESS_DATE)
+        ).toApplicationJson());
 
         final Async async = context.async();
         HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
@@ -187,7 +212,17 @@ public class RestApiTest {
             });
         });
 
-        async.awaitSuccess(30000);
+        async.awaitSuccess(5000);
+    }
+
+    private static JsonObject retainJsonFields(JsonObject json, Set<String> retainFields) {
+        JsonObject result = new JsonObject();
+        json.forEach(entry -> {
+            if (retainFields.contains(entry.getKey())) {
+                result.put(entry.getKey(), entry.getValue());
+            }
+        });
+        return result;
     }
 
     @AfterClass

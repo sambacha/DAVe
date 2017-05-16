@@ -1,35 +1,66 @@
 package com.deutscheboerse.risk.dave.model;
 
+import com.deutscheboerse.risk.dave.PoolMargin;
+import com.google.protobuf.InvalidProtocolBufferException;
+import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+@DataObject
+public class PoolMarginModel implements Model<PoolMargin> {
 
-public class PoolMarginModel extends AbstractModel {
+    private final PoolMargin grpc;
 
-    public PoolMarginModel() {
-        // Empty constructor
+    public PoolMarginModel(PoolMargin grpc) {
+        this.grpc = grpc;
     }
 
     public PoolMarginModel(JsonObject json) {
-        super(json);
+        verifyJson(json);
+        try {
+            this.grpc = PoolMargin.parseFrom(json.getBinary("grpc"));
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public Map<String, Class<?>> getKeysDescriptor() {
-        Map<String, Class<?>> keys = new LinkedHashMap<>();
-        keys.put("clearer", String.class);
-        keys.put("pool", String.class);
-        keys.put("marginCurrency", String.class);
-        return Collections.unmodifiableMap(keys);
+    public PoolMargin toGrpc() {
+        return this.grpc;
     }
 
     @Override
-    public Map<String, Class<?>> getUniqueFieldsDescriptor() {
-        Map<String, Class<?>> uniqueFields = new LinkedHashMap<>();
-        uniqueFields.put("clrRptCurrency", String.class);
-        uniqueFields.put("poolOwner", String.class);
-        return Collections.unmodifiableMap(uniqueFields);
+    public JsonObject toApplicationJson() {
+        return new JsonObject()
+                .put("snapshotID", grpc.getSnapshotId())
+                .put("businessDate", grpc.getBusinessDate())
+                .put("timestamp", grpc.getTimestamp())
+                .put("clearer", grpc.getClearer())
+                .put("pool", grpc.getPool())
+                .put("marginCurrency", grpc.getMarginCurrency())
+                .put("clrRptCurrency", grpc.getClrRptCurrency())
+                .put("requiredMargin", grpc.getRequiredMargin())
+                .put("cashCollateralAmount", grpc.getCashCollateralAmount())
+                .put("adjustedSecurities", grpc.getAdjustedSecurities())
+                .put("adjustedGuarantee", grpc.getAdjustedGuarantee())
+                .put("overUnderInMarginCurr", grpc.getOverUnderInMarginCurr())
+                .put("overUnderInClrRptCurr", grpc.getOverUnderInClrRptCurr())
+                .put("variPremInMarginCurr", grpc.getVariPremInMarginCurr())
+                .put("adjustedExchangeRate", grpc.getAdjustedExchangeRate())
+                .put("poolOwner", grpc.getPoolOwner());
+    }
+
+    private static KeyDescriptor keyDescriptor;
+
+    public static KeyDescriptor getKeyDescriptor() {
+        if (keyDescriptor == null) {
+            keyDescriptor = KeyDescriptor.newBuilder()
+                    .addField("clearer", String.class)
+                    .addField("pool", String.class)
+                    .addField("marginCurrency", String.class)
+                    .addField("clrRptCurrency", String.class)
+                    .addField("poolOwner", String.class)
+                    .build();
+        }
+        return keyDescriptor;
     }
 }

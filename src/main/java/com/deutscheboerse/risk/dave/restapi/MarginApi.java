@@ -1,47 +1,52 @@
-package com.deutscheboerse.risk.dave.restapi.margin;
+package com.deutscheboerse.risk.dave.restapi;
 
-import com.deutscheboerse.risk.dave.model.AbstractModel;
-import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import com.deutscheboerse.risk.dave.model.KeyDescriptor;
+import com.deutscheboerse.risk.dave.model.Model;
 import com.deutscheboerse.risk.dave.persistence.RequestType;
 import com.google.common.base.Preconditions;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.serviceproxy.ProxyHelper;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractApi {
-    private static final Logger LOG = LoggerFactory.getLogger(AbstractApi.class);
+public class MarginApi<T extends Model> {
+    private static final Logger LOG = LoggerFactory.getLogger(MarginApi.class);
 
-    protected final Vertx vertx;
-    private final AbstractModel model;
-    protected final PersistenceService persistenceProxy;
+    private final Vertx vertx;
+    private String requestName;
+    private KeyDescriptor keyDescriptor;
+    private ProxyFunction<T> proxyFunction;
 
-    AbstractApi(Vertx vertx, AbstractModel model) {
+    private MarginApi(Vertx vertx) {
         this.vertx = vertx;
-        this.model = model;
-        this.persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
     }
 
-    protected abstract String getRequestName();
-    protected abstract void proxyFind(RoutingContext routingContext, RequestType requestType);
+    public Router getRoutes() {
+        Router router = Router.router(vertx);
+
+        router.get(this.getLatestUri()).handler(this::latestCall);
+        router.get(this.getHistoryUri()).handler(this::historyCall);
+
+        return router;
+    }
 
     private String getLatestUri() {
-        return String.format("/%s/%s", this.getRequestName(), "latest");
+        return String.format("/%s/%s", this.requestName, "latest");
     }
 
     private String getHistoryUri() {
-        return String.format("/%s/%s", this.getRequestName(), "history");
+        return String.format("/%s/%s", this.requestName, "history");
     }
 
     private void latestCall(RoutingContext routingContext) {
@@ -56,23 +61,14 @@ public abstract class AbstractApi {
 
     private void doCall(RoutingContext routingContext, RequestType requestType) {
         try {
-            this.proxyFind(routingContext, requestType);
+            this.proxyFunction.query(requestType, this.createParamsFromContext(routingContext), responseHandler(routingContext));
         } catch (IllegalArgumentException e) {
             LOG.error("Bad request: {}", e.getMessage(), e);
             routingContext.response().setStatusCode(HttpResponseStatus.BAD_REQUEST.code()).end();
         }
     }
 
-    public Router getRoutes() {
-        Router router = Router.router(vertx);
-
-        router.get(this.getLatestUri()).handler(this::latestCall);
-        router.get(this.getHistoryUri()).handler(this::historyCall);
-
-        return router;
-    }
-
-    JsonObject createParamsFromContext(RoutingContext routingContext) {
+    private JsonObject createParamsFromContext(RoutingContext routingContext) {
         final JsonObject result = new JsonObject();
         routingContext.request().params().entries()
                 .forEach(entry -> {
@@ -93,15 +89,14 @@ public abstract class AbstractApi {
     }
 
     private Class<?> getParameterType(String parameterName) {
-        Map<String, Class> parameterDescriptor = new HashMap<>(model.getKeysDescriptor());
-        parameterDescriptor.putAll(model.getUniqueFieldsDescriptor());
+        Map<String, Class<?>> parameterDescriptor = keyDescriptor.getUniqueFields();
 
         Preconditions.checkArgument(parameterDescriptor.containsKey(parameterName),
                 "Unknown parameter '%s'", parameterName);
         return parameterDescriptor.get(parameterName);
     }
 
-    private <T> T convertValue(String value, Class<T> clazz) {
+    private <U> U convertValue(String value, Class<U> clazz) {
         if (clazz.equals(String.class)) {
             return clazz.cast(value);
         } else if (clazz.equals(Integer.class)) {
@@ -113,17 +108,62 @@ public abstract class AbstractApi {
         }
     }
 
-    Handler<AsyncResult<String>> responseHandler(RoutingContext routingContext) {
+    private Handler<AsyncResult<List<T>>> responseHandler(RoutingContext routingContext) {
         return ar -> {
             if (ar.succeeded()) {
-                LOG.trace("Received response {} request", this.getRequestName());
+                LOG.trace("Received response {} request", this.requestName);
+                JsonArray result = new JsonArray();
+                ar.result().forEach(model -> result.add(model.toApplicationJson()));
                 routingContext.response()
                         .putHeader("content-type", "application/json; charset=utf-8")
-                        .end(ar.result());
+                        .end(result.toString());
             } else {
                 LOG.error("Failed to query the DB service", ar.cause());
                 routingContext.response().setStatusCode(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).end();
             }
         };
+    }
+
+    public static MarginApiBuilder newBuilder(Vertx vertx) {
+        return new MarginApiBuilder(vertx);
+    }
+
+    @FunctionalInterface
+    public interface ProxyFunction<T> {
+        void query(RequestType type, JsonObject query, Handler<AsyncResult<List<T>>> resultHandler);
+    }
+
+    static final class MarginApiBuilder {
+        private Vertx vertx;
+        private String requestName;
+        private KeyDescriptor keyDescriptor;
+        private ProxyFunction proxyFunction;
+
+        private MarginApiBuilder(Vertx vertx) {
+            this.vertx = vertx;
+        }
+
+        MarginApiBuilder setRequestName(String requestName) {
+            this.requestName = requestName;
+            return this;
+        }
+
+        MarginApiBuilder setKeyDescriptor(KeyDescriptor keyDescriptor) {
+            this.keyDescriptor = keyDescriptor;
+            return this;
+        }
+
+        MarginApiBuilder setProxyFunction(ProxyFunction proxyFunction) {
+            this.proxyFunction = proxyFunction;
+            return this;
+        }
+
+        MarginApi build() {
+            MarginApi result = new MarginApi(this.vertx);
+            result.requestName = this.requestName;
+            result.keyDescriptor = this.keyDescriptor;
+            result.proxyFunction = this.proxyFunction;
+            return result;
+        }
     }
 }

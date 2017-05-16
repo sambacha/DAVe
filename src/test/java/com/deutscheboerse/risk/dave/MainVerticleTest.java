@@ -3,11 +3,13 @@ package com.deutscheboerse.risk.dave;
 import ch.qos.logback.classic.Logger;
 import com.deutscheboerse.risk.dave.log.TestAppender;
 import com.deutscheboerse.risk.dave.model.AccountMarginModel;
+import com.deutscheboerse.risk.dave.model.KeyDescriptor;
 import com.deutscheboerse.risk.dave.persistence.EchoPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.persistence.StoreManagerMock;
 import com.deutscheboerse.risk.dave.util.URIBuilder;
 import com.deutscheboerse.risk.dave.utils.DataHelper;
+import com.deutscheboerse.risk.dave.utils.ModelBuilder;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
@@ -26,6 +28,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Set;
 
 @RunWith(VertxUnitRunner.class)
 public class MainVerticleTest {
@@ -57,26 +60,20 @@ public class MainVerticleTest {
 
         deployAsync.awaitSuccess(30000);
 
-        AccountMarginModel latestModel = DataHelper.getLastModelFromFile(AccountMarginModel.class, 1);
+        JsonObject queryParams = DataHelper.getLastJsonFromFile(DataHelper.ACCOUNT_MARGIN_FOLDER, 1).orElseThrow(RuntimeException::new);
+        KeyDescriptor keyDescriptor = AccountMarginModel.getKeyDescriptor();
+
+        queryParams = retainJsonFields(queryParams, keyDescriptor.getUniqueFields().keySet());
+
         String uri = new URIBuilder("/api/v1.0/am/latest")
-                .addParams(DataHelper.getQueryParams(latestModel))
+                .addParams(queryParams)
                 .build();
 
-        JsonObject queryParams = DataHelper.getQueryParams(latestModel);
-        JsonObject expectedResult = new JsonObject()
-                .put("snapshotID", StoreManagerMock.LATEST_SNAPSHOT_ID)
-                .put("businessDate", StoreManagerMock.BUSINESS_DATE)
-                .put("timestamp", 0)
-                .put("clearer", queryParams.getString("clearer"))
-                .put("member", queryParams.getString("member"))
-                .put("account", queryParams.getString("account"))
-                .put("marginCurrency", queryParams.getString("marginCurrency"))
-                .put("clearingCurrency", queryParams.getString("clearingCurrency"))
-                .put("pool", queryParams.getString("pool"))
-                .put("marginReqInMarginCurr", 0.0)
-                .put("marginReqInClrCurr", 0.0)
-                .put("unadjustedMarginRequirement", 0.0)
-                .put("variationPremiumPayment", 0.0);
+        JsonObject expectedResult = ModelBuilder.buildAccountMarginFromJson(
+                new JsonObject().mergeIn(queryParams)
+                        .put("snapshotID", ModelBuilder.LATEST_SNAPSHOT_ID)
+                        .put("businessDate", ModelBuilder.BUSINESS_DATE)
+                ).toApplicationJson();
 
         final Async asyncRest = context.async();
         HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
@@ -132,6 +129,16 @@ public class MainVerticleTest {
         rootLogger.detachAppender(testAppender);
         testAppender.clear();
         this.vertx.close(context.asyncAssertSuccess());
+    }
+
+    private static JsonObject retainJsonFields(JsonObject json, Set<String> retainFields) {
+        JsonObject result = new JsonObject();
+        json.forEach(entry -> {
+            if (retainFields.contains(entry.getKey())) {
+                result.put(entry.getKey(), entry.getValue());
+            }
+        });
+        return result;
     }
 
     public static class EchoBinder extends AbstractModule {
