@@ -7,7 +7,6 @@ import com.deutscheboerse.risk.dave.model.KeyDescriptor;
 import com.deutscheboerse.risk.dave.persistence.EchoPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.persistence.StoreManagerMock;
-import com.deutscheboerse.risk.dave.util.URIBuilder;
 import com.deutscheboerse.risk.dave.utils.DataHelper;
 import com.deutscheboerse.risk.dave.utils.ModelBuilder;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
@@ -15,12 +14,15 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,13 +63,9 @@ public class MainVerticleTest {
         deployAsync.awaitSuccess(30000);
 
         JsonObject queryParams = DataHelper.getLastJsonFromFile(DataHelper.ACCOUNT_MARGIN_FOLDER, 1).orElseThrow(RuntimeException::new);
-        KeyDescriptor keyDescriptor = AccountMarginModel.getKeyDescriptor();
+        KeyDescriptor<AccountMarginModel> keyDescriptor = AccountMarginModel.getKeyDescriptor();
 
         queryParams = retainJsonFields(queryParams, keyDescriptor.getUniqueFields().keySet());
-
-        String uri = new URIBuilder("/api/v1.0/am/latest")
-                .addParams(queryParams)
-                .build();
 
         JsonObject expectedResult = ModelBuilder.buildAccountMarginFromJson(
                 new JsonObject().mergeIn(queryParams)
@@ -76,21 +74,18 @@ public class MainVerticleTest {
                 ).toApplicationJson();
 
         final Async asyncRest = context.async();
-        HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
-                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
-        vertx.createHttpClient(sslOpts).getNow(TestConfig.API_PORT, "localhost", uri, res -> {
-            context.assertEquals(200, res.statusCode());
-            res.bodyHandler(body -> {
-                try {
-                    JsonArray positions = body.toJsonArray();
-                    context.assertEquals(1, positions.size());
-                    context.assertEquals(expectedResult, positions.getJsonObject(0));
-                    asyncRest.complete();
-                } catch (Exception e) {
-                    context.fail(e);
-                }
-            });
-        });
+        createSslRequest("/api/v1.0/am/latest", queryParams)
+                .send(context.asyncAssertSuccess(res -> {
+                    context.assertEquals(200, res.statusCode());
+                    try {
+                        JsonArray positions = res.body().toJsonArray();
+                        context.assertEquals(1, positions.size());
+                        context.assertEquals(expectedResult, positions.getJsonObject(0));
+                        asyncRest.complete();
+                    } catch (Exception e) {
+                        context.fail(e);
+                    }
+                }));
         asyncRest.awaitSuccess(30000);
 
         storageMock.close(context.asyncAssertSuccess());
@@ -139,6 +134,19 @@ public class MainVerticleTest {
             }
         });
         return result;
+    }
+
+    private HttpRequest<Buffer> createSslRequest(String uri, JsonObject params) {
+        WebClientOptions sslOpts = new WebClientOptions()
+                .setSsl(true)
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+
+        HttpRequest<Buffer> httpRequest = WebClient.create(vertx, sslOpts)
+                .get(TestConfig.API_PORT, "localhost", uri);
+
+        params.forEach(entry -> httpRequest.addQueryParam(entry.getKey(), entry.getValue().toString()));
+
+        return httpRequest;
     }
 
     public static class EchoBinder extends AbstractModule {

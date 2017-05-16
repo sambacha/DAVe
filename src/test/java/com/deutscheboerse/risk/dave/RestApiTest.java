@@ -4,19 +4,21 @@ import com.deutscheboerse.risk.dave.model.*;
 import com.deutscheboerse.risk.dave.persistence.EchoPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.persistence.RequestType;
-import com.deutscheboerse.risk.dave.util.URIBuilder;
 import com.deutscheboerse.risk.dave.utils.DataHelper;
 import com.deutscheboerse.risk.dave.utils.ModelBuilder;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.serviceproxy.ProxyHelper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -30,13 +32,11 @@ import java.util.function.Function;
 @RunWith(VertxUnitRunner.class)
 public class RestApiTest {
     private static Vertx vertx;
-    private static int port;
     private static PersistenceService persistenceProxy;
 
     @BeforeClass
     public static void setUp(TestContext context) throws IOException {
         RestApiTest.vertx = Vertx.vertx();
-        RestApiTest.port = TestConfig.API_PORT;
 
         JsonObject config = TestConfig.getApiConfig();
         vertx.deployVerticle(ApiVerticle.class.getName(), new DeploymentOptions().setConfig(config), context.asyncAssertSuccess());
@@ -132,16 +132,14 @@ public class RestApiTest {
         ).toApplicationJson());
 
         final Async async = context.async();
-        HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
-                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
-        vertx.createHttpClient(sslOpts).getNow(port, "localhost", new URIBuilder("/api/v1.0/pr/latest").addParams(queryParams).build(), res -> {
-            context.assertEquals(200, res.statusCode());
-            res.bodyHandler(body -> {
-                JsonArray bd = body.toJsonArray();
-                context.assertEquals(expectedResult, bd);
-                async.complete();
-            });
-        });
+        createSslRequest("/api/v1.0/pr/latest", queryParams)
+                .send(context.asyncAssertSuccess(res -> {
+                    context.assertEquals(200, res.statusCode());
+
+                    JsonArray bd = res.body().toJsonArray();
+                    context.assertEquals(expectedResult, bd);
+                    async.complete();
+                }));
 
         async.awaitSuccess(30000);
     }
@@ -154,12 +152,11 @@ public class RestApiTest {
             .put("contractYear", 1234.5d);
 
         final Async async = context.async();
-        HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
-                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
-        vertx.createHttpClient(sslOpts).getNow(port, "localhost", new URIBuilder("/api/v1.0/pr/latest").addParams(queryParams).build(), res -> {
-            context.assertEquals(HttpResponseStatus.BAD_REQUEST.code(), res.statusCode());
-            async.complete();
-        });
+        createSslRequest("/api/v1.0/pr/latest", queryParams)
+                .send(context.asyncAssertSuccess(res -> {
+                    context.assertEquals(HttpResponseStatus.BAD_REQUEST.code(), res.statusCode());
+                    async.complete();
+                }));
 
         async.awaitSuccess(30000);
     }
@@ -172,12 +169,11 @@ public class RestApiTest {
                 .put("foo", 2016.2);
 
         final Async async = context.async();
-        HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
-                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
-        vertx.createHttpClient(sslOpts).getNow(port, "localhost", new URIBuilder("/api/v1.0/pr/latest").addParams(queryParams).build(), res -> {
-            context.assertEquals(HttpResponseStatus.BAD_REQUEST.code(), res.statusCode());
-            async.complete();
-        });
+        createSslRequest("/api/v1.0/pr/latest", queryParams)
+                .send(context.asyncAssertSuccess(res -> {
+                    context.assertEquals(HttpResponseStatus.BAD_REQUEST.code(), res.statusCode());
+                    async.complete();
+                }));
 
         async.awaitSuccess(30000);
     }
@@ -199,16 +195,14 @@ public class RestApiTest {
         ).toApplicationJson());
 
         final Async async = context.async();
-        HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
-                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
-        vertx.createHttpClient(sslOpts).getNow(port, "localhost", new URIBuilder(uri).addParams(queryParams).build(), res -> {
-            context.assertEquals(200, res.statusCode());
-            res.bodyHandler(body -> {
-                JsonArray bd = body.toJsonArray();
-                context.assertEquals(expectedResult, bd);
-                async.complete();
-            });
-        });
+        createSslRequest(uri, queryParams)
+                .send(context.asyncAssertSuccess(res -> {
+                    context.assertEquals(200, res.statusCode());
+
+                    JsonArray bd = res.body().toJsonArray();
+                    context.assertEquals(expectedResult, bd);
+                    async.complete();
+                }));
 
         async.awaitSuccess(5000);
     }
@@ -221,6 +215,19 @@ public class RestApiTest {
             }
         });
         return result;
+    }
+
+    private HttpRequest<Buffer> createSslRequest(String uri, JsonObject params) {
+        WebClientOptions sslOpts = new WebClientOptions()
+                .setSsl(true)
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+
+        HttpRequest<Buffer> httpRequest = WebClient.create(vertx, sslOpts)
+                .get(TestConfig.API_PORT, "localhost", uri);
+
+        params.forEach(entry -> httpRequest.addQueryParam(entry.getKey(), entry.getValue().toString()));
+
+        return httpRequest;
     }
 
     @AfterClass
