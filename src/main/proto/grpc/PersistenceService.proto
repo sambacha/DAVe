@@ -202,6 +202,4 @@ message RiskLimitUtilizationQuery {
     string limit_type                    =  5;
 }
 
-message StoreReply {
-    bool   succeeded                     =  1;
-}
+message StoreReply {}
