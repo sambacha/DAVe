@@ -1,6 +1,6 @@
 package com.deutscheboerse.risk.dave.persistence;
 
-import com.deutscheboerse.risk.dave.*;
+import com.deutscheboerse.risk.dave.grpc.*;
 import com.deutscheboerse.risk.dave.config.StoreManagerConfig;
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import com.deutscheboerse.risk.dave.model.*;

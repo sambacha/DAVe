@@ -1,6 +1,6 @@
 package com.deutscheboerse.risk.dave.utils;
 
-import com.deutscheboerse.risk.dave.*;
+import com.deutscheboerse.risk.dave.grpc.*;
 import com.deutscheboerse.risk.dave.model.*;
 import io.vertx.core.json.JsonObject;
 

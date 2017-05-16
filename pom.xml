@@ -323,6 +323,7 @@
         <configuration>
           <excludes>
             <exclude>CIL/**/*</exclude>
+            <exclude>com/deutscheboerse/risk/dave/grpc/*</exclude>
             <exclude>**/*PersistenceServiceVertxEBProxy.*</exclude>
             <exclude>**/*PersistenceServiceVertxProxyHandler.*</exclude>
           </excludes>
