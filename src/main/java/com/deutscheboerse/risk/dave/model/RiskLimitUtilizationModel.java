@@ -44,9 +44,9 @@ public class RiskLimitUtilizationModel implements Model<RiskLimitUtilization> {
                 .put("rejectLevel", grpc.getRejectLevel());
     }
 
-    private static KeyDescriptor keyDescriptor;
+    private static KeyDescriptor<RiskLimitUtilizationModel> keyDescriptor;
 
-    public static KeyDescriptor getKeyDescriptor() {
+    public static KeyDescriptor<RiskLimitUtilizationModel> getKeyDescriptor() {
         if (keyDescriptor == null) {
             keyDescriptor = KeyDescriptor.newBuilder()
                     .addField("clearer", String.class)

@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public interface KeyDescriptor {
+public interface KeyDescriptor<T extends Model> {
 
     Map<String, Class<?>> getUniqueFields();
 
@@ -23,7 +23,7 @@ public interface KeyDescriptor {
             return this;
         }
 
-        public KeyDescriptor build() {
+        public <T extends Model> KeyDescriptor<T> build() {
             return () -> Collections.unmodifiableMap(fields);
         }
     }

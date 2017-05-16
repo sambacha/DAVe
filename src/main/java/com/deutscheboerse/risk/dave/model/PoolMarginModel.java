@@ -49,9 +49,9 @@ public class PoolMarginModel implements Model<PoolMargin> {
                 .put("poolOwner", grpc.getPoolOwner());
     }
 
-    private static KeyDescriptor keyDescriptor;
+    private static KeyDescriptor<PoolMarginModel> keyDescriptor;
 
-    public static KeyDescriptor getKeyDescriptor() {
+    public static KeyDescriptor<PoolMarginModel> getKeyDescriptor() {
         if (keyDescriptor == null) {
             keyDescriptor = KeyDescriptor.newBuilder()
                     .addField("clearer", String.class)

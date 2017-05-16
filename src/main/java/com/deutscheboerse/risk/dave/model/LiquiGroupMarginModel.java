@@ -48,9 +48,9 @@ public class LiquiGroupMarginModel implements Model<LiquiGroupMargin> {
                 .put("variationPremiumPayment", grpc.getVariationPremiumPayment());
     }
 
-    private static KeyDescriptor keyDescriptor;
+    private static KeyDescriptor<LiquiGroupMarginModel> keyDescriptor;
 
-    public static KeyDescriptor getKeyDescriptor() {
+    public static KeyDescriptor<LiquiGroupMarginModel> getKeyDescriptor() {
         if (keyDescriptor == null) {
             keyDescriptor = KeyDescriptor.newBuilder()
                     .addField("clearer", String.class)

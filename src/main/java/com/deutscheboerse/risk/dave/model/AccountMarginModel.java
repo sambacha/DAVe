@@ -46,9 +46,9 @@ public class AccountMarginModel implements Model<AccountMargin> {
                 .put("variationPremiumPayment", grpc.getVariationPremiumPayment());
     }
 
-    private static KeyDescriptor keyDescriptor;
+    private static KeyDescriptor<AccountMarginModel> keyDescriptor;
 
-    public static KeyDescriptor getKeyDescriptor() {
+    public static KeyDescriptor<AccountMarginModel> getKeyDescriptor() {
         if (keyDescriptor == null) {
             keyDescriptor = KeyDescriptor.newBuilder()
                     .addField("clearer", String.class)

@@ -67,9 +67,9 @@ public class PositionReportModel implements Model<PositionReport> {
                 .put("underlying", grpc.getUnderlying());
     }
 
-    private static KeyDescriptor keyDescriptor;
+    private static KeyDescriptor<PositionReportModel> keyDescriptor;
 
-    public static KeyDescriptor getKeyDescriptor() {
+    public static KeyDescriptor<PositionReportModel> getKeyDescriptor() {
         if (keyDescriptor == null) {
             keyDescriptor = KeyDescriptor.newBuilder()
                     .addField("clearer", String.class)
