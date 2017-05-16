@@ -8,6 +8,15 @@ import io.vertx.core.json.JsonObject;
 @DataObject
 public class LiquiGroupSplitMarginModel implements Model<LiquiGroupSplitMargin> {
 
+    public static final FieldDescriptor<LiquiGroupSplitMarginModel> FIELD_DESCRIPTOR = FieldDescriptor.newBuilder()
+            .addField("clearer", String.class)
+            .addField("member", String.class)
+            .addField("account", String.class)
+            .addField("liquidationGroup", String.class)
+            .addField("liquidationGroupSplit", String.class)
+            .addField("marginCurrency", String.class)
+            .build();
+
     private final LiquiGroupSplitMargin grpc;
 
     public LiquiGroupSplitMarginModel(LiquiGroupSplitMargin grpc) {
@@ -45,21 +54,5 @@ public class LiquiGroupSplitMarginModel implements Model<LiquiGroupSplitMargin> 
                 .put("liquRisk", grpc.getLiquRisk())
                 .put("longOptionCredit", grpc.getLongOptionCredit())
                 .put("variationPremiumPayment", grpc.getVariationPremiumPayment());
-    }
-
-    private static KeyDescriptor<LiquiGroupSplitMarginModel> keyDescriptor;
-
-    public static KeyDescriptor<LiquiGroupSplitMarginModel> getKeyDescriptor() {
-        if (keyDescriptor == null) {
-            keyDescriptor = KeyDescriptor.newBuilder()
-                    .addField("clearer", String.class)
-                    .addField("member", String.class)
-                    .addField("account", String.class)
-                    .addField("liquidationGroup", String.class)
-                    .addField("liquidationGroupSplit", String.class)
-                    .addField("marginCurrency", String.class)
-                    .build();
-        }
-        return keyDescriptor;
     }
 }

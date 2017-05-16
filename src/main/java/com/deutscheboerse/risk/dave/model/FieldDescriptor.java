@@ -4,26 +4,26 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public interface KeyDescriptor<T extends Model> {
+public interface FieldDescriptor<T extends Model> {
 
     Map<String, Class<?>> getUniqueFields();
 
-    static ModelKeyDescriptorBuilder newBuilder() {
-        return new ModelKeyDescriptorBuilder();
+    static FieldDescriptorBuilder newBuilder() {
+        return new FieldDescriptorBuilder();
     }
 
-    final class ModelKeyDescriptorBuilder {
+    final class FieldDescriptorBuilder {
         private Map<String, Class<?>> fields = new LinkedHashMap<>();
 
-        private ModelKeyDescriptorBuilder() {
+        private FieldDescriptorBuilder() {
         }
 
-        ModelKeyDescriptorBuilder addField(String fieldName, Class<?> fieldType) {
+        FieldDescriptorBuilder addField(String fieldName, Class<?> fieldType) {
             fields.put(fieldName, fieldType);
             return this;
         }
 
-        public <T extends Model> KeyDescriptor<T> build() {
+        public <T extends Model> FieldDescriptor<T> build() {
             return () -> Collections.unmodifiableMap(fields);
         }
     }

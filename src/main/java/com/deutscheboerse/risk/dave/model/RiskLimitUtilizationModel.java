@@ -8,6 +8,13 @@ import io.vertx.core.json.JsonObject;
 @DataObject
 public class RiskLimitUtilizationModel implements Model<RiskLimitUtilization> {
 
+    public static final FieldDescriptor<RiskLimitUtilizationModel> FIELD_DESCRIPTOR = FieldDescriptor.newBuilder()
+            .addField("clearer", String.class)
+            .addField("member", String.class)
+            .addField("maintainer", String.class)
+            .addField("limitType", String.class)
+            .build();
+
     private final RiskLimitUtilization grpc;
 
     public RiskLimitUtilizationModel(RiskLimitUtilization grpc) {
@@ -42,19 +49,5 @@ public class RiskLimitUtilizationModel implements Model<RiskLimitUtilization> {
                 .put("warningLevel", grpc.getWarningLevel())
                 .put("throttleLevel", grpc.getThrottleLevel())
                 .put("rejectLevel", grpc.getRejectLevel());
-    }
-
-    private static KeyDescriptor<RiskLimitUtilizationModel> keyDescriptor;
-
-    public static KeyDescriptor<RiskLimitUtilizationModel> getKeyDescriptor() {
-        if (keyDescriptor == null) {
-            keyDescriptor = KeyDescriptor.newBuilder()
-                    .addField("clearer", String.class)
-                    .addField("member", String.class)
-                    .addField("maintainer", String.class)
-                    .addField("limitType", String.class)
-                    .build();
-        }
-        return keyDescriptor;
     }
 }

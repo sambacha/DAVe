@@ -11,49 +11,49 @@ public class MarginApiFactory {
     }
 
     public static MarginApi accountMarginApi(Vertx vertx, PersistenceService persistenceProxy) {
-        return MarginApi.newBuilder(vertx)
+        return MarginApi.<AccountMarginModel>newBuilder(vertx)
                 .setRequestName("am")
-                .setKeyDescriptor(AccountMarginModel.getKeyDescriptor())
+                .setFieldDescriptor(AccountMarginModel.FIELD_DESCRIPTOR)
                 .setProxyFunction(persistenceProxy::queryAccountMargin)
                 .build();
     }
 
     public static MarginApi liquiGroupMarginApi(Vertx vertx, PersistenceService persistenceProxy) {
-        return MarginApi.newBuilder(vertx)
+        return MarginApi.<LiquiGroupMarginModel>newBuilder(vertx)
                 .setRequestName("lgm")
-                .setKeyDescriptor(LiquiGroupMarginModel.getKeyDescriptor())
+                .setFieldDescriptor(LiquiGroupMarginModel.FIELD_DESCRIPTOR)
                 .setProxyFunction(persistenceProxy::queryLiquiGroupMargin)
                 .build();
     }
 
     public static MarginApi liquiGroupSplitMarginApi(Vertx vertx, PersistenceService persistenceProxy) {
-        return MarginApi.newBuilder(vertx)
+        return MarginApi.<LiquiGroupSplitMarginModel>newBuilder(vertx)
                 .setRequestName("lgsm")
-                .setKeyDescriptor(LiquiGroupSplitMarginModel.getKeyDescriptor())
+                .setFieldDescriptor(LiquiGroupSplitMarginModel.FIELD_DESCRIPTOR)
                 .setProxyFunction(persistenceProxy::queryLiquiGroupSplitMargin)
                 .build();
     }
 
     public static MarginApi poolMarginApi(Vertx vertx, PersistenceService persistenceProxy) {
-        return MarginApi.newBuilder(vertx)
+        return MarginApi.<PoolMarginModel>newBuilder(vertx)
                 .setRequestName("pm")
-                .setKeyDescriptor(PoolMarginModel.getKeyDescriptor())
+                .setFieldDescriptor(PoolMarginModel.FIELD_DESCRIPTOR)
                 .setProxyFunction(persistenceProxy::queryPoolMargin)
                 .build();
     }
 
     public static MarginApi positionReportApi(Vertx vertx, PersistenceService persistenceProxy) {
-        return MarginApi.newBuilder(vertx)
+        return MarginApi.<PositionReportModel>newBuilder(vertx)
                 .setRequestName("pr")
-                .setKeyDescriptor(PositionReportModel.getKeyDescriptor())
+                .setFieldDescriptor(PositionReportModel.FIELD_DESCRIPTOR)
                 .setProxyFunction(persistenceProxy::queryPositionReport)
                 .build();
     }
 
     public static MarginApi riskLimitUtilizationApi(Vertx vertx, PersistenceService persistenceProxy) {
-        return MarginApi.newBuilder(vertx)
+        return MarginApi.<RiskLimitUtilizationModel>newBuilder(vertx)
                 .setRequestName("rlu")
-                .setKeyDescriptor(RiskLimitUtilizationModel.getKeyDescriptor())
+                .setFieldDescriptor(RiskLimitUtilizationModel.FIELD_DESCRIPTOR)
                 .setProxyFunction(persistenceProxy::queryRiskLimitUtilization)
                 .build();
     }

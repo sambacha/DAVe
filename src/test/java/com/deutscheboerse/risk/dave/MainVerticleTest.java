@@ -3,7 +3,7 @@ package com.deutscheboerse.risk.dave;
 import ch.qos.logback.classic.Logger;
 import com.deutscheboerse.risk.dave.log.TestAppender;
 import com.deutscheboerse.risk.dave.model.AccountMarginModel;
-import com.deutscheboerse.risk.dave.model.KeyDescriptor;
+import com.deutscheboerse.risk.dave.model.FieldDescriptor;
 import com.deutscheboerse.risk.dave.persistence.EchoPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.persistence.StoreManagerMock;
@@ -63,9 +63,9 @@ public class MainVerticleTest {
         deployAsync.awaitSuccess(30000);
 
         JsonObject queryParams = DataHelper.getLastJsonFromFile(DataHelper.ACCOUNT_MARGIN_FOLDER, 1).orElseThrow(RuntimeException::new);
-        KeyDescriptor<AccountMarginModel> keyDescriptor = AccountMarginModel.getKeyDescriptor();
+        FieldDescriptor<AccountMarginModel> fieldDescriptor = AccountMarginModel.FIELD_DESCRIPTOR;
 
-        queryParams = retainJsonFields(queryParams, keyDescriptor.getUniqueFields().keySet());
+        queryParams = retainJsonFields(queryParams, fieldDescriptor.getUniqueFields().keySet());
 
         JsonObject expectedResult = ModelBuilder.buildAccountMarginFromJson(
                 new JsonObject().mergeIn(queryParams)

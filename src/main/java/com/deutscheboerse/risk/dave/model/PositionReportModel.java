@@ -8,6 +8,25 @@ import io.vertx.core.json.JsonObject;
 @DataObject
 public class PositionReportModel implements Model<PositionReport> {
 
+    public static final FieldDescriptor<PositionReportModel> FIELD_DESCRIPTOR = FieldDescriptor.newBuilder()
+            .addField("clearer", String.class)
+            .addField("member", String.class)
+            .addField("account", String.class)
+            .addField("liquidationGroup", String.class)
+            .addField("liquidationGroupSplit", String.class)
+            .addField("product", String.class)
+            .addField("callPut", String.class)
+            .addField("contractYear", Integer.class)
+            .addField("contractMonth", Integer.class)
+            .addField("expiryDay", Integer.class)
+            .addField("exercisePrice", Double.class)
+            .addField("version", String.class)
+            .addField("flexContractSymbol", String.class)
+            .addField("clearingCurrency", String.class)
+            .addField("productCurrency", String.class)
+            .addField("underlying", String.class)
+            .build();
+
     private final PositionReport grpc;
 
     public PositionReportModel(PositionReport grpc) {
@@ -65,31 +84,5 @@ public class PositionReportModel implements Model<PositionReport> {
                 .put("normalizedRho", grpc.getNormalizedRho())
                 .put("normalizedTheta", grpc.getNormalizedTheta())
                 .put("underlying", grpc.getUnderlying());
-    }
-
-    private static KeyDescriptor<PositionReportModel> keyDescriptor;
-
-    public static KeyDescriptor<PositionReportModel> getKeyDescriptor() {
-        if (keyDescriptor == null) {
-            keyDescriptor = KeyDescriptor.newBuilder()
-                    .addField("clearer", String.class)
-                    .addField("member", String.class)
-                    .addField("account", String.class)
-                    .addField("liquidationGroup", String.class)
-                    .addField("liquidationGroupSplit", String.class)
-                    .addField("product", String.class)
-                    .addField("callPut", String.class)
-                    .addField("contractYear", Integer.class)
-                    .addField("contractMonth", Integer.class)
-                    .addField("expiryDay", Integer.class)
-                    .addField("exercisePrice", Double.class)
-                    .addField("version", String.class)
-                    .addField("flexContractSymbol", String.class)
-                    .addField("clearingCurrency", String.class)
-                    .addField("productCurrency", String.class)
-                    .addField("underlying", String.class)
-                    .build();
-        }
-        return keyDescriptor;
     }
 }

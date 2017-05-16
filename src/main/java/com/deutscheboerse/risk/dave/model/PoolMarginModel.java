@@ -8,6 +8,14 @@ import io.vertx.core.json.JsonObject;
 @DataObject
 public class PoolMarginModel implements Model<PoolMargin> {
 
+    public static final FieldDescriptor<PoolMarginModel> FIELD_DESCRIPTOR = FieldDescriptor.newBuilder()
+            .addField("clearer", String.class)
+            .addField("pool", String.class)
+            .addField("marginCurrency", String.class)
+            .addField("clrRptCurrency", String.class)
+            .addField("poolOwner", String.class)
+            .build();
+
     private final PoolMargin grpc;
 
     public PoolMarginModel(PoolMargin grpc) {
@@ -47,20 +55,5 @@ public class PoolMarginModel implements Model<PoolMargin> {
                 .put("variPremInMarginCurr", grpc.getVariPremInMarginCurr())
                 .put("adjustedExchangeRate", grpc.getAdjustedExchangeRate())
                 .put("poolOwner", grpc.getPoolOwner());
-    }
-
-    private static KeyDescriptor<PoolMarginModel> keyDescriptor;
-
-    public static KeyDescriptor<PoolMarginModel> getKeyDescriptor() {
-        if (keyDescriptor == null) {
-            keyDescriptor = KeyDescriptor.newBuilder()
-                    .addField("clearer", String.class)
-                    .addField("pool", String.class)
-                    .addField("marginCurrency", String.class)
-                    .addField("clrRptCurrency", String.class)
-                    .addField("poolOwner", String.class)
-                    .build();
-        }
-        return keyDescriptor;
     }
 }

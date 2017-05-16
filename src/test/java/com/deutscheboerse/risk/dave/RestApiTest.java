@@ -49,73 +49,73 @@ public class RestApiTest {
     @Test
     public void testAccountMarginLatest(TestContext context) {
         this.testCompleteUrl(context, "/api/v1.0/am/latest", RequestType.LATEST, DataHelper.ACCOUNT_MARGIN_FOLDER,
-                AccountMarginModel.getKeyDescriptor(), ModelBuilder::buildAccountMarginFromJson);
+                AccountMarginModel.FIELD_DESCRIPTOR, ModelBuilder::buildAccountMarginFromJson);
     }
 
     @Test
     public void testAccountMarginHistory(TestContext context) {
         this.testCompleteUrl(context, "/api/v1.0/am/history", RequestType.HISTORY, DataHelper.ACCOUNT_MARGIN_FOLDER,
-                AccountMarginModel.getKeyDescriptor(), ModelBuilder::buildAccountMarginFromJson);
+                AccountMarginModel.FIELD_DESCRIPTOR, ModelBuilder::buildAccountMarginFromJson);
     }
 
     @Test
     public void testLiquiGroupMarginLatest(TestContext context) {
         this.testCompleteUrl(context, "/api/v1.0/lgm/latest", RequestType.LATEST, DataHelper.LIQUI_GROUP_MARGIN_FOLDER,
-                LiquiGroupMarginModel.getKeyDescriptor(), ModelBuilder::buildLiquiGroupMarginFromJson);
+                LiquiGroupMarginModel.FIELD_DESCRIPTOR, ModelBuilder::buildLiquiGroupMarginFromJson);
     }
 
     @Test
     public void testLiquiGroupMarginHistory(TestContext context) {
         this.testCompleteUrl(context, "/api/v1.0/lgm/history", RequestType.HISTORY, DataHelper.LIQUI_GROUP_MARGIN_FOLDER,
-                LiquiGroupMarginModel.getKeyDescriptor(), ModelBuilder::buildLiquiGroupMarginFromJson);
+                LiquiGroupMarginModel.FIELD_DESCRIPTOR, ModelBuilder::buildLiquiGroupMarginFromJson);
     }
 
     @Test
     public void testLiquiGroupSplitMarginLatest(TestContext context) {
         this.testCompleteUrl(context, "/api/v1.0/lgsm/latest", RequestType.LATEST, DataHelper.LIQUI_GROUP_SPLIT_MARGIN_FOLDER,
-                LiquiGroupSplitMarginModel.getKeyDescriptor(), ModelBuilder::buildLiquiGroupSplitMarginFromJson);
+                LiquiGroupSplitMarginModel.FIELD_DESCRIPTOR, ModelBuilder::buildLiquiGroupSplitMarginFromJson);
     }
 
     @Test
     public void testLiquiGroupSplitMarginHistory(TestContext context) {
         this.testCompleteUrl(context, "/api/v1.0/lgsm/history", RequestType.HISTORY, DataHelper.LIQUI_GROUP_SPLIT_MARGIN_FOLDER,
-                LiquiGroupSplitMarginModel.getKeyDescriptor(), ModelBuilder::buildLiquiGroupSplitMarginFromJson);
+                LiquiGroupSplitMarginModel.FIELD_DESCRIPTOR, ModelBuilder::buildLiquiGroupSplitMarginFromJson);
     }
 
     @Test
     public void testPoolMarginLatest(TestContext context) {
         this.testCompleteUrl(context, "/api/v1.0/pm/latest", RequestType.LATEST, DataHelper.POOL_MARGIN_FOLDER,
-                PoolMarginModel.getKeyDescriptor(), ModelBuilder::buildPoolMarginFromJson);
+                PoolMarginModel.FIELD_DESCRIPTOR, ModelBuilder::buildPoolMarginFromJson);
     }
 
     @Test
     public void testPoolMarginHistory(TestContext context) {
         this.testCompleteUrl(context, "/api/v1.0/pm/history", RequestType.HISTORY, DataHelper.POOL_MARGIN_FOLDER,
-                PoolMarginModel.getKeyDescriptor(), ModelBuilder::buildPoolMarginFromJson);
+                PoolMarginModel.FIELD_DESCRIPTOR, ModelBuilder::buildPoolMarginFromJson);
     }
 
     @Test
     public void testPositionReportLatest(TestContext context) {
         this.testCompleteUrl(context, "/api/v1.0/pr/latest", RequestType.LATEST, DataHelper.POSITION_REPORT_FOLDER,
-                PositionReportModel.getKeyDescriptor(), ModelBuilder::buildPositionReportFromJson);
+                PositionReportModel.FIELD_DESCRIPTOR, ModelBuilder::buildPositionReportFromJson);
     }
 
     @Test
     public void testPositionReportHistory(TestContext context) {
         this.testCompleteUrl(context, "/api/v1.0/pr/history", RequestType.HISTORY, DataHelper.POSITION_REPORT_FOLDER,
-                PositionReportModel.getKeyDescriptor(), ModelBuilder::buildPositionReportFromJson);
+                PositionReportModel.FIELD_DESCRIPTOR, ModelBuilder::buildPositionReportFromJson);
     }
 
     @Test
     public void testRiskLimitUtilizationLatest(TestContext context) {
         this.testCompleteUrl(context, "/api/v1.0/rlu/latest", RequestType.LATEST, DataHelper.RISK_LIMIT_UTILIZATION_FOLDER,
-                RiskLimitUtilizationModel.getKeyDescriptor(), ModelBuilder::buildRiskLimitUtilizationFromJson);
+                RiskLimitUtilizationModel.FIELD_DESCRIPTOR, ModelBuilder::buildRiskLimitUtilizationFromJson);
     }
 
     @Test
     public void testRiskLimitUtilizationHistory(TestContext context) {
         this.testCompleteUrl(context, "/api/v1.0/rlu/history", RequestType.HISTORY, DataHelper.RISK_LIMIT_UTILIZATION_FOLDER,
-                RiskLimitUtilizationModel.getKeyDescriptor(), ModelBuilder::buildRiskLimitUtilizationFromJson);
+                RiskLimitUtilizationModel.FIELD_DESCRIPTOR, ModelBuilder::buildRiskLimitUtilizationFromJson);
     }
 
     @Test
@@ -180,11 +180,11 @@ public class RestApiTest {
 
     private <T extends Model>
     void testCompleteUrl(TestContext context, String uri, RequestType requestType, String dataFolder,
-                         KeyDescriptor<T> keyDescriptor,
+                         FieldDescriptor<T> fieldDescriptor,
                          Function<JsonObject, T> modelBuilder) {
         JsonObject queryParams = DataHelper.getLastJsonFromFile(dataFolder, 1).orElseThrow(RuntimeException::new);
 
-        queryParams = retainJsonFields(queryParams, keyDescriptor.getUniqueFields().keySet());
+        queryParams = retainJsonFields(queryParams, fieldDescriptor.getUniqueFields().keySet());
 
         JsonArray expectedResult = new JsonArray().add(modelBuilder.apply(
                 new JsonObject().mergeIn(queryParams)

@@ -1,6 +1,6 @@
 package com.deutscheboerse.risk.dave.restapi;
 
-import com.deutscheboerse.risk.dave.model.KeyDescriptor;
+import com.deutscheboerse.risk.dave.model.FieldDescriptor;
 import com.deutscheboerse.risk.dave.model.Model;
 import com.deutscheboerse.risk.dave.persistence.RequestType;
 import com.google.common.base.Preconditions;
@@ -25,7 +25,7 @@ public class MarginApi<T extends Model> {
 
     private final Vertx vertx;
     private String requestName;
-    private KeyDescriptor keyDescriptor;
+    private FieldDescriptor<T> fieldDescriptor;
     private ProxyFunction<T> proxyFunction;
 
     private MarginApi(Vertx vertx) {
@@ -89,7 +89,7 @@ public class MarginApi<T extends Model> {
     }
 
     private Class<?> getParameterType(String parameterName) {
-        Map<String, Class<?>> parameterDescriptor = keyDescriptor.getUniqueFields();
+        Map<String, Class<?>> parameterDescriptor = fieldDescriptor.getUniqueFields();
 
         Preconditions.checkArgument(parameterDescriptor.containsKey(parameterName),
                 "Unknown parameter '%s'", parameterName);
@@ -124,8 +124,8 @@ public class MarginApi<T extends Model> {
         };
     }
 
-    public static MarginApiBuilder newBuilder(Vertx vertx) {
-        return new MarginApiBuilder(vertx);
+    public static <T extends Model> MarginApiBuilder<T> newBuilder(Vertx vertx) {
+        return new MarginApiBuilder<>(vertx);
     }
 
     @FunctionalInterface
@@ -133,27 +133,27 @@ public class MarginApi<T extends Model> {
         void query(RequestType type, JsonObject query, Handler<AsyncResult<List<T>>> resultHandler);
     }
 
-    static final class MarginApiBuilder {
+    static final class MarginApiBuilder<T extends Model> {
         private Vertx vertx;
         private String requestName;
-        private KeyDescriptor keyDescriptor;
-        private ProxyFunction proxyFunction;
+        private FieldDescriptor<T> fieldDescriptor;
+        private ProxyFunction<T> proxyFunction;
 
         private MarginApiBuilder(Vertx vertx) {
             this.vertx = vertx;
         }
 
-        MarginApiBuilder setRequestName(String requestName) {
+        MarginApiBuilder<T> setRequestName(String requestName) {
             this.requestName = requestName;
             return this;
         }
 
-        MarginApiBuilder setKeyDescriptor(KeyDescriptor keyDescriptor) {
-            this.keyDescriptor = keyDescriptor;
+        MarginApiBuilder<T> setFieldDescriptor(FieldDescriptor<T> fieldDescriptor) {
+            this.fieldDescriptor = fieldDescriptor;
             return this;
         }
 
-        MarginApiBuilder setProxyFunction(ProxyFunction proxyFunction) {
+        MarginApiBuilder<T> setProxyFunction(ProxyFunction<T> proxyFunction) {
             this.proxyFunction = proxyFunction;
             return this;
         }
@@ -161,7 +161,7 @@ public class MarginApi<T extends Model> {
         MarginApi build() {
             MarginApi result = new MarginApi(this.vertx);
             result.requestName = this.requestName;
-            result.keyDescriptor = this.keyDescriptor;
+            result.fieldDescriptor = this.fieldDescriptor;
             result.proxyFunction = this.proxyFunction;
             return result;
         }
