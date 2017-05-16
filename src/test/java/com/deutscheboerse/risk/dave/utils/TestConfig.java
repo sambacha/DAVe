@@ -72,7 +72,6 @@ public class TestConfig {
                 .put("port", STORE_MANAGER_PORT)
                 .put("sslKey", pemKeyBuffer.toString())
                 .put("sslCert", pemCertBuffer.toString())
-                .put("sslTrustCerts", sslTrustCerts)
-                .put("verifyHost", false);
+                .put("sslTrustCerts", sslTrustCerts);
     }
 }

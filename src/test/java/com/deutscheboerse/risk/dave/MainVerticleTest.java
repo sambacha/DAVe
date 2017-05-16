@@ -77,7 +77,7 @@ public class MainVerticleTest {
 
         final Async asyncRest = context.async();
         HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
         vertx.createHttpClient(sslOpts).getNow(TestConfig.API_PORT, "localhost", uri, res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {

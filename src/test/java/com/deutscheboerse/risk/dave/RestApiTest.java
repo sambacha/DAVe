@@ -135,7 +135,7 @@ public class RestApiTest {
 
         final Async async = context.async();
         HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
         vertx.createHttpClient(sslOpts).getNow(port, "localhost", new URIBuilder("/api/v1.0/pr/latest").addParams(queryParams).build(), res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {
@@ -157,7 +157,7 @@ public class RestApiTest {
 
         final Async async = context.async();
         HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
         vertx.createHttpClient(sslOpts).getNow(port, "localhost", new URIBuilder("/api/v1.0/pr/latest").addParams(queryParams).build(), res -> {
             context.assertEquals(HttpResponseStatus.BAD_REQUEST.code(), res.statusCode());
             async.complete();
@@ -175,7 +175,7 @@ public class RestApiTest {
 
         final Async async = context.async();
         HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
         vertx.createHttpClient(sslOpts).getNow(port, "localhost", new URIBuilder("/api/v1.0/pr/latest").addParams(queryParams).build(), res -> {
             context.assertEquals(HttpResponseStatus.BAD_REQUEST.code(), res.statusCode());
             async.complete();
@@ -202,7 +202,7 @@ public class RestApiTest {
 
         final Async async = context.async();
         HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
         vertx.createHttpClient(sslOpts).getNow(port, "localhost", new URIBuilder(uri).addParams(queryParams).build(), res -> {
             context.assertEquals(200, res.statusCode());
             res.bodyHandler(body -> {

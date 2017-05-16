@@ -66,7 +66,7 @@ public class AuthTest {
 
         WebClientOptions sslOpts = new WebClientOptions()
                 .setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
 
         WebClient.create(vertx, sslOpts)
                 .get(TestConfig.API_PORT, "localhost", "/api/v1.0/pr/latest")
@@ -84,7 +84,7 @@ public class AuthTest {
 
         WebClientOptions sslOpts = new WebClientOptions()
                 .setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
 
         WebClient.create(vertx, sslOpts)
                 .get(TestConfig.API_PORT, "localhost", "/api/v1.0/pr/latest")
@@ -102,7 +102,7 @@ public class AuthTest {
 
         WebClientOptions sslOpts = new WebClientOptions()
                 .setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
 
         WebClient.create(vertx, sslOpts)
                 .get(TestConfig.API_PORT, "localhost", "/api/v1.0/pr/latest")
@@ -120,7 +120,7 @@ public class AuthTest {
 
         WebClientOptions sslOpts = new WebClientOptions()
                 .setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
 
         WebClient.create(vertx, sslOpts)
                 .get(TestConfig.API_PORT, "localhost", "/api/v1.0/pr/latest")
@@ -138,7 +138,7 @@ public class AuthTest {
 
         WebClientOptions sslOpts = new WebClientOptions()
                 .setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
 
         WebClient client = WebClient.create(vertx, sslOpts);
         client.get(TestConfig.API_PORT, "localhost", "/api/v1.0/pr/latest")
