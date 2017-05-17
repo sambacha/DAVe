@@ -24,25 +24,10 @@ The `storeManager` section contains the configuration of the Store Manager servi
 |--------|-------------|---------|
 | `hostname` | Hostname of the DAVe-StoreManager | `localhost` |
 | `port` | Port where the DAVe-StoreManager is listening to HTTPS connections | `8443` |
-| `verifyHost` | Flag for verification of the DAVe-StoreManager hostname | false |
 | `sslKey` | Private key of the DAVe-API | |
 | `sslCert` | Public key of the DAVe-API | |
 | `sslTrustCerts` | List of trusted certification authorities | |
-| `restApi` | Subsection defining REST API for storing every model (see next table) |  |
 
-#### RestApi
-
-The `restApi` section contains the configuration of DAVe-StoreManager REST API points.
-
-| Option | Explanation | Example |
-|--------|-------------|---------|
-| `accountMargin` | REST API address for querying account margin data | `/api/v1.0/query/am` |
-| `liquiGroupMargin` | REST API address for querying liqui group margin data | `/api/v1.0/query/lgm` |
-| `liquiGroupSplitMargin` | REST API address for querying liqui group split margin data | `/api/v1.0/query/lgsm` |
-| `poolMargin` | REST API address for querying pool margin data | `/api/v1.0/query/pm` |
-| `positionReport` | REST API address for querying position report data | `/api/v1.0/query/pr` |
-| `riskLimitUtilization` | REST API address for querying risk limit utilization data | `/api/v1.0/query/rlu` |
-| `healthz` | REST API address for find out whether the Store Manager is running | `/healthz` |
 
 ### API
 

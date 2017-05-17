@@ -2,7 +2,8 @@ package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.config.ApiConfig;
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
-import com.deutscheboerse.risk.dave.restapi.margin.*;
+import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import com.deutscheboerse.risk.dave.restapi.MarginApiFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
@@ -21,6 +22,7 @@ import io.vertx.core.net.PemTrustOptions;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.*;
+import io.vertx.serviceproxy.ProxyHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,11 +45,14 @@ public class ApiVerticle extends AbstractVerticle {
 
     private ApiConfig config;
 
+    private PersistenceService persistenceProxy;
+
     @Override
     public void start(Future<Void> startFuture) throws Exception {
         LOG.info("Starting {} with configuration: {}", ApiVerticle.class.getSimpleName(), hideCertificates(config()).encodePrettily());
 
         config = (new ObjectMapper()).readValue(config().toString(), ApiConfig.class);
+        persistenceProxy = ProxyHelper.createProxy(PersistenceService.class, vertx, PersistenceService.SERVICE_ADDRESS);
 
         HealthCheck healthCheck = new HealthCheck(this.vertx);
 
@@ -141,12 +146,12 @@ public class ApiVerticle extends AbstractVerticle {
 
         LOG.info("Adding route REST API");
         router.route(API_PREFIX+"/*").handler(BodyHandler.create());
-        router.mountSubRouter(API_PREFIX, new AccountMarginApi(vertx).getRoutes());
-        router.mountSubRouter(API_PREFIX, new LiquiGroupMarginApi(vertx).getRoutes());
-        router.mountSubRouter(API_PREFIX, new LiquiGroupSplitMarginApi(vertx).getRoutes());
-        router.mountSubRouter(API_PREFIX, new PoolMarginApi(vertx).getRoutes());
-        router.mountSubRouter(API_PREFIX, new PositionReportApi(vertx).getRoutes());
-        router.mountSubRouter(API_PREFIX, new RiskLimitUtilizationApi(vertx).getRoutes());
+        router.mountSubRouter(API_PREFIX, MarginApiFactory.accountMarginApi(vertx, persistenceProxy).getRoutes());
+        router.mountSubRouter(API_PREFIX, MarginApiFactory.liquiGroupMarginApi(vertx, persistenceProxy).getRoutes());
+        router.mountSubRouter(API_PREFIX, MarginApiFactory.liquiGroupSplitMarginApi(vertx, persistenceProxy).getRoutes());
+        router.mountSubRouter(API_PREFIX, MarginApiFactory.poolMarginApi(vertx, persistenceProxy).getRoutes());
+        router.mountSubRouter(API_PREFIX, MarginApiFactory.positionReportApi(vertx, persistenceProxy).getRoutes());
+        router.mountSubRouter(API_PREFIX, MarginApiFactory.riskLimitUtilizationApi(vertx, persistenceProxy).getRoutes());
 
         return router;
     }
@@ -157,7 +162,7 @@ public class ApiVerticle extends AbstractVerticle {
 
             //Wildcard(*) not allowed if allowCredentials is true
             CorsHandler corsHandler = CorsHandler.create(config.getCors().getOrigin());
-            corsHandler.allowCredentials(true);
+            corsHandler.allowCredentials(false);
             corsHandler.allowedMethod(HttpMethod.OPTIONS);
             corsHandler.allowedMethod(HttpMethod.GET);
             corsHandler.allowedMethod(HttpMethod.POST);

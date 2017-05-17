@@ -3,16 +3,14 @@ package com.deutscheboerse.risk.dave;
 import com.deutscheboerse.risk.dave.persistence.EchoPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.serviceproxy.ProxyHelper;
@@ -64,14 +62,9 @@ public class AuthTest {
         config.getJsonObject("auth").put("enable", true);
         deployApiVerticle(context, config);
 
-        WebClientOptions sslOpts = new WebClientOptions()
-                .setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
-
-        WebClient.create(vertx, sslOpts)
-                .get(TestConfig.API_PORT, "localhost", "/api/v1.0/pr/latest")
+        createSslRequest("/api/v1.0/pr/latest")
                 .putHeader("Authorization", "Bearer " + JWT_TOKEN)
-                .send(httpAsyncHandler(context, res ->
+                .send(context.asyncAssertSuccess(res ->
                         context.assertEquals(200, res.statusCode())
                 ));
     }
@@ -82,14 +75,9 @@ public class AuthTest {
         config.getJsonObject("auth").put("enable", true).put("jwtPublicKey", INVALID_PUBLIC_KEY);
         deployApiVerticle(context, config);
 
-        WebClientOptions sslOpts = new WebClientOptions()
-                .setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
-
-        WebClient.create(vertx, sslOpts)
-                .get(TestConfig.API_PORT, "localhost", "/api/v1.0/pr/latest")
+        createSslRequest("/api/v1.0/pr/latest")
                 .putHeader("Authorization", "Bearer " + JWT_TOKEN)
-                .send(httpAsyncHandler(context, res ->
+                .send(context.asyncAssertSuccess(res ->
                         context.assertEquals(401, res.statusCode())
                 ));
     }
@@ -100,14 +88,9 @@ public class AuthTest {
         config.getJsonObject("auth").put("enable", true);
         deployApiVerticle(context, config);
 
-        WebClientOptions sslOpts = new WebClientOptions()
-                .setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
-
-        WebClient.create(vertx, sslOpts)
-                .get(TestConfig.API_PORT, "localhost", "/api/v1.0/pr/latest")
+        createSslRequest("/api/v1.0/pr/latest")
                 .putHeader("Authorization", "Bearer " + EXPIRED_JWT_TOKEN)
-                .send(httpAsyncHandler(context, res ->
+                .send(context.asyncAssertSuccess(res ->
                         context.assertEquals(401, res.statusCode())
                 ));
     }
@@ -118,13 +101,8 @@ public class AuthTest {
         config.getJsonObject("auth").put("enable", true);
         deployApiVerticle(context, config);
 
-        WebClientOptions sslOpts = new WebClientOptions()
-                .setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
-
-        WebClient.create(vertx, sslOpts)
-                .get(TestConfig.API_PORT, "localhost", "/api/v1.0/pr/latest")
-                .send(httpAsyncHandler(context, res ->
+        createSslRequest("/api/v1.0/am/latest")
+                .send(context.asyncAssertSuccess(res ->
                         context.assertEquals(401, res.statusCode())
                 ));
     }
@@ -136,39 +114,22 @@ public class AuthTest {
         config.getJsonObject("csrf").put("enable", true);
         deployApiVerticle(context, config);
 
-        WebClientOptions sslOpts = new WebClientOptions()
-                .setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
-
-        WebClient client = WebClient.create(vertx, sslOpts);
-        client.get(TestConfig.API_PORT, "localhost", "/api/v1.0/pr/latest")
+        createSslRequest("/api/v1.0/pr/latest")
                 .putHeader("Authorization", "Bearer " + JWT_TOKEN)
-                .send(httpAsyncHandler(context, res -> {
+                .send(context.asyncAssertSuccess(res -> {
                     context.assertEquals(200, res.statusCode());
 
                     final String csrfToken = getCsrfCookie(res.cookies())
                             .orElseThrow(() -> new RuntimeException("XSRF-TOKEN cookie not found"));
 
-                    client.post(TestConfig.API_PORT, "localhost", "/api/v1.0/pr/delete")
+                    createSslPostRequest("/api/v1.0/pr/delete")
                             .putHeader("Authorization", "Bearer " + JWT_TOKEN)
                             .putHeader("X-XSRF-TOKEN", csrfToken)
-                            .send(httpAsyncHandler(context, csrfRes -> {
+                            .send(context.asyncAssertSuccess(csrfRes -> {
                                 // We expect "Not found (404)" error code instead of "Forbidden (403)"
                                 context.assertEquals(404, csrfRes.statusCode());
                             }));
                 }));
-    }
-
-    private Handler<AsyncResult<HttpResponse<Buffer>>> httpAsyncHandler(TestContext context, Handler<HttpResponse<Buffer>> handler) {
-        final Async async = context.async();
-        return ar -> {
-            if (ar.succeeded()) {
-                handler.handle(ar.result());
-                async.complete();
-            } else {
-                context.fail(ar.cause());
-            }
-        };
     }
 
     private Optional<String> getCsrfCookie(List<String> cookies) {
@@ -176,6 +137,24 @@ public class AuthTest {
                 .filter(cookie -> cookie.startsWith("XSRF-TOKEN="))
                 .map(cookie -> cookie.replaceFirst("XSRF-TOKEN=", ""))
                 .findFirst();
+    }
+
+    private HttpRequest<Buffer> createSslRequest(String uri) {
+        WebClientOptions sslOpts = new WebClientOptions()
+                .setSsl(true)
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+
+        return WebClient.create(vertx, sslOpts)
+                .get(TestConfig.API_PORT, "localhost", uri);
+    }
+
+    private HttpRequest<Buffer> createSslPostRequest(String uri) {
+        WebClientOptions sslOpts = new WebClientOptions()
+                .setSsl(true)
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+
+        return WebClient.create(vertx, sslOpts)
+                .post(TestConfig.API_PORT, "localhost", uri);
     }
 
     @After

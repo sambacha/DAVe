@@ -72,7 +72,7 @@ public class ApiVerticleTest {
         String myOrigin = "https://localhost:8888";
 
         HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
 
         vertx.createHttpClient(sslOpts).get(port, "localhost", "/api/v1.0/pr/latest", res -> {
             context.assertEquals(200, res.statusCode());
@@ -89,7 +89,7 @@ public class ApiVerticleTest {
         final Async asyncSslClient = context.async();
 
         HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
 
         vertx.createHttpClient(sslOpts).get(port, "localhost", "/api/v1.0/pr/latest", res -> {
             context.assertEquals(200, res.statusCode());
@@ -113,7 +113,7 @@ public class ApiVerticleTest {
         final Async asyncSslClient = context.async();
 
         HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
 
         vertx.createHttpClient(sslOpts).get(port, "localhost", "/api/v1.0/pr/latest", res -> {
             context.assertEquals(200, res.statusCode());
@@ -122,7 +122,7 @@ public class ApiVerticleTest {
 
         final Async asyncSslClientAuth = context.async();
         HttpClientOptions sslClientAuthOpts = new HttpClientOptions().setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions())
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions())
                 .setPemKeyCertOptions(new PemKeyCertOptions()
                         .setKeyPath(TestConfig.HTTP_CLIENT_CERTIFICATE.privateKeyPath())
                         .setCertPath(TestConfig.HTTP_CLIENT_CERTIFICATE.certificatePath()));
@@ -150,7 +150,7 @@ public class ApiVerticleTest {
         final Async asyncSslClient = context.async();
 
         HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
 
         vertx.createHttpClient(sslOpts).get(port, "localhost", "/api/v1.0/pr/latest", res ->
             context.fail("Connected without client authentication!")
@@ -160,7 +160,7 @@ public class ApiVerticleTest {
 
         final Async asyncSslClientAuth = context.async();
         HttpClientOptions sslClientAuthOpts = new HttpClientOptions().setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions())
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions())
                 .setPemKeyCertOptions(new PemKeyCertOptions()
                         .setKeyPath(TestConfig.HTTP_CLIENT_CERTIFICATE.privateKeyPath())
                         .setCertPath(TestConfig.HTTP_CLIENT_CERTIFICATE.certificatePath()));

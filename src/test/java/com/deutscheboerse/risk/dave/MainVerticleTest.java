@@ -2,23 +2,27 @@ package com.deutscheboerse.risk.dave;
 
 import ch.qos.logback.classic.Logger;
 import com.deutscheboerse.risk.dave.log.TestAppender;
-import com.deutscheboerse.risk.dave.model.PositionReportModel;
+import com.deutscheboerse.risk.dave.model.AccountMarginModel;
+import com.deutscheboerse.risk.dave.model.FieldDescriptor;
 import com.deutscheboerse.risk.dave.persistence.EchoPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.persistence.StoreManagerMock;
-import com.deutscheboerse.risk.dave.util.URIBuilder;
 import com.deutscheboerse.risk.dave.utils.DataHelper;
+import com.deutscheboerse.risk.dave.utils.ModelBuilder;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Set;
 
 @RunWith(VertxUnitRunner.class)
 public class MainVerticleTest {
@@ -43,7 +48,7 @@ public class MainVerticleTest {
     @Test
     public void testFullChain(TestContext context) throws InterruptedException, UnsupportedEncodingException {
         // Start storage mock
-        StoreManagerMock storageMock = new StoreManagerMock(vertx, TestConfig.getStoreManagerConfig());
+        StoreManagerMock storageMock = new StoreManagerMock(vertx);
         final Async serverStarted = context.async();
         storageMock.listen(context.asyncAssertSuccess(ar -> serverStarted.complete()));
 
@@ -57,33 +62,30 @@ public class MainVerticleTest {
 
         deployAsync.awaitSuccess(30000);
 
-        PositionReportModel latestModel = DataHelper.getLastModelFromFile(PositionReportModel.class, 1);
-        String uri = new URIBuilder("/api/v1.0/pr/latest")
-                .addParams(DataHelper.getQueryParams(latestModel))
-                .build();
+        JsonObject queryParams = DataHelper.getLastJsonFromFile(DataHelper.ACCOUNT_MARGIN_FOLDER, 1).orElseThrow(RuntimeException::new);
+        FieldDescriptor<AccountMarginModel> fieldDescriptor = AccountMarginModel.FIELD_DESCRIPTOR;
 
-        JsonObject queryParams = DataHelper.getQueryParams(latestModel);
-        JsonObject expectedResult = new JsonObject()
-                .put("model", "PositionReportModel")
-                .put("requestType", "LATEST")
-                .mergeIn(queryParams);
+        queryParams = retainJsonFields(queryParams, fieldDescriptor.getUniqueFields().keySet());
+
+        JsonObject expectedResult = ModelBuilder.buildAccountMarginFromJson(
+                new JsonObject().mergeIn(queryParams)
+                        .put("snapshotID", ModelBuilder.LATEST_SNAPSHOT_ID)
+                        .put("businessDate", ModelBuilder.BUSINESS_DATE)
+                ).toApplicationJson();
 
         final Async asyncRest = context.async();
-        HttpClientOptions sslOpts = new HttpClientOptions().setSsl(true)
-                .setVerifyHost(false).setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
-        vertx.createHttpClient(sslOpts).getNow(TestConfig.API_PORT, "localhost", uri, res -> {
-            context.assertEquals(200, res.statusCode());
-            res.bodyHandler(body -> {
-                try {
-                    JsonArray positions = body.toJsonArray();
-                    context.assertEquals(1, positions.size());
-                    context.assertEquals(expectedResult, positions.getJsonObject(0));
-                    asyncRest.complete();
-                } catch (Exception e) {
-                    context.fail(e);
-                }
-            });
-        });
+        createSslRequest("/api/v1.0/am/latest", queryParams)
+                .send(context.asyncAssertSuccess(res -> {
+                    context.assertEquals(200, res.statusCode());
+                    try {
+                        JsonArray positions = res.body().toJsonArray();
+                        context.assertEquals(1, positions.size());
+                        context.assertEquals(expectedResult, positions.getJsonObject(0));
+                        asyncRest.complete();
+                    } catch (Exception e) {
+                        context.fail(e);
+                    }
+                }));
         asyncRest.awaitSuccess(30000);
 
         storageMock.close(context.asyncAssertSuccess());
@@ -122,6 +124,29 @@ public class MainVerticleTest {
         rootLogger.detachAppender(testAppender);
         testAppender.clear();
         this.vertx.close(context.asyncAssertSuccess());
+    }
+
+    private static JsonObject retainJsonFields(JsonObject json, Set<String> retainFields) {
+        JsonObject result = new JsonObject();
+        json.forEach(entry -> {
+            if (retainFields.contains(entry.getKey())) {
+                result.put(entry.getKey(), entry.getValue());
+            }
+        });
+        return result;
+    }
+
+    private HttpRequest<Buffer> createSslRequest(String uri, JsonObject params) {
+        WebClientOptions sslOpts = new WebClientOptions()
+                .setSsl(true)
+                .setPemTrustOptions(TestConfig.HTTP_API_CERTIFICATE.trustOptions());
+
+        HttpRequest<Buffer> httpRequest = WebClient.create(vertx, sslOpts)
+                .get(TestConfig.API_PORT, "localhost", uri);
+
+        params.forEach(entry -> httpRequest.addQueryParam(entry.getKey(), entry.getValue().toString()));
+
+        return httpRequest;
     }
 
     public static class EchoBinder extends AbstractModule {

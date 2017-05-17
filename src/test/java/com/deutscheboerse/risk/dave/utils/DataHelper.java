@@ -1,7 +1,7 @@
 package com.deutscheboerse.risk.dave.utils;
 
-import com.deutscheboerse.risk.dave.MainVerticleTest;
-import com.deutscheboerse.risk.dave.model.AbstractModel;
+import com.deutscheboerse.risk.dave.*;
+import com.deutscheboerse.risk.dave.model.Model;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -11,11 +11,21 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class DataHelper {
     private static final Logger LOG = LoggerFactory.getLogger(DataHelper.class);
+
+    public static final String ACCOUNT_MARGIN_FOLDER = "accountMargin";
+    public static final String LIQUI_GROUP_MARGIN_FOLDER = "liquiGroupMargin";
+    public static final String LIQUI_GROUP_SPLIT_MARGIN_FOLDER = "liquiGroupSplitMargin";
+    public static final String POOL_MARGIN_FOLDER = "poolMargin";
+    public static final String POSITION_REPORT_FOLDER = "positionReport";
+    public static final String RISK_LIMIT_UTILIZATION_FOLDER = "riskLimitUtilization";
 
     private static Optional<JsonArray> getJsonArrayFromTTSaveFile(String folderName, int ttsaveNo) {
         String jsonPath = String.format("%s/snapshot-%03d.json", MainVerticleTest.class.getResource(folderName).getPath(), ttsaveNo);
@@ -36,7 +46,15 @@ public class DataHelper {
                 .forEach(json -> consumer.accept((JsonObject) json));
     }
 
-    private static Optional<JsonObject> getLastJsonFromFile(String folderName, int ttsaveNo) {
+    public static List<JsonObject> readTTSaveFile(String folderName, int ttsaveNo) {
+        return getJsonArrayFromTTSaveFile(folderName, ttsaveNo)
+                .orElse(new JsonArray())
+                .stream()
+                .map(json -> (JsonObject) json)
+                .collect(Collectors.toList());
+    }
+
+    public static Optional<JsonObject> getLastJsonFromFile(String folderName, int ttsaveNo) {
         return getJsonArrayFromTTSaveFile(folderName, ttsaveNo)
                 .orElse(new JsonArray())
                 .stream()
@@ -44,29 +62,15 @@ public class DataHelper {
                 .reduce((a, b) -> b);
     }
 
-    public static <T extends AbstractModel> T getLastModelFromFile(Class<T> clazz, int ttsaveNo) {
-        String folderName = clazz.getSimpleName().substring(0, 1).toLowerCase() +
-                clazz.getSimpleName().substring(1).replace("Model", "");
-        JsonObject json = getLastJsonFromFile(folderName, ttsaveNo).orElse(new JsonObject());
-        try {
-            T model = clazz.newInstance();
-            model.mergeIn(json);
-            return model;
-        } catch (IllegalAccessException|InstantiationException e) {
-            throw new AssertionError();
-        }
+    public static <T extends Model> T getLastModelFromFile(String folderName, int ttsaveNo,
+                                                           Function<JsonObject, T> modelFactory) {
+        return modelFactory.apply(
+                getLastJsonFromFile(folderName, ttsaveNo).orElse(new JsonObject()));
     }
 
     public static int getJsonObjectCount(String folderName, int ttsaveNo) {
         return getJsonArrayFromTTSaveFile(folderName, ttsaveNo)
                 .orElse(new JsonArray())
                 .size();
-    }
-
-    public static JsonObject getQueryParams(AbstractModel model) {
-        JsonObject queryParams = new JsonObject();
-        model.getKeys().forEach(key -> queryParams.put(key, model.getValue(key)));
-        model.getUniqueFields().forEach(uniqueField -> queryParams.put(uniqueField, model.getValue(uniqueField)));
-        return queryParams;
     }
 }

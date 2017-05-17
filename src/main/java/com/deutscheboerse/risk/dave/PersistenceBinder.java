@@ -1,7 +1,7 @@
 package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
-import com.deutscheboerse.risk.dave.persistence.RestPersistenceService;
+import com.deutscheboerse.risk.dave.persistence.GrpcPersistenceService;
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 import io.vertx.core.Vertx;
@@ -24,6 +24,6 @@ public class PersistenceBinder extends AbstractModule {
     }
 
     private void bindPersistenceService() {
-        bind(PersistenceService.class).to(RestPersistenceService.class).in(Singleton.class);
+        bind(PersistenceService.class).to(GrpcPersistenceService.class).in(Singleton.class);
     }
 }

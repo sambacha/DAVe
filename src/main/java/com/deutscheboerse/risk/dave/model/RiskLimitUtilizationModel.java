@@ -1,31 +1,53 @@
 package com.deutscheboerse.risk.dave.model;
 
+import com.deutscheboerse.risk.dave.grpc.RiskLimitUtilization;
+import com.google.protobuf.InvalidProtocolBufferException;
+import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
-import java.util.*;
+@DataObject
+public class RiskLimitUtilizationModel implements Model<RiskLimitUtilization> {
 
-public class RiskLimitUtilizationModel extends AbstractModel {
+    public static final FieldDescriptor<RiskLimitUtilizationModel> FIELD_DESCRIPTOR = FieldDescriptor.newBuilder()
+            .addField("clearer", String.class)
+            .addField("member", String.class)
+            .addField("maintainer", String.class)
+            .addField("limitType", String.class)
+            .build();
 
-    public RiskLimitUtilizationModel() {
-        // Empty constructor
+    private final RiskLimitUtilization grpc;
+
+    public RiskLimitUtilizationModel(RiskLimitUtilization grpc) {
+        this.grpc = grpc;
     }
 
     public RiskLimitUtilizationModel(JsonObject json) {
-        super(json);
+        verifyJson(json);
+        try {
+            this.grpc = RiskLimitUtilization.parseFrom(json.getBinary("grpc"));
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public Map<String, Class<?>> getKeysDescriptor() {
-        Map<String, Class<?>> keys = new LinkedHashMap<>();
-        keys.put("clearer", String.class);
-        keys.put("member", String.class);
-        keys.put("maintainer", String.class);
-        keys.put("limitType", String.class);
-        return Collections.unmodifiableMap(keys);
+    public RiskLimitUtilization toGrpc() {
+        return this.grpc;
     }
 
     @Override
-    public Map<String, Class<?>> getUniqueFieldsDescriptor() {
-        return Collections.emptyMap();
+    public JsonObject toApplicationJson() {
+        return new JsonObject()
+                .put("snapshotID", grpc.getSnapshotId())
+                .put("businessDate", grpc.getBusinessDate())
+                .put("timestamp", grpc.getTimestamp())
+                .put("clearer", grpc.getClearer())
+                .put("member", grpc.getMember())
+                .put("maintainer", grpc.getMaintainer())
+                .put("limitType", grpc.getLimitType())
+                .put("utilization", grpc.getUtilization())
+                .put("warningLevel", grpc.getWarningLevel())
+                .put("throttleLevel", grpc.getThrottleLevel())
+                .put("rejectLevel", grpc.getRejectLevel());
     }
 }
