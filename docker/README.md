@@ -39,7 +39,7 @@ Allows to configure logging parameters. Supported log levels are `off`, `error`,
 | `STOREMANAGER_SSL_KEY` | Private key of the client in PEM format | |
 | `STOREMANAGER_SSL_CERT` | Public key of the client CRT format | |
 | `STOREMANAGER_SSL_TRUST_CERTS` | List of trusted certification authorities | |
-| `STOREMANAGER_VERIFY_HOST` | Require verification of the DAVe Store Manager host name during SSL | `1` |
+
 
 ### API Server
 

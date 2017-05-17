@@ -162,7 +162,7 @@ public class ApiVerticle extends AbstractVerticle {
 
             //Wildcard(*) not allowed if allowCredentials is true
             CorsHandler corsHandler = CorsHandler.create(config.getCors().getOrigin());
-            corsHandler.allowCredentials(true);
+            corsHandler.allowCredentials(false);
             corsHandler.allowedMethod(HttpMethod.OPTIONS);
             corsHandler.allowedMethod(HttpMethod.GET);
             corsHandler.allowedMethod(HttpMethod.POST);
