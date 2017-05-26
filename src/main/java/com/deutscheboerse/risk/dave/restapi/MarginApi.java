@@ -112,11 +112,13 @@ public class MarginApi<T extends Model> {
         return ar -> {
             if (ar.succeeded()) {
                 LOG.trace("Received response {} request", this.requestName);
-                JsonArray result = new JsonArray();
-                ar.result().forEach(model -> result.add(model.toApplicationJson()));
-                routingContext.response()
-                        .putHeader("content-type", "application/json; charset=utf-8")
-                        .end(result.toString());
+                vertx.executeBlocking(future -> {
+                    JsonArray result = new JsonArray();
+                    ar.result().forEach(model -> result.add(model.toApplicationJson()));
+                    routingContext.response()
+                            .putHeader("content-type", "application/json; charset=utf-8")
+                            .end(result.toString());
+                }, false, res -> {});
             } else {
                 LOG.error("Failed to query the DB service", ar.cause());
                 routingContext.response().setStatusCode(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).end();
