@@ -4,10 +4,12 @@ import com.deutscheboerse.risk.dave.model.FieldDescriptor;
 import com.deutscheboerse.risk.dave.model.Model;
 import com.deutscheboerse.risk.dave.persistence.RequestType;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -19,9 +21,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MarginApi<T extends Model> {
     private static final Logger LOG = LoggerFactory.getLogger(MarginApi.class);
+    private static final int HTTP_RESPONSE_CHUNK_SIZE = 100;
 
     private final Vertx vertx;
     private String requestName;
@@ -113,11 +117,22 @@ public class MarginApi<T extends Model> {
             if (ar.succeeded()) {
                 LOG.trace("Received response {} request", this.requestName);
                 vertx.executeBlocking(future -> {
-                    JsonArray result = new JsonArray();
-                    ar.result().forEach(model -> result.add(model.toApplicationJson()));
-                    routingContext.response()
+                    HttpServerResponse httpServerResponse = routingContext.response()
                             .putHeader("content-type", "application/json; charset=utf-8")
-                            .end(result.toString());
+                            .setChunked(true);
+                    httpServerResponse.write("[");
+                    AtomicBoolean firstWritten = new AtomicBoolean(false);
+                    Lists.partition(ar.result(), HTTP_RESPONSE_CHUNK_SIZE).forEach(modelsChunk -> {
+                        if (firstWritten.getAndSet(true)) {
+                            httpServerResponse.write(",");
+                        }
+                        JsonArray resultChunk = new JsonArray();
+                        modelsChunk.forEach(model -> resultChunk.add(model.toApplicationJson()));
+                        final String resultChunkString = resultChunk.toString();
+                        httpServerResponse.write(resultChunkString.substring(1, resultChunkString.length() - 1));
+                    });
+                    httpServerResponse.write("]");
+                    httpServerResponse.end();
                 }, false, res -> {});
             } else {
                 LOG.error("Failed to query the DB service", ar.cause());
