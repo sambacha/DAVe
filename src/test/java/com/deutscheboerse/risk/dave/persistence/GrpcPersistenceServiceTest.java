@@ -87,19 +87,6 @@ public class GrpcPersistenceServiceTest {
         storageManager.setHealth(true);
     }
 
-    @Test
-    public void testExceptionHandler(TestContext context) throws IOException, InterruptedException {
-        JsonObject config = TestConfig.getStoreManagerConfig().put("port", -1);
-        PersistenceService unavailableService = new GrpcPersistenceService(vertx, config);
-        testAppender.start();
-        Async queryAsync = context.async();
-        unavailableService.queryAccountMargin(RequestType.HISTORY, new JsonObject(),
-                context.asyncAssertFailure(ar -> queryAsync.complete()));
-        queryAsync.awaitSuccess();
-        testAppender.waitForMessageContains(Level.ERROR, "UNAVAILABLE");
-        testAppender.stop();
-    }
-
     private interface QueryFunction<T extends Model> {
         void query(RequestType type, JsonObject query, Handler<AsyncResult<List<T>>> resultHandler);
     }

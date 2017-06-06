@@ -1,7 +1,7 @@
 package com.deutscheboerse.risk.dave.persistence;
 
-import com.deutscheboerse.risk.dave.grpc.*;
 import com.deutscheboerse.risk.dave.config.StoreManagerConfig;
+import com.deutscheboerse.risk.dave.grpc.*;
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import com.deutscheboerse.risk.dave.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,8 +29,6 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.logging.Level;
-
-import static io.grpc.ConnectivityState.SHUTDOWN;
 
 public class GrpcPersistenceService implements PersistenceService {
     private static final Logger LOG = LoggerFactory.getLogger(GrpcPersistenceService.class);
@@ -192,7 +190,11 @@ public class GrpcPersistenceService implements PersistenceService {
 
     @Override
     public void close(Handler<AsyncResult<Void>> resultHandler) {
-        this.channel.shutdown();
+        if (this.grpcService != null) {
+            this.grpcService = null;
+            this.channel.shutdown();
+            this.channel = null;
+        }
         resultHandler.handle(Future.succeededFuture());
     }
 
