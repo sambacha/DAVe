@@ -90,17 +90,15 @@ public class GrpcPersistenceServiceTest {
     }
 
     @Test
-    public void testExceptionHandler(TestContext context) throws InterruptedException {
-        Async closeAsync = context.async();
-        storageManager.close(context.asyncAssertSuccess(i -> closeAsync.complete()));
-        closeAsync.awaitSuccess();
+    public void testExceptionHandler(TestContext context) throws IOException, InterruptedException {
+        JsonObject config = TestConfig.getStoreManagerConfig().put("port", -1);
+        PersistenceService unavailableService = new GrpcPersistenceService(vertx, config);
         testAppender.start();
         Async queryAsync = context.async();
-        persistenceProxy.queryAccountMargin(RequestType.HISTORY, new JsonObject(),
+        unavailableService.queryAccountMargin(RequestType.HISTORY, new JsonObject(),
                 context.asyncAssertFailure(ar -> queryAsync.complete()));
         queryAsync.awaitSuccess();
         testAppender.waitForMessageContains(Level.ERROR, "UNAVAILABLE");
-        storageManager.listen(context.asyncAssertSuccess());
         testAppender.stop();
     }
 
