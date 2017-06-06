@@ -6,9 +6,7 @@ import com.deutscheboerse.risk.dave.log.TestAppender;
 import com.deutscheboerse.risk.dave.model.Model;
 import com.deutscheboerse.risk.dave.utils.DataHelper;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -140,8 +138,14 @@ public class GrpcPersistenceServiceTest {
 
     @AfterClass
     public static void tearDown(TestContext context) {
-        persistenceProxy.close();
-        storageManager.close(context.asyncAssertSuccess());
-        vertx.close(context.asyncAssertSuccess());
+        Future<Void> proxyClose = Future.future();
+        Future<Void> storeClose = Future.future();
+
+        persistenceProxy.close(proxyClose);
+        storageManager.close(storeClose);
+
+        CompositeFuture.all(proxyClose, storeClose).setHandler(context.asyncAssertSuccess(
+                res -> vertx.close(context.asyncAssertSuccess())
+        ));
     }
 }

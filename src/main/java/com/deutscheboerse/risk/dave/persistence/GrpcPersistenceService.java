@@ -30,6 +30,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 
+import static io.grpc.ConnectivityState.SHUTDOWN;
+
 public class GrpcPersistenceService implements PersistenceService {
     private static final Logger LOG = LoggerFactory.getLogger(GrpcPersistenceService.class);
     private static final java.util.logging.Logger GRPC_LOG = java.util.logging.Logger.getLogger("io.grpc");
@@ -189,8 +191,9 @@ public class GrpcPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void close() {
-        // Empty
+    public void close(Handler<AsyncResult<Void>> resultHandler) {
+        this.channel.shutdown();
+        resultHandler.handle(Future.succeededFuture());
     }
 
     private <GrpcType extends MessageLite, QueryType extends MessageLite, ModelType extends Model>
