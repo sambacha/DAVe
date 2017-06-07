@@ -1,7 +1,7 @@
 package com.deutscheboerse.risk.dave.persistence;
 
-import com.deutscheboerse.risk.dave.grpc.*;
 import com.deutscheboerse.risk.dave.config.StoreManagerConfig;
+import com.deutscheboerse.risk.dave.grpc.*;
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import com.deutscheboerse.risk.dave.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -189,8 +189,13 @@ public class GrpcPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void close() {
-        // Empty
+    public void close(Handler<AsyncResult<Void>> resultHandler) {
+        if (this.grpcService != null) {
+            this.grpcService = null;
+            this.channel.shutdown();
+            this.channel = null;
+        }
+        resultHandler.handle(Future.succeededFuture());
     }
 
     private <GrpcType extends MessageLite, QueryType extends MessageLite, ModelType extends Model>

@@ -26,5 +26,5 @@ public interface PersistenceService {
     void queryRiskLimitUtilization(RequestType type, JsonObject query, Handler<AsyncResult<List<RiskLimitUtilizationModel>>> resultHandler);
 
     @ProxyClose
-    void close();
+    void close(Handler<AsyncResult<Void>> resultHandler);
 }

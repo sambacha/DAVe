@@ -59,7 +59,8 @@ public class InitPersistenceService implements PersistenceService {
     }
 
     @Override
-    public void close() {
+    public void close(Handler<AsyncResult<Void>> resultHandler) {
+        resultHandler.handle(ServiceException.fail(QUERY_ERROR, "Close is not implemented"));
     }
 
     public boolean isInitialized() {
