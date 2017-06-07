@@ -54,9 +54,8 @@ public class PersistenceVerticle extends AbstractVerticle {
     }
 
     @Override
-    public void stop() throws Exception {
-        this.proxyPersistenceService.close();
-        super.stop();
+    public void stop(Future<Void> stopFuture) {
+        this.proxyPersistenceService.close(stopFuture);
     }
 
 }

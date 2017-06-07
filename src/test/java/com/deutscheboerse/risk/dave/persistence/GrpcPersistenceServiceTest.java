@@ -6,9 +6,7 @@ import com.deutscheboerse.risk.dave.log.TestAppender;
 import com.deutscheboerse.risk.dave.model.Model;
 import com.deutscheboerse.risk.dave.utils.DataHelper;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -89,21 +87,6 @@ public class GrpcPersistenceServiceTest {
         storageManager.setHealth(true);
     }
 
-    @Test
-    public void testExceptionHandler(TestContext context) throws InterruptedException {
-        Async closeAsync = context.async();
-        storageManager.close(context.asyncAssertSuccess(i -> closeAsync.complete()));
-        closeAsync.awaitSuccess();
-        testAppender.start();
-        Async queryAsync = context.async();
-        persistenceProxy.queryAccountMargin(RequestType.HISTORY, new JsonObject(),
-                context.asyncAssertFailure(ar -> queryAsync.complete()));
-        queryAsync.awaitSuccess();
-        testAppender.waitForMessageContains(Level.ERROR, "UNAVAILABLE");
-        storageManager.listen(context.asyncAssertSuccess());
-        testAppender.stop();
-    }
-
     private interface QueryFunction<T extends Model> {
         void query(RequestType type, JsonObject query, Handler<AsyncResult<List<T>>> resultHandler);
     }
@@ -142,8 +125,14 @@ public class GrpcPersistenceServiceTest {
 
     @AfterClass
     public static void tearDown(TestContext context) {
-        persistenceProxy.close();
-        storageManager.close(context.asyncAssertSuccess());
-        vertx.close(context.asyncAssertSuccess());
+        Future<Void> proxyClose = Future.future();
+        Future<Void> storeClose = Future.future();
+
+        persistenceProxy.close(proxyClose);
+        storageManager.close(storeClose);
+
+        CompositeFuture.all(proxyClose, storeClose).setHandler(context.asyncAssertSuccess(
+                res -> vertx.close(context.asyncAssertSuccess())
+        ));
     }
 }

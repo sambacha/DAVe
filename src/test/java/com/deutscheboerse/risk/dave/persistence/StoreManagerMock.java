@@ -31,7 +31,7 @@ public class StoreManagerMock {
     }
 
     public StoreManagerMock listen(Handler<AsyncResult<Void>> resultHandler) {
-        LOG.info("Starting web server on port {}", TestConfig.STORE_MANAGER_PORT);
+        LOG.info("Starting grpc server on port {}", TestConfig.STORE_MANAGER_PORT);
 
         this.server.start(resultHandler);
         return this;
@@ -100,7 +100,7 @@ public class StoreManagerMock {
     }
 
     public void close(Handler<AsyncResult<Void>> completionHandler) {
-        LOG.info("Shutting down webserver");
+        LOG.info("Shutting down grpc server");
         server.shutdown(completionHandler);
     }
 }

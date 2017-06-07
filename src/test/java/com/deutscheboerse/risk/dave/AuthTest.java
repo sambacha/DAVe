@@ -135,7 +135,7 @@ public class AuthTest {
     private Optional<String> getCsrfCookie(List<String> cookies) {
         return cookies.stream()
                 .filter(cookie -> cookie.startsWith("XSRF-TOKEN="))
-                .map(cookie -> cookie.replaceFirst("XSRF-TOKEN=", ""))
+                .map(cookie -> cookie.replaceFirst("XSRF-TOKEN=", "").replaceFirst("; Path=.*", ""))
                 .findFirst();
     }
 

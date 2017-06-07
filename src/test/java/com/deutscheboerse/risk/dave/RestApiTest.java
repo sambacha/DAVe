@@ -231,8 +231,9 @@ public class RestApiTest {
     }
 
     @AfterClass
-    public static void tearDown(TestContext context) {
-        persistenceProxy.close();
-        vertx.close(context.asyncAssertSuccess());
+    public static void tearDown(TestContext context) throws InterruptedException {
+        persistenceProxy.close(context.asyncAssertSuccess(res ->
+                vertx.close(context.asyncAssertSuccess())
+        ));
     }
 }
