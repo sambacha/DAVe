@@ -1,7 +1,17 @@
 package com.deutscheboerse.risk.dave;
 
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
+import com.deutscheboerse.risk.dave.persistence.EchoPersistenceService;
+import com.deutscheboerse.risk.dave.persistence.PersistenceService;
+import com.deutscheboerse.risk.dave.utils.TestConfig;
+import com.google.inject.AbstractModule;
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.junit.AfterClass;
@@ -9,87 +19,151 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
+import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.API;
+import static com.deutscheboerse.risk.dave.healthcheck.HealthCheck.Component.PERSISTENCE_SERVICE;
 
-/**
- * Created by schojak on 8.2.17.
- */
 @RunWith(VertxUnitRunner.class)
 public class HealthCheckTest {
     private final static String MAP_NAME = "healthCheck";
-    private final static String HTTP_KEY = "httpReady";
-    private final static String MONGO_KEY = "mongoReady";
+    private final static String API_KEY = "API";
+    private final static String PERSISTENCE_KEY = "PERSISTENCE_SERVICE";
 
-    //private static Vertx vertx;
+    private static Vertx vertx;
 
-    /*@BeforeClass
-    public static void setUp(TestContext context) throws IOException {
-        HealthCheckTest.vertx = Vertx.vertx();
-    }*/
+    @BeforeClass
+    public static void setUp(TestContext context) {
+        vertx = Vertx.vertx();
+
+        JsonObject config = TestConfig.getGlobalConfig();
+        config.put("guice_binder", HealthCheckTest.EchoBinder.class.getName());
+        DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(config);
+
+        vertx.deployVerticle(MainVerticle.class.getName(), deploymentOptions, context.asyncAssertSuccess());
+    }
+
+    private Handler<HttpClientResponse> assertEqualsHttpHandler(int expectedCode, String expectedText, TestContext context) {
+        final Async async = context.async();
+        return response -> {
+            context.assertEquals(expectedCode, response.statusCode());
+            response.bodyHandler(body -> {
+                try {
+                    context.assertEquals(expectedText, body.toString());
+                    async.complete();
+                } catch (Exception e) {
+                    context.fail(e);
+                }
+            });
+        };
+    }
 
     @Test
-    public void testInitialization(TestContext context) {
+    public void testUnitInitialization(TestContext context) {
         Vertx vertx = Vertx.vertx();
 
         HealthCheck healthCheck = new HealthCheck(vertx);
 
-        context.assertNotNull(vertx.sharedData().getLocalMap(MAP_NAME).get(MONGO_KEY), "Mongo readiness should not be null");
-        context.assertNotNull(vertx.sharedData().getLocalMap(MAP_NAME).get(HTTP_KEY), "HTTP readiness should not be null");
-        context.assertFalse(healthCheck.getMongoState(), "Mongo readiness should return false");
-        context.assertFalse(healthCheck.getHttpState(), "Http readiness should return false");
-        context.assertFalse((Boolean) vertx.sharedData().getLocalMap(MAP_NAME).get(MONGO_KEY), "Mongo readiness should be initialized to false");
-        context.assertFalse((Boolean) vertx.sharedData().getLocalMap(MAP_NAME).get(HTTP_KEY), "HTTP readiness should be initialized to false");
+        for (HealthCheck.Component component: HealthCheck.Component.values()) {
+            context.assertFalse(healthCheck.isComponentReady(component), component.name() + " readiness should be initialized to false");
+        }
+
+        context.assertFalse(healthCheck.ready(), "Initial state of healthCheck should be false");
 
         vertx.close();
     }
 
     @Test
-    public void testMongoReadyness(TestContext context) {
+    public void testUnitPersistenceReadiness(TestContext context) {
         Vertx vertx = Vertx.vertx();
 
-        HealthCheck healthCheck = new HealthCheck(vertx).setMongoState(true);
+        HealthCheck healthCheck = new HealthCheck(vertx).setComponentReady(PERSISTENCE_SERVICE);
 
-        context.assertTrue(healthCheck.getMongoState(), "Mongo readiness should return true");
-        context.assertTrue((Boolean) vertx.sharedData().getLocalMap(MAP_NAME).get(MONGO_KEY), "Mongo readiness should equal true in shared data");
+        context.assertTrue(healthCheck.isComponentReady(PERSISTENCE_SERVICE), "Persistence readiness should return true");
+        context.assertTrue((Boolean) vertx.sharedData().getLocalMap(MAP_NAME).get(PERSISTENCE_KEY), "Persistence readiness should equal true in shared data");
 
         vertx.close();
     }
 
     @Test
-    public void testHttpReadyness(TestContext context) {
+    public void testUnitApiReadiness(TestContext context) {
         Vertx vertx = Vertx.vertx();
 
-        HealthCheck healthCheck = new HealthCheck(vertx).setHttpState(true);
+        HealthCheck healthCheck = new HealthCheck(vertx).setComponentReady(API);
 
-        context.assertTrue(healthCheck.getHttpState(), "Http readiness should return true");
-        context.assertTrue((Boolean) vertx.sharedData().getLocalMap(MAP_NAME).get(HTTP_KEY), "Http readiness should equal true in shared data");
+        context.assertTrue(healthCheck.isComponentReady(API), "Api readiness should return true");
+        context.assertTrue((Boolean) vertx.sharedData().getLocalMap(MAP_NAME).get(API_KEY), "Api readiness should equal true in shared data");
 
         vertx.close();
     }
 
     @Test
-    public void testReadiness(TestContext context) {
+    public void testUnitReadiness(TestContext context) {
         Vertx vertx;
 
         vertx = Vertx.vertx();
-        context.assertFalse(new HealthCheck(vertx).ready(), "Nothing is ready, should retrun false");
+        context.assertFalse(new HealthCheck(vertx).ready(), "Nothing is ready, should return false");
         vertx.close();
 
         vertx = Vertx.vertx();
-        context.assertFalse(new HealthCheck(vertx).setHttpState(true).ready(), "Only HTTP is ready, not the whole application");
+        context.assertFalse(new HealthCheck(vertx).setComponentReady(API).ready(), "Only API is ready, not the whole application");
         vertx.close();
 
         vertx = Vertx.vertx();
-        context.assertFalse(new HealthCheck(vertx).setMongoState(true).ready(), "Only Mongo is ready, not the whole application");
+        context.assertFalse(new HealthCheck(vertx).setComponentReady(PERSISTENCE_SERVICE).ready(), "Only Persistence is ready, not the whole application");
         vertx.close();
 
         vertx = Vertx.vertx();
-        context.assertTrue(new HealthCheck(vertx).setMongoState(true).setHttpState(true).ready(), "Everything is ready, the whole app should ne ready");
+        context.assertTrue(new HealthCheck(vertx).setComponentReady(PERSISTENCE_SERVICE).setComponentReady(API).ready(), "Everything is ready, the whole app should ne ready");
         vertx.close();
     }
 
-    /*@AfterClass
+    @Test
+    public void testApplicationHealth(TestContext context) throws InterruptedException {
+        JsonObject expected = new JsonObject()
+                .put("checks", new JsonArray().add(new JsonObject()
+                        .put("id", "healthz")
+                        .put("status", "UP")))
+                .put("outcome", "UP");
+
+        vertx.createHttpClient().getNow(TestConfig.HEALTHCHECK_PORT, "localhost", HealthCheckVerticle.REST_HEALTHZ,
+                assertEqualsHttpHandler(200, expected.encode(), context));
+    }
+
+    @Test
+    public void testApplicationReadinessOk(TestContext context) throws InterruptedException {
+        JsonObject expected = new JsonObject()
+                .put("checks", new JsonArray().add(new JsonObject()
+                        .put("id", "readiness")
+                        .put("status", "UP")))
+                .put("outcome", "UP");
+
+        vertx.createHttpClient().getNow(TestConfig.HEALTHCHECK_PORT, "localhost", HealthCheckVerticle.REST_READINESS,
+                assertEqualsHttpHandler(200, expected.encode(), context));
+    }
+
+    @Test
+    public void testApplicationReadinessNok(TestContext context) throws InterruptedException {
+        HealthCheck healthCheck = new HealthCheck(vertx);
+        healthCheck.setComponentFailed(API);
+
+        JsonObject expected = new JsonObject()
+                .put("checks", new JsonArray().add(new JsonObject()
+                        .put("id", "readiness")
+                        .put("status", "DOWN")))
+                .put("outcome", "DOWN");
+
+        vertx.createHttpClient().getNow(TestConfig.HEALTHCHECK_PORT, "localhost", HealthCheckVerticle.REST_READINESS,
+                assertEqualsHttpHandler(503, expected.encode(), context));
+    }
+
+    @AfterClass
     public static void tearDown(TestContext context) {
-        vertx.close(context.asyncAssertSuccess());
-    }*/
+        HealthCheckTest.vertx.close(context.asyncAssertSuccess());
+    }
+
+    public static class EchoBinder extends AbstractModule {
+        @Override
+        protected void configure() {
+            bind(PersistenceService.class).to(EchoPersistenceService.class);
+        }
+    }
 }

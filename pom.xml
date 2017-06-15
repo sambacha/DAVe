@@ -9,14 +9,35 @@
   <version>1.0-SNAPSHOT</version>
 
   <properties>
-    <vertx.version>3.3.3</vertx.version>
+    <vertx.version>LATEST</vertx.version>
     <junit.version>4.12</junit.version>
-    <logback.version>1.1.7</logback.version>
+    <guava.version>21.0</guava.version>
+    <logback.version>1.1.8</logback.version>
     <docker.maven.plugin.fabric8.version>0.15.16</docker.maven.plugin.fabric8.version>
+    <jacoco.maven.plugin.version>0.7.7.201606060606</jacoco.maven.plugin.version>
+    <netty.boringssl.version>1.1.33.Fork26</netty.boringssl.version>
+    <vertx.guice.version>2.3.1</vertx.guice.version>
+    <protobuf.grpc.version>3.2.0</protobuf.grpc.version>
+    <protobuf.grpc.java.version>1.1.2</protobuf.grpc.java.version>
+    <protobuf.maven.plugin.version>0.5.0</protobuf.maven.plugin.version>
+    <os.maven.plugin.version>1.5.0.Final</os.maven.plugin.version>
     <build.helper.maven.plugin>1.12</build.helper.maven.plugin>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
+
+  <repositories>
+    <repository>
+      <id>oss.sonatype.org-snapshot</id>
+      <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 
   <dependencies>
     <dependency>
@@ -42,6 +63,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-web-client</artifactId>
+      <version>${vertx.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-core</artifactId>
       <version>${logback.version}</version>
@@ -53,18 +80,53 @@
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-mongo-client</artifactId>
-      <version>${vertx.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-auth-mongo</artifactId>
-      <version>${vertx.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-jwt</artifactId>
       <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-health-check</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.englishtown.vertx</groupId>
+      <artifactId>vertx-guice</artifactId>
+      <version>${vertx.guice.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-service-proxy</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-codegen</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-config-hocon</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+      <version>${protobuf.grpc.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-grpc</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-tcnative-boringssl-static</artifactId>
+      <version>${netty.boringssl.version}</version>
     </dependency>
   </dependencies>
 
@@ -77,6 +139,9 @@
           <configuration>
             <source>1.8</source>
             <target>1.8</target>
+            <annotationProcessors>
+              <annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>
+            </annotationProcessors>
           </configuration>
         </plugin>
         <plugin>
@@ -95,7 +160,9 @@
           <version>2.19</version>
           <configuration>
             <systemPropertyVariables>
-              <http.port>${http.port}</http.port>
+              <api.port>${api.port}</api.port>
+              <healthcheck.port>${healthcheck.port}</healthcheck.port>
+              <storage.port>${storage.port}</storage.port>
               <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
             </systemPropertyVariables>
           </configuration>
@@ -106,10 +173,9 @@
           <version>2.19</version>
           <configuration>
             <systemPropertyVariables>
-              <mongodb.port>${mongodb.port}</mongodb.port>
-              <ers.tcpport>${ers.tcpport}</ers.tcpport>
-              <ers.sslport>${ers.sslport}</ers.sslport>
-              <http.port>${http.port}</http.port>
+              <api.port>${api.port}</api.port>
+              <healthcheck.port>${healthcheck.port}</healthcheck.port>
+              <storage.port>${storage.port}</storage.port>
               <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
               <logback.configurationFile>${project.basedir}/src/test/resources/logback.xml</logback.configurationFile>
             </systemPropertyVariables>
@@ -136,6 +202,14 @@
         </plugin>
       </plugins>
     </pluginManagement>
+
+    <extensions>
+      <extension>
+        <groupId>kr.motd.maven</groupId>
+        <artifactId>os-maven-plugin</artifactId>
+        <version>${os.maven.plugin.version}</version>
+      </extension>
+    </extensions>
 
     <plugins>
       <plugin>
@@ -164,64 +238,27 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>io.fabric8</groupId>
-        <artifactId>docker-maven-plugin</artifactId>
-        <version>${docker.maven.plugin.fabric8.version}</version>
+        <groupId>org.xolstice.maven.plugins</groupId>
+        <artifactId>protobuf-maven-plugin</artifactId>
+        <version>${protobuf.maven.plugin.version}</version>
+        <extensions>true</extensions>
         <configuration>
-          <logDate>default</logDate>
-          <autoPull>true</autoPull>
-          <images>
-            <image>
-              <alias>db</alias>
-              <name>mongo:3.2</name>
-              <run>
-                <wait>
-                  <log>waiting for connections on port</log>
-                  <time>10000</time>
-                </wait>
-                <log>
-                  <prefix>DB</prefix>
-                  <color>yellow</color>
-                </log>
-                <ports>
-                  <port>mongodb.port:27017</port>
-                </ports>
-              </run>
-            </image>
-            <image>
-              <alias>ers</alias>
-              <name>ecmi/ers:sim</name>
-              <run>
-                <wait>
-                  <log>Broker \(pid=1\) running</log>
-                  <time>10000</time>
-                </wait>
-                <log>
-                  <prefix>ERS</prefix>
-                  <color>cyan</color>
-                </log>
-                <ports>
-                  <port>ers.sslport:5671</port>
-                  <port>ers.tcpport:5672</port>
-                </ports>
-              </run>
-            </image>
-          </images>
+          <pluginId>grpc-java</pluginId>
+          <pluginArtifact>io.vertx:protoc-gen-grpc-java:${protobuf.grpc.java.version}:exe:${os.detected.classifier}</pluginArtifact>
         </configuration>
         <executions>
           <execution>
-            <id>start</id>
-            <phase>pre-integration-test</phase>
+            <id>grpc</id>
             <goals>
-              <goal>start</goal>
+              <goal>compile</goal>
+              <goal>test-compile</goal>
+              <goal>compile-custom</goal>
             </goals>
-          </execution>
-          <execution>
-            <id>stop</id>
-            <phase>post-integration-test</phase>
-            <goals>
-              <goal>stop</goal>
-            </goals>
+            <configuration>
+              <clearOutputDirectory>false</clearOutputDirectory>
+              <protoSourceRoot>${basedir}/src/main/proto/grpc</protoSourceRoot>
+              <protocArtifact>com.google.protobuf:protoc:${protobuf.grpc.version}:exe:${os.detected.classifier}</protocArtifact>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -238,7 +275,9 @@
             <phase>process-sources</phase>
             <configuration>
               <portNames>
-                <portName>http.port</portName>
+                <portName>api.port</portName>
+                <portName>healthcheck.port</portName>
+                <portName>storage.port</portName>
               </portNames>
             </configuration>
           </execution>
@@ -280,10 +319,13 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco.maven.plugin.version}</version>
         <configuration>
-          <!--<excludes>
-            <exclude>com/deutscheboerse/risk/dave/ers/jaxb/*.class</exclude>
-          </excludes>-->
+          <excludes>
+            <exclude>com/deutscheboerse/risk/dave/grpc/*</exclude>
+            <exclude>**/*PersistenceServiceVertxEBProxy.*</exclude>
+            <exclude>**/*PersistenceServiceVertxProxyHandler.*</exclude>
+          </excludes>
         </configuration>
         <executions>
           <execution>
