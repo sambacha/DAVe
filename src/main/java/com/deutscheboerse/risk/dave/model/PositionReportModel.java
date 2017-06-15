@@ -1,60 +1,83 @@
 package com.deutscheboerse.risk.dave.model;
 
+import com.deutscheboerse.risk.dave.grpc.PositionReport;
+import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
-/**
- * Created by schojak on 15.9.16.
- */
-public class PositionReportModel extends AbstractModel {
-    private static final String MONGO_HISTORY_COLLECTION = "ers.PositionReport";
-    private static final String MONGO_LATEST_COLLECTION = "ers.PositionReport.latest";
+@DataObject
+public class PositionReportModel implements Model<PositionReport> {
 
-    public PositionReportModel() {
-        super(MONGO_HISTORY_COLLECTION, MONGO_LATEST_COLLECTION);
+    public static final FieldDescriptor<PositionReportModel> FIELD_DESCRIPTOR = FieldDescriptor.newBuilder()
+            .addField("clearer", String.class)
+            .addField("member", String.class)
+            .addField("account", String.class)
+            .addField("liquidationGroup", String.class)
+            .addField("liquidationGroupSplit", String.class)
+            .addField("product", String.class)
+            .addField("callPut", String.class)
+            .addField("contractYear", Integer.class)
+            .addField("contractMonth", Integer.class)
+            .addField("expiryDay", Integer.class)
+            .addField("exercisePrice", Double.class)
+            .addField("version", String.class)
+            .addField("flexContractSymbol", String.class)
+            .addField("clearingCurrency", String.class)
+            .addField("productCurrency", String.class)
+            .addField("underlying", String.class)
+            .build();
+
+    private final PositionReport grpc;
+
+    public PositionReportModel(PositionReport grpc) {
+        this.grpc = grpc;
+    }
+
+    public PositionReportModel(JsonObject json) {
+        verifyJson(json);
+        this.grpc = json.mapTo(PositionReport.class);
     }
 
     @Override
-    protected JsonObject getProject() {
-        JsonObject project = new JsonObject();
-        project.put("_id", 0);
-        project.put("id", "$_id");
-        project.put("clearer", 1);
-        project.put("member", 1);
-        project.put("account", 1);
-        project.put("reqId", 1);
-        project.put("rptId", 1);
-        project.put("bizDt", 1);
-        project.put("lastReportRequested", 1);
-        project.put("sesId", 1);
-        project.put("clss", 1);
-        project.put("symbol", 1);
-        project.put("putCall", 1);
-        project.put("maturityMonthYear", 1);
-        project.put("strikePrice", 1);
-        project.put("optAttribute", 1);
-        project.put("crossMarginLongQty", 1);
-        project.put("crossMarginShortQty", 1);
-        project.put("optionExcerciseQty", 1);
-        project.put("optionAssignmentQty", 1);
-        project.put("allocationTradeQty", 1);
-        project.put("deliveryNoticeQty", 1);
-        project.put("clearingCcy", 1);
-        project.put("mVar", 1);
-        project.put("compVar", 1);
-        project.put("compCorrelationBreak", 1);
-        project.put("compCompressionError", 1);
-        project.put("compLiquidityAddOn", 1);
-        project.put("compLongOptionCredit", 1);
-        project.put("productCcy", 1);
-        project.put("variationMarginPremiumPayment", 1);
-        project.put("premiumMargin", 1);
-        project.put("delta", 1);
-        project.put("gamma", 1);
-        project.put("vega", 1);
-        project.put("rho", 1);
-        project.put("theta", 1);
-        project.put("underlying", 1);
-        project.put("received", new JsonObject().put("$dateToString", new JsonObject().put("format", mongoTimestampFormat).put("date", "$received")));
-        return project;
+    public PositionReport toGrpc() {
+        return this.grpc;
+    }
+
+    @Override
+    public JsonObject toApplicationJson() {
+        return new JsonObject()
+                .put("snapshotID", grpc.getSnapshotId())
+                .put("businessDate", grpc.getBusinessDate())
+                .put("timestamp", grpc.getTimestamp())
+                .put("clearer", grpc.getClearer())
+                .put("member", grpc.getMember())
+                .put("account", grpc.getAccount())
+                .put("liquidationGroup", grpc.getLiquidationGroup())
+                .put("liquidationGroupSplit", grpc.getLiquidationGroupSplit())
+                .put("product", grpc.getProduct())
+                .put("callPut", grpc.getCallPut())
+                .put("contractYear", grpc.getContractYear())
+                .put("contractMonth", grpc.getContractMonth())
+                .put("expiryDay", grpc.getExpiryDay())
+                .put("exercisePrice", grpc.getExercisePrice())
+                .put("version", grpc.getVersion())
+                .put("flexContractSymbol", grpc.getFlexContractSymbol())
+                .put("netQuantityLs", grpc.getNetQuantityLs())
+                .put("netQuantityEa", grpc.getNetQuantityEa())
+                .put("clearingCurrency", grpc.getClearingCurrency())
+                .put("mVar", grpc.getMVar())
+                .put("compVar", grpc.getCompVar())
+                .put("compCorrelationBreak", grpc.getCompCorrelationBreak())
+                .put("compCompressionError", grpc.getCompCompressionError())
+                .put("compLiquidityAddOn", grpc.getCompLiquidityAddOn())
+                .put("compLongOptionCredit", grpc.getCompLongOptionCredit())
+                .put("productCurrency", grpc.getProductCurrency())
+                .put("variationPremiumPayment", grpc.getVariationPremiumPayment())
+                .put("premiumMargin", grpc.getPremiumMargin())
+                .put("normalizedDelta", grpc.getNormalizedDelta())
+                .put("normalizedGamma", grpc.getNormalizedGamma())
+                .put("normalizedVega", grpc.getNormalizedVega())
+                .put("normalizedRho", grpc.getNormalizedRho())
+                .put("normalizedTheta", grpc.getNormalizedTheta())
+                .put("underlying", grpc.getUnderlying());
     }
 }

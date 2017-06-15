@@ -4,8 +4,6 @@
 
 **DAVe** is **D**ata **A**nalytics and **V**isualisation S**e**rvice. It provides REST interface to access latest risk and margining data from Eurex Clearing Prisma.
 
-![DAVe - Dashboard](https://github.com/Deutsche-Boerse-Risk/DAVe/blob/master/doc/screenshots/dave-screenshots.gif "DAVe - Dashboard")
-
 ## Build
 
 ```
@@ -16,64 +14,60 @@ The shippable artifact will be built in `target/dave-VERSION` directory.
 
 ## Configure
 
-Configuration is stored in `dave.json` file in JSON format. Configuration is split into several sections:
+Configuration is stored in `dave.conf` file in Hocon format. Configuration is split into several sections:
 
-### MongoDB
+### StoreManager
 
-The `mongodb` section contains the configuration of the MongoDB database where will the ERS data be persisted.
-
-| Option | Explanation | Example |
-|--------|-------------|---------|
-| `dbName` | Name of the database which will be used | `DAVe` |
-| `connectionUrl` | Connection URL to connect to the database | `mongodb://localhost:27017` |
-
-### HTTP
-
-The `http` section configures the web based UI and the REST API.
+The `storeManager` section contains the configuration of the Store Manager service where the data are persisted.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `port` | Port of the HTTP(S) server | `8080` |
-| `compression` | Enbale gzip compression of the HTTP responses | `true` |
+| `hostname` | Hostname of the DAVe-StoreManager | `localhost` |
+| `port` | Port where the DAVe-StoreManager is listening to HTTPS connections | `8443` |
+| `sslKey` | Private key of the DAVe-API | |
+| `sslCert` | Public key of the DAVe-API | |
+| `sslTrustCerts` | List of trusted certification authorities | |
+
+
+### API
+
+The `api` section configures the web based UI and the REST API.
+
+| Option | Explanation | Example |
+|--------|-------------|---------|
+| `port` | Port of the HTTP(S) server | `8443` |
+| `compression` | Enable gzip compression of the HTTP responses | `true` |
 | `ssl` | Subsection configuring SSL/TLS on the webserver |  |
-| `CORS` | Subsection configuring Cross-origin resource sharing (see below) |  |
-| `CSRF` | Subsection configuring Cross-site request forgery protection (see below) |  |
+| `cors` | Subsection configuring Cross-origin resource sharing (see below) |  |
+| `csrf` | Subsection configuring Cross-site request forgery protection (see below) |  |
 | `auth` | Subsection configuring authentication (see below) |  |
 
 
-### SSL
+#### SSL
 
 The `ssl` section configures the SSL/TLS support in the webserver.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
 | `enable` | Enable HTTPS protocol | `true` |
-| `keystore` | JKS file with the private key |  |
-| `keystorePassword` | Password to the JKS file containing the private key |  |
-| `truststore` | JKS file with trusted client CAs |  |
-| `truststorePassword` | Password to the JKS file containing the trusted certificates |  |
-| `requireTLSClientAuth` | Sets TLS client authentication as required | `false` |
+| `sslKey` | Private key of DAVe-API | |
+| `sslCert` | Public certificate of DAVe-API server which clients trust | |
+| `sslRequireClientAuth` | Sets TLS client authentication as required | `false` |
+| `sslTrustCerts` | If TLS client authentication is required then this field contains list of trusted client certificates | `[]` |
 
 #### Auth
 
-The `auth` subsection configures authentication to the UI and REST interface. The Mongo databases configured from authentication can be different database from the one configured for storing ERS data.
+The `auth` subsection configures authentication to the UI and REST interface.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
-| `enable` | Disables or enables authetication | `true` |
-| `dbName` | Name of the database which will be used | `DAVe` |
-| `connectionUrl` | Connection URL to connect to the database | `mongodb://localhost:27017` |
-| `jwtKeystorePath` | Path to the keystore (JCEKS type) required by JWT authentication provider | |
-| `jwtKeystorePassword`| Password to the JWT keystore (JCEKS type) used by authentication provider | |
-| `jwtTokenExpiration`| Expiration time (in minutes) when the JWT token expires | `60` |
-| `salt` | Salt string used in hashed passwords | `sdf8hdgss3_a` |
-| `checkUserAgainstCertificate` | Validate username against the CN from the TLS client certificate subject. Unless the CN is equal to the username, authentication will be refused. _*)_ | `false` |
-
-_*) This feature doesn't work properly with self-signed certificates, where the holder of the certificate can easily issue and sign another certificate which would contain different CN and login._
+| `enable` | Disables or enables authentication | `true` |
+| `jwtPublicKey` | Public key for verification of received JWT tokens | |
+| `permissionsClaimKey` | Path to roles inside JWT token | `realm_access/roles` |
 
 #### CORS
 
-The `CORS` subsection configures Cross-origin resource sharing (CORS), which allows the REST API to be used from web applications running under different domain.
+The `cors` subsection configures Cross-origin resource sharing (CORS), which allows the REST API to be used from web applications running under different domain.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
@@ -82,7 +76,7 @@ The `CORS` subsection configures Cross-origin resource sharing (CORS), which all
 
 #### CSRF
 
-The `CSRF` subsection configures Cross-site request forgery (CSRF) protection. When enabled, the handler will set a XSRF-TOKEN cookie and the client has to send back its value in the X-XSRF-TOKEN header. This handler weill be activated only when authentication is enabled.
+The `csrf` subsection configures Cross-site request forgery (CSRF) protection. When enabled, the handler will set a XSRF-TOKEN cookie and the client has to send back its value in the X-XSRF-TOKEN header. This handler weill be activated only when authentication is enabled.
 
 | Option | Explanation | Example |
 |--------|-------------|---------|
@@ -91,20 +85,8 @@ The `CSRF` subsection configures Cross-site request forgery (CSRF) protection. W
 
 ## Run
 
-Use script `start_dave.sh|bat` to start the application depending on your operating system (Linux,MacOS | Windows).
+Use script `start.sh` to start the application.
 
-## Managing user database
+### Docker image to run standalone API
+[DAVe-API Docker image](docker)
 
-Use script `user_manager.sh`. Script accepts one of the following commands:
-  - `insert`
-  - `delete`
-  - `list`
-
-### Insert new user record
-      user_manager.sh insert USER PASSWORD
-
-### Delete existing user record
-      user_manager.sh delete USER
-
-### List all user records
-      user_manager.sh list
