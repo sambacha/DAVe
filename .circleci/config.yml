@@ -13,7 +13,7 @@ jobs:
       - checkout
       - run:
           name: Execute tests & build
-          command: mvn -Dsonar.host.url=https://sonarqube.com -Dsonar.login=$SONARQUBE_TOKEN -Dsonar.organization=$SONARQUBE_ORG -DrepoToken=$COVERALLS_TOKEN -B clean verify sonar:sonar coveralls:report
+          command: mvn -Dsonar.host.url=https://sonarqube.com -Dsonar.login=$SONARQUBE_TOKEN -DrepoToken=$COVERALLS_TOKEN -B clean verify sonar:sonar coveralls:report
 
       - run:
           name: Extract test results
