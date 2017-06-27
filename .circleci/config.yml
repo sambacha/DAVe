@@ -11,6 +11,7 @@ jobs:
 
     steps:
       - checkout
+      - setup_remote_docker
       - run:
           name: Execute tests & build
           command: mvn -Dsonar.host.url=https://sonarqube.com -Dsonar.login=$SONARQUBE_TOKEN -DrepoToken=$COVERALLS_TOKEN -B clean verify sonar:sonar coveralls:report
