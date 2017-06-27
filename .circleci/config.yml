@@ -22,18 +22,8 @@ jobs:
             find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} target/junit \;
             find . -type f -regex ".*/target/failsafe-reports/.*xml" -exec cp {} target/junit \;
 
-      - run:
-          name: Extract docker daemon logs
-          command: |
-            mkdir -p target/docker
-            cp ~/${CIRCLE_PROJECT_REPONAME}/target/*.log target/docker
-
       - test-results-store:
           path: target/junit
-
-      - store_artifacts:
-          path: target/docker
-          destination: docker-logs
 
       - store_artifacts:
           path: target/junit
