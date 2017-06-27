@@ -12,9 +12,9 @@ sed -i 's/\(\s\+sslCert\s\+=\).*/\1\ \"\"/' ./docker/"${DAVE_CONFIG_FILE}"
 sed -i 's/\(\s\+sslTrustCerts\s\+=\).*/\1\ \[\]/' ./docker/"${DAVE_CONFIG_FILE}"
 sed -i 's/\(\s\+jwtPublicKey\s\+=\).*/\1\ \[\]/' ./docker/"${DAVE_CONFIG_FILE}"
 
-docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
 docker build -t dbgdave/dave-api:${CIRCLE_SHA1} ./docker/
-docker tag -f dbgdave/dave-api:${CIRCLE_SHA1} docker.io/dbgdave/dave-api:${CIRCLE_SHA1}
+docker tag dbgdave/dave-api:${CIRCLE_SHA1} docker.io/dbgdave/dave-api:${CIRCLE_SHA1}
 docker push dbgdave/dave-api:${CIRCLE_SHA1}
-docker tag -f dbgdave/dave-api:${CIRCLE_SHA1} docker.io/dbgdave/dave-api:${CIRCLE_BRANCH}
+docker tag dbgdave/dave-api:${CIRCLE_SHA1} docker.io/dbgdave/dave-api:${CIRCLE_BRANCH}
 docker push dbgdave/dave-api:${CIRCLE_BRANCH}
