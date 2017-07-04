@@ -7,7 +7,7 @@ import io.vertx.core.json.JsonObject;
 @DataObject
 public class RiskLimitUtilizationModel implements Model<RiskLimitUtilization> {
 
-    public static final FieldDescriptor<RiskLimitUtilizationModel> FIELD_DESCRIPTOR = FieldDescriptor.newBuilder()
+    public static final FieldDescriptor FIELD_DESCRIPTOR = FieldDescriptor.newBuilder()
             .addField("clearer", String.class)
             .addField("member", String.class)
             .addField("maintainer", String.class)

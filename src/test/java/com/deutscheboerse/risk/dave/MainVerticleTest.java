@@ -63,7 +63,7 @@ public class MainVerticleTest {
         deployAsync.awaitSuccess(30000);
 
         JsonObject queryParams = DataHelper.getLastJsonFromFile(DataHelper.ACCOUNT_MARGIN_FOLDER, 1).orElseThrow(RuntimeException::new);
-        FieldDescriptor<AccountMarginModel> fieldDescriptor = AccountMarginModel.FIELD_DESCRIPTOR;
+        FieldDescriptor fieldDescriptor = AccountMarginModel.FIELD_DESCRIPTOR;
 
         queryParams = retainJsonFields(queryParams, fieldDescriptor.getUniqueFields().keySet());
 

@@ -29,7 +29,7 @@ public class MarginApi<T extends Model> {
 
     private final Vertx vertx;
     private String requestName;
-    private FieldDescriptor<T> fieldDescriptor;
+    private FieldDescriptor fieldDescriptor;
     private ProxyFunction<T> proxyFunction;
 
     private MarginApi(Vertx vertx) {
@@ -153,7 +153,7 @@ public class MarginApi<T extends Model> {
     static final class MarginApiBuilder<T extends Model> {
         private Vertx vertx;
         private String requestName;
-        private FieldDescriptor<T> fieldDescriptor;
+        private FieldDescriptor fieldDescriptor;
         private ProxyFunction<T> proxyFunction;
 
         private MarginApiBuilder(Vertx vertx) {
@@ -165,7 +165,7 @@ public class MarginApi<T extends Model> {
             return this;
         }
 
-        MarginApiBuilder<T> setFieldDescriptor(FieldDescriptor<T> fieldDescriptor) {
+        MarginApiBuilder<T> setFieldDescriptor(FieldDescriptor fieldDescriptor) {
             this.fieldDescriptor = fieldDescriptor;
             return this;
         }

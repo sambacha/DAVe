@@ -7,7 +7,7 @@ import io.vertx.core.json.JsonObject;
 @DataObject
 public class PoolMarginModel implements Model<PoolMargin> {
 
-    public static final FieldDescriptor<PoolMarginModel> FIELD_DESCRIPTOR = FieldDescriptor.newBuilder()
+    public static final FieldDescriptor FIELD_DESCRIPTOR = FieldDescriptor.newBuilder()
             .addField("clearer", String.class)
             .addField("pool", String.class)
             .addField("marginCurrency", String.class)
