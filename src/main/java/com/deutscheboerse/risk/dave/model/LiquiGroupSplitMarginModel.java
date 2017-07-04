@@ -7,7 +7,7 @@ import io.vertx.core.json.JsonObject;
 @DataObject
 public class LiquiGroupSplitMarginModel implements Model<LiquiGroupSplitMargin> {
 
-    public static final FieldDescriptor<LiquiGroupSplitMarginModel> FIELD_DESCRIPTOR = FieldDescriptor.newBuilder()
+    public static final FieldDescriptor FIELD_DESCRIPTOR = FieldDescriptor.newBuilder()
             .addField("clearer", String.class)
             .addField("member", String.class)
             .addField("account", String.class)

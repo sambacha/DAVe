@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public interface FieldDescriptor<T extends Model> {
+public interface FieldDescriptor {
 
     Map<String, Class<?>> getUniqueFields();
 
@@ -23,7 +23,7 @@ public interface FieldDescriptor<T extends Model> {
             return this;
         }
 
-        public <T extends Model> FieldDescriptor<T> build() {
+        public FieldDescriptor build() {
             return () -> Collections.unmodifiableMap(fields);
         }
     }

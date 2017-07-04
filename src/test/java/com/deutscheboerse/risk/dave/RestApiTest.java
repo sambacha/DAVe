@@ -180,7 +180,7 @@ public class RestApiTest {
 
     private <T extends Model>
     void testCompleteUrl(TestContext context, String uri, RequestType requestType, String dataFolder,
-                         FieldDescriptor<T> fieldDescriptor,
+                         FieldDescriptor fieldDescriptor,
                          Function<JsonObject, T> modelBuilder) {
         JsonObject queryParams = DataHelper.getLastJsonFromFile(dataFolder, 1).orElseThrow(RuntimeException::new);
 
