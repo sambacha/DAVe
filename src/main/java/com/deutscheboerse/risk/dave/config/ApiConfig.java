@@ -144,30 +144,30 @@ public class ApiConfig {
 
     public static class AuthConfig {
         private static final boolean DEFAULT_ENABLE = false;
-        private static final String DEFAULT_PERMISSIONS_CLAIM_KEY = "DAVe-CSRF-Secret";
         private boolean enable;
-        private String jwtPublicKey;
-        private String permissionsClaimKey = "realm_access/roles";
+        private String clientId;
+        private String wellKnownUrl;
 
         @JsonCreator
         public AuthConfig(@JsonProperty("enable") Boolean enable,
-                          @JsonProperty("jwtPublicKey") String jwtPublicKey,
-                          @JsonProperty("permissionsClaimKey") String permissionsClaimKey) {
+                          @JsonProperty("clientId") String clientId,
+                          @JsonProperty("wellKnownUrl") String wellKnownHost)
+        {
             this.enable = enable == null ? DEFAULT_ENABLE : enable;
-            this.jwtPublicKey = jwtPublicKey;
-            this.permissionsClaimKey = permissionsClaimKey == null ? DEFAULT_PERMISSIONS_CLAIM_KEY : permissionsClaimKey;
+            this.clientId = clientId;
+            this.wellKnownUrl = wellKnownHost;
         }
 
         public boolean isEnable() {
             return enable;
         }
 
-        public String getJwtPublicKey() {
-            return jwtPublicKey;
+        public String getClientId() {
+            return clientId;
         }
 
-        public String getPermissionsClaimKey() {
-            return permissionsClaimKey;
+        public String getWellKnownUrl() {
+            return wellKnownUrl;
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.deutscheboerse.risk.dave;
 
+import com.deutscheboerse.risk.dave.auth.JWKSAuthProviderImpl;
 import com.deutscheboerse.risk.dave.persistence.EchoPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
@@ -21,6 +22,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,9 +31,10 @@ public class AuthTest {
     private static Vertx vertx;
     private static PersistenceService persistenceProxy;
 
-    private static final String INVALID_PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmae5XwoRlK2Ew2vSPLzV7Zlnrtz0YDp3UPSvxvW+zN9dGZm38E+7ihUOQbIjvkKnK30v0QgvKDOKgwY7Ney1nwcZfZTNwkRXh1qzLGXRZYD3ZBWx9vIhPcG6DyQBGXrhYgN4RFEIBzybKARMjxfZR9y9vckK7Wd0D2bmBGk4knvzI8fRPaGTt42dmLaP1X7yT/s0DygQbHFUj4ukXR8LXYGEGpt2OHRVlb/MrIl7Ko2Ad6oSpcfjzePd6BJNjuYSczmbTVfClMbw/GFHk5icAsRJt8a2B7Fvbgcxz9kyT5p/QCTza/5qNtvf1+wl20TDw9JglF2oOPRwQlQW2MXY/QIDAQAB";
-    private static final String JWT_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjkwMDAvYXV0aC9yZWFsbXMvbWFzdGVyIiwic3ViIjoiYjgwNGU2ZGUtZWUzNy00NjAwLTg2M2EtY2M4NjlkYmQ1MjUyIiwibmJmIjoxNDkxMzI0NzUzLCJleHAiOjE1MjI4NjA3NTMsImlhdCI6MTQ5MTMyNDc1MywianRpIjoiZjFhZGUzYjEtMGI4OC00NWRlLWE5YjctNzY4Y2FjOWFhYWUzIiwidHlwIjoiQmVhcmVyIn0.kOVqtaEDLc176teca-H_pVnCP4JyYmbp2YxAZpc4tsVSUm0F-8lHQKvnNQsSdRxJND5k5yz7nrpPtcu-JtVJBiiqMBHxP4rZ7mR3gwmLBBP-GLuKOS3MSMTKlTex_6YO4v3Po6EN8gWhdcZzpgyz64mSwCL2A5kmpuz5ILc1rnZCSsOD9aaawJjIqEuCRIxLs0dMax6ryDNvomKW8nL_Pb1ECQ4XZOh93Rl_2XFj6BIUv7Q7QlqAR5jDQw13ZVvmuqqhbttuiIWQ2yys36c99WDmB-U-anbQ4Nd0N4PMAnmG5CvTLkjH-FcKtqU890QDwdeKhSUsxPjJoYsexbdiCg";
-    private static final String EXPIRED_JWT_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjkwMDAvYXV0aC9yZWFsbXMvbWFzdGVyIiwic3ViIjoiYjgwNGU2ZGUtZWUzNy00NjAwLTg2M2EtY2M4NjlkYmQ1MjUyIiwibmJmIjoxNDkxMzI1MDQ5LCJleHAiOjE0OTEzMjg2NDksImlhdCI6MTQ5MTMyNTA0OSwianRpIjoiZjFhZGUzYjEtMGI4OC00NWRlLWE5YjctNzY4Y2FjOWFhYWUzIiwidHlwIjoiQmVhcmVyIn0.h7tlf9mfg5UtgPxnhtWj5GpLJpQQc6JvpkjhJEH6fCyIn_sKQf3TxFC2_ApryIjwQy8GkqsEHbb4RiRAxaazB_XFCTnrvbkdFVT79iYmU5Zy_wLDr6xuytw5v4kkJ6zLBWXXd8IYs3oBk8zGs_dReYLGCnii8dKLzzkNd0TSUqYza7nC9d4j1eZHUGtdpjta48nNljYekTx8bGb6mGqHCppn0juFTws_Y8yXgFN89gq374wlGlecMffzU9acJ2FHKMaICB4LV3cS53XfFSzczhVmto6DLU97zqz11HqOmqFJ8It-SYB-cJOWwtP_920ADwTKoQsCuYKLBjD--pk73A";
+    private static final String CERTS_VALID = "certs.valid";
+    private static final String CERTS_INVALID = "certs.invalid";
+    private static final String JWT_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJNQjFJZjk4R1lZS0Z2WmFxamdzUHVrMXVlamx6WGhFVXRkbGtEZGU0NFcwIn0.eyJqdGkiOiI1MWFlOWVhNS00NWNiLTQ3MzYtODk3NC0wYWE5NjBmYTQ3ZDIiLCJleHAiOjIxNDc0MTE5NTMsIm5iZiI6MCwiaWF0IjoxNTAyMzQ5NTUzLCJpc3MiOiJodHRwczovL2F1dGguZGF2ZS5kYmctZGV2b3BzLmNvbS9hdXRoL3JlYWxtcy9EQVZlIiwiYXVkIjoiZGF2ZS11aSIsInN1YiI6IjEwNDNmNmZkLTliMjUtNGI4Zi05NDhiLTc2MjIxOWY1NWEzZSIsInR5cCI6IklEIiwiYXpwIjoiZGF2ZS11aSIsIm5vbmNlIjoiMjAyLWUzYmNiZjA4NGEyNWIyZWUxZGQtMzhlNDQ0NWMiLCJhdXRoX3RpbWUiOjE1MDIzNDk1NTAsInNlc3Npb25fc3RhdGUiOiJmYTA2OWEzYS1kY2U4LTRkZjUtOTY3NC04NTA5MzAwOWJlYWEiLCJhY3IiOiIxIiwiZnlpIjoiUGxlYXNlIHJlZ2VuZXJhdGUgb24gTW9uZGF5LCBKYW51YXJ5IDE4LCAyMDM4IiwibmFtZSI6IkRBVmUgUmlza0lUIiwiZ2l2ZW5fbmFtZSI6IkRBVmUiLCJmYW1pbHlfbmFtZSI6IlJpc2tJVCIsImVtYWlsIjoicmlza2l0YnJvd3NlcnN0YWNrQGRldXRzY2hlLWJvZXJzZS5jb20iLCJ1c2VybmFtZSI6ImRhdmUifQ.dC5Cdx09dv6SDQJEm6ke4qRJ17zHlflz4lGMkzGai7Zl_YqNdLOrOJudtE8iATmWZBJ68RF4yDiGloBPiq2oFfO2aScaW8xpXp5_8_ILlL9baKFcxuHpqgyE2be4Q-oSJZIaEYWB3c8fYrImOVuBRrhtjV39G5DXTUo4_f6Ff_B9nuaTozr6QfXiQ3DwmZ80oqw19oKzhrDU0mjLsUtc7iQm7_h8rHz_Ps_F3Me7DmmYdhewcMRKWO9tf82-BchDOvv-2qP1ePrFTHfi8zBE5AFxyB11Y1wsMemCzNk_37g6JbjmlJRSiu8neWZYiqkRmg__r6-nv0fc2xxFAyC0Xg";
+    private static final String EXPIRED_JWT_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJNQjFJZjk4R1lZS0Z2WmFxamdzUHVrMXVlamx6WGhFVXRkbGtEZGU0NFcwIn0.eyJqdGkiOiJhNTgxZGQwYy00OTcyLTQyNDUtYTlhZC04ZDBkN2JjYWJkZGUiLCJleHAiOjE1MDIzNzU0NzUsIm5iZiI6MCwiaWF0IjoxNTAyMzc1MzU1LCJpc3MiOiJodHRwczovL2F1dGguZGF2ZS5kYmctZGV2b3BzLmNvbS9hdXRoL3JlYWxtcy9EQVZlIiwiYXVkIjoiZGF2ZS11aSIsInN1YiI6IjEwNDNmNmZkLTliMjUtNGI4Zi05NDhiLTc2MjIxOWY1NWEzZSIsInR5cCI6IklEIiwiYXpwIjoiZGF2ZS11aSIsIm5vbmNlIjoiMGQzLTFhYTFlYmU3NDM5M2JhOWU3N2EtZjU2ODQwOWIiLCJhdXRoX3RpbWUiOjE1MDIzNzUzNTEsInNlc3Npb25fc3RhdGUiOiIzMjg0NmIyZS03MjEzLTQ4OTgtYTIzYS03NWY2OTE5NTNhYzYiLCJhY3IiOiIxIiwibmFtZSI6IkRBVmUgUmlza0lUIiwiZ2l2ZW5fbmFtZSI6IkRBVmUiLCJmYW1pbHlfbmFtZSI6IlJpc2tJVCIsImVtYWlsIjoicmlza2l0YnJvd3NlcnN0YWNrQGRldXRzY2hlLWJvZXJzZS5jb20iLCJ1c2VybmFtZSI6ImRhdmUifQ.bXMW01YDxXSVrsEawKHlZu3H7lVaeSEKFzjjLhacBtNARQJyXo-Po0Ia6b3GwXuwl3TC8E_CBBsxSWFioAXxYlieP9L1paTl3jYeZJZCz63dA7E7J3l_IcpAujH5gDA8ZfCrVjQ83xNN7R61PTCNCN4s1s3wXc7d4CGPslyZZj7H6HFDDB-nYJj_KE6RoB7j6h1nFT8HG51Lodp65a5JDVTWiN4omwe-Yd6SyX2VcQWtM4HocXrfQ2ZHkdn16HboF2CmKRuhucNw05IVKfHViyFMF7haUMRrrOZsUvMqbRIf2odwZ5QvkTctnwGpLBqgXcx6U-MA59zpo_1SQAwfKA";
 
     @BeforeClass
     public static void setUp() throws IOException {
@@ -56,8 +59,17 @@ public class AuthTest {
         asyncStart.awaitSuccess();
     }
 
+    private void createWellKnownFile(String jwksCerts) throws URISyntaxException {
+        JsonObject content = new JsonObject();
+        content.put("issuer", "https://auth.dave.dbg-devops.com/auth/realms/DAVe");
+        content.put("jwks_uri", JWKSAuthProviderImpl.class.getResource(jwksCerts).toString());
+        String wellKnownPath = TestConfig.WELL_KNOWN_FILE_PATH;
+        AuthTest.vertx.fileSystem().writeFileBlocking(wellKnownPath, content.toBuffer());
+    }
+
     @Test
-    public void testValidJWT(TestContext context) {
+    public void testValidJWT(TestContext context) throws URISyntaxException {
+        this.createWellKnownFile(CERTS_VALID);
         JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("auth").put("enable", true);
         deployApiVerticle(context, config);
@@ -70,9 +82,10 @@ public class AuthTest {
     }
 
     @Test
-    public void testInvalidPublicKey(TestContext context) {
+    public void testInvalidPublicKey(TestContext context) throws URISyntaxException {
+        this.createWellKnownFile(CERTS_INVALID);
         JsonObject config = TestConfig.getApiConfig();
-        config.getJsonObject("auth").put("enable", true).put("jwtPublicKey", INVALID_PUBLIC_KEY);
+        config.getJsonObject("auth").put("enable", true);
         deployApiVerticle(context, config);
 
         createSslRequest("/api/v1.0/pr/latest")
@@ -83,7 +96,8 @@ public class AuthTest {
     }
 
     @Test
-    public void testExpiredJWT(TestContext context) {
+    public void testExpiredJWT(TestContext context) throws URISyntaxException {
+        this.createWellKnownFile(CERTS_VALID);
         JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("auth").put("enable", true);
         deployApiVerticle(context, config);
@@ -96,7 +110,8 @@ public class AuthTest {
     }
 
     @Test
-    public void testNoJWT(TestContext context) {
+    public void testNoJWT(TestContext context) throws URISyntaxException {
+        this.createWellKnownFile(CERTS_VALID);
         JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("auth").put("enable", true);
         deployApiVerticle(context, config);
@@ -108,7 +123,8 @@ public class AuthTest {
     }
 
     @Test
-    public void testCSRF(TestContext context) throws InterruptedException {
+    public void testCSRF(TestContext context) throws InterruptedException, URISyntaxException {
+        this.createWellKnownFile(CERTS_VALID);
         JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("auth").put("enable", true);
         config.getJsonObject("csrf").put("enable", true);
