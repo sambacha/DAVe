@@ -66,8 +66,8 @@ The `auth` subsection configures authentication to the UI and REST interface.
 | Option | Explanation | Example |
 |--------|-------------|---------|
 | `enable` | Disables or enables authentication | `true` |
-| `jwtPublicKey` | Public key for verification of received JWT tokens | |
-| `permissionsClaimKey` | Path to roles inside JWT token | `realm_access/roles` |
+| `clientId` | Client ID for the OpenID backend| `dave-ui` |
+| `wellKnownUrl` | URL of `.well-known/openid-configuration` endpoint of the OpenID backend | `https://auth.dave.dbg-devops.com/auth/realms/DAVe/.well-known/openid-configuration` |
 
 #### CORS
 
