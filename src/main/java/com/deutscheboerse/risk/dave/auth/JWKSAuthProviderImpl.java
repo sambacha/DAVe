@@ -57,26 +57,6 @@ public class JWKSAuthProviderImpl implements JWTAuth {
     }
 
     private void loadWellKnownFields(Vertx vertx, String wellKnownUrl) {
-        if (wellKnownUrl.startsWith("http")) {
-            this.loadWellKnownFieldsFromRemoteServer(vertx, wellKnownUrl);
-        } else {
-            this.loadWellKnownFieldsFromFile(vertx, wellKnownUrl);
-        }
-    }
-
-    private void loadWellKnownFieldsFromFile(Vertx vertx, String wellKnownUrl) {
-        vertx.fileSystem().readFile(wellKnownUrl, ar -> {
-            if (ar.succeeded()) {
-                LOG.info("File ({}) content: {}", wellKnownUrl, ar.result());
-                JsonObject content = ar.result().toJsonObject();
-                this.parseAndStoreWellKnownFields(content);
-            } else {
-                LOG.error("Unable to retrieve well known fields from {}", wellKnownUrl, ar.cause());
-            }
-        });
-    }
-
-    private void loadWellKnownFieldsFromRemoteServer(Vertx vertx, String wellKnownUrl) {
         WebClientOptions options = new WebClientOptions();
         if (!"none".equalsIgnoreCase(PROXY_HOST)) {
             options.setProxyOptions(new ProxyOptions()
@@ -86,7 +66,7 @@ public class JWKSAuthProviderImpl implements JWTAuth {
         }
         WebClient.create(vertx, options)
                 .getAbs(wellKnownUrl)
-                .ssl(true)
+                .ssl(wellKnownUrl.startsWith("https://") ? true : false)
                 .send(ar -> {
                     if (ar.succeeded()) {
                         JsonObject response = ar.result().body().toJsonObject();

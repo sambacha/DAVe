@@ -154,6 +154,7 @@
               <api.port>${api.port}</api.port>
               <healthcheck.port>${healthcheck.port}</healthcheck.port>
               <storage.port>${storage.port}</storage.port>
+              <openid.port>${openid.port}</openid.port>
               <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
             </systemPropertyVariables>
           </configuration>
@@ -167,6 +168,7 @@
               <api.port>${api.port}</api.port>
               <healthcheck.port>${healthcheck.port}</healthcheck.port>
               <storage.port>${storage.port}</storage.port>
+              <openid.port>${openid.port}</openid.port>
               <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
               <logback.configurationFile>${project.basedir}/src/test/resources/logback.xml</logback.configurationFile>
             </systemPropertyVariables>
@@ -269,6 +271,7 @@
                 <portName>api.port</portName>
                 <portName>healthcheck.port</portName>
                 <portName>storage.port</portName>
+                <portName>openid.port</portName>
               </portNames>
             </configuration>
           </execution>

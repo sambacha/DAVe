@@ -15,10 +15,10 @@ public class TestConfig {
     public static final int STORE_MANAGER_PORT = Integer.getInteger("storage.port", 8444);
     public static final int API_PORT = Integer.getInteger("api.port", 8443);
     public static final int HEALTHCHECK_PORT = Integer.getInteger("healthcheck.port", 8080);
+    public static final int OPENID_PORT = Integer.getInteger("openid.port", 8080);
     public static final SelfSignedCertificate HTTP_STORAGE_CERTIFICATE = SelfSignedCertificate.create("localhost");
     public static final SelfSignedCertificate HTTP_API_CERTIFICATE = SelfSignedCertificate.create("localhost");
     public static final SelfSignedCertificate HTTP_CLIENT_CERTIFICATE = SelfSignedCertificate.create("localhost");
-    public static final String WELL_KNOWN_FILE_PATH = Paths.get(JWKSAuthProviderImpl.class.getResource(".").getPath(), "well_known").toString();
 
     private TestConfig() {
         // Empty
@@ -56,7 +56,7 @@ public class TestConfig {
                 .put("auth", new JsonObject()
                         .put("enable", false)
                         .put("clientId", "dave-ui")
-                        .put("wellKnownUrl", WELL_KNOWN_FILE_PATH))
+                        .put("wellKnownUrl", "http://localhost:" + OPENID_PORT))
                 .put("compression", true);
     }
 

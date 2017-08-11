@@ -4,9 +4,13 @@ import com.deutscheboerse.risk.dave.auth.JWKSAuthProviderImpl;
 import com.deutscheboerse.risk.dave.persistence.EchoPersistenceService;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
 import com.deutscheboerse.risk.dave.utils.TestConfig;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -59,17 +63,21 @@ public class AuthTest {
         asyncStart.awaitSuccess();
     }
 
-    private void createWellKnownFile(String jwksCerts) throws URISyntaxException {
-        JsonObject content = new JsonObject();
-        content.put("issuer", "https://auth.dave.dbg-devops.com/auth/realms/DAVe");
-        content.put("jwks_uri", JWKSAuthProviderImpl.class.getResource(jwksCerts).toString());
-        String wellKnownPath = TestConfig.WELL_KNOWN_FILE_PATH;
-        AuthTest.vertx.fileSystem().writeFileBlocking(wellKnownPath, content.toBuffer());
+    private HttpServer createOpenIdMockServer(String jwksCerts) {
+        return AuthTest.vertx.createHttpServer().requestHandler(request -> {
+            HttpServerResponse response = request.response();
+            response.putHeader(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
+            JsonObject content = new JsonObject();
+            content.put("issuer", "https://auth.dave.dbg-devops.com/auth/realms/DAVe");
+            content.put("jwks_uri", JWKSAuthProviderImpl.class.getResource(jwksCerts).toString());
+            response.end(content.toBuffer());
+        });
     }
 
     @Test
     public void testValidJWT(TestContext context) throws URISyntaxException {
-        this.createWellKnownFile(CERTS_VALID);
+        HttpServer openIdMockServer = this.createOpenIdMockServer(CERTS_VALID);
+        openIdMockServer.listen(TestConfig.OPENID_PORT);
         JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("auth").put("enable", true);
         deployApiVerticle(context, config);
@@ -79,11 +87,13 @@ public class AuthTest {
                 .send(context.asyncAssertSuccess(res ->
                         context.assertEquals(200, res.statusCode())
                 ));
+        openIdMockServer.close(context.asyncAssertSuccess());
     }
 
     @Test
     public void testInvalidPublicKey(TestContext context) throws URISyntaxException {
-        this.createWellKnownFile(CERTS_INVALID);
+        HttpServer openIdMockServer = this.createOpenIdMockServer(CERTS_INVALID);
+        openIdMockServer.listen(TestConfig.OPENID_PORT);
         JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("auth").put("enable", true);
         deployApiVerticle(context, config);
@@ -93,11 +103,13 @@ public class AuthTest {
                 .send(context.asyncAssertSuccess(res ->
                         context.assertEquals(401, res.statusCode())
                 ));
+        openIdMockServer.close(context.asyncAssertSuccess());
     }
 
     @Test
     public void testExpiredJWT(TestContext context) throws URISyntaxException {
-        this.createWellKnownFile(CERTS_VALID);
+        HttpServer openIdMockServer = this.createOpenIdMockServer(CERTS_VALID);
+        openIdMockServer.listen(TestConfig.OPENID_PORT);
         JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("auth").put("enable", true);
         deployApiVerticle(context, config);
@@ -107,11 +119,13 @@ public class AuthTest {
                 .send(context.asyncAssertSuccess(res ->
                         context.assertEquals(401, res.statusCode())
                 ));
+        openIdMockServer.close(context.asyncAssertSuccess());
     }
 
     @Test
     public void testNoJWT(TestContext context) throws URISyntaxException {
-        this.createWellKnownFile(CERTS_VALID);
+        HttpServer openIdMockServer = this.createOpenIdMockServer(CERTS_VALID);
+        openIdMockServer.listen(TestConfig.OPENID_PORT);
         JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("auth").put("enable", true);
         deployApiVerticle(context, config);
@@ -120,11 +134,13 @@ public class AuthTest {
                 .send(context.asyncAssertSuccess(res ->
                         context.assertEquals(401, res.statusCode())
                 ));
+        openIdMockServer.close(context.asyncAssertSuccess());
     }
 
     @Test
     public void testCSRF(TestContext context) throws InterruptedException, URISyntaxException {
-        this.createWellKnownFile(CERTS_VALID);
+        HttpServer openIdMockServer = this.createOpenIdMockServer(CERTS_VALID);
+        openIdMockServer.listen(TestConfig.OPENID_PORT);
         JsonObject config = TestConfig.getApiConfig();
         config.getJsonObject("auth").put("enable", true);
         config.getJsonObject("csrf").put("enable", true);
@@ -146,6 +162,7 @@ public class AuthTest {
                                 context.assertEquals(404, csrfRes.statusCode());
                             }));
                 }));
+        openIdMockServer.close(context.asyncAssertSuccess());
     }
 
     private Optional<String> getCsrfCookie(List<String> cookies) {
@@ -184,5 +201,4 @@ public class AuthTest {
     public static void tearDown(TestContext context) {
         vertx.close(context.asyncAssertSuccess());
     }
-
 }
