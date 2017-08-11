@@ -69,23 +69,23 @@ public class JWKSAuthProviderImpl implements JWTAuth {
                 .ssl(wellKnownUrl.startsWith("https://") ? true : false)
                 .send(ar -> {
                     if (ar.succeeded()) {
-                        JsonObject response = ar.result().body().toJsonObject();
-                        this.parseAndStoreWellKnownFields(response);
+                        JsonObject response = ar.result().bodyAsJsonObject();
+                        this.parseAndStoreWellKnownFields(Optional.ofNullable(response));
                     } else {
                         LOG.error("Unable to retrieve well known fields from {}", wellKnownUrl, ar.cause());
                     }
                 });
     }
 
-    private void parseAndStoreWellKnownFields(JsonObject wellKnownFields) {
-        this.issuer = wellKnownFields.getString("issuer", "");
-        String jwksUri = wellKnownFields.getString("jwks_uri", "");
+    private void parseAndStoreWellKnownFields(Optional<JsonObject> wellKnownFields) {
+        this.issuer = wellKnownFields.orElseGet(JsonObject::new).getString("issuer", "");
+        String jwksUri = wellKnownFields.orElseGet(JsonObject::new).getString("jwks_uri", "");
         try {
             JwkProvider urlJwkProvider = new UrlJwkProvider(new URL(jwksUri));
             this.jwkProvider = Optional.of(new GuavaCachedJwkProvider(urlJwkProvider));
             LOG.info("Initializing Jwks Provider with jwks_uri: {}, issuer: {}", jwksUri, this.issuer);
         } catch (MalformedURLException e) {
-            LOG.error("Unable to create Jwk Provider on {}", jwksUri, e);
+            LOG.error("Unable to create Jwk Provider on '{}'", jwksUri, e);
         }
     }
 
@@ -101,16 +101,12 @@ public class JWKSAuthProviderImpl implements JWTAuth {
         // base64 decode and parse JSON
         byte[] decodedHeaderBytes = Base64.getUrlDecoder().decode(headerSeg.getBytes(StandardCharsets.UTF_8));
         JsonObject decodedHeader = new JsonObject(new String(decodedHeaderBytes, StandardCharsets.UTF_8));
-        String kid = decodedHeader.getString("kid");
-        if (kid == null) {
-            throw new RuntimeException("Missing 'kid' field in token header");
-        }
-        return kid;
+        return decodedHeader.getString("kid", "");
     }
 
     private JWT getJwt(String jwtToken) throws ExecutionException {
         String kid = this.getKid(jwtToken);
-        LOG.info("Retrieved kid {} from token", kid);
+        LOG.info("Retrieved kid '{}' from token", kid);
         return this.cache.get(kid, () -> {
             Jwk jwk = this.jwkProvider.orElseThrow(() -> new RuntimeException("JwkProvider not constructed")).get(kid);
             byte[] encodedPublicKey = jwk.getPublicKey().getEncoded();
