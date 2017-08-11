@@ -42,7 +42,7 @@ public class JWKSAuthProviderImpl implements JWTAuth {
     private final Cache<String, JWT> cache;
     private final String permissionsClaimKey;
     private final String clientId;
-    private Optional<JwkProvider> jwkProvider;
+    private Optional<JwkProvider> jwkProvider = Optional.empty();
     private String issuer;
 
     public JWKSAuthProviderImpl(Vertx vertx, ApiConfig.AuthConfig config) {
@@ -53,18 +53,18 @@ public class JWKSAuthProviderImpl implements JWTAuth {
 
         this.permissionsClaimKey = "permissions";
         this.clientId = config.getClientId();
-        this.getWellKnownFields(vertx, config.getWellKnownUrl());
+        this.loadWellKnownFields(vertx, config.getWellKnownUrl());
     }
 
-    private void getWellKnownFields(Vertx vertx, String wellKnownUrl) {
+    private void loadWellKnownFields(Vertx vertx, String wellKnownUrl) {
         if (wellKnownUrl.startsWith("http")) {
-            this.getWellKnownFieldsFromRemoteServer(vertx, wellKnownUrl);
+            this.loadWellKnownFieldsFromRemoteServer(vertx, wellKnownUrl);
         } else {
-            this.getWellKnownFieldsFromFile(vertx, wellKnownUrl);
+            this.loadWellKnownFieldsFromFile(vertx, wellKnownUrl);
         }
     }
 
-    private void getWellKnownFieldsFromFile(Vertx vertx, String wellKnownUrl) {
+    private void loadWellKnownFieldsFromFile(Vertx vertx, String wellKnownUrl) {
         vertx.fileSystem().readFile(wellKnownUrl, ar -> {
             if (ar.succeeded()) {
                 LOG.info("File ({}) content: {}", wellKnownUrl, ar.result());
@@ -76,7 +76,7 @@ public class JWKSAuthProviderImpl implements JWTAuth {
         });
     }
 
-    private void getWellKnownFieldsFromRemoteServer(Vertx vertx, String wellKnownUrl) {
+    private void loadWellKnownFieldsFromRemoteServer(Vertx vertx, String wellKnownUrl) {
         WebClientOptions options = new WebClientOptions();
         if (!"none".equalsIgnoreCase(PROXY_HOST)) {
             options.setProxyOptions(new ProxyOptions()
@@ -128,7 +128,9 @@ public class JWKSAuthProviderImpl implements JWTAuth {
         return kid;
     }
 
-    private JWT getJwt(String kid) throws ExecutionException {
+    private JWT getJwt(String jwtToken) throws ExecutionException {
+        String kid = this.getKid(jwtToken);
+        LOG.info("Retrieved kid {} from token", kid);
         return this.cache.get(kid, () -> {
             Jwk jwk = this.jwkProvider.orElseThrow(() -> new RuntimeException("JwkProvider not constructed")).get(kid);
             byte[] encodedPublicKey = jwk.getPublicKey().getEncoded();
@@ -143,9 +145,7 @@ public class JWKSAuthProviderImpl implements JWTAuth {
     public void authenticate(JsonObject authInfo, Handler<AsyncResult<User>> resultHandler) {
         try {
             String jwtToken = authInfo.getString("jwt");
-            String kid = this.getKid(jwtToken);
-            LOG.info("Retrieved kid from token {}", kid);
-            final JsonObject payload = this.getJwt(kid).decode(jwtToken);
+            final JsonObject payload = this.getJwt(jwtToken).decode(jwtToken);
 
             final JsonObject options = authInfo.getJsonObject("options", new JsonObject());
 
