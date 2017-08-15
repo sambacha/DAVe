@@ -83,8 +83,6 @@ public class ApiVerticle extends AbstractVerticle {
                 );
         secretConfig.getJsonObject("csrf", new JsonObject())
                 .put("secret", HIDDEN_CERTIFICATE);
-        secretConfig.getJsonObject("auth", new JsonObject())
-                .put("jwtPublicKey", HIDDEN_CERTIFICATE);
         return secretConfig;
     }
 
