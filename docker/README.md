@@ -56,5 +56,6 @@ Allows to configure logging parameters. Supported log levels are `off`, `error`,
 | `API_SSL_TRUST_CERTS` | List of trusted CA for SSL client authentication | |
 | `API_SSL_REQUIRE_CLIENT_AUTH` | Make SSL Client Authentication required | `1` |
 | `API_AUTH` | Enable authentication | `1` |
-| `API_AUTH_PUBLIC_KEY` | Public key for verification of received JWT tokens | |
+| `API_AUTH_CLIENT_ID` | Client ID for the OpenID backend| `dave-ui` |
+| `API_AUTH_WELL_KNOWN_URL` | URL of `.well-known/openid-configuration` endpoint of the OpenID backend | `https://auth.dave.dbg-devops.com/auth/realms/DAVe/.well-known/openid-configuration` |
 | `API_AUTH_PERMISSIONS_CLAIM_KEY` | Path to roles inside JWT token | `realm_access/roles` |

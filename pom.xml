@@ -18,6 +18,7 @@
     <vertx.guice.version>2.3.1</vertx.guice.version>
     <protobuf.grpc.version>3.2.0</protobuf.grpc.version>
     <protobuf.grpc.java.version>1.1.2</protobuf.grpc.java.version>
+    <jwks.rsa.version>0.1.0</jwks.rsa.version>
     <protobuf.maven.plugin.version>0.5.0</protobuf.maven.plugin.version>
     <os.maven.plugin.version>1.5.0.Final</os.maven.plugin.version>
     <build.helper.maven.plugin>1.12</build.helper.maven.plugin>
@@ -52,7 +53,6 @@
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web-client</artifactId>
       <version>${vertx.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
@@ -114,6 +114,11 @@
       <artifactId>netty-tcnative-boringssl-static</artifactId>
       <version>${netty.boringssl.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.auth0</groupId>
+      <artifactId>jwks-rsa</artifactId>
+      <version>${jwks.rsa.version}</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -149,6 +154,7 @@
               <api.port>${api.port}</api.port>
               <healthcheck.port>${healthcheck.port}</healthcheck.port>
               <storage.port>${storage.port}</storage.port>
+              <openid.port>${openid.port}</openid.port>
               <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
             </systemPropertyVariables>
           </configuration>
@@ -162,6 +168,7 @@
               <api.port>${api.port}</api.port>
               <healthcheck.port>${healthcheck.port}</healthcheck.port>
               <storage.port>${storage.port}</storage.port>
+              <openid.port>${openid.port}</openid.port>
               <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
               <logback.configurationFile>${project.basedir}/src/test/resources/logback.xml</logback.configurationFile>
             </systemPropertyVariables>
@@ -264,6 +271,7 @@
                 <portName>api.port</portName>
                 <portName>healthcheck.port</portName>
                 <portName>storage.port</portName>
+                <portName>openid.port</portName>
               </portNames>
             </configuration>
           </execution>

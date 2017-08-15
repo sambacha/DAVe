@@ -1,5 +1,6 @@
 package com.deutscheboerse.risk.dave;
 
+import com.deutscheboerse.risk.dave.auth.JWKSAuthProviderImpl;
 import com.deutscheboerse.risk.dave.config.ApiConfig;
 import com.deutscheboerse.risk.dave.healthcheck.HealthCheck;
 import com.deutscheboerse.risk.dave.persistence.PersistenceService;
@@ -187,12 +188,8 @@ public class ApiVerticle extends AbstractVerticle {
         if (config.getAuth().isEnable()) {
             LOG.info("Enabling authentication");
 
-            // Create a JWT Auth Provider
-            JsonObject jwtConfig = new JsonObject()
-                    .put("public-key", config.getAuth().getJwtPublicKey())
-                    .put("permissionsClaimKey", config.getAuth().getPermissionsClaimKey());
-            JWTAuth jwtAuthenticationProvider = JWTAuth.create(vertx, jwtConfig);
-            router.route(API_PREFIX+"/*").handler(JWTAuthHandler.create(jwtAuthenticationProvider));
+            JWTAuth jwksAuthenticationProvider = new JWKSAuthProviderImpl(vertx, config.getAuth());
+            router.route(API_PREFIX + "/*").handler(JWTAuthHandler.create(jwksAuthenticationProvider));
 
             router.route().handler(BodyHandler.create().setBodyLimit(MAX_BODY_SIZE));
             setCsrfHandler(router);

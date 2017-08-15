@@ -1,16 +1,21 @@
 package com.deutscheboerse.risk.dave.utils;
 
+import com.deutscheboerse.risk.dave.MainVerticleTest;
+import com.deutscheboerse.risk.dave.auth.JWKSAuthProviderImpl;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.SelfSignedCertificate;
 
+import java.nio.file.Paths;
+
 public class TestConfig {
 
     public static final int STORE_MANAGER_PORT = Integer.getInteger("storage.port", 8444);
     public static final int API_PORT = Integer.getInteger("api.port", 8443);
     public static final int HEALTHCHECK_PORT = Integer.getInteger("healthcheck.port", 8080);
+    public static final int OPENID_PORT = Integer.getInteger("openid.port", 8080);
     public static final SelfSignedCertificate HTTP_STORAGE_CERTIFICATE = SelfSignedCertificate.create("localhost");
     public static final SelfSignedCertificate HTTP_API_CERTIFICATE = SelfSignedCertificate.create("localhost");
     public static final SelfSignedCertificate HTTP_CLIENT_CERTIFICATE = SelfSignedCertificate.create("localhost");
@@ -50,8 +55,8 @@ public class TestConfig {
                         .put("secret", "DAVe-CSRF-Secret"))
                 .put("auth", new JsonObject()
                         .put("enable", false)
-                        .put("jwtPublicKey", "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA33TqqLR3eeUmDtHS89qF3p4MP7Wfqt2Zjj3lZjLjjCGDvwr9cJNlNDiuKboODgUiT4ZdPWbOiMAfDcDzlOxA04DDnEFGAf+kDQiNSe2ZtqC7bnIc8+KSG/qOGQIVaay4Ucr6ovDkykO5Hxn7OU7sJp9TP9H0JH8zMQA6YzijYH9LsupTerrY3U6zyihVEDXXOv08vBHk50BMFJbE9iwFwnxCsU5+UZUZYw87Uu0n4LPFS9BT8tUIvAfnRXIEWCha3KbFWmdZQZlyrFw0buUEf0YN3/Q0auBkdbDR/ES2PbgKTJdkjc/rEeM0TxvOUf7HuUNOhrtAVEN1D5uuxE1WSwIDAQAB")
-                        .put("permissionsClaimKey", "realm_access/roles"))
+                        .put("clientId", "dave-ui")
+                        .put("wellKnownUrl", "http://localhost:" + OPENID_PORT))
                 .put("compression", true);
     }
 
