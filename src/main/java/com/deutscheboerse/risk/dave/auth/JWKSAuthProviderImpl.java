@@ -106,7 +106,7 @@ public class JWKSAuthProviderImpl implements JWTAuth {
 
     private JWT getJwt(String jwtToken) throws ExecutionException {
         String kid = this.getKid(jwtToken);
-        LOG.info("Retrieved kid '{}' from token", kid);
+        LOG.debug("Retrieved kid '{}' from token", kid);
         return this.cache.get(kid, () -> {
             Jwk jwk = this.jwkProvider.orElseThrow(() -> new RuntimeException("JwkProvider not constructed")).get(kid);
             byte[] encodedPublicKey = jwk.getPublicKey().getEncoded();
