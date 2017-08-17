@@ -58,4 +58,3 @@ Allows to configure logging parameters. Supported log levels are `off`, `error`,
 | `API_AUTH` | Enable authentication | `1` |
 | `API_AUTH_CLIENT_ID` | Client ID for the OpenID backend| `dave-ui` |
 | `API_AUTH_WELL_KNOWN_URL` | URL of `.well-known/openid-configuration` endpoint of the OpenID backend | `https://auth.dave.dbg-devops.com/auth/realms/DAVe/.well-known/openid-configuration` |
-| `API_AUTH_PERMISSIONS_CLAIM_KEY` | Path to roles inside JWT token | `realm_access/roles` |
