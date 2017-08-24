@@ -87,6 +87,19 @@ The `csrf` subsection configures Cross-site request forgery (CSRF) protection. W
 | `enable` | Enable the CSRF handler | `true` |
 | `secret` | Configures the domain secret used to generate CSFR tokens | `61d77a85-276b-476a-8810-f8408b5cfa19` |
 
+### Health Check
+
+The `healthCheck` section contains configuration where the REST API for checking the health/readiness status of the
+microservice will be published.
+
+| Option | Explanation | Example |
+|--------|-------------|---------|
+| `port` | Port of the HTTP server hosting REST API | 8080 |
+
+The REST API provides two endpoints for checking the state using HTTP GET method:
+- /healthz
+- /readiness
+
 ## Run
 
 Use script `start.sh` to start the application.
