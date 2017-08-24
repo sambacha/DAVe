@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class MarginApi<T extends Model> {
     private static final Logger LOG = LoggerFactory.getLogger(MarginApi.class);
     private static final int HTTP_RESPONSE_CHUNK_SIZE = 100;
+    private static final String UNDERSCORE = "_";
 
     private final Vertx vertx;
     private String requestName;
@@ -75,6 +76,8 @@ public class MarginApi<T extends Model> {
     private JsonObject createParamsFromContext(RoutingContext routingContext) {
         final JsonObject result = new JsonObject();
         routingContext.request().params().entries()
+                .stream()
+                .filter(entry -> !UNDERSCORE.equals(entry.getKey()))
                 .forEach(entry -> {
                     final String parameterName = entry.getKey();
                     final String parameterValue = entry.getValue();

@@ -178,6 +178,33 @@ public class RestApiTest {
         async.awaitSuccess(30000);
     }
 
+    @Test
+    public void testUnderscoreParameter(TestContext context) {
+        JsonObject queryParams = DataHelper.getLastJsonFromFile(DataHelper.ACCOUNT_MARGIN_FOLDER, 1)
+                .orElseThrow(RuntimeException::new);
+
+        queryParams = retainJsonFields(queryParams, PositionReportModel.FIELD_DESCRIPTOR.getUniqueFields().keySet())
+                .put("_", "whatever");
+
+        JsonArray expectedResult = new JsonArray().add(ModelBuilder.buildAccountMarginFromJson(
+                new JsonObject().mergeIn(queryParams)
+                        .put("snapshotID", ModelBuilder.LATEST_SNAPSHOT_ID)
+                        .put("businessDate", ModelBuilder.BUSINESS_DATE)
+        ).toApplicationJson());
+
+        final Async async = context.async();
+        createSslRequest("/api/v1.0/am/latest", queryParams)
+                .send(context.asyncAssertSuccess(res -> {
+                    context.assertEquals(200, res.statusCode());
+
+                    JsonArray bd = res.body().toJsonArray();
+                    context.assertEquals(expectedResult, bd);
+                    async.complete();
+                }));
+
+        async.awaitSuccess(5000);
+    }
+
     private <T extends Model>
     void testCompleteUrl(TestContext context, String uri, RequestType requestType, String dataFolder,
                          FieldDescriptor fieldDescriptor,
