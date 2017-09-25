@@ -130,11 +130,6 @@ public class JWKSAuthProviderImpl implements JWTAuth {
             // the specified UTC date/time, ignoring leap seconds
             final long now = System.currentTimeMillis() / 1000;
 
-            if (!payload.getString("typ", "").equals("ID")) {
-                resultHandler.handle(Future.failedFuture("Wrong token type. id_token expected."));
-                return;
-            }
-
             if (payload.containsKey("exp") && !options.getBoolean("ignoreExpiration", false)) {
                 if (now >= payload.getLong("exp")) {
                     resultHandler.handle(Future.failedFuture("Expired JWT token: exp <= now"));
